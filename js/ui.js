@@ -530,7 +530,9 @@
       acts = expired ? '<div class="chat-acts"><small class="chat-exp">Trop tard, c\'est passé.</small></div>'
         : `<div class="chat-acts">${m.acts.map((a, k) => `<button class="btn sm ${k ? '' : 'green'}" data-act="chatAct" data-n="${esc(c.name)}" data-i="${i}" data-k="${k}">${a.label}</button>`).join('')}</div>`;
     }
-    return `<div class="bub in">${m.txt}</div>${extra}${acts}`;
+    // les anciens messages (avant la v22) ne disaient pas « la carte » : on corrige à l'affichage
+    const it = m.item && G.item(m.item), txt = it ? m.txt.replace(`« ${it.name} »`, G.what(it)) : m.txt;
+    return `<div class="bub in">${txt}</div>${extra}${acts}`;
   }
   let phoneApp = 'home';
   const phoneOpen = () => !!$('#phone-layer.on');
