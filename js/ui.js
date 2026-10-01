@@ -169,6 +169,7 @@
     const gift = $('#btn-gift'), dr = G.dailyReady();
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
+    $('.six-badge')?.classList.toggle('hidden', !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
   }
@@ -296,6 +297,12 @@
     if (key === tickerKey) return; tickerKey = key;
     const part = coins.map(c => { const h = s.crypto.hist[c.id], ref = h[Math.max(0, h.length - 60)], v = (s.crypto.prices[c.id] / ref - 1) * 100; return `<span>${c.sym} ${coinPx(s.crypto.prices[c.id])} <b class="${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v).toFixed(1).replace('.', ',')}%</b></span>`; }).join('');
     // on remplace seulement le texte : la position du défilement est gardée (pas de saut)
+    tickPending = part; if ($('#ticker .track')) return;
+    tickApply();
+  }
+  let tickPending = '';
+  function tickApply() {
+    const part = tickPending; if (!part) return; tickPending = '';
     let tr = $('#ticker .track'); if (!tr) { $('#ticker').innerHTML = '<div class="track"></div>'; tr = $('#ticker .track'); }
     const one = document.createElement('span'); one.innerHTML = part; one.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap'; tr.appendChild(one);
     const w = one.offsetWidth || 1, rep = Math.max(1, Math.ceil(($('#ticker').offsetWidth + 40) / w)); one.remove();
@@ -307,7 +314,9 @@
     const tr = document.querySelector('#ticker .track'), half = tr && tr.firstElementChild;
     if (half) {
       const dt = tickT ? Math.min(100, t - tickT) : 0, hw = half.offsetWidth;
-      tickX += dt * .025; if (hw > 0) tickX %= hw;
+      tickX += dt * .025;
+      // à chaque tour complet, on prend les nouveaux prix : le texte change au même endroit, sans saut
+      if (hw > 0 && tickX >= hw) { tickX -= hw; if (tickPending) tickApply(); }
       tr.style.transform = `translate3d(${-tickX.toFixed(2)}px,0,0)`;
     }
     tickT = t; requestAnimationFrame(tickLoop);
@@ -348,7 +357,7 @@
       const img = has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       return `<button class="bld ${locked ? 'locked' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
-        ${img}
+        ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
     }).join('');
     hydrateIcons(inner);
@@ -809,16 +818,20 @@
         ${ru && m.state === 'soon' ? `<p class="sx-rumor">🗞️ <b>Rumeur :</b> ${ru.txt} <em>Vrai ou faux ?</em></p>` : ''}
         <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
     };
+    const cur = G.sixCurDay();
     const days = [1, 2, 3, 4, 5].map(d => {
-      const L = ms.filter(m => m.day === d), open = G.sixDayOpen(d);
+      const L = ms.filter(m => m.day === d).sort((a, b) => a.kickoff - b.kickoff), open = G.sixDayOpen(d);
       if (!open) return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3><div class="sx-locked">🔒 S'ouvre quand la journée ${d - 1} est finie.<small>${L.map(m => `${T[m.h][0]} – ${T[m.a][0]}`).join('<br>')}</small></div>`;
+      if (d === cur) return `<div class="sx-today"><div class="sx-today-h"><b>🏉 Journée ${d} · en cours</b><small>${fDay(L[0].kickoff)}</small></div>${L.map(card).join('')}</div>`;
       return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`;
     }).join('');
     return head + `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> et <b>+${S.lingotPerGood} lingot</b>. Regarde la <b>forme</b> des équipes (V = victoire, N = nul, D = défaite) et leurs chances. Les rumeurs sont vraies… une fois sur deux.</p>${days}`;
   }
   const shortTeam = n => n.split(' ')[0];
   function openSix(tab) {
-    if (tab) sixTab = tab;
+    if (tab) sixTab = tab; else sixTab = 'pronos';
+    G.sixSeenNow(); renderHud();
+    setTimeout(() => { const d = $('#modal .sx-today'), b = $('#modal .sheet-body'); if (d && b) b.scrollTop = d.offsetTop - b.offsetTop - 8; }, 40);
     openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }], tab: sixTab,
       body: sixBody(), onTab: id => { sixTab = id; setBody(sixBody()); }, refresh: () => setBody(sixBody()) });
   }

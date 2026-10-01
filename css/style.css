@@ -1845,3 +1845,16 @@ h3.sec { margin: 18px 6px 10px; }
 #app .explain { padding: 8px 12px; background: #fff6e2; box-shadow: none; border-width: 2px; }
 #app .card.locked, #app .row.locked { background: #efe7da; }
 #app .skin-grid .card.on, #start .skin.sel { border-color: #2a1a10; background: #fff1b8; box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ffc933 inset; }
+
+/* chiffres à largeur fixe : le patrimoine et le bandeau ne bougent plus quand un chiffre change */
+#hud #worth, #ticker .track { font-variant-numeric: tabular-nums; }
+#app #hud #worth { min-width: 118px; justify-content: flex-end; }
+#app #hud #worth b { min-width: 64px; text-align: right; }
+/* panneau de l'événement : pastille, journée en cours mise en avant */
+#app .bld .six-badge { top: 4%; right: 2%; width: 24px; height: 24px; display: grid; place-items: center; font-size: 13px; animation: giftPulse 1.4s ease-in-out infinite; }
+#app .bld .six-badge.hidden { display: none; }
+#app .sx-today { margin: 6px 0 12px; padding: 8px 8px 0; border: 3px solid #2a1a10; border-radius: 18px; background: linear-gradient(#ffd96a, #ffb347); box-shadow: 0 3px 0 #2a1a10; }
+#app .sx-today-h { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 8px; }
+#app .sx-today-h b { font: 400 17px var(--title); color: #fff; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; }
+#app .sx-today-h small { font: 900 11px var(--text); color: #5a3400; }
+#app .sx-today .sx-match { margin-bottom: 8px; }

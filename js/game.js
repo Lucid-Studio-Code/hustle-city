@@ -597,7 +597,11 @@
   const sixTest = () => /tournoi-test/.test(location.hash);
   let sixBase = 0;
   function sixKick(i) {
-    if (!sixTest()) return Date.parse(D.SIX.matches[i][1]);
+    if (!sixTest()) {
+      const [day, iso] = D.SIX.matches[i];
+      if (!D.SIX.sim) return Date.parse(iso);
+      return Date.parse(D.SIX.sim + 'T00:00Z') + (day - 1) * 86400000 + Date.parse(iso) % 86400000;
+    }
     if (!sixBase) { try { sixBase = +sessionStorage.getItem('sixBase') || 0; } catch (e) {} if (!sixBase) { sixBase = now() + 120000; try { sessionStorage.setItem('sixBase', sixBase); } catch (e) {} } }
     return sixBase + i * 240000;
   }
@@ -693,6 +697,10 @@
     // après le tournoi, les cartes en édition limitée deviennent introuvables : leur cote grimpe
     if (sixPhase() === 'over' && !sixTest() && !st.sixRaised) { st.sixRaised = true; D.ITEMS.filter(i => i.event === 'six').forEach(i => { st.market.fair[i.id] = i.p0 * 2.2; }); }
   }
+  const sixBadge = () => sixPhase() !== 'over' && st.sixSeen !== today() || !!(sixSt().final && !sixSt().final.claimed);
+  function sixSeenNow() { st.sixSeen = today(); }
+  // la journée en cours : la première journée ouverte qui a encore un match à venir ou en direct
+  function sixCurDay() { const m = sixMatches().find(x => x.state !== 'done' && sixDayOpen(x.day)); return m ? m.day : 0; }
   function claimSix() {
     const S = sixSt(); if (!S.final || S.final.claimed) return { err: 'Rien à récupérer.' };
     const r = sixReward(S.final.rank); S.final.claimed = true; addLingots(r.lingots); st.boosters += r.boosters; addXp(50);
@@ -936,7 +944,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,

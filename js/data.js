@@ -28,7 +28,7 @@
     { id: 'balto',   name: 'Le Balto',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
     { id: 'club',    name: 'Le Club',             lvl: 4,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
-    { id: 'six',     name: 'Le Panneau', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
+    { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' }
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
@@ -208,7 +208,10 @@
   // Calqué sur le vrai calendrier du tournoi 2027 (heures en temps universel). Les équipes sont inventées : une par quartier.
   // Pronos gratuits (3 points par bon prono), classement avec d'autres joueurs, cartes en édition limitée dans les boosters.
   const SIX = {
-    name: 'Tournoi des 6 Quartiers', short: '6 Quartiers', img: 'crest-r', pts: 3, liveMin: 100, lingotPerGood: 1, cardChance: .35,
+    name: 'Tournoi des 6 Quartiers', short: '6 Quartiers', img: 'crest-r',
+    // simulation : si une date est indiquée, la journée 1 a lieu ce jour-là et les suivantes un jour après l'autre
+    // (mêmes heures que le vrai tournoi). Mettre null pour revenir au vrai calendrier 2027.
+    sim: '2026-10-02', pts: 3, liveMin: 100, lingotPerGood: 1, cardChance: .35,
     teams: [
       ['Trèfles du Marché',     87, '#1f9d55', '#ffffff', '☘️'],
       ['Roses du Port',         84, '#ffffff', '#d33a2c', '🌹'],
