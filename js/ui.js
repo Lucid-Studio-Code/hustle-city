@@ -201,6 +201,8 @@
     const list = L.sort((a, b) => a.price - b.price);
     return list[Math.floor(Date.now() / 120000) % list.length];
   }
+  // pastille « ! » : enlevée dès qu'on clique, elle revient au prochain lancement du jeu
+  let nextClicked = false;
   let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
   function renderNextBtn() {
     const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
@@ -209,7 +211,7 @@
     if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.it ? itemPic(n.it) : packArt(true); }
     btn.querySelector('b').innerHTML = short(n.price);
     // il brille seulement quelques secondes, quand Momo lance sa bulle (pas en continu)
-    btn.classList.toggle('glow', ready && $('#next-tip')?.classList.contains('on')); btn.querySelector('.badge').classList.toggle('hidden', !ready);
+    btn.classList.toggle('glow', ready && $('#next-tip')?.classList.contains('on')); btn.querySelector('.badge').classList.toggle('hidden', !ready || nextClicked);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
     if (ready && !nextWasReady || ready && Date.now() - tipLast > 180000) showNextTip(n);
     nextWasReady = ready;
@@ -221,6 +223,7 @@
     t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
   }
   function goNextBuy() {
+    nextClicked = true; $('#btn-next .badge')?.classList.add('hidden');
     $('#next-tip')?.classList.remove('on');
     const n = nextBuy(); if (!n) return;
     if (n.it) {
