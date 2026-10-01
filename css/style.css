@@ -1873,3 +1873,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app .rp-slot.sel, #app .room-obj.rp-sel { outline: 3px solid #45a8ec; outline-offset: 2px; }
 #app:has(#rplacer) .room-obj { cursor: grab; outline: 2px dashed rgba(230,57,70,.7); }
 #app:has(#rplacer) #scene-appart, #app:has(#rplacer) #scene-appart * { touch-action: none; }
+
+/* barre de placement compacte : une ligne, déplaçable (⇅), transparente pendant qu'on fait glisser */
+#app #rplacer { left: 6px; right: 6px; bottom: 92px; gap: 3px; padding: 5px 6px; border-radius: 12px; transition: opacity .15s; }
+#app #rplacer.top { bottom: auto; top: calc(var(--hud-b, 96px) + 4px); }
+#app #rplacer.ghost { opacity: .12; pointer-events: none; }
+#app #rplacer .rp-row { gap: 3px; }
+#app #rplacer .btn.xs { min-height: 28px; padding: 1px 8px 3px; font-size: 12px; }
+#app #rplacer .rp-sep { flex: 1; }
+#app #rplacer #rp-cur { text-align: center; font: 800 10.5px var(--text); color: #6a5a4a; }
