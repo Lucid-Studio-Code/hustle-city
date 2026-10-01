@@ -46,10 +46,12 @@
       'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
     shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes, des baskets et des montres de collection. Entre.',
       'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
+    six: enter('six', 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
+      'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
     club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Entre.',
       'Une soirée coûte l\'entrée, mais te fait gagner de l\'XP. Tu peux y rencontrer des contacts qui te proposent des <b>bons plans</b>. Sortir peut aussi devenir une habitude : un bonus, mais aussi un malus.', '[data-act=clubGo]')
   };
-  const BLD_ORDER = ['kiosque', 'bus', 'shop', 'casino', 'club'];
+  const BLD_ORDER = ['kiosque', 'bus', 'six', 'shop', 'casino', 'club'];
   const seen = () => (st().bldTuto = st().bldTuto || {});
 
   let idx = 0, timer = null, el = {}, STEPS = MAIN, bld = null;

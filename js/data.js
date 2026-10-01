@@ -28,6 +28,7 @@
     { id: 'balto',   name: 'Le Balto',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
     { id: 'club',    name: 'Le Club',             lvl: 4,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
+    { id: 'six',     name: 'Le Panneau', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' }
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
@@ -200,8 +201,42 @@
     { id: 'foot',     name: 'Ligue du Bitume',       sub: 'Écusson',  reward: { cash: 600, lingots: 10 } },
     { id: 'basket',   name: 'Street League',         sub: 'Écusson',  reward: { cash: 500, lingots: 8 } },
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
+    { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
     { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } }
   ];
+  // ---------------------------------------------------------------- événement : le Tournoi des 6 Quartiers (rugby)
+  // Calqué sur le vrai calendrier du tournoi 2027 (heures en temps universel). Les équipes sont inventées : une par quartier.
+  // Pronos gratuits (3 points par bon prono), classement avec d'autres joueurs, cartes en édition limitée dans les boosters.
+  const SIX = {
+    name: 'Tournoi des 6 Quartiers', short: '6 Quartiers', img: 'crest-r', pts: 3, liveMin: 100, lingotPerGood: 1, cardChance: .35,
+    teams: [
+      ['Trèfles du Marché',     87, '#1f9d55', '#ffffff', '☘️'],
+      ['Roses du Port',         84, '#ffffff', '#d33a2c', '🌹'],
+      ['Chardons de la Colline', 80, '#1b2a5c', '#a867e3', '🦔'],
+      ['Loups du Canal',        72, '#2f7fd0', '#ffffff', '🐺'],
+      ['Coqs de la Gare',       88, '#1b3a8c', '#e63946', '🐓'],
+      ['Dragons des Docks',     70, '#d33a2c', '#1f9d55', '🐉']
+    ],
+    // [journée, coup d'envoi (UTC), domicile, extérieur]
+    matches: [
+      [1, '2027-02-05T20:10Z', 0, 1], [1, '2027-02-06T14:10Z', 2, 3], [1, '2027-02-06T16:40Z', 4, 5],
+      [2, '2027-02-13T14:10Z', 3, 0], [2, '2027-02-13T16:40Z', 2, 5], [2, '2027-02-14T15:10Z', 1, 4],
+      [3, '2027-02-20T14:10Z', 5, 0], [3, '2027-02-20T16:40Z', 1, 3], [3, '2027-02-21T15:10Z', 4, 2],
+      [4, '2027-03-05T20:10Z', 2, 0], [4, '2027-03-06T14:10Z', 3, 4], [4, '2027-03-06T16:40Z', 5, 1],
+      [5, '2027-03-13T14:10Z', 3, 5], [5, '2027-03-13T16:40Z', 1, 2], [5, '2027-03-13T20:10Z', 0, 4]
+    ],
+    // classement final : récompenses selon la place
+    rewards: [{ top: 1, lingots: 60, boosters: 3 }, { top: 3, lingots: 35, boosters: 2 }, { top: 10, lingots: 20, boosters: 1 }, { top: 999, lingots: 8, boosters: 0 }],
+    // les autres joueurs du classement (en attendant un vrai classement en ligne) : pseudo et taux de bons pronos
+    rivals: [['Kenzo93', .66], ['LaFouine', .58], ['Mamadou_R', .62], ['Lina.b', .55], ['TiboRugby', .71], ['Sarah_lsc', .6], ['Yanis.zr', .52], ['Big_Moussa', .64],
+      ['Chloé77', .57], ['Nono_du_13', .5], ['K-Rim', .61], ['Jojo_la_frite', .48], ['Ines_dz', .63], ['Matteo.p', .56], ['Ryad', .59], ['Lucie_b', .54],
+      ['Djibril', .68], ['Momo_officiel', .53], ['Zoé.k', .6], ['Bilal95', .65], ['Emma_r', .51], ['Sofiane', .62], ['Léo_xv', .69], ['Nadia', .57]]
+  };
+  TEAMS.rugby = SIX.teams;
+  // cartes du tournoi : édition limitée, dans les boosters seulement pendant l'événement
+  SIX.teams.forEach((t, i) => ITEMS.push({ id: `k-r${i + 1}`, cat: 'card', series: 'rugby', event: 'six', noBuy: true, name: t[0], r: t[1] >= 86 ? 'E' : 'R',
+    p0: Math.round(CARD_P0[t[1] >= 86 ? 'E' : 'R'] * (0.85 + (t[1] % 7) / 20)), vol: .06, img: 'crest-r' + (i + 1), team: ['rugby', i] }));
+
   const BUY_MARKUP = .05, SELL_FEE = .10;
   // Rumeurs : de temps en temps, un objet s'envole ou s'effondre
   const RUMORS = [
@@ -372,6 +407,6 @@
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, TILT, HEALTH_COST,
-    LINGOT, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

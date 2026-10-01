@@ -1748,3 +1748,52 @@ h3.sec { margin: 18px 6px 10px; }
 #app #btn-upg.glow .upg-ic { animation: giftPulse 1.4s ease-in-out infinite; }
 #app .up-card .up-info > small { display: block; margin-bottom: 2px; }
 #app .up-card .up-room { width: 90px; height: 120px; border-radius: 12px; border: 2px solid #2a1a10; background-size: cover; background-position: center 30%; flex: 0 0 90px; }
+
+/* ---------- Tournoi des 6 Quartiers : panneau de la ville et fenêtre ---------- */
+#app .six-board { display: block; width: 100%; }
+#app .six-board svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }
+#app .six-hero { margin: 0 0 10px; padding: 10px 12px; border: 2px solid #2a1a10; border-radius: 16px; background: linear-gradient(#1b2a5c, #2c4590); box-shadow: 0 3px 0 #2a1a10; color: #fff; }
+#app .six-hero .sh-top { display: flex; align-items: center; gap: 10px; }
+#app .six-hero .sh-top .six-board { flex: 0 0 92px; width: 92px; }
+#app .six-hero .sh-top b { display: block; font: 400 20px/1.1 var(--title); }
+#app .six-hero .sh-top small { display: block; margin-top: 3px; font: 800 12px/1.3 var(--text); color: #d8e2ff; }
+#app .six-hero .sh-top strong { color: #ffd23f; }
+#app .six-hero .sh-chips { display: flex; gap: 6px; margin-top: 10px; }
+#app .six-hero .sh-chips span { flex: 1; padding: 5px 4px; border-radius: 12px; background: #fffdf6; border: 2px solid #2a1a10; text-align: center; color: #2a1a10; }
+#app .six-hero .sh-chips small { display: block; font: 900 10px var(--text); color: #7a5a3a; }
+#app .six-hero .sh-chips b { font: 400 20px var(--title); }
+#app .six-hero .sh-chips sup { font-size: 11px; }
+#app .sx-match { margin: 0 0 10px; padding: 8px 10px 10px; border: 2px solid #2a1a10; border-radius: 16px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; }
+#app .sx-match.live { box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #e63946 inset; }
+#app .sx-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; font: 800 11px var(--text); color: #7a6a5a; }
+#app .sx-res { font: 900 11px var(--text); color: #7a6a5a; text-align: right; }
+#app .sx-res.ok { color: #1f9d55; } #app .sx-res.ko { color: #c62828; } #app .sx-res.todo { color: #e08a00; }
+#app .sx-teams { display: flex; align-items: center; gap: 6px; margin: 6px 0 8px; }
+#app .sx-t { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+#app .sx-t.r { justify-content: flex-end; text-align: right; }
+#app .sx-t b { font: 400 14px/1.1 var(--title); color: #2a1a10; }
+#app .sx-t .crest { flex: 0 0 32px; width: 32px; height: 34px; }
+#app .sx-score { flex: 0 0 auto; padding: 2px 10px; border-radius: 10px; background: #2a1a10; color: #ffd23f; font: 400 18px var(--title); }
+#app .sx-picks { display: flex; gap: 6px; }
+#app .sx-pick { flex: 1; min-height: 34px; border: 2px solid #2a1a10; border-radius: 12px; background: #fff4dc; color: #2a1a10; font: 400 13px var(--title); box-shadow: 0 2px 0 #2a1a10; cursor: pointer; }
+#app .sx-pick.on { background: #45a8ec; color: #fff; -webkit-text-stroke: 2px #2a1a10; paint-order: stroke fill; }
+#app .sx-pick[disabled] { cursor: default; opacity: .75; box-shadow: none; }
+#app .sx-pick.on[disabled] { opacity: 1; }
+#app .sx-pick.win { outline: 3px solid #5fc73a; outline-offset: -1px; }
+#app .sx-match .live-dot { color: #e63946; }
+#app .six-board-list { border: 2px solid #2a1a10; border-radius: 16px; overflow: hidden; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; }
+#app .sb-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid #ead9bd; font: 800 13px var(--text); color: #2a1a10; }
+#app .sb-row:last-child { border-bottom: 0; }
+#app .sb-row.me { background: #d8f7c4; }
+#app .sb-rk { flex: 0 0 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #ffe27a; border: 2px solid #2a1a10; font: 400 13px var(--title); }
+#app .sb-nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app .sb-row b { font: 400 15px var(--title); }
+#app .sb-gap { text-align: center; color: #9a8a7a; font-weight: 900; }
+#app .six-rew { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#app .six-rew > div { padding: 8px; border: 2px solid #2a1a10; border-radius: 12px; background: #fffdf6; text-align: center; }
+#app .six-rew small { display: block; font: 900 11px var(--text); color: #7a5a3a; margin-bottom: 4px; }
+#app .six-cards .card { padding: 10px 6px; gap: 4px; display: flex; flex-direction: column; align-items: center; }
+#app .six-cards .crest { width: 64px; height: 70px; }
+#app .six-cards .missing .crest { filter: grayscale(1) opacity(.5); }
+#app .six-cards b { font: 400 14px var(--title); }
+#app .six-end { background: #fff6c8; }

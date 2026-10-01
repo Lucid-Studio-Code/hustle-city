@@ -44,10 +44,10 @@
   function itemPic(it) { return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon); }
   // écusson d'une équipe (ou portrait d'un joueur de tennis) ; à défaut d'image, un blason dessiné à ses couleurs
   function teamCrest(sport, i, cls = '') {
-    const t = D.TEAMS[sport][i], n = D.SPORTS[sport].img + (i + 1);
+    const t = D.TEAMS[sport][i], n = (D.SPORTS[sport] || D.SIX).img + (i + 1);
     if (has(n)) return `<span class="crest ${cls} ${sport}"><img src="${src(n)}" alt="" draggable="false"></span>`;
     const ini = t[0].replace(/^(FC|AS|US|Les|Stade|Racing|Sporting|Real|Inter|Dynamo|Atlético|Olympique)\s/i, '').split(/[\s.]+/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    return `<span class="crest ${cls} ${sport}"><svg viewBox="0 0 60 66"><path d="M30 3 L55 11 V33 C55 49 43 59 30 63 C17 59 5 49 5 33 V11 Z" fill="${t[2]}" stroke="#2a1a10" stroke-width="4"/><path d="M30 10 L48 16 V33 C48 45 40 52 30 56 Z" fill="${t[3]}" opacity=".85"/><text x="30" y="40" text-anchor="middle" font-family="Lilita One" font-size="20" fill="#fff" stroke="#2a1a10" stroke-width="3" paint-order="stroke">${ini}</text></svg></span>`;
+    return `<span class="crest ${cls} ${sport}"><svg viewBox="0 0 60 66"><path d="M30 3 L55 11 V33 C55 49 43 59 30 63 C17 59 5 49 5 33 V11 Z" fill="${t[2]}" stroke="#2a1a10" stroke-width="4"/><path d="M30 10 L48 16 V33 C48 45 40 52 30 56 Z" fill="${t[3]}" opacity=".85"/><text x="30" y="40" text-anchor="middle" font-family="Lilita One" font-size="${t[4] ? 24 : 20}" fill="#fff" stroke="#2a1a10" stroke-width="3" paint-order="stroke">${t[4] || ini}</text></svg></span>`;
   }
   const teamIdx = (sport, name) => D.TEAMS[sport].findIndex(t => t[0] === name);
   function coinIco(c) { return `<span class="cico" style="background:${c.color}">${has('coin-' + c.id) ? `<img src="${src('coin-' + c.id)}" alt="">` : c.sym}</span>`; }
@@ -318,7 +318,7 @@
   function focusTop() { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -cam.h * .06; clampCam(); applyCam(); }
   function focusMap(yPct) { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -(cam.h * yPct / 100 - map.clientHeight * .55); clampCam(); applyCam(); }
   // enseigne d'un lieu : couleur et picto propres à chaque endroit (le style d'ensemble se règle en CSS via data-sign sur #app)
-  const SIGN = { casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
+  const SIGN = { six: ['#e63946', 'star'], casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
   const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : ''}</span>`;
   function renderCity() {
     const s = st(), inner = $('#map-inner');
@@ -329,13 +329,22 @@
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
-      const img = has('bld-' + b.id) ? pic('bld-' + b.id) : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
+      const img = has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       return `<button class="bld ${locked ? 'locked' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
         ${img}
       </button>`;
     }).join('');
     hydrateIcons(inner);
+  }
+  // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
+  function sixBoardArt() {
+    const ph = G.sixPhase(), line = ph === 'before' ? 'BIENTÔT' : ph === 'on' ? 'EN COURS' : 'TERMINÉ';
+    return `<span class="six-board"><svg viewBox="0 0 160 130"><rect x="22" y="70" width="10" height="58" rx="3" fill="#6b4a2e" stroke="#2a1a10" stroke-width="3"/><rect x="128" y="70" width="10" height="58" rx="3" fill="#6b4a2e" stroke="#2a1a10" stroke-width="3"/>
+      <rect x="6" y="6" width="148" height="82" rx="12" fill="#1b2a5c" stroke="#2a1a10" stroke-width="4"/><rect x="13" y="13" width="134" height="68" rx="8" fill="#fffdf6" stroke="#2a1a10" stroke-width="2"/>
+      <ellipse cx="34" cy="47" rx="15" ry="10" fill="#c8743a" stroke="#2a1a10" stroke-width="2.5" transform="rotate(-30 34 47)"/><path d="M27 51 L41 43 M31 47 l2 3 M35 45 l2 3" stroke="#fff" stroke-width="1.8" fill="none" transform="rotate(0)"/>
+      <text x="96" y="33" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="15" fill="#1b2a5c">TOURNOI DES</text><text x="96" y="55" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="20" fill="#e63946">6 QUARTIERS</text>
+      <rect x="62" y="62" width="68" height="14" rx="7" fill="${ph === 'on' ? '#e63946' : ph === 'before' ? '#ffc933' : '#9a8a7a'}"/><text x="96" y="73" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="10" fill="#fff">${line}</text></svg></span>`;
   }
   function initPan() {
     const map = $('#map'); let drag = null, moved = 0;
@@ -381,6 +390,7 @@
     $('#pl-reset').onclick = () => { try { localStorage.removeItem('hustleCity.placer'); } catch (e) {} location.reload(); };
   }
   function openBuilding(id) {
+    if (id === 'six') return openSix();
     if (id === 'kiosque') return openKiosk();
     if (id === 'bus') return openBus();
     if (id === 'club' && st().lvl >= D.CLUB.lvl) return openClub();
@@ -566,7 +576,7 @@
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
   const appIcon = (a, cls = '') => `<i class="ph-ic ${cls}" style="--bg:${a.bg}">${has(a.img) ? `<img src="${src(a.img)}" alt="">` : a.emo}</i>`;
-  const EXTRA = { rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: '' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: '' } };
+  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: '' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: '' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: '' } };
   const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: '' });
   const notifs = () => (st().notifs = st().notifs || []);
   function notify(app, title, txt, act, quiet, thread, img) {
@@ -741,6 +751,51 @@
     if (tab) kioskTab = tab; boosterReveal = null;
     openModal({ title: 'Le Kiosque', icon: 'bld-kiosque', full: true, tabs: [{ id: 'news', label: 'Tuyaux du jour' }, { id: 'booster', label: 'Boosters' }], tab: kioskTab,
       body: kioskBody(), onTab: id => { kioskTab = id; boosterReveal = null; setBody(kioskBody()); }, refresh: () => setBody(kioskBody()) });
+  }
+
+  // ------------------------------------------------------------ Tournoi des 6 Quartiers : pronos gratuits, classement, cartes
+  let sixTab = 'pronos';
+  const fDay = t => new Date(t).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  const fHour = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  function untilTxt(ms) { const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24; return d >= 1 ? `${d} j ${h} h` : mmss(ms); }
+  function sixBody() {
+    const s = st(), S = D.SIX, ph = G.sixPhase(), ms = G.sixMatches(), pts = G.sixPoints(), rank = G.sixRank(), n = S.rivals.length + 1;
+    const next = ms.find(m => m.state === 'soon');
+    const head = `<div class="six-hero"><div class="sh-top">${sixBoardArt()}<div><b>${S.name}</b><small>${ph === 'before' ? `Coup d'envoi le ${fDay(G.sixKick(0))} · dans <strong>${untilTxt(G.sixKick(0) - Date.now())}</strong>` : ph === 'on' ? `En cours · journée ${(next || ms[ms.length - 1]).day} / 5` : 'Tournoi terminé'}${G.sixTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
+      <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
+    if (sixTab === 'board') {
+      const rows = G.sixBoard(), me = rows.find(r => r.me), top = rows.slice(0, 10);
+      const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${r.rank}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${r.pts} pts</b></div>`;
+      const fin = G.sixState().final;
+      return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
+        `<p class="hint-line">${S.pts} points par bon prono. Le classement compte les pronos de tous les joueurs du tournoi.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
+        <h3 class="sec">À la fin du tournoi</h3><div class="six-rew">${S.rewards.map((r, i) => `<div><small>${r.top === 1 ? '1<sup>er</sup>' : r.top === 999 ? 'Tous les autres' : `Top ${r.top}`}</small>${chips(0, r.lingots, r.boosters ? `<span class="need">${packArt(true)}${r.boosters}</span>` : '')}</div>`).join('')}</div>`;
+    }
+    if (sixTab === 'cards') {
+      const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
+      return head + `<p class="hint-line">Une série en <b>édition limitée</b> : ces cartes ne sortent des boosters que pendant le tournoi (environ 1 booster sur 3). Après, on ne peut plus en avoir : leur cote grimpe.</p>
+        <div class="explain center">${on ? '🃏 En ce moment dans les boosters !' : ph === 'before' ? 'Dans les boosters dès le début du tournoi.' : 'Plus dans les boosters : seulement d\'occasion, au Comptoir.'}</div>
+        <div class="grid2 six-cards">${cards.map(it => { const have = (s.owned[it.id] || []).length; return `<div class="card center ${have ? '' : 'missing'}">${itemPic(it)}<b>${it.name}</b><small class="muted">${have ? `Tu l'as · cote ${short(s.market.prices[it.id])}` : 'Pas encore'}</small></div>`; }).join('')}</div>
+        ${on ? '<button class="btn green wide" data-act="boosters">Ouvrir mes boosters</button>' : ''}`;
+    }
+    // pronos, journée par journée
+    const T = S.teams, lab = ['1', 'N', '2'];
+    const card = m => {
+      const btn = (p, txt) => `<button class="sx-pick ${m.pick === p ? 'on' : ''} ${m.state === 'done' && m.res === p ? 'win' : ''}" data-act="sixPick" data-i="${m.i}" data-p="${p}" ${m.state !== 'soon' ? 'disabled' : ''}>${txt}</button>`;
+      const st2 = m.state === 'soon' ? `${fDay(m.kickoff)} · ${fHour(m.kickoff)}` : m.state === 'live' ? '<span class="live-dot">●</span> En direct' : 'Terminé';
+      const res = m.state === 'done' ? (m.pick == null ? '<span class="sx-res">Pas de prono</span>' : m.ok ? `<span class="sx-res ok">✓ Bon prono : +${S.pts} pts, +${S.lingotPerGood} lingot</span>` : '<span class="sx-res ko">✗ Raté</span>') : m.state === 'soon' && m.pick == null ? '<span class="sx-res todo">À toi de jouer : choisis ton prono</span>' : '';
+      return `<div class="sx-match ${m.state}"><div class="sx-top"><small>${st2}</small>${res}</div>
+        <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<b>${T[m.h][0]}</b></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><b>${T[m.a][0]}</b>${teamCrest('rugby', m.a, 'mini')}</span></div>
+        <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
+    };
+    const days = [1, 2, 3, 4, 5].map(d => { const L = ms.filter(m => m.day === d); return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`; }).join('');
+    return head + `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> au classement et <b>+${S.lingotPerGood} lingot</b>. Les favoris gagnent souvent, mais pas toujours.</p>${days}`;
+  }
+  const shortTeam = n => n.split(' ')[0];
+  function openSix(tab) {
+    if (tab) sixTab = tab;
+    openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }], tab: sixTab,
+      body: sixBody(), onTab: id => { sixTab = id; setBody(sixBody()); }, refresh: () => setBody(sixBody()) });
   }
 
   // ------------------------------------------------------------ Le Comptoir (objets de collection)
@@ -1163,6 +1218,7 @@
     if (id === 'deal') return openPhone('msg');
     if (id === 'rig') { setScene('appart'); return openRig(); }
     if (id === 'gift') return openDaily();
+    if (id === 'six') { closeModal(); setScene('city'); focusBld('six'); return openSix('pronos'); }
   }
   // « Y aller » : mène à l'endroit où se fait la mission
   function questGo(go) {
@@ -1220,6 +1276,8 @@
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
     upgrades: () => openUpgrades(),
+    sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
+    sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); if (r.trophy) toast(`🏆 ${r.trophy.name} rejoint ton appart !`); refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) { toast('Les 3 défis du jour : 1 booster et 3 lingots en plus !', false, 'boosters'); rain('bill', 30); } refresh(); },
@@ -1264,7 +1322,7 @@
     phoneHome() { phoneApp = 'home'; drawPhone(); },
     phoneClose: () => closePhone(),
     phoneClear() { st().notifs = []; drawPhone(); renderPhoneBtn(); },
-    phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
+    phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift', six: 'six' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
     phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg') { phoneApp = id; drawPhone(); } else { closePhone(); phoneGo(id); } },
     chatOpen(el) { openChat(el.dataset.n); },
     chatAct(el) {
@@ -1340,6 +1398,9 @@
     }
     notify(n.txt.includes('effondre') ? 'crypto' : 'news', n.bad ? 'Ça baisse !' : 'Ça monte !', n.txt);
   });
+  G.on('sixRemind', m => notify('six', '🏉 Pense à ton prono', `${m.home} – ${m.away} commence bientôt. C'est gratuit !`));
+  G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} Tu es ${G.sixRank()}e au classement.`));
+  G.on('sixEnd', f => notify('six', '🏆 Tournoi terminé', `Tu finis ${f.rank}${f.rank === 1 ? 'er' : 'e'} ! Va récupérer ta récompense au Panneau, sur la place.`));
   G.on('trophy', it => { if (it) setTimeout(() => toast(`🏆 Trophée gagné : ${it.name}`), 600); });
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {

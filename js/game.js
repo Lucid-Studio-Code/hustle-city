@@ -577,6 +577,76 @@
     st.kiosk.tips[id] = { txt, t: now(), m: ref };
     stat('tips'); addXp(4 + st.lvl); emit('change'); return { txt };
   }
+  // ------------------------------------------------------------ Tournoi des 6 Quartiers (événement)
+  // Mode test : ajouter #tournoi-test à l'adresse du jeu → le tournoi démarre 2 min plus tard, un match toutes les 4 min.
+  const sixTest = () => /tournoi-test/.test(location.hash);
+  let sixBase = 0;
+  function sixKick(i) {
+    if (!sixTest()) return Date.parse(D.SIX.matches[i][1]);
+    if (!sixBase) { try { sixBase = +sessionStorage.getItem('sixBase') || 0; } catch (e) {} if (!sixBase) { sixBase = now() + 120000; try { sessionStorage.setItem('sixBase', sixBase); } catch (e) {} } }
+    return sixBase + i * 240000;
+  }
+  const sixLive = () => sixTest() ? 120000 : D.SIX.liveMin * 60000;
+  const sixSt = () => { const k = sixTest() ? 'sixTest' : 'six'; return st[k] = st[k] || { picks: {}, paid: {}, remind: {}, final: null }; };
+  // tirage déterministe : le même résultat pour tout le monde (prêt pour un vrai classement en ligne plus tard)
+  const seeded = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
+  const sixSalt = () => sixTest() ? 7 : 2027;
+  function sixResult(i) {
+    const [, , h, a] = D.SIX.matches[i], T = D.SIX.teams, salt = sixSalt();
+    const pH = 1 / (1 + Math.exp(-(T[h][1] - T[a][1] + 3) / 6));   // +3 : avantage du terrain
+    const r = seeded(i * 31 + salt), r2 = seeded(i * 57 + salt + 1), r3 = seeded(i * 83 + salt + 2);
+    const res = r < .03 ? 1 : (r - .03) / .97 < pH ? 0 : 2;          // ~3 % de matchs nuls, rares au rugby
+    const LOS = [3, 6, 7, 9, 10, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 24, 27], GAP = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 17, 18, 21, 24, 28];
+    const lo = LOS[Math.floor(r2 * LOS.length)], hi = lo + (res === 1 ? 0 : GAP[Math.floor(r3 * GAP.length)]);
+    return { res, sh: res === 2 ? lo : hi, sa: res === 2 ? hi : lo };
+  }
+  function sixMatch(i) {
+    const [day, , h, a] = D.SIX.matches[i], k = sixKick(i), t = now(), T = D.SIX.teams;
+    const state = t < k ? 'soon' : t < k + sixLive() ? 'live' : 'done';
+    const m = { i, day, h, a, home: T[h][0], away: T[a][0], kickoff: k, state, pick: sixSt().picks[i] };
+    if (state !== 'soon') {
+      const r = sixResult(i), f = state === 'done' ? 1 : Math.min(1, (t - k) / sixLive());
+      Object.assign(m, { res: r.res, sh: Math.round(r.sh * f), sa: Math.round(r.sa * f), f });
+      if (state === 'done') m.ok = m.pick == null ? null : m.pick === r.res;
+    }
+    return m;
+  }
+  const sixMatches = () => D.SIX.matches.map((x, i) => sixMatch(i));
+  function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
+  function sixPick(i, p) {
+    const m = sixMatch(i); if (m.state !== 'soon') return { err: 'Trop tard : le match a commencé.' };
+    sixSt().picks[i] = p; emit('change'); return { ok: true };
+  }
+  function sixPoints() { return sixMatches().reduce((a, m) => a + (m.ok ? D.SIX.pts : 0), 0); }
+  // les autres joueurs : chacun a son taux de bons pronos, tiré une fois pour toutes
+  function sixBoard() {
+    const salt = sixSalt(), done = sixMatches().filter(m => m.state === 'done');
+    const rows = D.SIX.rivals.map(([name, acc], b) => ({ name, pts: done.reduce((p, m) => p + (seeded(b * 101 + m.i * 7 + salt) < acc ? D.SIX.pts : 0), 0) }));
+    rows.push({ name: st.name, pts: sixPoints(), me: true });
+    rows.sort((x, y) => y.pts - x.pts || (x.me ? -1 : y.me ? 1 : 0));
+    rows.forEach(r => { r.rank = 1 + rows.filter(o => o.pts > r.pts).length; });
+    return rows;
+  }
+  const sixRank = () => sixBoard().find(r => r.me).rank;
+  const sixReward = rank => D.SIX.rewards.find(r => rank <= r.top);
+  const sixCardsOn = () => sixPhase() === 'on';
+  function simSix(offline) {
+    const S = sixSt();
+    sixMatches().forEach(m => {
+      // rappel une heure avant (4 min en test) si pas de prono
+      if (m.state === 'soon' && m.pick == null && !S.remind[m.i] && m.kickoff - now() < (sixTest() ? 180000 : 3600000)) { S.remind[m.i] = true; if (!offline) emit('sixRemind', m); }
+      if (m.state === 'done' && m.pick != null && !S.paid[m.i]) { S.paid[m.i] = true; if (m.ok) addLingots(D.SIX.lingotPerGood); emit('sixResult', m); }
+    });
+    if (sixPhase() === 'over' && !S.final) { const rank = sixRank(); S.final = { rank, claimed: false }; emit('sixEnd', S.final); }
+    // après le tournoi, les cartes en édition limitée deviennent introuvables : leur cote grimpe
+    if (sixPhase() === 'over' && !sixTest() && !st.sixRaised) { st.sixRaised = true; D.ITEMS.filter(i => i.event === 'six').forEach(i => { st.market.fair[i.id] = i.p0 * 2.2; }); }
+  }
+  function claimSix() {
+    const S = sixSt(); if (!S.final || S.final.claimed) return { err: 'Rien à récupérer.' };
+    const r = sixReward(S.final.rank); S.final.claimed = true; addLingots(r.lingots); st.boosters += r.boosters; addXp(50);
+    emit('change'); return { r, rank: S.final.rank };
+  }
+
   // ------------------------------------------------------------ boosters de cartes (comme Mama Kana)
   const dayNum = t => Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 86400000);
   const today = () => dayNum(now());
@@ -622,7 +692,10 @@
   }
   // carte de collection : une vraie carte avec une cote, rangée dans le classeur
   function collectionCard() {
-    const rar = pickW(D.BOOSTER.colWeights), all = D.ITEMS.filter(i => i.series && i.p0 <= D.BOOSTER.maxCard);
+    const rar = pickW(D.BOOSTER.colWeights);
+    // pendant le tournoi, une partie des boosters donne une carte en édition limitée
+    const ev = sixCardsOn() && Math.random() < D.SIX.cardChance;
+    const all = D.ITEMS.filter(i => i.series && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
@@ -791,6 +864,7 @@
     simRigBoost();
     simEvent(offline);
     simDeal(offline);
+    simSix(offline);
     simFriendTip(offline);
     stat('worth', Math.floor(worth()), true);
     if (!offline) checkBailout();
@@ -810,6 +884,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
+    sixMatches, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
