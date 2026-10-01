@@ -167,7 +167,7 @@
     $('#pill-lingots .plus').classList.toggle('ready', G.dailyReady());
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
-    const ub = $('#btn-upg'), canUp = !!G.upgradeReady(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !canUp);
+    const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
     // boutons du côté droit (comme Mama Kana) : Récompenses, Booster, Cadeau
     const rw = G.questsReady() + G.chalReady();
     $('#trophy .badge').classList.toggle('hidden', !rw); $('#trophy .badge').textContent = rw;
@@ -253,7 +253,7 @@
         <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
         <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
       : `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>`;
-    return `<p class="hint-line">Ton matos. En vert : tu as de quoi te le payer.</p>${rig}${pcCard}${flat}`;
+    return `<p class="hint-line">Ton matos. En vert : tu as de quoi te le payer. Sinon tu peux compléter avec des lingots, ou payer avec ton patrimoine (on revend tes cryptos, puis tes objets).</p>${rig}${pcCard}${flat}`;
   }
   function openUpgrades() { openModal({ title: 'Matos', icon: 'star', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
 
@@ -621,9 +621,18 @@
   // ------------------------------------------------------------ machine à crypto
   // il manque un peu de cash ? on complète avec des lingots (1 lingot = 20 billets)
   function mixBtn(price, act) {
-    const s = st(), n = G.lingotsFor(price);
-    if (!n || n > s.lingots) return '';
-    return `<button class="btn gold wide" style="margin-top:6px" data-act="${act}">Compléter avec ${ic('lingot')}${n}</button><p class="hint-line center" style="margin:4px 0 0">Il te manque ${short(price - s.cash)} : 1 lingot vaut ${D.LINGOT.rate}<i class="cur"></i>.</p>`;
+    const s = st(), n = G.lingotsFor(price), kind = { rigUpL: 'rig', pcUpL: 'pc', roomUpL: 'room' }[act];
+    const pat = s.cash < price && G.liquidPlan(price).ok ? `<button class="btn purple wide" style="margin-top:6px" data-act="patPay" data-k="${kind}">Payer avec ton patrimoine</button>` : '';
+    if (!n || n > s.lingots) return pat;
+    return `<button class="btn gold wide" style="margin-top:6px" data-act="${act}">Compléter avec ${ic('lingot')}${n}</button><p class="hint-line center" style="margin:4px 0 0">Il te manque ${short(price - s.cash)} : 1 lingot vaut ${D.LINGOT.rate}<i class="cur"></i>.</p>` + pat;
+  }
+  // payer avec son patrimoine : on montre ce qui va être revendu, avec gagné/perdu, avant de confirmer
+  function openPatPay(k) {
+    const price = G.upPrice(k), pl = G.liquidPlan(price), name = { rig: 'la nouvelle machine', pc: 'le nouveau PC', room: 'le déménagement' }[k];
+    const rows = pl.steps.map(x => { const d = x.get - x.cost; return `<div class="pat-row"><span>${x.kind === 'coin' ? (x.frac >= .99 ? 'Tout ton' : `${Math.round(x.frac * 100)} % de ton`) + ' ' + x.name : x.name}</span><b>+${short(x.get)}</b><small class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? 'gagné' : 'perdu'} ${short(Math.abs(d))}</small></div>`; }).join('');
+    openModal({ title: 'Payer avec ton patrimoine', icon: 'wallet', center: true, body: `<p class="hint-line">Pour payer ${name} (${short(price)}), il te manque <b>${short(pl.need)}</b>. On revend :</p>
+      <div class="card pat-list">${rows}</div><p class="hint-line">Ce qui est revendu ne pourra plus monter. Réfléchis : vendre au mauvais moment, c'est perdre.</p>
+      <div class="grid2"><button class="btn" data-act="upgrades">Annuler</button><button class="btn purple" data-act="patGo" data-k="${k}">Vendre et payer</button></div>` });
   }
   function openRig() {
     const body = () => {
@@ -1387,6 +1396,10 @@
     nextBuy: () => goNextBuy(),
     upgrades: () => openUpgrades(),
     roomPlace: () => roomPlacer(true),
+    patPay: el => openPatPay(el.dataset.k),
+    patGo(el) { const k = el.dataset.k, r = G.liquidate(G.upPrice(k)); if (r.err) return toast(r.err, true);
+      const u = k === 'rig' ? G.rigUpgrade() : k === 'pc' ? G.pcUpgrade() : G.roomUpgrade(); if (u.err) return toast(u.err, true);
+      sfx.win(); rain('confetti', 24); openUpgrades(); renderHud(); },
     evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
     evUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); renderCity(); renderHud(); },
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },

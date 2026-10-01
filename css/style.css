@@ -1905,3 +1905,10 @@ h3.sec { margin: 18px 6px 10px; }
 /* décos posées dans la ville */
 #app .ev-deco { position: absolute; transform: translate(-50%, -100%); z-index: 1; pointer-events: none; display: grid; place-items: center; }
 #app .ev-deco i { font-style: normal; font-size: clamp(22px, 7vw, 40px); line-height: 1; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }
+
+#app .pat-list { padding: 4px 12px; }
+#app .pat-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px solid #ead9bd; font: 800 13px var(--text); }
+#app .pat-row:last-child { border-bottom: 0; }
+#app .pat-row span { flex: 1; }
+#app .pat-row b { font: 400 15px var(--title); }
+#app .pat-row small { font: 800 11px var(--text); min-width: 70px; text-align: right; }

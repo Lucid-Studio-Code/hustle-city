@@ -191,6 +191,28 @@
     return v <= .006 ? { n: 1, label: 'Tranquille', desc: 'Bouge peu. Pour débuter.' } : v <= .012 ? { n: 2, label: 'Ça bouge', desc: 'Monte et descend plus vite.' }
       : v <= .02 ? { n: 3, label: 'Montagnes russes', desc: 'Peut faire +30 % ou −30 % en peu de temps.' } : { n: 4, label: 'Casino', desc: 'Peut s\'effondrer d\'un coup. Ne mise que ce que tu peux perdre.' };
   }
+  // payer avec son patrimoine : on revend d'abord des cryptos (la plus grosse d'abord), puis des objets (les moins chers d'abord)
+  function liquidPlan(price) {
+    let need = Math.max(0, price - st.cash); const steps = [];
+    if (need <= 0) return { steps, ok: true, need: 0 };
+    const total = need;
+    D.COINS.map(c => ({ c, v: st.crypto.hold[c.id] * st.crypto.prices[c.id] * (1 - fee()) })).filter(x => x.v >= .01).sort((a, b) => b.v - a.v).forEach(({ c, v }) => {
+      if (need <= 0) return; const frac = Math.min(1, need / v * 1.01 + .0001), get = Math.floor(v * frac * 100) / 100;
+      steps.push({ kind: 'coin', id: c.id, name: c.name, frac, get, cost: st.crypto.cost[c.id] * frac }); need -= get;
+    });
+    Object.keys(st.owned).filter(id => st.owned[id].length && item(id).cat !== 'trophy').map(id => ({ id, v: sellPrice(id) })).sort((a, b) => a.v - b.v).forEach(({ id, v }) => {
+      if (need <= 0) return; steps.push({ kind: 'item', id, name: what(item(id), true), get: v, cost: st.owned[id][0].paid }); need -= v;
+    });
+    return { steps, ok: need <= 0, need: total };
+  }
+  function liquidate(price) {
+    const pl = liquidPlan(price); if (!pl.ok) return { err: 'Même en vendant tout, ça ne suffit pas.' };
+    pl.steps.forEach(x => x.kind === 'coin' ? sellCrypto(x.id, Math.min(1, x.frac)) : sellItem(x.id));
+    return st.cash >= price ? { ok: true } : { err: 'Il manque encore un peu : les prix ont bougé.' };
+  }
+  const upPrice = k => k === 'rig' ? (rigNext() || {}).price : k === 'pc' ? (pcNext() || {}).price : D.ROOMS[st.room + 1] && cost(D.ROOMS[st.room + 1].cost);
+  // payable avec tout ce qu'on a (cash + cryptos + objets) ?
+  function upgradeReachable() { return ['pc', 'rig', 'room'].some(k => upPrice(k) && liquidPlan(upPrice(k)).ok); }
   // une amélioration de l'appart (machine ou déménagement) que le joueur peut se payer maintenant
   const pcLvl = () => Math.min(st.pc || 0, D.PCS.length - 1);
   function fee() { return D.PCS[pcLvl()].fee; }
@@ -966,7 +988,7 @@
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     evOwned, evBuy, evUse, evUsed, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
-    item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
+    item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,
