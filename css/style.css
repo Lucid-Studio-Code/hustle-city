@@ -484,7 +484,11 @@ h3.sec { margin: 18px 6px 10px; }
 .room-head { top: auto; bottom: 12px; z-index: 4; flex-direction: column-reverse; }
 /* cadrage de la chambre : on montre toujours de ~20 % (étagères) jusqu'en bas, quel que soit l'écran */
 #scene-appart { background: #1b1433; }
-.room-stage { width: auto; height: calc(100cqh / .8); aspect-ratio: 9 / 16; left: 50%; bottom: 0; top: auto; transform: translateX(-50%); }
+/* toujours toute la largeur (plus de bandes sur les côtés) ; le bas de la chambre reste calé en bas */
+.room-stage { width: max(100cqw, calc(100cqh / .8 * 9 / 16)); height: auto; aspect-ratio: 9 / 16; left: 50%; bottom: 0; top: auto; transform: translateX(-50%); }
+/* le « ? » de l'appart se range à côté du nom de la chambre */
+#app .room-head .rt-row { display: flex; align-items: center; gap: 8px; }
+#app .room-head .help-pin { position: static; flex: 0 0 34px; }
 
 /* =====================================================================
    Système d'interface repris de Mama Kana Farm (version finale)

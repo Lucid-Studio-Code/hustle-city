@@ -182,12 +182,12 @@
     bClear() { slip = []; U.setBody(body()); },
     bStake(el) { stake = +el.dataset.v; U.setBody(body()); },
     bSport(el) { sport = el.dataset.id; U.setBody(body()); },
-    bLocked(el) { U.toast(`${D.SPORTS[el.dataset.id].name} : paris au niveau ${D.SPORTS[el.dataset.id].lvl}.`); },
+    bLocked() {},
     bPlace(el) {
       const free = useFree && st().freebets.length;
       if (!free) stake = parseInt(document.getElementById('b-stake').value, 10) || 0;
       const r = G.placeBet(slip, stake, free); if (r.err) return U.toast(r.err, true);
-      U.sfx.coin(); U.toast(`Ticket validé${free ? ' (pari gratuit)' : ` : ${U.eur(stake)}`} à ${fmtOdd(r.odds)}. Suis-le dans « Mes paris ».`, false, 'mybets');
+      U.sfx.coin();
       if (!free) U.floatTxt(`−${U.eur(stake)}`, null, null, true);
       slip = []; useFree = false; U.setBody(body()); U.refresh();
     }

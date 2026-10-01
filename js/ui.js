@@ -341,7 +341,7 @@
     if (id === 'bus') return openBus();
     if (id === 'club' && st().lvl >= D.CLUB.lvl) return openClub();
     const b = D.BUILDINGS.find(x => x.id === id);
-    if (st().lvl < b.lvl) return toast(`${b.name} ouvre au niveau ${b.lvl}. ${b.tag}.`);
+    if (st().lvl < b.lvl) return;   // la plaque du bâtiment affiche déjà le niveau
     if (id === 'appart') return setScene('appart');
     if (id === 'balto') return window.BALTO.open();
     if (id === 'casino') return window.CASINO.open();
@@ -400,9 +400,8 @@
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
         ${rigUp}
       </div>
-      <button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button>
       <div class="room-head">
-        <div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div>
+        <div class="rt-row"><div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div><button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button></div>
         ${roomUp}
       </div>`;
   }
@@ -1157,23 +1156,23 @@
     rig: () => openRig(),
     rigUpOpen: () => { openRig(); setTimeout(() => { const c = $('#modal .up-card'), b = $('#modal .sheet-body'); if (c && b) b.scrollTop = c.offsetTop - b.offsetTop - 40; }, 30); },
     room: () => openRoom(),
-    roomUp() { const r = G.roomUpgrade(); if (r.err) return toast(r.err, true); rain('confetti'); toast(`Bienvenue dans ton ${D.ROOMS[st().room].name.toLowerCase()} !`); closeModal(); renderAppart(); },
+    roomUp() { const r = G.roomUpgrade(); if (r.err) return toast(r.err, true); rain('confetti'); closeModal(); renderAppart(); },
     rigCollect(el) { const r = G.rigCollect(el.dataset.mode || 'keep'); if (r.err) return toast(r.err, true); rigDone(r, el); },
     rigQuick(el, e) { e.stopPropagation(); const r = G.rigCollect('sell'); if (r.err) return toast(r.err, true); rigDone(r, el); },
     roomHelp: () => openRoomHelp(),
     wSellCoin(el) { cryptoSel = el.dataset.id; sellCoin(1); },
     collectionInfo: () => openWallet(),
     coinBack() { cryptoView = 'list'; setBody(cryptoBody()); },
-    rigUpL() { const r = G.rigUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti', 18); toast('Nouvelle machine installée !'); refresh(); },
-    roomUpL() { const r = G.roomUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti'); toast(`Bienvenue dans ton ${D.ROOMS[st().room].name.toLowerCase()} !`); closeModal(); closePhone(); setScene('appart'); },
-    rigUp() { const r = G.rigUpgrade(); if (r.err) return toast(r.err, true); rain('confetti', 18); toast('Nouvelle machine installée !'); refresh(); },
+    rigUpL() { const r = G.rigUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
+    roomUpL() { const r = G.roomUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti'); closeModal(); closePhone(); setScene('appart'); },
+    rigUp() { const r = G.rigUpgrade(); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
     coinSel: el => { cryptoSel = el.dataset.id; cryptoView = 'coin'; crAmt = null; setBody(cryptoBody()); $('#modal .sheet-body').scrollTop = 0; },
     goCoin: el => { closeModal(); setScene('appart'); openCrypto(el.dataset.id); },
     crAmt(el) { crAmt = el.dataset.v === 'max' ? Math.floor(st().cash * 100) / 100 : +el.dataset.v; setBody(cryptoBody()); },
-    crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Tu as investi ${eur(v)} dans ${G.coin(cryptoSel).name}. Sa valeur va bouger : reviens voir si ça monte.`); crAmt = null; refresh(); },
+    crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
-    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); toast(`Acheté ${eur(r.p)}. Il est chez toi.`); refresh(); },
+    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),
     wallet: () => openWallet(),
@@ -1189,16 +1188,16 @@
     boosters: () => openBoosters('open'),
     collection: () => openBoosters('col'),
     boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); packOpening(r.cards); renderHud(); },
-    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); toast('Booster acheté ! Ouvre-le.'); refresh(); },
+    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     packDone() { const el = $('#pack'); el.className = ''; el.innerHTML = ''; refresh(); nextPending(); },
     goDefis: () => openRewards('defis'),
     claimSeries(el) { const r = G.claimSeries(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('bill', 40); toast(`Série « ${r.se.name} » complète : +${eur(r.se.reward.cash)} et ${r.se.reward.lingots} lingots !`); refresh(); },
     cardZoom: el => cardZoom(el.dataset.id),
     czClose: () => closeZoom(),
-    czSell(el) { const id = el.dataset.id, r = G.sellItem(id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Carte revendue ${eur(r.p)}`); closeZoom(); refresh(); },
+    czSell(el) { const id = el.dataset.id, r = G.sellItem(id); if (r.err) return toast(r.err, true); sfx.coin(); closeZoom(); refresh(); },
     deal: () => openPhone('msg'),
-    dealOk() { const r = G.acceptDeal(); if (r.err) return toast(r.err, true); sfx.win(); if (phoneOpen()) drawPhone(); else closeModal(); toast(r.d.type === 'sell' ? `Affaire conclue : ${G.item(r.d.id).name} est chez toi.` : `Vendu ${eur(r.d.price)} à ${r.d.name}. Joli coup.`); refresh(); },
-    dealNo() { G.refuseDeal(); if (phoneOpen()) drawPhone(); else closeModal(); toast('Tant pis, une autre fois.'); renderHud(); },
+    dealOk() { const r = G.acceptDeal(); if (r.err) return toast(r.err, true); sfx.win(); if (phoneOpen()) drawPhone(); else closeModal(); refresh(); },
+    dealNo() { G.refuseDeal(); if (phoneOpen()) drawPhone(); else closeModal(); renderHud(); },
     eventInfo() { const ev = G.eventNow(); if (!ev) return; openModal({ title: ev.name, icon: ev.icon, center: true, body: `<p class="center">${ev.desc}</p><p class="center muted">Encore ${mmss(G.eventLeft())}.</p><button class="btn green wide" data-act="eventGo">J'y vais</button>` }); },
     eventGo() { const ev = G.eventNow(); closeModal(); if (!ev) return; questGo({ xp: 'balto', boost: 'balto', rig: 'rig', sale: 'shop' }[ev.id]); },
     freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Balto, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoBalto">Au Balto</button>` }); },
@@ -1213,12 +1212,12 @@
     tutoAgain() { closeModal(); setScene('city'); st().tutoStep = 0; window.TUTO.start(0); },
     resetAsk() { openModal({ title: 'Recommencer', center: true, body: '<p class="center">Tout ton argent, tes cryptos et tes objets seront effacés.</p><button class="btn red wide" data-act="resetGo">Tout effacer</button>' }); },
     resetGo() { G.reset(); location.reload(); },
-    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm, txt = `${w[0]} <b>Météo du marché : ${w[1]}.</b> ${w[2]} Elle change toutes les 20 min et fait bouger toutes les cryptos en même temps.`; if (modalOpen()) return toast(txt); openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div><p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
+    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm; if (modalOpen()) return; openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div><p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
     mybets: () => window.BALTO.openMyBets(),
-    kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); toast('📰 Tout frais : le nouveau journal est sorti !'); refresh(); },
-    kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); toast('📰 Tuyau acheté en lingots. Lis bien…'); refresh(); },
-    kTip(el) { const r = G.buyTip(el.dataset.id); if (r.err) return toast(r.err, true); toast('📰 Tuyau acheté. Lis bien…'); refresh(); },
-    kBooster() { const r = G.buyBoosterCash(); if (r.err) return toast(r.err, true); sfx.coin(); toast('Booster acheté ! Ouvre-le maintenant.'); setBody(kioskBody()); renderHud(); },
+    kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
+    kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); refresh(); },
+    kTip(el) { const r = G.buyTip(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
+    kBooster() { const r = G.buyBoosterCash(); if (r.err) return toast(r.err, true); sfx.coin(); setBody(kioskBody()); renderHud(); },
     habits: () => openHabits(),
     phone: () => openPhone(),
     phoneHome() { phoneApp = 'home'; drawPhone(); },
@@ -1245,13 +1244,12 @@
     },
     clubGo(el) { const r = G.clubNight(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
     clubVip(el) { const r = G.clubNight(true); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
-    habitStart(el) { const r = G.startHabit(el.dataset.id); if (r.err) return toast(r.err, true); const h = G.habit(el.dataset.id); toast(`${h.icon} ${h.name} : c'est parti. Bonus actif, malus aussi.`); refresh(); },
-    habitQuit(el) { const r = G.quitHabit(el.dataset.id); if (r.err) return toast(r.err, true); toast(`Sevrage lancé : ${D.QUIT_H} h à tenir.`); refresh(); }
+    habitStart(el) { const r = G.startHabit(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
+    habitQuit(el) { const r = G.quitHabit(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); }
   };
   function rigDone(r, el) {
     sfx.coin(); floatTxt(`+${eur(r.eur)}`);
-    if (r.mode === 'sell') { flyTo(el, '#pill-cash'); toast(`+${eur(r.cash)} encaissés. ${r.restarted ? 'La machine refroidit et repart.' : 'Elle continue de tourner.'}`); }
-    else toast(`Tu gardes ${eur(r.eur)} d'Axion. Tu les retrouves dans ton PC : leur valeur suit le cours.`);
+    if (r.mode === 'sell') flyTo(el, '#pill-cash');
     refresh();
   }
   function sellCoin(frac) { const c = G.coin(cryptoSel), r = G.sellCrypto(cryptoSel, frac); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu : tu récupères ${eur(r.net)}, soit <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : tu récupères ${eur(r.net)}. Tu as <b>perdu ${eur(-r.profit)}</b> sur ${c.name}.`, r.profit < 0); refresh(); }

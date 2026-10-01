@@ -171,7 +171,7 @@
     scrAgain: () => buy(ticket.t.id),
     scrReveal() { if (!ticket) return; ticket.g.cases.forEach((_, i) => { if (!ticket.open.has(i)) { ticket.open.add(i); } }); document.querySelectorAll('#modal .tk-game canvas').forEach(c => c.classList.add('gone')); finish(); },
     scrBack() { ticket = null; U.setBody(body()); },
-    scrLocked(el) { const t = D.SCRATCH.find(x => x.id === el.dataset.id); U.toast(`${t.name} : en vente au niveau ${t.lvl}.`); }
+    scrLocked() {}
   });
   // quitter le Balto avec un ticket entamé : il est gratté automatiquement (on ne perd pas son gain)
   function close() { if (ticket && !ticket.done) { ticket.open = new Set(ticket.g.cases.map((_, i) => i)); finish(); } ticket = null; }
