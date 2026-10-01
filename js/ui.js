@@ -663,7 +663,7 @@
           const mine = (s.owned[it.id] || []).length, h = s.market.hist[it.id];
           const canBuy = G.catUnlocked(it.cat);
           return `<div class="news-card ${x.up ? 'up' : 'down'}"><span class="nc-arrow">${x.up ? '▲' : '▼'}</span>
-            <div class="nc-top"><span class="nc-pic">${itemPic(it)}</span><div class="nc-txt"><small>${x.tip ? 'Un pote t\'a prévenu' : x.up ? 'Ça monte' : 'Ça chute'} · ${ago(x.t)}</small><b>${esc(x.txt.replace(/^Pause clope : /, ''))}</b>
+            <div class="nc-top"><span class="nc-pic">${itemPic(it)}</span><div class="nc-txt"><small>${x.tip ? 'Un pote t\'a prévenu' : x.up ? 'Ça monte' : 'Ça chute'} · ${ago(x.t)}</small><b>${esc(x.txt.replace(/^Pause clope : (.)/, (_, c) => c.toUpperCase()))}</b>
             <span class="nc-px">Prix du jour ${short(s.market.prices[it.id])} ${trend(s.market.prices[it.id], h[Math.max(0, h.length - 30)])}</span></div></div>
             <div class="nc-acts">${canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}
               ${mine ? `<button class="btn red sm" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>` : ''}</div></div>`;
@@ -1170,7 +1170,7 @@
         return drawPhone();
       }
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
-      if (a.act === 'shop') { closePhone(); const it = G.item(a.id); return it.noBuy ? openBoosters('col') : st().lvl >= 2 ? openShop(it.cat) : toast('Le Comptoir ouvre au niveau 2.'); }
+      if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news') : toast('Le Comptoir ouvre au niveau 2.'); }
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
       drawPhone();
     },
