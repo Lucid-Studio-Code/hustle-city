@@ -176,16 +176,9 @@
 
   // ------------------------------------------------------------ bouton « prochain achat » : l'image de la prochaine amélioration utile
   // on propose la moins chère entre la machine suivante et l'appart suivant ; Momo prévient quand on peut se la payer
+  // ce qui fait avancer, hors « Matos » (qui a son propre bouton) : une carte pour finir une série, un objet qu'une rumeur fait monter, un booster
   function nextBuy() {
-    const s = st(), L = [], nx = G.rigNext(), nr = D.ROOMS[s.room + 1];
-    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
-    if (nx) L.push({ kind: 'rig', img: has('minerv-' + (s.rig.lvl + 1)) ? 'minerv-' + (s.rig.lvl + 1) : 'rig-' + (s.rig.lvl + 1), name: nx.nx.name, price: nx.price,
-      why: `Ta machine rapportera ×${nx.mult.toFixed(1).replace('.', ',')} plus.` });
-    const pn = G.pcNext();
-    if (pn) L.push({ kind: 'pc', img: has('pcv-' + (G.pcLvl() + 1)) ? 'pcv-' + (G.pcLvl() + 1) : 'pc-0', name: pn.nx.name, price: pn.price, why: `Moins de frais sur tes cryptos : ${(pn.nx.fee * 100).toFixed(1).replace('.', ',').replace(',0', '')} % au lieu de ${(G.fee() * 100).toFixed(1).replace('.', ',').replace(',0', '')} %.` });
-    if (nr) { const i = s.room + 1, full = G.ownedCount() >= G.roomSlots(); L.push({ kind: 'room', img: has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, name: nr.name, price: G.cost(nr.cost), urgent: full,
-      why: full ? `Tes étagères sont pleines : ${nr.slots} places pour ta collection.` : `${nr.slots} places pour ta collection.` }); }
-    // une carte qui manque pour finir une série du classeur (la série la plus avancée, la carte la moins chère)
+    const s = st(), L = [];
     if (G.catUnlocked('card')) {
       const se = D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).sort((x, y) => (G.seriesCards(x.id).length - G.seriesHave(x.id)) - (G.seriesCards(y.id).length - G.seriesHave(y.id)))[0];
       const miss = se && G.seriesCards(se.id).filter(c => !(s.owned[c.id] || []).length && G.inStock(c.id)).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
@@ -193,18 +186,21 @@
         L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
           why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` }); }
     }
+    if (s.lvl >= 2) {
+      const n = s.market.news.find(x => x.up && Date.now() - x.t < 20 * 60000 && G.item(x.item) && G.catUnlocked(G.item(x.item).cat) && G.inStock(x.item) && !(s.owned[x.item] || []).length);
+      if (n) { const it = G.item(n.item); L.push({ kind: 'rumor', it, name: G.what(it, true), price: G.buyPrice(it.id), why: 'Une rumeur la fait grimper : achète avant que ça monte encore.' }); }
+      L.push({ kind: 'booster', name: 'Un booster de cartes', price: G.boosterPrice(), why: '3 récompenses et 1 carte de collection, peut-être rare.' });
+    }
     if (!L.length) return null;
-    // on varie : pas deux fois de suite le même genre d'achat, sauf s'il n'y a que ça ; des étagères pleines passent devant
-    // et la suggestion tourne toutes les 2 min parmi les achats utiles (celle des étagères pleines en premier)
-    const pool = L.filter(x => x.kind !== s.lastUp), list = (pool.length ? pool : L).sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0) || a.price - b.price);
+    const list = L.sort((a, b) => a.price - b.price);
     return list[Math.floor(Date.now() / 120000) % list.length];
   }
   let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
   function renderNextBtn() {
     const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
     btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
-    const ready = st().cash >= n.price, key = n.kind + (n.img || n.it.id);
-    if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
+    const ready = st().cash >= n.price, key = n.kind + (n.it ? n.it.id : '');
+    if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.it ? itemPic(n.it) : packArt(true); }
     btn.querySelector('b').innerHTML = short(n.price);
     btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
@@ -220,10 +216,9 @@
   function goNextBuy() {
     $('#next-tip')?.classList.remove('on');
     const n = nextBuy(); if (!n) return;
-    if (n.kind === 'rig') { setScene('appart'); return A.rigUpOpen(); }
-    if (n.kind === 'pc') return openUpgrades();
-    if (n.kind === 'card') {
-      setScene('city'); focusBld('shop'); openShop('card');
+    if (n.kind === 'booster') { setScene('city'); focusBld('kiosque'); return openKiosk('booster'); }
+    if (n.it) {
+      setScene('city'); focusBld('shop'); openShop(n.it.cat);
       // on descend jusqu'à la carte proposée et on la fait briller
       return setTimeout(() => { const c = $(`#modal [data-act=itBuy][data-id="${n.it.id}"]`)?.closest('.item-card'), b = $('#modal .sheet-body');
         if (c && b) { b.scrollTop = c.offsetTop - b.offsetTop - 60; c.classList.add('spot'); } }, 50);
@@ -414,6 +409,43 @@
     $('#pl-copy').onclick = () => { const t = $('#placer-out'); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('Positions copiées : colle-les-moi dans la conversation.')).catch(() => { t.select(); toast('Sélectionné : copie le texte et envoie-le-moi.'); }); };
     $('#pl-reset').onclick = () => { try { localStorage.removeItem('hustleCity.placer'); } catch (e) {} location.reload(); };
   }
+  // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
+  function roomPlacer() {
+    if (location.hash !== '#placer-appart') return;
+    RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); setScene('appart');
+    $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer"><div class="rp-row"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<span id="rp-cur"></span></div>
+      <div class="rp-row"><button class="btn xs" id="rp-minus">− petit</button><button class="btn xs" id="rp-plus">+ grand</button><button class="btn xs green" id="rp-copy">Copier</button><button class="btn xs red" id="rp-reset">Remettre</button></div>
+      <small>Fais glisser le PC, la machine ou une place d'étagère (1, 2, 3…). Les tailles se règlent avec − / +. C'est enregistré tout seul.</small><textarea id="rp-out" readonly></textarea></div>`);
+    const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : 'Place ' + (+k.slice(4) + 1);
+    const out = () => {
+      const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {}
+      $('#rp-out').value = D.ROOMS.map((x, i) => { const l = i === RP.room ? RP.L : roomLayout(i); return `Chambre ${i + 1} : pc ${l.pc.x},${l.pc.y},${l.pc.w} · machine ${l.rig.x},${l.rig.y},${l.rig.w} · étagère ${l.shelf.w}x${l.shelf.h} · places ${l.slots.map(p => p.join(',')).join(' ')}`; }).join('\n');
+      const o = RP.sel.startsWith('slot') ? RP.L.slots[+RP.sel.slice(4)] : [RP.L[RP.sel].x, RP.L[RP.sel].y];
+      $('#rp-cur').textContent = `${name(RP.sel)} · x${o[0]} y${o[1]}`;
+      document.querySelectorAll('.rp-room').forEach(b => b.classList.toggle('green', +b.dataset.i === RP.room));
+    };
+    const redraw = () => { renderAppart(); out(); };
+    redraw();
+    document.querySelectorAll('.rp-room').forEach(b => b.onclick = () => { RP.room = +b.dataset.i; RP.L = roomLayout(RP.room); RP.sel = 'pc'; redraw(); });
+    const size = d => { if (RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(5, RP.L[RP.sel].w + d); redraw(); };
+    $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
+    $('#rp-copy').onclick = () => { const t = $('#rp-out'); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('Positions copiées : colle-les-moi dans la conversation.')).catch(() => { t.select(); }); };
+    $('#rp-reset').onclick = () => { const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
+    $('#scene-appart').addEventListener('pointerdown', e => {
+      const t = e.target.closest('[data-rp]'); if (!t) return;
+      e.preventDefault(); e.stopPropagation(); RP.sel = t.dataset.rp;
+      const st2 = $('#scene-appart .room-stage').getBoundingClientRect(), k = RP.sel, o = k.startsWith('slot') ? RP.L.slots[+k.slice(4)] : [RP.L[k].x, RP.L[k].y];
+      RP.drag = { st2, dx: o[0] - (e.clientX - st2.left) / st2.width * 100, dy: o[1] - (e.clientY - st2.top) / st2.height * 100 };
+      redraw();
+    }, true);
+    window.addEventListener('pointermove', e => {
+      if (!RP.drag) return; const { st2, dx, dy } = RP.drag, k = RP.sel;
+      const x = Math.round(((e.clientX - st2.left) / st2.width * 100 + dx) * 2) / 2, y = Math.round(((e.clientY - st2.top) / st2.height * 100 + dy) * 2) / 2;
+      if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = [x, y]; else { RP.L[k].x = x; RP.L[k].y = y; }
+      renderAppart(); out();
+    });
+    window.addEventListener('pointerup', () => { if (RP.drag) { RP.drag = null; out(); } });
+  }
   function openBuilding(id) {
     if (id === 'six') return openSix();
     if (id === 'kiosque') return openKiosk();
@@ -441,16 +473,24 @@
     renderHud();
   }
   // ------------------------------------------------------------ appart : chaque objet affiche une bulle qui dit ce qu'il fait
+  // disposition d'une chambre : celle du jeu, ou celle réglée à la main (mode #placer-appart, gardée dans ce navigateur)
+  const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer') || '{}'); } catch (e) { return {}; } };
+  function roomLayout(i) {
+    const base = D.ROOM_LAYOUT[i], sv = roomSaved()[i] || {};
+    return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
+  }
+  const RP = { on: false, room: 0, sel: 'pc', drag: null };
   function renderAppart() {
-    const s = st(), r = D.ROOMS[s.room], el = $('#scene-appart');
+    const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
     const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (!it.noBuy) a.forEach(() => owned.push(it)); });
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
-    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], rb = has(`room-${sk.g}-${s.room}`) ? `room-${sk.g}-${s.room}` : 'room-' + s.room;
-    const L = D.ROOM_LAYOUT[s.room], rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-' + G.pcLvl();
+    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], rb = has(`room-${sk.g}-${R}`) ? `room-${sk.g}-${R}` : 'room-' + R;
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-' + G.pcLvl();
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
-    const shelf = D.SHELF_SLOTS.slice(0, r.slots).map(([x, y], i) => {
+    const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = owned[i];
+      if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic('item-' + it.id, D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
       return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic('item-' + it.id, D.ITEM_CATS[it.cat].icon)}</button>` : '';
     }).join('');
     // bulle de la machine : ce qu'il y a dedans (en billets) et la chaleur ; on la vide d'un geste
@@ -468,10 +508,10 @@
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
         ${owned.length ? `<button class="obj-bubble shelf-b" data-act="collectionInfo" style="left:16%;top:22%"><span><small>Ta collection</small><b>${short(iv)}</b></span></button>` : ''}
-        <button class="room-obj" data-act="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
+        <button class="room-obj ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
-        <button class="room-obj ${rig.hot ? 'hot' : ''}" data-act="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
+        <button class="room-obj ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
       </div>
       <div class="room-head">
@@ -1470,7 +1510,7 @@
     G.simulate(false); dailyNotifs();
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
     renderHud();
-    if (scene === 'appart' && !modalOpen()) renderAppart();
+    if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();
     if (modalRefresh && !document.activeElement?.matches('input')) modalRefresh();
     if (Date.now() - lastSave > 5000) { G.save(); lastSave = Date.now(); }
   }
@@ -1480,7 +1520,7 @@
   function boot2(first) {
     cleanChats();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
-    layoutMap(); renderCity(); focusTop(); renderHud(); placerMode();
+    layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
   }
