@@ -1726,3 +1726,13 @@ h3.sec { margin: 18px 6px 10px; }
 #app.in-appart #next-tip { top: calc(var(--hud-b, 96px) + 76px); }
 #app #btn-next .nx-pic .crest, #app #btn-next .nx-pic svg { width: 40px; height: 40px; }
 #app .item-card.spot { animation: upGlow 1.4s ease-in-out 4; }
+
+/* ---------- météo du marché : une pastille dans le style des boutons du jeu, couleur selon la météo ---------- */
+#app #hud #mood { height: 26px; padding: 0 11px 1px 6px; gap: 2px; border: 2px solid #2a1a10; border-image: none; border-radius: 999px; box-shadow: 0 2px 0 #2a1a10;
+  background: linear-gradient(#b9c6d1, #8296a6); font: 400 12px var(--title); color: #fff; -webkit-text-stroke: 2px #2a1a10; paint-order: stroke fill; text-shadow: 0 1px 0 #2a1a10; }
+#app #hud #mood.m-bull { background: linear-gradient(#8fe36a, #4fb62e); }
+#app #hud #mood.m-bear { background: linear-gradient(#ffb36a, #f07a2a); }
+#app #hud #mood.m-fomo { background: linear-gradient(#ff8fd0, #e2479e); }
+#app #hud #mood.m-krach { background: linear-gradient(#ff7a6a, #cc3326); }
+#app #hud #mood .mood-ic { width: 20px; height: 20px; display: grid; place-items: center; margin: 0; border-radius: 50%; background: #fffdf6; border: 1.5px solid #2a1a10; font-size: 12px; -webkit-text-stroke: 0; text-shadow: none; }
+#app #hud #mood:active { transform: translateY(2px); box-shadow: 0 0 0 #2a1a10; }

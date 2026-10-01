@@ -156,7 +156,7 @@
     $('#worth-v').innerHTML = short(G.worth());
     $('#avatar-img').innerHTML = s.skin ? skinPic(s.skin, true) : '';
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
-    const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; void col;
+    const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
     $('#pill-lingots .plus').classList.toggle('ready', G.dailyReady());
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot, canUp = G.upgradeReady(); $('#badge-rig').classList.toggle('hidden', !((hot || canUp) && scene === 'city')); $('#badge-rig').textContent = hot ? '!' : '⬆';
@@ -191,16 +191,16 @@
     }
     if (!L.length) return null;
     // on varie : pas deux fois de suite le même genre d'achat, sauf s'il n'y a que ça ; des étagères pleines passent devant
-    const urgent = L.find(x => x.urgent && x.kind !== s.lastUp); if (urgent) return urgent;
-    const pool = L.filter(x => x.kind !== s.lastUp);
-    return (pool.length ? pool : L).sort((a, b) => a.price - b.price)[0];
+    // et la suggestion tourne toutes les 2 min parmi les achats utiles (celle des étagères pleines en premier)
+    const pool = L.filter(x => x.kind !== s.lastUp), list = (pool.length ? pool : L).sort((a, b) => (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0) || a.price - b.price);
+    return list[Math.floor(Date.now() / 120000) % list.length];
   }
   let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
   function renderNextBtn() {
     const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
     btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
     const ready = st().cash >= n.price, key = n.kind + (n.img || n.it.id);
-    if (key !== nextKey) { nextKey = key; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
+    if (key !== nextKey) { nextKey = key; nextWasReady = false; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
     btn.querySelector('b').innerHTML = short(n.price);
     btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
