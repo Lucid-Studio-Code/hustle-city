@@ -159,7 +159,8 @@
     const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
     $('#pill-lingots .plus').classList.toggle('ready', G.dailyReady());
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
-    const hot = G.rigInfo().hot, canUp = G.upgradeReady(); $('#badge-rig').classList.toggle('hidden', !((hot || canUp) && scene === 'city')); $('#badge-rig').textContent = hot ? '!' : '⬆';
+    const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
+    const ub = $('#btn-upg'), canUp = !!G.upgradeReady(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !canUp);
     // boutons du côté droit (comme Mama Kana) : Récompenses, Booster, Cadeau
     const rw = G.questsReady() + G.chalReady();
     $('#trophy .badge').classList.toggle('hidden', !rw); $('#trophy .badge').textContent = rw;
@@ -225,6 +226,23 @@
     }
     return openRoom();
   }
+
+  // ------------------------------------------------------------ bouton « Améliorations » : la machine et l'appart, côte à côte
+  function upgradesBody() {
+    const s = st(), nx = G.rigNext(), nr = D.ROOMS[s.room + 1], sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
+    const rimg = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l, room = i => has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i;
+    const rig = nx ? `<div class="card up-card ${s.cash >= nx.price ? 'ready' : ''}"><div class="up-img">${pic(rimg(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><small class="muted">Machine à crypto · niveau ${s.rig.lvl + 2} / ${D.RIG.length}</small><b>${nx.nx.name}</b>
+        <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus rapide : ≈ ${short(nx.perHour)} par heure, et elle tient ${nx.nx.heatMin} min avant de chauffer.</p>
+        <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button>${mixBtn(nx.price, 'rigUpL')}</div></div>`
+      : `<div class="card center"><b>Machine à crypto</b><p>Au maximum. Respect.</p></div>`;
+    const rp = nr && G.cost(nr.cost), full = G.ownedCount() >= G.roomSlots();
+    const flat = nr ? `<div class="card up-card ${s.cash >= rp ? 'ready' : ''}"><div class="up-img up-room" style="background-image:url(${src(room(s.room + 1))})"></div><div class="up-info"><small class="muted">Ton appart${full ? ' · étagères pleines !' : ''}</small><b>${nr.name}</b>
+        <p>${nr.desc} <b>${nr.slots} places</b> pour ta collection (tu en as ${D.ROOMS[s.room].slots}).</p>
+        <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
+      : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
+    return `<p class="hint-line">Ce que tu peux améliorer. En vert : tu as de quoi te le payer.</p>${rig}${flat}`;
+  }
+  function openUpgrades() { openModal({ title: 'Améliorations', icon: 'star', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
 
   // ------------------------------------------------------------ carte mission (apparaît quelques secondes, comme Mama Kana)
   let questKey = '', questPeekUntil = 0;
@@ -402,10 +420,6 @@
       ? `<button class="obj-bubble ${diff >= 0 ? 'up' : 'down'}" data-act="pc"><span><small>Tes cryptos</small><b>${short(cv)} <em>${diff >= 0 ? '▲' : '▼'} ${short(Math.abs(diff), true)}</em></b></span></button>`
       : `<button class="obj-bubble" data-act="pc"><span><small>Mon PC</small><b>Investir</b></span></button>`;
     const iv = owned.reduce((a, it) => a + G.sellPrice(it.id), 0);
-    // améliorations bien visibles : la machine et le déménagement, en vert quand on peut se les payer
-    const nx = G.rigNext(), nr = D.ROOMS[s.room + 1], nrP = nr && G.cost(nr.cost);
-    const rigUp = nx ? `<button class="up-tag ${s.cash >= nx.price ? 'ready' : ''}" data-act="rigUpOpen" style="left:${L.rig.x + L.rig.w / 2 + 1}%;top:${L.rig.y - L.rig.w * .5}%"><i>⬆</i><span><small>Améliorer la machine</small><b>${short(nx.price)}</b></span></button>` : '';
-    const roomUp = nr ? `<button class="up-tag room-up ${s.cash >= nrP ? 'ready' : ''}" data-act="room"><i>🏠</i><span><small>Déménager : ${nr.name}</small><b>${short(nrP)}</b></span></button>` : '';
     el.innerHTML = `
       <div class="room-stage">
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
@@ -416,11 +430,9 @@
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
         <button class="room-obj ${rig.hot ? 'hot' : ''}" data-act="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
-        ${rigUp}
       </div>
       <div class="room-head">
         <div class="rt-row"><div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div><button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button></div>
-        ${roomUp}
       </div>`;
   }
   function openRoomHelp() {
@@ -1197,6 +1209,7 @@
     quests: () => openRewards(),
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
+    upgrades: () => openUpgrades(),
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); if (r.trophy) toast(`🏆 ${r.trophy.name} rejoint ton appart !`); refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) { toast('Les 3 défis du jour : 1 booster et 3 lingots en plus !', false, 'boosters'); rain('bill', 30); } refresh(); },

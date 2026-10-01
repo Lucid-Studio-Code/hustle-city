@@ -640,7 +640,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .bld.locked .pic { filter: grayscale(.85) brightness(.8); }
 
 /* ---------- boutons du côté droit (Récompenses, Booster, Cadeau) et bon plan à gauche ---------- */
-#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-next, #app #btn-deal {
+#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-next, #app #btn-upg, #app #btn-deal {
   position: absolute; z-index: 19; right: 8px; width: 52px; height: 56px; padding: 3px 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   border: 2px solid #2a1a10; border-radius: 14px; box-shadow: 0 3px 0 #2a1a10; background: linear-gradient(#fffdf6, #fff4dc); cursor: pointer; transition: transform .08s; }
 #app #trophy { top: calc(var(--hud-b, 96px) + 10px); height: 52px; }
@@ -650,10 +650,10 @@ h3.sec { margin: 18px 6px 10px; }
 #app #btn-deal { right: auto; left: 8px; top: calc(var(--hud-b, 96px) + 84px); width: 60px; height: 76px; animation: dealBob 2s ease-in-out infinite; background: linear-gradient(#fff6c8, #ffd96a); }
 #app #trophy .ic { width: 34px; height: 34px; }
 #app #btn-gift .ic { width: 36px; height: 32px; }
-#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-next b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
-#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-next .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
-#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden, #app #btn-next .badge.hidden { display: none; }
-#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-next:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
+#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-next b, #app #btn-upg b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
+#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-next .badge, #app #btn-upg .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
+#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden, #app #btn-next .badge.hidden, #app #btn-upg .badge.hidden { display: none; }
+#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-next:active, #app #btn-upg:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
 #app #btn-gift.glow { animation: giftGlow 1.4s ease-in-out infinite; }
 #app #btn-gift.glow .ic { animation: giftPulse 1.4s ease-in-out infinite; }
 #app #btn-booster.glow { animation: bstGlow 1.4s ease-in-out infinite; }
@@ -1736,3 +1736,13 @@ h3.sec { margin: 18px 6px 10px; }
 #app #hud #mood.m-krach { background: linear-gradient(#ff7a6a, #cc3326); }
 #app #hud #mood .mood-ic { width: 20px; height: 20px; display: grid; place-items: center; margin: 0; border-radius: 50%; background: #fffdf6; border: 1.5px solid #2a1a10; font-size: 12px; -webkit-text-stroke: 0; text-shadow: none; }
 #app #hud #mood:active { transform: translateY(2px); box-shadow: 0 0 0 #2a1a10; }
+
+/* ---------- bouton « Améliorations » et sa fenêtre ---------- */
+#app #btn-upg { top: calc(var(--hud-b, 96px) + 276px); }
+#app.in-appart #btn-upg { top: calc(var(--hud-b, 96px) + 144px); }
+#app #btn-upg .upg-ic { font-style: normal; font-size: 24px; line-height: 1.1; }
+#app #btn-upg b { font-size: 8px; }
+#app #btn-upg.glow { animation: upGlow 1.4s ease-in-out infinite; background: linear-gradient(#e9ffd8, #b8f08e); }
+#app #btn-upg.glow .upg-ic { animation: giftPulse 1.4s ease-in-out infinite; }
+#app .up-card .up-info > small { display: block; margin-bottom: 2px; }
+#app .up-card .up-room { width: 90px; height: 120px; border-radius: 12px; border: 2px solid #2a1a10; background-size: cover; background-position: center 30%; flex: 0 0 90px; }
