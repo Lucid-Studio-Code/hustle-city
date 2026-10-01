@@ -958,8 +958,9 @@
     };
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
-      ? `<h3 class="sec">Les grandes cartes</h3><div class="grid2">${items.filter(i => !i.noBuy).map(card).join('')}</div>` +
-        D.SERIES.filter(se => se.id !== 'classics' && items.some(i => i.series === se.id)).map(se => `<h3 class="sec">${se.name} <small>· d'occasion</small></h3><div class="grid2">${items.filter(i => i.series === se.id).map(card).join('')}</div>`).join('')
+      ? (() => { const R = { C: 0, R: 1, E: 2, L: 3 }, shelf = items.filter(i => G.inStock(i.id) && !(s.owned[i.id] || []).length).sort((a, b) => R[a.r] - R[b.r]), mine = items.filter(i => (s.owned[i.id] || []).length);
+          return `<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.map(card).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
+            (mine.length ? `<h3 class="sec">Tes cartes <small>· à revendre</small></h3><div class="grid2">${mine.map(card).join('')}</div>` : ''); })()
       : `<div class="grid2">${items.map(card).join('')}</div>`;
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
     const buyEx = sale ? 89 : 105;

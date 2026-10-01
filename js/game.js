@@ -467,8 +467,16 @@
   const STOCK_MIN = 30, STOCK_N = { classics: 3, sneaker: 2, watch: 2, foot: 4, basket: 3, tennis: 3, rugby: 2 };
   const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000));
   const stockLeft = () => (stockEd() + 1) * STOCK_MIN * 60000 - now();
+  // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
+  function cardStock() {
+    const ed = stockEd(); if (cardStock.ed === ed) return cardStock.ids;
+    const cards = D.ITEMS.filter(i => i.cat === 'card'), shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    cardStock.ed = ed; cardStock.ids = new Set([...shuf(cards.filter(i => i.r === 'C')).slice(0, 3), ...shuf(cards.filter(i => i.r !== 'C')).slice(0, 1)]);
+    return cardStock.ids;
+  }
   function inStock(id) {
-    const it = item(id), g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
+    const it = item(id); if (it.cat === 'card') return cardStock().has(id);
+    const g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
     const ed = stockEd(), grp = D.ITEMS.filter(i => (i.series || i.cat) === g);
     return grp.map((i, k) => [seeded(ed * 131 + k * 17 + g.length * 7), i.id]).sort((a, b) => a[0] - b[0]).slice(0, n).some(x => x[1] === id);
   }
