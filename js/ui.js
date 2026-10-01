@@ -410,11 +410,14 @@
     $('#pl-reset').onclick = () => { try { localStorage.removeItem('hustleCity.placer'); } catch (e) {} location.reload(); };
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
-  function roomPlacer() {
-    if (location.hash !== '#placer-appart') return;
-    RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); setScene('appart');
+  // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer') location.reload(); });
+  function roomPlacer(force) {
+    if (!force && location.hash !== '#placer-appart') return;
+    if (RP.on || !st().skin) return;
+    closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); setScene('appart');
     $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer"><div class="rp-row"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<span id="rp-cur"></span></div>
-      <div class="rp-row"><button class="btn xs" id="rp-minus">− petit</button><button class="btn xs" id="rp-plus">+ grand</button><button class="btn xs green" id="rp-copy">Copier</button><button class="btn xs red" id="rp-reset">Remettre</button></div>
+      <div class="rp-row"><button class="btn xs" id="rp-minus">− petit</button><button class="btn xs" id="rp-plus">+ grand</button><button class="btn xs green" id="rp-copy">Copier</button><button class="btn xs red" id="rp-reset">Remettre</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <small>Fais glisser le PC, la machine ou une place d'étagère (1, 2, 3…). Les tailles se règlent avec − / +. C'est enregistré tout seul.</small><textarea id="rp-out" readonly></textarea></div>`);
     const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : 'Place ' + (+k.slice(4) + 1);
     const out = () => {
@@ -425,26 +428,29 @@
       document.querySelectorAll('.rp-room').forEach(b => b.classList.toggle('green', +b.dataset.i === RP.room));
     };
     const redraw = () => { renderAppart(); out(); };
-    redraw();
+    RP.out = out; redraw();
     document.querySelectorAll('.rp-room').forEach(b => b.onclick = () => { RP.room = +b.dataset.i; RP.L = roomLayout(RP.room); RP.sel = 'pc'; redraw(); });
     const size = d => { if (RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(5, RP.L[RP.sel].w + d); redraw(); };
     $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
     $('#rp-copy').onclick = () => { const t = $('#rp-out'); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('Positions copiées : colle-les-moi dans la conversation.')).catch(() => { t.select(); }); };
+    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); };
     $('#rp-reset').onclick = () => { const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
+    if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
+      if (!RP.on) return;
       const t = e.target.closest('[data-rp]'); if (!t) return;
       e.preventDefault(); e.stopPropagation(); RP.sel = t.dataset.rp;
       const st2 = $('#scene-appart .room-stage').getBoundingClientRect(), k = RP.sel, o = k.startsWith('slot') ? RP.L.slots[+k.slice(4)] : [RP.L[k].x, RP.L[k].y];
       RP.drag = { st2, dx: o[0] - (e.clientX - st2.left) / st2.width * 100, dy: o[1] - (e.clientY - st2.top) / st2.height * 100 };
-      redraw();
+      renderAppart(); RP.out();
     }, true);
     window.addEventListener('pointermove', e => {
       if (!RP.drag) return; const { st2, dx, dy } = RP.drag, k = RP.sel;
       const x = Math.round(((e.clientX - st2.left) / st2.width * 100 + dx) * 2) / 2, y = Math.round(((e.clientY - st2.top) / st2.height * 100 + dy) * 2) / 2;
       if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = [x, y]; else { RP.L[k].x = x; RP.L[k].y = y; }
-      renderAppart(); out();
+      renderAppart(); RP.out();
     });
-    window.addEventListener('pointerup', () => { if (RP.drag) { RP.drag = null; out(); } });
+    window.addEventListener('pointerup', () => { if (RP.drag) { RP.drag = null; RP.out(); } });
   }
   function openBuilding(id) {
     if (id === 'six') return openSix();
@@ -1244,6 +1250,7 @@
       <button class="btn ${st().sound ? 'green' : ''} wide set-sound" data-act="soundToggle">${ic(st().sound ? 'icon-sound' : 'icon-mute')}Son : ${st().sound ? 'activé' : 'coupé'}</button>
       <button class="btn blue wide" style="margin-top:8px" data-act="howto">Comment jouer</button>
       <button class="btn purple wide" style="margin-top:8px" data-act="tutoAgain">Revoir le tuto</button>
+      <button class="btn blue wide" style="margin-top:8px" data-act="roomPlace">Placer les objets de la chambre</button>
       <button class="btn red wide" style="margin-top:8px" data-act="resetAsk">Recommencer à zéro</button>
       <p class="muted center" style="margin-top:10px">Hustle City est un jeu : l'argent du jeu est fictif : il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>` });
   }
@@ -1355,6 +1362,7 @@
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
     upgrades: () => openUpgrades(),
+    roomPlace: () => roomPlacer(true),
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
