@@ -25,7 +25,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `?v=N` dans index.html (actuellement 33).
+- Changer de version : incrémenter `?v=N` dans index.html (actuellement 34).
 
 ## Pièges connus
 - `.cur` = l'icône billet, et `.money` est déjà pris : ne jamais les utiliser comme classes d'état.
@@ -39,6 +39,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Booster : cartes ≤ 600 ; prix au Kiosque 120 + 25 × niveau (~65 % récupéré).
 - Les cartes > 600 ne se vendent qu'au Comptoir.
 - Lingots (`LINGOT` dans data.js) : 1 lingot = 20 billets pour compléter un achat (machine, déménagement) ; journal du Kiosque tout de suite 3, tuyau ≈ prix / 20, videur du Club 2.
+- PC (`PCS`) : 3 niveaux, frais crypto 1,5 % → 0,8 % → 0,2 %. Le bouton « Matos » regroupe machine, PC et appart.
 - Un seul exemplaire par objet (un doublon de booster est revendu tout de suite).
 - Bons plans : -18 à -32 % sous la cote (vente) ou +15 à 35 % au-dessus (rachat).
 

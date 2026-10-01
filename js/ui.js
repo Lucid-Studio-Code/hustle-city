@@ -180,6 +180,8 @@
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
     if (nx) L.push({ kind: 'rig', img: has('minerv-' + (s.rig.lvl + 1)) ? 'minerv-' + (s.rig.lvl + 1) : 'rig-' + (s.rig.lvl + 1), name: nx.nx.name, price: nx.price,
       why: `Ta machine rapportera ×${nx.mult.toFixed(1).replace('.', ',')} plus.` });
+    const pn = G.pcNext();
+    if (pn) L.push({ kind: 'pc', img: has('pcv-' + (G.pcLvl() + 1)) ? 'pcv-' + (G.pcLvl() + 1) : 'pc-0', name: pn.nx.name, price: pn.price, why: `Moins de frais sur tes cryptos : ${(pn.nx.fee * 100).toFixed(1).replace('.', ',').replace(',0', '')} % au lieu de ${(G.fee() * 100).toFixed(1).replace('.', ',').replace(',0', '')} %.` });
     if (nr) { const i = s.room + 1, full = G.ownedCount() >= G.roomSlots(); L.push({ kind: 'room', img: has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, name: nr.name, price: G.cost(nr.cost), urgent: full,
       why: full ? `Tes étagères sont pleines : ${nr.slots} places pour ta collection.` : `${nr.slots} places pour ta collection.` }); }
     // une carte qui manque pour finir une série du classeur (la série la plus avancée, la carte la moins chère)
@@ -201,7 +203,7 @@
     const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
     btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
     const ready = st().cash >= n.price, key = n.kind + (n.img || n.it.id);
-    if (key !== nextKey) { nextKey = key; nextWasReady = false; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
+    if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
     btn.querySelector('b').innerHTML = short(n.price);
     btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
@@ -218,6 +220,7 @@
     $('#next-tip')?.classList.remove('on');
     const n = nextBuy(); if (!n) return;
     if (n.kind === 'rig') { setScene('appart'); return A.rigUpOpen(); }
+    if (n.kind === 'pc') return openUpgrades();
     if (n.kind === 'card') {
       setScene('city'); focusBld('shop'); openShop('card');
       // on descend jusqu'à la carte proposée et on la fait briller
@@ -240,9 +243,14 @@
         <p>${nr.desc} <b>${nr.slots} places</b> pour ta collection (tu en as ${D.ROOMS[s.room].slots}).</p>
         <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
       : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
-    return `<p class="hint-line">Ce que tu peux améliorer. En vert : tu as de quoi te le payer.</p>${rig}${flat}`;
+    const pn = G.pcNext(), fpc = f => (f * 100).toFixed(1).replace('.', ',').replace(',0', '') + ' %';
+    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(has('pcv-' + (G.pcLvl() + 1)) ? 'pcv-' + (G.pcLvl() + 1) : 'pc-0', EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
+        <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
+        <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
+      : `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>`;
+    return `<p class="hint-line">Ton matos. En vert : tu as de quoi te le payer.</p>${rig}${pcCard}${flat}`;
   }
-  function openUpgrades() { openModal({ title: 'Améliorations', icon: 'star', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
+  function openUpgrades() { openModal({ title: 'Matos', icon: 'star', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
 
   // ------------------------------------------------------------ carte mission (apparaît quelques secondes, comme Mama Kana)
   let questKey = '', questPeekUntil = 0;
@@ -404,7 +412,7 @@
     const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (!it.noBuy) a.forEach(() => owned.push(it)); });
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], rb = has(`room-${sk.g}-${s.room}`) ? `room-${sk.g}-${s.room}` : 'room-' + s.room;
-    const L = D.ROOM_LAYOUT[s.room], rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + s.room) ? 'pcv-' + s.room : 'pc-' + s.room;
+    const L = D.ROOM_LAYOUT[s.room], rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-' + G.pcLvl();
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = D.SHELF_SLOTS.slice(0, r.slots).map(([x, y], i) => {
       const it = owned[i];
@@ -438,7 +446,7 @@
   function openRoomHelp() {
     openModal({ title: 'Ton appart', icon: 'home', center: true, body: `
       <div class="help-row">${pic(has('minerv-' + st().rig.lvl) ? 'minerv-' + st().rig.lvl : 'rig-0', EMO.rig)}<div><b>La machine à crypto</b><p>Elle fabrique de l'argent toute seule, même quand tu n'es pas là. Elle chauffe et s'arrête au bout d'un moment : touche sa bulle pour encaisser, ça la relance.</p></div></div>
-      <div class="help-row">${pic(has('pcv-' + st().room) ? 'pcv-' + st().room : 'pc-0', EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
+      <div class="help-row">${pic(has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0', EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
       <div class="help-row"><span class="pic"><span class="emo">📱</span></span><div><b>Ton téléphone</b><p>Pour déménager (appli Appart'Immo), voir ta banque, tes paris et les messages de tes contacts.</p></div></div>
       <div class="help-row">${pic('item-c-holo', '🃏')}<div><b>Tes étagères</b><p>Tes objets de collection s'y exposent. Leur prix bouge aussi : touche un objet pour voir combien il vaut et le revendre.</p></div></div>
       <button class="btn green wide" data-act="closeModal">Compris</button>` });
@@ -507,13 +515,13 @@
       </div>
       ${hold > 0 ? `<div class="pos-card ${val - cost >= 0 ? 'up' : 'down'}"><small>Ce que tu as en ${c.name}</small>
         <div class="pos-line"><span>Tu as mis<b>${short(cost)}</b></span><i>→</i><span>Ça vaut<b>${short(val)}</b></span><span class="pos-diff">${val - cost >= 0 ? 'Gagné' : 'Perdu'}<b>${val - cost >= 0 ? '+' : '−'}${short(Math.abs(val - cost))}</b></span></div>
-        <div class="sell-row">${[[.25, '¼'], [.5, 'la moitié'], [1, 'tout']].map(([f, l]) => `<button class="btn ${f === 1 ? 'red' : 'blue'} sm" data-act="crSell" data-f="${f}"><span>Vendre ${l}</span><small>+${short(val * f * (1 - D.CRYPTO_FEE))}</small></button>`).join('')}</div></div>` : ''}
+        <div class="sell-row">${[[.25, '¼'], [.5, 'la moitié'], [1, 'tout']].map(([f, l]) => `<button class="btn ${f === 1 ? 'red' : 'blue'} sm" data-act="crSell" data-f="${f}"><span>Vendre ${l}</span><small>+${short(val * f * (1 - G.fee()))}</small></button>`).join('')}</div></div>` : ''}
       <div class="card invest-card"><h4>Investir dans ${c.name}</h4>
         <p>Choisis combien de billets tu mets. Tu n'achètes pas forcément une pièce entière (1 ${c.sym} = ${coinPx(p)}) : un petit bout suffit.</p>
         <div class="seg chips">${chips.map(v => `<button class="btn xs ${+amt === v ? 'yellow' : 'blue'}" data-act="crAmt" data-v="${v}">${v}</button>`).join('')}<button class="btn xs blue" data-act="crAmt" data-v="max">Tout</button></div>
         <input class="amt" id="cr-amt" type="number" inputmode="decimal" min="1" value="${amt || ''}" placeholder="Autre montant">
         <button class="btn green wide big-act" data-act="crBuy" ${s.cash >= 1 ? '' : 'disabled'}>Investir <span id="cr-amt-lbl">${eur(amt || 0)}</span></button>
-        <p class="muted center">Tu as ${eur(s.cash)} en poche. La plateforme prend 0,5 % à chaque achat et vente.</p></div>
+        <p class="muted center">Tu as ${eur(s.cash)} en poche. La plateforme prend ${(G.fee() * 100).toFixed(1).replace('.', ',').replace(',0', '')} % à chaque achat et vente (un meilleur PC = moins de frais).</p></div>
       ${weather}${tipBox}`;
   }
 
@@ -532,7 +540,7 @@
           <p>Elle fabrique de l'Axion (une crypto) toute seule, même quand tu n'es pas là. Elle rapporte environ <b>${short(i.perHour)} par heure</b>.</p></div></div>
         <div class="gauge"><div class="g-lbl"><span>💰 Dans la machine</span><b>${short(i.value)}</b></div><div class="g-bar cashbar"><i style="width:${Math.min(100, i.value / full * 100)}%"></i></div></div>
         <div class="gauge"><div class="g-lbl"><span>🌡️ Chaleur</span><b class="${i.hot ? 'down' : ''}">${i.hot ? 'Trop chaude : arrêtée' : `S'arrête dans ${mmss(i.left)}`}</b></div><div class="g-bar heat ${i.hot ? 'hot' : ''}"><i style="width:${Math.round(i.pct * 100)}%"></i></div></div>
-        <button class="btn green wide big-act" data-act="rigCollect" data-mode="sell" ${i.value >= .01 ? '' : 'disabled'}>Encaisser ${short(i.value * (1 - D.CRYPTO_FEE))}</button>
+        <button class="btn green wide big-act" data-act="rigCollect" data-mode="sell" ${i.value >= .01 ? '' : 'disabled'}>Encaisser ${short(i.value * (1 - G.fee()))}</button>
         <p class="hint-line center" style="margin-top:6px">L'argent va direct dans ta poche, et la machine refroidit puis repart.</p>
         ${nx ? `<h3 class="sec">Améliorer ta machine</h3><div class="card up-card"><div class="up-img">${pic(img(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><b>${nx.nx.name}</b>
             <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus rapide : ≈ ${short(nx.perHour)} par heure, et elle tient ${nx.nx.heatMin} min avant de chauffer.</p>
@@ -1195,6 +1203,8 @@
     coinBack() { cryptoView = 'list'; setBody(cryptoBody()); },
     rigUpL() { const r = G.rigUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
     roomUpL() { const r = G.roomUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti'); closeModal(); closePhone(); setScene('appart'); },
+    pcUp() { const r = G.pcUpgrade(); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
+    pcUpL() { const r = G.pcUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
     rigUp() { const r = G.rigUpgrade(); if (r.err) return toast(r.err, true); rain('confetti', 18); refresh(); },
     coinSel: el => { cryptoSel = el.dataset.id; cryptoView = 'coin'; crAmt = null; setBody(cryptoBody()); $('#modal .sheet-body').scrollTop = 0; },
     goCoin: el => { closeModal(); setScene('appart'); openCrypto(el.dataset.id); },

@@ -48,7 +48,13 @@
     { id: 'ppc', sym: 'KBB', name: 'KebabCoin',   lvl: 6, p0: .0009, vol: .03,  drift: -.0001, color: '#e0662f', desc: 'Memecoin très spéculatif. Sauce blanche en option.', rug: .0006 },
     { id: 'lmn', sym: 'ZPH', name: 'Zéphyr',      lvl: 8, p0: 3.2,   vol: .025, drift: 0,      color: '#c77dff', desc: '« Stablecoin algorithmique ». Ça tient… jusqu\'au jour où.', rug: .0004 }
   ];
-  const CRYPTO_FEE = .005;         // 0,5 % de frais par achat/vente, comme une vraie plateforme
+  const CRYPTO_FEE = .015;         // frais par achat/vente avec le vieux PC (comme une appli grand public)
+  // Le PC : un meilleur PC donne accès à de meilleures plateformes, avec moins de frais à chaque achat et vente
+  const PCS = [
+    { name: 'Vieux PC',            cost: 0,    fee: .015, desc: 'Il rame, mais il marche.' },
+    { name: 'PC gamer',            cost: 600,  fee: .008, desc: 'Écran rapide, clavier lumineux.' },
+    { name: 'Station de trading',  cost: 4000, fee: .002, desc: 'Plusieurs écrans, comme les pros.' }
+  ];
   const TICK_S = 5;                // un point de cours toutes les 5 s
   const HISTORY = 180;             // points gardés pour la courbe (15 min)
 
@@ -363,7 +369,7 @@
   ];
 
   window.DATA = {
-    START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
+    START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, TILT, HEALTH_COST,
     LINGOT, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD

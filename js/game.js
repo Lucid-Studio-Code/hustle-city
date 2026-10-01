@@ -138,7 +138,7 @@
     if (!c || !coinUnlocked(c) || eur < 1) return { err: 'Montant trop petit.' };
     if (!canPay(eur)) return { err: 'Pas assez de cash.' };
     pay(eur);
-    const qty = eur * (1 - D.CRYPTO_FEE) / st.crypto.prices[id];
+    const qty = eur * (1 - fee()) / st.crypto.prices[id];
     if (!st.crypto.hold[id]) st.crypto.since[id] = now();
     st.crypto.hold[id] += qty; st.crypto.cost[id] += eur;
     stat('cryptoBuy'); addXp(3 + Math.min(40, eur / 25));
@@ -147,7 +147,7 @@
   function sellCrypto(id, frac) {
     const cr = st.crypto, q = cr.hold[id] * frac;
     if (!(q > 0)) return { err: 'Rien à vendre.' };
-    const gross = q * cr.prices[id], net = Math.floor(gross * (1 - D.CRYPTO_FEE) * 100) / 100;
+    const gross = q * cr.prices[id], net = Math.floor(gross * (1 - fee()) * 100) / 100;
     const costPart = cr.cost[id] * frac, profit = net - costPart;
     cr.hold[id] -= q; cr.cost[id] -= costPart;
     if (frac >= .999 || cr.hold[id] * cr.prices[id] < .01) { cr.hold[id] = 0; cr.cost[id] = 0; cr.since[id] = 0; }
@@ -171,7 +171,7 @@
     if (i.mined <= 0) return { err: 'Rien à récupérer.' };
     const eur = i.value, wasHot = i.hot;
     let cash = 0;
-    if (mode === 'sell') { cash = Math.floor(eur * (1 - D.CRYPTO_FEE) * 100) / 100; addCash(cash); }
+    if (mode === 'sell') { cash = Math.floor(eur * (1 - fee()) * 100) / 100; addCash(cash); }
     else { if (!st.crypto.hold.btk) st.crypto.since.btk = now(); st.crypto.hold.btk += i.mined; st.crypto.cost.btk += eur; }
     st.rig.pending = 0; st.rig.start = now();
     stat('rigCollect'); if (wasHot) stat('rigRestart');
@@ -192,7 +192,16 @@
       : v <= .02 ? { n: 3, label: 'Montagnes russes', desc: 'Peut faire +30 % ou −30 % en peu de temps.' } : { n: 4, label: 'Casino', desc: 'Peut s\'effondrer d\'un coup. Ne mise que ce que tu peux perdre.' };
   }
   // une amélioration de l'appart (machine ou déménagement) que le joueur peut se payer maintenant
-  function upgradeReady() { const nx = rigNext(), nr = D.ROOMS[st.room + 1]; return (nx && st.cash >= nx.price) ? 'rig' : (nr && st.cash >= cost(nr.cost)) ? 'room' : null; }
+  const pcLvl = () => Math.min(st.pc || 0, D.PCS.length - 1);
+  function fee() { return D.PCS[pcLvl()].fee; }
+  function pcNext() { const nx = D.PCS[pcLvl() + 1]; return nx ? { nx, price: cost(nx.cost) } : null; }
+  function pcUpgrade(mix) {
+    const n = pcNext(); if (!n) return { err: 'Déjà au max.' };
+    if (!(mix ? payMix(n.price) : pay(n.price))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
+    st.pc = pcLvl() + 1; st.lastUp = 'pc'; addXp(30 + n.nx.cost / 100); emit('change'); return { ok: true };
+  }
+  function upgradeReady() {
+    const p = pcNext(); if (p && st.cash >= p.price) return 'pc'; const nx = rigNext(), nr = D.ROOMS[st.room + 1]; return (nx && st.cash >= nx.price) ? 'rig' : (nr && st.cash >= cost(nr.cost)) ? 'room' : null; }
   function rigUpgrade(mix) {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return { err: 'Déjà au max.' };
     if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
@@ -801,7 +810,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    item, what, upgradeReady, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
+    item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,

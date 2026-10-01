@@ -1743,7 +1743,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app #btn-upg { top: calc(var(--hud-b, 96px) + 276px); }
 #app.in-appart #btn-upg { top: calc(var(--hud-b, 96px) + 144px); }
 #app #btn-upg .upg-ic { font-style: normal; font-size: 24px; line-height: 1.1; }
-#app #btn-upg b { font-size: 8px; }
+
 #app #btn-upg.glow { animation: upGlow 1.4s ease-in-out infinite; background: linear-gradient(#e9ffd8, #b8f08e); }
 #app #btn-upg.glow .upg-ic { animation: giftPulse 1.4s ease-in-out infinite; }
 #app .up-card .up-info > small { display: block; margin-bottom: 2px; }
