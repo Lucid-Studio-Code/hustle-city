@@ -489,6 +489,12 @@
   }
 
   // ------------------------------------------------------------ machine à crypto
+  // il manque un peu de cash ? on complète avec des lingots (1 lingot = 20 billets)
+  function mixBtn(price, act) {
+    const s = st(), n = G.lingotsFor(price);
+    if (!n || n > s.lingots) return '';
+    return `<button class="btn gold wide" style="margin-top:6px" data-act="${act}">Compléter avec ${ic('lingot')}${n}</button><p class="hint-line center" style="margin:4px 0 0">Il te manque ${short(price - s.cash)} : 1 lingot vaut ${D.LINGOT.rate}<i class="cur"></i>.</p>`;
+  }
   function openRig() {
     const body = () => {
       const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
@@ -502,7 +508,8 @@
         ${nx ? `<h3 class="sec">Améliorer ta machine</h3><div class="card up-card"><div class="up-img">${pic(img(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><b>${nx.nx.name}</b>
             <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus rapide : ≈ ${short(nx.perHour)} par heure, et elle tient ${nx.nx.heatMin} min avant de chauffer.</p>
             <p class="muted">${isFinite(nx.payback) ? `Remboursée en ≈ ${Math.max(1, Math.round(nx.payback))} h de minage (au prix actuel de l'Axion).` : ''}</p>
-            <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button></div></div>`
+            <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button>
+            ${mixBtn(nx.price, 'rigUpL')}</div></div>`
           : '<div class="explain center">Ta machine est au maximum. Respect.</div>'}`;
     };
     openModal({ title: 'Machine à crypto', icon: 'bolt', full: true, body: body(), refresh: () => setBody(body()) });
@@ -597,6 +604,7 @@
         D.ROOMS.map((r, i) => { const img = has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, mine = i === s.room, past = i < s.room, price = G.cost(r.cost);
           return `<div class="ph-ad ${mine ? 'mine' : ''}"><div class="ph-photo" style="background-image:url(${src(img)})">${mine ? '<span class="ph-tag">Chez toi</span>' : ''}</div>
             <div class="ph-ad-txt"><b>${r.name}</b><small>${r.desc}</small><small>📦 ${r.slots} places pour tes objets</small></div>
+            ${i === s.room + 1 && s.cash < price ? mixBtn(price, 'roomUpL') : ''}
             <div class="ph-ad-foot"><b>${r.cost ? short(price) : 'Ton premier chez-toi'}</b>${mine || past ? '' : `<button class="btn xs ${i === s.room + 1 && s.cash >= price ? 'green' : ''}" data-act="roomUp" ${i === s.room + 1 && s.cash >= price ? '' : 'disabled'}>${i === s.room + 1 ? 'Emménager' : 'Plus tard'}</button>`}</div></div>`; }).join('') + '</div>';
     }
     if (phoneApp === 'notifs') {
@@ -654,7 +662,9 @@
     return `<div class="club-hero">${pic('bld-club', '🎉')}<p>Musique à fond, néons, et du beau monde. Une soirée fait monter ton XP… et on y rencontre des gens qui ont des plans.</p></div>
       <div class="card club-night"><h4>🎉 Une soirée</h4>
         <p><b class="up">＋</b> ${D.CLUB.xp(s.lvl)} XP · ${Math.round(D.CLUB.meet * 100)} % de chances de rencontrer un contact qui te propose un bon plan · parfois un carré VIP (+3 lingots)</p>
-        <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Le videur te reconnaît : reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button></div>
+        <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Le videur te reconnaît : reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
+        ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club}</span></button>
+          <p class="hint-line center" style="margin-top:4px">Les lingots convainquent le videur. L'entrée (${short(e)}) reste à payer.</p>` : ''}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
   function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, body: clubBody(), refresh: () => setBody(clubBody()) }); }
@@ -671,13 +681,23 @@
           <button class="btn ${n ? '' : 'green'}" data-act="kBooster" ${lock || s.cash < G.boosterPrice() ? 'disabled' : ''}>${lock ? `Niveau ${B.lvl}` : `Acheter un booster · ${short(G.boosterPrice())}`}</button>
           <button class="btn blue" data-act="collection">Voir mon classeur</button></div>`;
     }
-    const left = mmss((G.edition() + 1) * D.KIOSK.editionMin * 60000 - Date.now());
-    return `<div class="explain">Le journal du quartier. Nouvelle édition dans ${left}. Chaque tuyau se paie, et il n'est pas toujours fiable.</div>` +
+    // en haut : le compte à rebours du prochain journal, bien visible, et comment un tuyau fait gagner
+    const leftMs = G.editionLeft(), ED = D.KIOSK.editionMin * 60000, rel = Math.round(D.KIOSK.sportReliability * 10);
+    return `<div class="kiosk-hero">
+        <div class="kh-clock"><span class="kh-ic">📰</span><div class="grow"><small>Prochain journal dans</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
+        <button class="btn gold kh-now" data-act="kRefresh" ${s.lingots >= D.LINGOT.kiosk ? '' : 'disabled'}>Nouveau journal tout de suite · <span>${ic('lingot')}${D.LINGOT.kiosk}</span></button>
+        <small class="pe-title">Comment un tuyau fait gagner ?</small>
+        <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>📰</b><small>le tuyau</small></div><span class="pe-arr">→</span>
+          <div class="pe-box mid"><small>2. Tu mises</small><b>⚽</b><small>dans son sens</small></div><span class="pe-arr">→</span>
+          <div class="pe-box sell"><small>3. Tu gagnes</small><b>💰</b><small>plus souvent</small></div></div>
+        <small class="pe-foot">Un tuyau de match est juste environ ${rel} fois sur 10. Pas toujours : ne mise pas tout.</small></div>` +
       D.KIOSK.tips.map(t => {
         const b = G.tipBought(t.id), lock = s.lvl < (t.lvl || 1);
         return `<div class="card ${lock ? 'locked' : ''}"><div class="hstack" style="justify-content:space-between"><h4 style="margin:0;font-family:var(--title);font-weight:400;font-size:17px">${t.icon} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
           <p style="margin-top:6px">${b ? `<b>« ${esc(b.txt)} »</b>` : t.desc}</p>
-          ${b ? '' : `<button class="btn sm wide" style="margin-top:8px" data-act="kTip" data-id="${t.id}" ${lock || s.cash < G.tipPrice(t) ? 'disabled' : ''}>${lock ? `Niveau ${t.lvl}` : `Acheter le tuyau · ${short(G.tipPrice(t))}`}</button>`}</div>`;
+          ${b ? '' : lock ? `<button class="btn sm wide" style="margin-top:8px" disabled>Niveau ${t.lvl}</button>`
+            : `<div class="hstack" style="margin-top:8px"><button class="btn sm" style="flex:2" data-act="kTip" data-id="${t.id}" ${s.cash < G.tipPrice(t) ? 'disabled' : ''}>Acheter · ${short(G.tipPrice(t))}</button>
+              <button class="btn sm gold" style="flex:1" data-act="kTipL" data-id="${t.id}" ${s.lingots < G.tipLingots(t) ? 'disabled' : ''}>ou ${ic('lingot')}${G.tipLingots(t)}</button></div>`}</div>`;
       }).join('');
   }
   function openKiosk(tab) {
@@ -1144,6 +1164,8 @@
     wSellCoin(el) { cryptoSel = el.dataset.id; sellCoin(1); },
     collectionInfo: () => openWallet(),
     coinBack() { cryptoView = 'list'; setBody(cryptoBody()); },
+    rigUpL() { const r = G.rigUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti', 18); toast('Nouvelle machine installée !'); refresh(); },
+    roomUpL() { const r = G.roomUpgrade(true); if (r.err) return toast(r.err, true); rain('confetti'); toast(`Bienvenue dans ton ${D.ROOMS[st().room].name.toLowerCase()} !`); closeModal(); closePhone(); setScene('appart'); },
     rigUp() { const r = G.rigUpgrade(); if (r.err) return toast(r.err, true); rain('confetti', 18); toast('Nouvelle machine installée !'); refresh(); },
     coinSel: el => { cryptoSel = el.dataset.id; cryptoView = 'coin'; crAmt = null; setBody(cryptoBody()); $('#modal .sheet-body').scrollTop = 0; },
     goCoin: el => { closeModal(); setScene('appart'); openCrypto(el.dataset.id); },
@@ -1193,6 +1215,8 @@
     resetGo() { G.reset(); location.reload(); },
     moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm, txt = `${w[0]} <b>Météo du marché : ${w[1]}.</b> ${w[2]} Elle change toutes les 20 min et fait bouger toutes les cryptos en même temps.`; if (modalOpen()) return toast(txt); openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div><p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
     mybets: () => window.BALTO.openMyBets(),
+    kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); toast('📰 Tout frais : le nouveau journal est sorti !'); refresh(); },
+    kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); toast('📰 Tuyau acheté en lingots. Lis bien…'); refresh(); },
     kTip(el) { const r = G.buyTip(el.dataset.id); if (r.err) return toast(r.err, true); toast('📰 Tuyau acheté. Lis bien…'); refresh(); },
     kBooster() { const r = G.buyBoosterCash(); if (r.err) return toast(r.err, true); sfx.coin(); toast('Booster acheté ! Ouvre-le maintenant.'); setBody(kioskBody()); renderHud(); },
     habits: () => openHabits(),
@@ -1220,6 +1244,7 @@
       drawPhone();
     },
     clubGo(el) { const r = G.clubNight(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
+    clubVip(el) { const r = G.clubNight(true); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
     habitStart(el) { const r = G.startHabit(el.dataset.id); if (r.err) return toast(r.err, true); const h = G.habit(el.dataset.id); toast(`${h.icon} ${h.name} : c'est parti. Bonus actif, malus aussi.`); refresh(); },
     habitQuit(el) { const r = G.quitHabit(el.dataset.id); if (r.err) return toast(r.err, true); toast(`Sevrage lancé : ${D.QUIT_H} h à tenir.`); refresh(); }
   };

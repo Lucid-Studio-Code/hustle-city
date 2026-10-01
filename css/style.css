@@ -1704,3 +1704,17 @@ h3.sec { margin: 18px 6px 10px; }
 #app #next-tip span:last-child { display: flex; flex-direction: column; }
 #app #next-tip b { font: 900 12px/1.2 var(--text); }
 #app #next-tip small { font: 700 10.5px/1.25 var(--text); color: #6a5a4a; }
+
+/* ---------- Kiosque : compte à rebours du journal ; boutons payés en lingots ---------- */
+#app .kiosk-hero { margin: 0 0 10px; padding: 10px 12px; border: 2px solid #2a1a10; border-radius: 16px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; text-align: center; }
+#app .kh-clock { display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border: 2px solid #2a1a10; border-radius: 14px; background: linear-gradient(#fff6c8, #ffe27a); }
+#app .kh-clock .kh-ic { font-size: 30px; line-height: 1; }
+#app .kh-clock small { display: block; font: 900 11px var(--text); color: #7a5a3a; }
+#app .kh-clock b { display: block; font: 400 30px/1.05 var(--title); color: #2a1a10; }
+#app .kh-bar { height: 8px; margin-top: 4px; border: 2px solid #2a1a10; border-radius: 8px; background: #fffdf6; overflow: hidden; }
+#app .kh-bar i { display: block; height: 100%; background: #ff8a3d; }
+#app .kh-now { width: 100%; margin: 8px 0 10px; }
+#app .btn.gold { --b-c: #ff9a3c; }
+#app .btn.gold .ic { width: 20px; height: 20px; vertical-align: -4px; margin: 0 1px; -webkit-text-stroke: 0; }
+#app .btn.gold[disabled] { --b-c: var(--b-grey); }
+#app .kiosk-hero .pe-box b { font-size: 22px; }

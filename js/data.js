@@ -295,6 +295,8 @@
   ];
 
   // ---------------------------------------------------------------- filet de sécurité (réaliste)
+  // Payer en lingots : 1 lingot vaut 20 billets quand on complète un achat ; quelques raccourcis payables en lingots
+  const LINGOT = { rate: 20, kiosk: 3, club: 2 };
   const BAILOUT = { under: 10, amount: 50, cooldownMin: 60,
     lines: ['Ta daronne t\'a fait un virement. « C\'est la dernière fois. »', 'Ton cousin te rend les 50<i class="cur"></i> qu\'il te devait depuis 2019.', 'Tu as revendu ta vieille console. Pas fier.'] };
 
@@ -364,6 +366,6 @@
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, TILT, HEALTH_COST,
-    CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    LINGOT, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

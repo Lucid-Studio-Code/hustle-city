@@ -193,9 +193,9 @@
   }
   // une amélioration de l'appart (machine ou déménagement) que le joueur peut se payer maintenant
   function upgradeReady() { const nx = rigNext(), nr = D.ROOMS[st.room + 1]; return (nx && st.cash >= nx.price) ? 'rig' : (nr && st.cash >= cost(nr.cost)) ? 'room' : null; }
-  function rigUpgrade() {
+  function rigUpgrade(mix) {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return { err: 'Déjà au max.' };
-    if (!pay(cost(nx.cost))) return { err: 'Pas assez de cash.' };
+    if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
     const i = rigInfo(); st.rig.pending = i.hot ? i.mined : i.mined; st.rig.lvl++; st.rig.start = now();
     // on garde ce qui était déjà miné
     addXp(40 + nx.cost / 100); emit('change'); return { ok: true };
@@ -456,9 +456,9 @@
     emit('trophy', item(id)); emit('change'); return true;
   }
   function itemsValue() { return Object.entries(st.owned).reduce((s, [id, a]) => s + a.length * sellPrice(id), 0); }
-  function roomUpgrade() {
+  function roomUpgrade(mix) {
     const nx = D.ROOMS[st.room + 1]; if (!nx) return { err: 'Déjà le plus bel appart.' };
-    if (!pay(cost(nx.cost))) return { err: 'Pas assez de cash.' };
+    if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
     st.room++; addXp(100 + nx.cost / 100); emit('change'); return { ok: true };
   }
 
@@ -500,8 +500,10 @@
   // ------------------------------------------------------------ le Club
   const clubEntry = () => cost(D.CLUB.entry(st.lvl));
   const clubWait = () => Math.max(0, (st.clubNext || 0) - now());
-  function clubNight() {
+  function clubNight(vipPass) {
     if (st.lvl < D.CLUB.lvl) return { err: `Le Club ouvre au niveau ${D.CLUB.lvl}.` };
+    // le videur se laisse convaincre avec quelques lingots
+    if (clubWait() && vipPass) { if (st.lingots < D.LINGOT.club) return { err: 'Pas assez de lingots.' }; if (st.cash < clubEntry()) return { err: 'Pas assez de cash pour l\'entrée.' }; addLingots(-D.LINGOT.club); st.clubNext = 0; }
     if (clubWait()) return { err: 'Le videur t\'a vu tout à l\'heure. Reviens plus tard.' };
     const e = clubEntry(); if (!pay(e)) return { err: 'Pas assez de cash pour l\'entrée.' };
     st.clubNext = now() + D.CLUB.cooldownMin * 60000;
@@ -513,10 +515,25 @@
   }
 
   // ------------------------------------------------------------ kiosque
-  function edition() { return Math.floor(now() / (D.KIOSK.editionMin * 60000)); }
+  // le journal sort toutes les 30 min ; kShift avance l'horloge du joueur quand il paie un journal tout de suite
+  const ED_MS = () => D.KIOSK.editionMin * 60000;
+  function edition() { return Math.floor((now() + (st.kShift || 0)) / ED_MS()); }
+  function editionLeft() { return (edition() + 1) * ED_MS() - (now() + (st.kShift || 0)); }
+  function kioskRefresh() {
+    if (st.lingots < D.LINGOT.kiosk) return { err: 'Pas assez de lingots.' };
+    addLingots(-D.LINGOT.kiosk); st.kShift = (st.kShift || 0) + editionLeft() + 1000; emit('change'); return { ok: true };
+  }
+  const tipLingots = t => Math.max(1, Math.ceil(tipPrice(t) / D.LINGOT.rate));
+  // compléter un achat avec des lingots : combien il en faut pour ce qui manque
+  const lingotsFor = price => Math.max(0, Math.ceil((price - st.cash) / D.LINGOT.rate));
+  function payMix(price) {
+    const n = lingotsFor(price); if (n > st.lingots) return false;
+    if (n) { addLingots(-n); st.cash = 0; emit('money'); return true; }
+    return pay(price);
+  }
   function tipPrice(t) { return cost(Math.round(t.base * (1 + st.lvl * .6))); }
   function tipBought(id) { const k = st.kiosk || {}; return k.ed === edition() && k.tips && k.tips[id]; }
-  function buyTip(id) {
+  function buyTip(id, withLingots) {
     const t = D.KIOSK.tips.find(x => x.id === id); if (!t || st.lvl < (t.lvl || 1)) return { err: 'Pas encore.' };
     if (tipBought(id)) return { err: 'Déjà lu dans cette édition.' };
     let txt = null;
@@ -544,7 +561,8 @@
       const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
       txt = `Ça va bouger sur ${what(it)} : sa cote devrait ${ru.up ? 'grimper' : 'chuter'} d'ici ${Math.max(1, Math.round((mk.nextRumor - now()) / 60000))} min.`;
     }
-    if (!pay(tipPrice(t))) return { err: 'Pas assez de cash.' };
+    if (withLingots) { if (st.lingots < tipLingots(t)) return { err: 'Pas assez de lingots.' }; addLingots(-tipLingots(t)); }
+    else if (!pay(tipPrice(t))) return { err: 'Pas assez de cash.' };
     if (!st.kiosk || st.kiosk.ed !== edition()) st.kiosk = { ed: edition(), tips: {} };
     st.kiosk.tips[id] = { txt, t: now(), m: ref };
     stat('tips'); addXp(4 + st.lvl); emit('change'); return { txt };
@@ -784,7 +802,7 @@
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     item, what, upgradeReady, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
-    edition, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,
