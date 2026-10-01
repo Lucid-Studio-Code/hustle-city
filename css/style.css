@@ -636,20 +636,20 @@ h3.sec { margin: 18px 6px 10px; }
 #app .bld.locked .pic { filter: grayscale(.85) brightness(.8); }
 
 /* ---------- boutons du côté droit (Récompenses, Booster, Cadeau) et bon plan à gauche ---------- */
-#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-ideas, #app #btn-deal {
+#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-next, #app #btn-deal {
   position: absolute; z-index: 19; right: 8px; width: 52px; height: 56px; padding: 3px 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   border: 2px solid #2a1a10; border-radius: 14px; box-shadow: 0 3px 0 #2a1a10; background: linear-gradient(#fffdf6, #fff4dc); cursor: pointer; transition: transform .08s; }
 #app #trophy { top: calc(var(--hud-b, 96px) + 10px); height: 52px; }
 #app #btn-booster { top: calc(var(--hud-b, 96px) + 72px); }
 #app #btn-gift { top: calc(var(--hud-b, 96px) + 138px); }
-#app #btn-ideas { top: calc(var(--hud-b, 96px) + 204px); }
+#app #btn-next { top: calc(var(--hud-b, 96px) + 204px); height: 64px; }
 #app #btn-deal { right: auto; left: 8px; top: calc(var(--hud-b, 96px) + 84px); width: 60px; height: 76px; animation: dealBob 2s ease-in-out infinite; background: linear-gradient(#fff6c8, #ffd96a); }
 #app #trophy .ic { width: 34px; height: 34px; }
 #app #btn-gift .ic { width: 36px; height: 32px; }
-#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-ideas b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
-#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-ideas .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
-#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden, #app #btn-ideas .badge.hidden { display: none; }
-#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-ideas:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
+#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-next b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
+#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-next .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
+#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden, #app #btn-next .badge.hidden { display: none; }
+#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-next:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
 #app #btn-gift.glow { animation: giftGlow 1.4s ease-in-out infinite; }
 #app #btn-gift.glow .ic { animation: giftPulse 1.4s ease-in-out infinite; }
 #app #btn-booster.glow { animation: bstGlow 1.4s ease-in-out infinite; }
@@ -661,7 +661,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app #btn-deal .dl-face { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid #2a1a10; background: #fff4dc; }
 #app #btn-deal .dl-face .pic, #app #btn-deal .dl-face img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 #app #btn-deal small { font: 900 10px/1 var(--text); color: #7a3a00; }
-#app.in-appart #btn-booster, #app.in-appart #btn-gift, #app.in-appart #btn-ideas, #app.in-appart #btn-deal, #app.in-appart #quest { display: none; }
+#app.in-appart #btn-booster, #app.in-appart #btn-gift, #app.in-appart #btn-next, #app.in-appart #next-tip, #app.in-appart #btn-deal, #app.in-appart #quest { display: none; }
 #app.in-appart #trophy { top: auto; bottom: 108px; }
 .bst-mini { display: inline-grid; place-items: center; width: 26px; height: 34px; font-style: normal; vertical-align: middle; }
 .bst-mini img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 0 rgba(42,26,16,.4)); }
@@ -1687,20 +1687,20 @@ h3.sec { margin: 18px 6px 10px; }
 #app .room-head .up-tag.room-up { position: static; transform: none; }
 @keyframes upGlow { 50% { box-shadow: 0 3px 0 #2a1a10, 0 0 14px 4px rgba(95, 199, 58, .85); } }
 
-/* ---------- bouton « Idées » et sa fenêtre ---------- */
-#app #btn-ideas .idea-ic { font-style: normal; font-size: 26px; line-height: 1; }
-#app #btn-ideas.glow { animation: ideaGlow 1.4s ease-in-out infinite; }
-#app #btn-ideas.glow .idea-ic { animation: giftPulse 1.4s ease-in-out infinite; }
-@keyframes ideaGlow { 50% { box-shadow: 0 3px 0 #2a1a10, 0 0 14px 4px rgba(255, 214, 64, .9); } }
-#app .idea-row { align-items: center; }
-#app .idea-row .idea-emo { flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; font-size: 24px; border-radius: 12px; background: #fff4dc; border: 2px solid #2a1a10; }
-#app .idea-row.hot .idea-emo { background: #d8f7c4; }
-#app .idea-row .btn { flex: 0 0 auto; }
-#app .idea-row .idea-emo img { width: 26px; height: 32px; object-fit: contain; }
-
-/* but : le ballon file dans les filets de l'équipe qui encaisse */
-#app .pitch .pl-ball.goal-r { animation: goalR 1.1s ease-in forwards; }
-#app .pitch .pl-ball.goal-l { animation: goalL 1.1s ease-in forwards; }
-@keyframes goalR { 0% { left: 50%; top: 50%; } 60% { left: 80%; top: 42%; } 100% { left: calc(100% - 7px); top: 50%; } }
-@keyframes goalL { 0% { left: 50%; top: 50%; } 60% { left: 20%; top: 58%; } 100% { left: 7px; top: 50%; } }
-#app .pitch .pl-goal.hit { background: rgba(255,255,255,.55); box-shadow: 0 0 10px 3px rgba(255,210,63,.9); }
+/* ---------- bouton « prochain achat » : l'image de l'amélioration, et la bulle de Momo ---------- */
+#app #btn-next.hidden { display: none; }
+#app #btn-next .nx-pic { width: 40px; height: 40px; display: grid; place-items: center; }
+#app #btn-next .nx-pic .pic, #app #btn-next .nx-pic img { width: 100%; height: 100%; object-fit: contain; }
+#app #btn-next .nx-pic > i { width: 40px; height: 34px; border-radius: 8px; border: 1.5px solid #2a1a10; background-size: cover; background-position: center 40%; }
+#app #btn-next b .cur { width: 11px; height: 9px; }
+#app #btn-next.glow { animation: upGlow 1.4s ease-in-out infinite; background: linear-gradient(#e9ffd8, #b8f08e); }
+#app #btn-next.glow .nx-pic { animation: giftPulse 1.4s ease-in-out infinite; }
+#app #next-tip { position: absolute; z-index: 19; right: 68px; top: calc(var(--hud-b, 96px) + 208px); max-width: 230px; display: flex; align-items: center; gap: 7px; padding: 5px 12px 6px 5px; text-align: left; cursor: pointer;
+  border: 2px solid #2a1a10; border-radius: 16px; box-shadow: 0 3px 0 #2a1a10; background: #fffdf6; color: #3b2412; opacity: 0; transform: translateX(10px); transition: .25s; pointer-events: none; }
+#app #next-tip.on { opacity: 1; transform: none; pointer-events: auto; }
+#app #next-tip::after { content: ''; position: absolute; right: -8px; top: 22px; border: 7px solid transparent; border-left-color: #2a1a10; border-right: 0; }
+#app #next-tip .t-who { flex: 0 0 30px; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; border: 2px solid #2a1a10; background: #ffe27a; }
+#app #next-tip .t-who .pic, #app #next-tip .t-who img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+#app #next-tip span:last-child { display: flex; flex-direction: column; }
+#app #next-tip b { font: 900 12px/1.2 var(--text); }
+#app #next-tip small { font: 700 10.5px/1.25 var(--text); color: #6a5a4a; }

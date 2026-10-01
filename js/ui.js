@@ -167,49 +167,45 @@
     bst.querySelector('.badge').classList.toggle('hidden', !nb); bst.querySelector('.badge').textContent = nb; bst.classList.toggle('glow', G.boosterFree());
     const gift = $('#btn-gift'), dr = G.dailyReady();
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
-    const hotIdeas = ideas().filter(x => x.hot).length, ib = $('#btn-ideas');
-    ib.querySelector('.badge').classList.toggle('hidden', !hotIdeas); ib.querySelector('.badge').textContent = hotIdeas; ib.classList.toggle('glow', hotIdeas > 0);
+    renderNextBtn();
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
   }
 
-  // ------------------------------------------------------------ bouton « Idées » : ce que le joueur peut faire maintenant
-  // hot = à faire tout de suite (compte dans la pastille) ; les autres sont des envies à essayer
-  function ideas() {
-    const s = st(), L = [], add = (hot, emo, title, txt, go) => L.push({ hot, emo, title, txt, go });
-    const rig = G.rigInfo(), nx = G.rigNext(), nr = D.ROOMS[s.room + 1];
-    if (rig.hot) add(true, '⚡', 'Ta machine est pleine', `Elle s'est arrêtée. Encaisse ${short(rig.value)} pour la relancer.`, 'rig');
-    if (G.dailyReady()) add(true, '🎁', 'Ton cadeau du jour', 'Il t\'attend. Ne casse pas ta série !', 'daily');
-    if (G.boosterCount()) add(true, '<img src="assets/img/booster-pack.png" alt="">', 'Ouvre ton booster', 'Des cartes à découvrir, et peut-être une rare.', 'boosters');
-    if (G.questsReady() + G.chalReady()) add(true, '🏆', 'Réclame tes récompenses', 'Tu as réussi des missions : récupère ce que tu as gagné.', 'rewards');
-    if (s.deal) add(true, '🤝', 'Un bon plan t\'attend', 'Un contact te propose une affaire dans tes messages. Ça ne dure pas.', 'deal');
-    if (nx && s.cash >= nx.price) add(true, '⬆️', 'Améliore ta machine', `${nx.nx.name} : elle rapporte ×${nx.mult.toFixed(1).replace('.', ',')} plus. Prix : ${short(nx.price)}.`, 'rigUp');
-    if (nr && s.cash >= G.cost(nr.cost)) add(true, '🏠', 'Déménage', `${nr.name} : ${nr.slots} places pour tes objets. Prix : ${short(G.cost(nr.cost))}.`, 'room');
-    const soon = s.matches.some(m => m.state === 'soon'), open = s.bets.some(b => b.state === 'open');
-    if (soon && !open) add(false, '⚽', 'Parie sur un match', 'Un match commence bientôt au Balto. Une petite mise suffit.', 'balto');
-    if (!D.COINS.some(c => s.crypto.hold[c.id] > 0) && s.cash >= 50) add(false, '📈', 'Essaie la crypto', 'Sur ton PC : mets un peu, et regarde si ça monte.', 'pc');
-    if (!G.tipBought('sport')) add(false, '📰', 'Lis le journal du Kiosque', 'Un tuyau sur un match à venir, pour miser plus malin.', 'kiosque');
-    if (s.lvl >= 2 && s.market.news.some(n => n.up && Date.now() - n.t < 15 * 60000)) add(false, '🛍️', 'Ça monte au Comptoir', 'Une rumeur fait grimper un objet. Regarde les Actus.', 'news');
-    if (s.lvl >= D.CLUB.lvl && !G.clubWait() && s.cash >= G.clubEntry()) add(false, '🎉', 'Sors au Club', 'De l\'XP, et peut-être un contact avec un bon plan.', 'club');
-    add(false, '🎟️', 'Gratte un ticket', 'Au Balto. Pour le fun : la plupart des tickets perdent.', 'scratch');
-    if (s.lvl >= 2) add(false, '🎰', 'Fais un tour au casino', 'Machine à sous ou roulette. Joue petit : le casino gagne toujours à la fin.', 'casino');
-    return L;
+  // ------------------------------------------------------------ bouton « prochain achat » : l'image de la prochaine amélioration utile
+  // on propose la moins chère entre la machine suivante et l'appart suivant ; Momo prévient quand on peut se la payer
+  function nextBuy() {
+    const s = st(), L = [], nx = G.rigNext(), nr = D.ROOMS[s.room + 1];
+    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
+    if (nx) L.push({ kind: 'rig', img: has('minerv-' + (s.rig.lvl + 1)) ? 'minerv-' + (s.rig.lvl + 1) : 'rig-' + (s.rig.lvl + 1), name: nx.nx.name, price: nx.price,
+      why: `Ta machine rapportera ×${nx.mult.toFixed(1).replace('.', ',')} plus.` });
+    if (nr) { const i = s.room + 1; L.push({ kind: 'room', img: has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, name: nr.name, price: G.cost(nr.cost),
+      why: `${nr.slots} places pour ta collection.` }); }
+    return L.sort((a, b) => a.price - b.price)[0] || null;
   }
-  function ideasBody() {
-    const L = ideas(), hot = L.filter(x => x.hot), rest = L.filter(x => !x.hot);
-    const row = x => `<div class="row idea-row ${x.hot ? 'hot' : ''}"><span class="idea-emo">${x.emo}</span><div class="grow"><h4>${x.title}</h4><p>${x.txt}</p></div><button class="btn sm ${x.hot ? 'green' : 'blue'}" data-act="ideaGo" data-go="${x.go}">Y aller</button></div>`;
-    return (hot.length ? `<h3 class="sec">À faire maintenant</h3>${hot.map(row).join('')}` : '<p class="hint-line center">Rien d\'urgent. Voilà des idées pour t\'occuper :</p>') +
-      (rest.length ? `<h3 class="sec">Des idées</h3>${rest.map(row).join('')}` : '');
+  let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
+  function renderNextBtn() {
+    const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
+    btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
+    const ready = st().cash >= n.price, key = n.kind + n.img;
+    if (key !== nextKey) { nextKey = key; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : pic(n.img, '⬆️'); }
+    btn.querySelector('b').innerHTML = short(n.price);
+    btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
+    // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
+    if (ready && !nextWasReady || ready && Date.now() - tipLast > 180000) showNextTip(n);
+    nextWasReady = ready;
   }
-  function openIdeas() { openModal({ title: 'Idées', icon: 'star', full: true, body: ideasBody(), refresh: () => setBody(ideasBody()) }); }
-  function ideaGo(go) {
-    closeModal();
-    if (go === 'rigUp') { setScene('appart'); return A.rigUpOpen(); }
-    if (go === 'room') return openRoom();
-    if (go === 'daily' || go === 'boosters' || go === 'rewards' || go === 'deal') return A[go]();
-    if (go === 'news') { setScene('city'); focusBld('shop'); return openShop('news'); }
-    if (go === 'club') { setScene('city'); focusBld('club'); return openClub(); }
-    questGo(go);
+  function showNextTip(n) {
+    const t = $('#next-tip'); if (!t || modalOpen() || (window.TUTO && TUTO.active) || scene !== 'city') return;
+    tipLast = Date.now();
+    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>Hé, achète ça, ça va t'aider !</b><small>${n.name} · ${n.why}</small></span>`;
+    t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
+  }
+  function goNextBuy() {
+    $('#next-tip')?.classList.remove('on');
+    const n = nextBuy(); if (!n) return;
+    if (n.kind === 'rig') { setScene('appart'); return A.rigUpOpen(); }
+    return openRoom();
   }
 
   // ------------------------------------------------------------ carte mission (apparaît quelques secondes, comme Mama Kana)
@@ -1161,8 +1157,7 @@
     wallet: () => openWallet(),
     quests: () => openRewards(),
     rewards: () => openRewards(),
-    ideas: () => openIdeas(),
-    ideaGo: el => ideaGo(el.dataset.go),
+    nextBuy: () => goNextBuy(),
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); if (r.trophy) toast(`🏆 ${r.trophy.name} rejoint ton appart !`); refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) { toast('Les 3 défis du jour : 1 booster et 3 lingots en plus !', false, 'boosters'); rain('bill', 30); } refresh(); },
