@@ -196,7 +196,7 @@
   function rigUpgrade(mix) {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return { err: 'Déjà au max.' };
     if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
-    const i = rigInfo(); st.rig.pending = i.hot ? i.mined : i.mined; st.rig.lvl++; st.rig.start = now();
+    const i = rigInfo(); st.rig.pending = i.hot ? i.mined : i.mined; st.rig.lvl++; st.rig.start = now(); st.lastUp = 'rig';
     // on garde ce qui était déjà miné
     addXp(40 + nx.cost / 100); emit('change'); return { ok: true };
   }
@@ -439,6 +439,7 @@
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
+    if (it.series) st.lastUp = 'card';
     stat('itemBuy'); stat('itemsOwned', ownedCount(), true); addXp(5 + Math.min(60, p / 40));
     emit('change'); return { p };
   }
@@ -459,7 +460,7 @@
   function roomUpgrade(mix) {
     const nx = D.ROOMS[st.room + 1]; if (!nx) return { err: 'Déjà le plus bel appart.' };
     if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
-    st.room++; addXp(100 + nx.cost / 100); emit('change'); return { ok: true };
+    st.room++; st.lastUp = 'room'; addXp(100 + nx.cost / 100); emit('change'); return { ok: true };
   }
 
   // ------------------------------------------------------------ habitudes

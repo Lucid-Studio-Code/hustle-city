@@ -179,16 +179,28 @@
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
     if (nx) L.push({ kind: 'rig', img: has('minerv-' + (s.rig.lvl + 1)) ? 'minerv-' + (s.rig.lvl + 1) : 'rig-' + (s.rig.lvl + 1), name: nx.nx.name, price: nx.price,
       why: `Ta machine rapportera ×${nx.mult.toFixed(1).replace('.', ',')} plus.` });
-    if (nr) { const i = s.room + 1; L.push({ kind: 'room', img: has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, name: nr.name, price: G.cost(nr.cost),
-      why: `${nr.slots} places pour ta collection.` }); }
-    return L.sort((a, b) => a.price - b.price)[0] || null;
+    if (nr) { const i = s.room + 1, full = G.ownedCount() >= G.roomSlots(); L.push({ kind: 'room', img: has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, name: nr.name, price: G.cost(nr.cost), urgent: full,
+      why: full ? `Tes étagères sont pleines : ${nr.slots} places pour ta collection.` : `${nr.slots} places pour ta collection.` }); }
+    // une carte qui manque pour finir une série du classeur (la série la plus avancée, la carte la moins chère)
+    if (G.catUnlocked('card')) {
+      const se = D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).sort((x, y) => (G.seriesCards(x.id).length - G.seriesHave(x.id)) - (G.seriesCards(y.id).length - G.seriesHave(y.id)))[0];
+      const miss = se && G.seriesCards(se.id).filter(c => !(s.owned[c.id] || []).length).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
+      if (miss) { const left = G.seriesCards(se.id).length - G.seriesHave(se.id);
+        L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
+          why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` }); }
+    }
+    if (!L.length) return null;
+    // on varie : pas deux fois de suite le même genre d'achat, sauf s'il n'y a que ça ; des étagères pleines passent devant
+    const urgent = L.find(x => x.urgent && x.kind !== s.lastUp); if (urgent) return urgent;
+    const pool = L.filter(x => x.kind !== s.lastUp);
+    return (pool.length ? pool : L).sort((a, b) => a.price - b.price)[0];
   }
   let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
   function renderNextBtn() {
     const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
     btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
-    const ready = st().cash >= n.price, key = n.kind + n.img;
-    if (key !== nextKey) { nextKey = key; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : pic(n.img, '⬆️'); }
+    const ready = st().cash >= n.price, key = n.kind + (n.img || n.it.id);
+    if (key !== nextKey) { nextKey = key; btn.querySelector('.nx-pic').innerHTML = n.kind === 'room' ? `<i style="background-image:url(${src(n.img)})"></i>` : n.kind === 'card' ? itemPic(n.it) : pic(n.img, '⬆️'); }
     btn.querySelector('b').innerHTML = short(n.price);
     btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
@@ -196,7 +208,7 @@
     nextWasReady = ready;
   }
   function showNextTip(n) {
-    const t = $('#next-tip'); if (!t || modalOpen() || (window.TUTO && TUTO.active) || scene !== 'city') return;
+    const t = $('#next-tip'); if (!t || modalOpen() || phoneOpen() || (window.TUTO && TUTO.active)) return;
     tipLast = Date.now();
     t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>Hé, achète ça, ça va t'aider !</b><small>${n.name} · ${n.why}</small></span>`;
     t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
@@ -205,6 +217,12 @@
     $('#next-tip')?.classList.remove('on');
     const n = nextBuy(); if (!n) return;
     if (n.kind === 'rig') { setScene('appart'); return A.rigUpOpen(); }
+    if (n.kind === 'card') {
+      setScene('city'); focusBld('shop'); openShop('card');
+      // on descend jusqu'à la carte proposée et on la fait briller
+      return setTimeout(() => { const c = $(`#modal [data-act=itBuy][data-id="${n.it.id}"]`)?.closest('.item-card'), b = $('#modal .sheet-body');
+        if (c && b) { b.scrollTop = c.offsetTop - b.offsetTop - 60; c.classList.add('spot'); } }, 50);
+    }
     return openRoom();
   }
 
