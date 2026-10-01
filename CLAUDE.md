@@ -25,7 +25,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `?v=N` dans index.html (actuellement 24).
+- Changer de version : incrémenter `?v=N` dans index.html (actuellement 25).
 
 ## Pièges connus
 - `.cur` = l'icône billet, et `.money` est déjà pris : ne jamais les utiliser comme classes d'état.

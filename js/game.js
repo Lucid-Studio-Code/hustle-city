@@ -191,6 +191,8 @@
     return v <= .006 ? { n: 1, label: 'Tranquille', desc: 'Bouge peu. Pour débuter.' } : v <= .012 ? { n: 2, label: 'Ça bouge', desc: 'Monte et descend plus vite.' }
       : v <= .02 ? { n: 3, label: 'Montagnes russes', desc: 'Peut faire +30 % ou −30 % en peu de temps.' } : { n: 4, label: 'Casino', desc: 'Peut s\'effondrer d\'un coup. Ne mise que ce que tu peux perdre.' };
   }
+  // une amélioration de l'appart (machine ou déménagement) que le joueur peut se payer maintenant
+  function upgradeReady() { const nx = rigNext(), nr = D.ROOMS[st.room + 1]; return (nx && st.cash >= nx.price) ? 'rig' : (nr && st.cash >= cost(nr.cost)) ? 'room' : null; }
   function rigUpgrade() {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return { err: 'Déjà au max.' };
     if (!pay(cost(nx.cost))) return { err: 'Pas assez de cash.' };
@@ -776,7 +778,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    item, what, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
+    item, what, upgradeReady, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,

@@ -8,7 +8,7 @@
   const S = k => st().stats[k] || 0;
 
   // target : sélecteur de l'élément à montrer ; done : condition pour passer à la suite ; before : action à l'arrivée sur l'étape
-  const STEPS = [
+  const MAIN = [
     { say: n => `Wesh ${n} ! Moi c'est Momo, ton cousin. T'as 200<i class="cur"></i> en poche et un vieux PC. Je vais te montrer comment ça tourne ici.`, btn: 'Vas-y' },
     { say: () => 'Ça, c\'est <b>ton appart</b>. Entre, on commence par là.', target: '.bld[data-id=appart]', before: () => U.focusBld('appart'), done: () => U.scene === 'appart' },
     { say: () => 'Ta <b>machine à crypto</b> fabrique de l\'argent toute seule, même quand t\'es pas là. Touche-la.', target: '[data-act=rig]', done: () => !!$('[data-act=rigCollect]') },
@@ -31,7 +31,28 @@
     { say: () => 'Voilà, t\'as les bases. Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le casino et le Comptoir ouvrent. Et retiens : le casino gagne toujours à la fin. À toi de jouer !', btn: 'C\'est parti', before: () => U.closeModal() }
   ];
 
-  let idx = 0, timer = null, el = {};
+  // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Balto sont vus dans le grand tuto.
+  const title = () => ([...document.querySelectorAll('#modal .sheet-head > span')].pop() || {}).textContent || '';
+  const enter = (id, name, intro, inside, target) => [
+    { say: () => intro, target: `.bld[data-id=${id}]`, before: () => U.focusBld(id), done: () => modalOpen() && title() === name },
+    { say: () => inside, target, btn: 'Compris' }
+  ];
+  const BLD = {
+    kiosque: enter('kiosque', 'Le Kiosque', 'Là, c\'est <b>le Kiosque</b>, le journal du quartier. Entre.',
+      'Toutes les 30 min, un nouveau journal sort avec des <b>tuyaux</b> : qui va gagner un match, si la crypto va monter… Ça coûte un peu, mais ça aide à mieux miser. L\'onglet <b>Boosters</b> vend des paquets de cartes.', '#modal .tabs'),
+    bus: enter('bus', 'Arrêt de bus', 'Et ça, c\'est <b>l\'arrêt de bus</b>. Jette un œil.',
+      'Le bus mène aux autres quartiers : bijouterie, garage, la Tour… Ils sont encore fermés : ils ouvriront quand tu monteras en niveau.', '#modal .sheet-body'),
+    casino: enter('casino', 'Lucky Palace', 'Nouveau : le <b>Lucky Palace</b> est ouvert ! Machine à sous et roulette. Entre.',
+      'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
+    shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes, des baskets et des montres de collection. Entre.',
+      'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
+    club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Entre.',
+      'Une soirée coûte l\'entrée, mais te fait gagner de l\'XP. Tu peux y rencontrer des contacts qui te proposent des <b>bons plans</b>. Sortir peut aussi devenir une habitude : un bonus, mais aussi un malus.', '[data-act=clubGo]')
+  };
+  const BLD_ORDER = ['kiosque', 'bus', 'shop', 'casino', 'club'];
+  const seen = () => (st().bldTuto = st().bldTuto || {});
+
+  let idx = 0, timer = null, el = {}, STEPS = MAIN, bld = null;
   function ensureDom() {
     if (el.spot) return;
     const app = $('#app');
@@ -65,7 +86,7 @@
     el.spot.classList.toggle('dim', !!step.target);
     setTimeout(place, 60);
   }
-  function next() { idx++; st().tutoStep = idx; G.save(); show(); }
+  function next() { idx++; if (!bld) st().tutoStep = idx; G.save(); show(); }
   function tick() {
     const step = STEPS[idx]; if (!step) return;
     if (step.done && step.done()) return next();
@@ -74,9 +95,11 @@
   function finish() {
     clearInterval(timer); timer = null;
     ['spot', 'arrow', 'say'].forEach(k => el[k] && el[k].remove()); el = {};
-    st().tutoDone = true; G.save();
+    if (bld) seen()[bld] = true; else { st().tutoDone = true; seen().appart = seen().balto = true; }
+    bld = null; STEPS = MAIN; G.save();
   }
   function start(from) {
+    STEPS = MAIN; bld = null;
     idx = from != null ? from : Math.min(st().tutoStep || 0, STEPS.length - 1);
     // reprise en cours de route : on repart d'une étape qui a du sens
     if (idx > 0 && idx < 9) idx = S('cryptoBuy') ? 8 : 1;
@@ -84,6 +107,20 @@
     show(); clearInterval(timer); timer = setInterval(tick, 300);
   }
   function skip() { finish(); }
+  function startBld(id) {
+    bld = id; STEPS = BLD[id]; idx = 0;
+    show(); clearInterval(timer); timer = setInterval(tick, 300);
+  }
+  // on attend un moment calme (en ville, aucune fenêtre ouverte) pour présenter le lieu suivant
+  let calm = 0;
+  setInterval(() => {
+    const s = st(); if (!s || !s.tutoDone || timer || !s.skin) { calm = 0; return; }
+    const busy = modalOpen() || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
+    calm = busy ? 0 : calm + 1;
+    if (calm < 3) return;
+    const id = BLD_ORDER.find(k => !seen()[k] && s.lvl >= D.BUILDINGS.find(b => b.id === k).lvl);
+    if (id) { calm = 0; startBld(id); }
+  }, 1000);
 
-  window.TUTO = { start, skip, get active() { return !!timer; } };
+  window.TUTO = { start, skip, startBld, get active() { return !!timer; } };
 })();

@@ -636,19 +636,20 @@ h3.sec { margin: 18px 6px 10px; }
 #app .bld.locked .pic { filter: grayscale(.85) brightness(.8); }
 
 /* ---------- boutons du côté droit (Récompenses, Booster, Cadeau) et bon plan à gauche ---------- */
-#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-deal {
+#app #trophy, #app #btn-booster, #app #btn-gift, #app #btn-ideas, #app #btn-deal {
   position: absolute; z-index: 19; right: 8px; width: 52px; height: 56px; padding: 3px 0 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   border: 2px solid #2a1a10; border-radius: 14px; box-shadow: 0 3px 0 #2a1a10; background: linear-gradient(#fffdf6, #fff4dc); cursor: pointer; transition: transform .08s; }
 #app #trophy { top: calc(var(--hud-b, 96px) + 10px); height: 52px; }
 #app #btn-booster { top: calc(var(--hud-b, 96px) + 72px); }
 #app #btn-gift { top: calc(var(--hud-b, 96px) + 138px); }
+#app #btn-ideas { top: calc(var(--hud-b, 96px) + 204px); }
 #app #btn-deal { right: auto; left: 8px; top: calc(var(--hud-b, 96px) + 84px); width: 60px; height: 76px; animation: dealBob 2s ease-in-out infinite; background: linear-gradient(#fff6c8, #ffd96a); }
 #app #trophy .ic { width: 34px; height: 34px; }
 #app #btn-gift .ic { width: 36px; height: 32px; }
-#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
-#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
-#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden { display: none; }
-#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
+#app #trophy b, #app #btn-booster b, #app #btn-gift b, #app #btn-ideas b, #app #btn-deal b { font-family: var(--title); font-weight: 400; font-size: 10px; line-height: 1; color: #fff; -webkit-text-stroke: 2.4px #2a1a10; paint-order: stroke fill; }
+#app #trophy .badge, #app #btn-booster .badge, #app #btn-gift .badge, #app #btn-ideas .badge, #app #btn-deal .badge { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; font-size: 12px; display: grid; place-items: center; color: #fff; }
+#app #trophy .badge.hidden, #app #btn-booster .badge.hidden, #app #btn-gift .badge.hidden, #app #btn-ideas .badge.hidden { display: none; }
+#app #trophy:active, #app #btn-booster:active, #app #btn-gift:active, #app #btn-ideas:active, #app #btn-deal:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
 #app #btn-gift.glow { animation: giftGlow 1.4s ease-in-out infinite; }
 #app #btn-gift.glow .ic { animation: giftPulse 1.4s ease-in-out infinite; }
 #app #btn-booster.glow { animation: bstGlow 1.4s ease-in-out infinite; }
@@ -660,7 +661,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app #btn-deal .dl-face { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 2px solid #2a1a10; background: #fff4dc; }
 #app #btn-deal .dl-face .pic, #app #btn-deal .dl-face img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 #app #btn-deal small { font: 900 10px/1 var(--text); color: #7a3a00; }
-#app.in-appart #btn-booster, #app.in-appart #btn-gift, #app.in-appart #btn-deal, #app.in-appart #quest { display: none; }
+#app.in-appart #btn-booster, #app.in-appart #btn-gift, #app.in-appart #btn-ideas, #app.in-appart #btn-deal, #app.in-appart #quest { display: none; }
 #app.in-appart #trophy { top: auto; bottom: 108px; }
 .bst-mini { display: inline-grid; place-items: center; width: 26px; height: 34px; font-style: normal; vertical-align: middle; }
 .bst-mini img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 0 rgba(42,26,16,.4)); }
@@ -1671,3 +1672,28 @@ h3.sec { margin: 18px 6px 10px; }
 /* photo du contact dans les notifications : petite, ronde */
 #ph-banner > .nt-face, #app .ph-notif > .nt-face { flex: 0 0 38px !important; width: 38px !important; height: 38px; max-width: 38px; display: block !important; }
 #ph-banner > .nt-face img, #app .ph-notif > .nt-face img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+
+/* ---------- appart : améliorations mises en avant (machine, déménagement) ---------- */
+#app .up-tag { position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 5px 5px; white-space: nowrap; cursor: pointer;
+  border: 2px solid #2a1a10; border-radius: 999px; box-shadow: 0 3px 0 #2a1a10; background: #fffdf6; color: #3b2412; }
+#app .up-tag > i { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 14px; color: #fff; background: #9a8a7a; border: 2px solid #2a1a10; }
+#app .up-tag span { display: flex; flex-direction: column; text-align: left; line-height: 1.1; }
+#app .up-tag small { font: 800 10px var(--text); color: #7a6a5a; }
+#app .up-tag b { font: 400 14px var(--title); color: #2a1a10; }
+#app .up-tag b .cur { width: 14px; height: 11px; }
+#app .up-tag.ready { background: linear-gradient(#e9ffd8, #b8f08e); animation: upGlow 1.4s ease-in-out infinite; }
+#app .up-tag.ready > i { background: #3fae2a; animation: giftPulse 1.4s ease-in-out infinite; }
+#app .up-tag.ready small { color: #2c6b16; }
+#app .room-head .up-tag.room-up { position: static; transform: none; }
+@keyframes upGlow { 50% { box-shadow: 0 3px 0 #2a1a10, 0 0 14px 4px rgba(95, 199, 58, .85); } }
+
+/* ---------- bouton « Idées » et sa fenêtre ---------- */
+#app #btn-ideas .idea-ic { font-style: normal; font-size: 26px; line-height: 1; }
+#app #btn-ideas.glow { animation: ideaGlow 1.4s ease-in-out infinite; }
+#app #btn-ideas.glow .idea-ic { animation: giftPulse 1.4s ease-in-out infinite; }
+@keyframes ideaGlow { 50% { box-shadow: 0 3px 0 #2a1a10, 0 0 14px 4px rgba(255, 214, 64, .9); } }
+#app .idea-row { align-items: center; }
+#app .idea-row .idea-emo { flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; font-size: 24px; border-radius: 12px; background: #fff4dc; border: 2px solid #2a1a10; }
+#app .idea-row.hot .idea-emo { background: #d8f7c4; }
+#app .idea-row .btn { flex: 0 0 auto; }
+#app .idea-row .idea-emo img { width: 26px; height: 32px; object-fit: contain; }
