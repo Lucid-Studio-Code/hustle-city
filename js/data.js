@@ -25,7 +25,7 @@
     { id: 'casino',  name: 'Lucky Palace',        lvl: 2,  x: 59, y: 28, w: 30, tag: 'Machine à sous · roulette' },
     { id: 'appart',  name: 'Mon appart',          lvl: 1,  x: 23.5, y: 52, w: 27, tag: 'Crypto · minage · collection' },
     { id: 'shop',    name: 'Le Comptoir',         lvl: 2,  x: 44, y: 57.5, w: 23, tag: 'Cartes · sneakers · montres' },
-    { id: 'balto',   name: 'Le Balto',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
+    { id: 'balto',   name: 'Le Royal',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
     { id: 'club',    name: 'Le Club',             lvl: 4,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
     { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
@@ -121,7 +121,7 @@
     { id: 'banco',  name: 'Banco du Bitume',          price: 3,  lvl: 2, game: 'match3', c1: '#2f6fd8', c2: '#142f6e', ink: '#ffd23f', emblem: 'tk-banco',
       rule: '3 montants identiques : tu gagnes ce montant.',
       prizes: [[3, .14], [6, .08], [15, .034], [100, .004], [2000, .00007]] },
-    { id: 'black',  name: 'Black Jack du Balto',      price: 3,  lvl: 3, game: 'blackjack', c1: '#1d1d1f', c2: '#0e6b3a', ink: '#ffd23f', emblem: 'tk-black',
+    { id: 'black',  name: 'Black Jack du Royal',      price: 3,  lvl: 3, game: 'blackjack', c1: '#1d1d1f', c2: '#0e6b3a', ink: '#ffd23f', emblem: 'tk-black',
       rule: 'Pour chaque main : si ton total bat celui de la banque sans dépasser 21, tu gagnes le gain de la main.',
       prizes: [[3, .16], [6, .08], [15, .035], [100, .004], [3000, .00005]] },
     { id: 'astro',  name: 'Astro-Lascar',             price: 2,  lvl: 4, game: 'astro', c1: '#6a3fb5', c2: '#22114f', ink: '#ffe066', emblem: 'tk-astro',
@@ -241,7 +241,7 @@
       { id: 'fr-gold', kind: 'frame', name: 'Cadre doré du champion', emo: '🏆', colors: ['#ffd23f', '#b8860b'], lingots: 25 },
       { id: 'dc-posts', kind: 'deco', name: 'Poteaux de rugby', emo: '🥅', desc: 'Plantés sur la place.', x: 44, y: 34, w: 9, cash: 600 },
       { id: 'dc-flags', kind: 'deco', name: 'Guirlande de drapeaux', emo: '🎏', desc: 'Les couleurs des 6 quartiers.', x: 30, y: 72, w: 8, cash: 350 },
-      { id: 'dc-ball', kind: 'deco', name: 'Ballon géant', emo: '🏉', desc: 'Une sculpture de ballon devant le Balto.', x: 88, y: 66, w: 8, lingots: 15 },
+      { id: 'dc-ball', kind: 'deco', name: 'Ballon géant', emo: '🏉', desc: 'Une sculpture de ballon devant le Royal.', x: 88, y: 66, w: 8, lingots: 15 },
       { id: 'dc-trophy', kind: 'deco', name: 'Statue du trophée', emo: '🏆', desc: 'Pour les vrais fans.', x: 9, y: 54, w: 8, lingots: 30 }
     ],
     // classement final : récompenses selon la place
@@ -293,7 +293,7 @@
   // ---------------------------------------------------------------- défis du jour (3 par jour)
   // g = objectif [niveau 1, niveau 15 et +]
   const CHALLENGES = [
-    { k: 'bets',        t: 'Place {n} paris au Balto',          g: [2, 6] },
+    { k: 'bets',        t: 'Place {n} paris au Royal',          g: [2, 6] },
     { k: 'scratch',     t: 'Gratte {n} tickets',                g: [3, 8] },
     { k: 'cryptoBuy',   t: 'Achète de la crypto {n} fois',      g: [2, 6] },
     { k: 'rigCollect',  t: 'Récupère ton minage {n} fois',      g: [2, 5] },
@@ -311,7 +311,7 @@
   const EVENTS = { lvl: 2, first: 240, every: [600, 1200], time: 180,
     list: [
       { id: 'xp',    name: 'Happy hour',        short: 'XP ×2',       icon: 'star',   desc: 'Toute l\'XP gagnée compte double.' },
-      { id: 'boost', name: 'Cotes boostées',    short: 'Cotes +15 %', icon: 'ticket', desc: 'Le Balto booste toutes ses cotes de 15 % sur les paris posés maintenant.' },
+      { id: 'boost', name: 'Cotes boostées',    short: 'Cotes +15 %', icon: 'ticket', desc: 'Le Royal booste toutes ses cotes de 15 % sur les paris posés maintenant.' },
       { id: 'rig',   name: 'Heures creuses',    short: 'Minage ×2',   icon: 'bolt',   desc: 'L\'électricité ne coûte rien : ta machine mine deux fois plus vite.' },
       { id: 'sale',  name: 'Déstockage',        short: 'Comptoir −15 %', icon: 'trophy', desc: 'Le Comptoir vide sa réserve : tout est 15 % moins cher à l\'achat.' }
     ] };
@@ -367,7 +367,7 @@
       bonus: 'Les pauses clope avec les gars du quartier : tu apprends les rumeurs du Comptoir 5 min avant tout le monde.',
       malus: 'Un paquet par jour : −20<i class="cur"></i> chaque jour, que tu joues ou non.' },
     { id: 'drink', name: 'Boire', icon: '🍺', lvl: 3, perDay: 10, betBoost: .3, where: 'balto',
-      bonus: 'Plus de culot : mise max au Balto +30 %.',
+      bonus: 'Plus de culot : mise max au Royal +30 %.',
       malus: '−10<i class="cur"></i> par jour, et après une grosse perte au casino, 10 min de « tilt » où tu ne peux plus quitter la table.' },
     { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 4, perDay: 25, xpBoost: .2, where: 'club',
       bonus: 'Réseau et rencontres : +20 % d\'XP sur tout.',
@@ -393,7 +393,7 @@
   const QUESTS = [
     { id: 'q1',  txt: 'Relance ta machine à crypto',        stat: 'rigRestart', n: 1,  cash: 30,  xp: 20, go: 'rig' },
     { id: 'q2',  txt: 'Achète ta première crypto',          stat: 'cryptoBuy',  n: 1,  cash: 40,  xp: 25, go: 'pc' },
-    { id: 'q3',  txt: 'Place un pari au Balto',             stat: 'bets',       n: 1,  cash: 40,  xp: 25, go: 'balto' },
+    { id: 'q3',  txt: 'Place un pari au Royal',             stat: 'bets',       n: 1,  cash: 40,  xp: 25, go: 'balto' },
     { id: 'q17', txt: 'Ouvre ton premier booster',          stat: 'boosters',   n: 1,  cash: 60,  xp: 50, go: 'boosters' },
     { id: 'q4',  txt: 'Gratte 3 tickets',                   stat: 'scratch',    n: 3,  cash: 30,  xp: 25, go: 'scratch' },
     { id: 'q5',  txt: 'Gagne un pari',                      stat: 'betsWon',    n: 1,  cash: 60,  xp: 40, trophy: 't-first', go: 'balto' },
@@ -416,7 +416,7 @@
   const TIPS = [
     'Au casino, la maison gagne toujours à la fin. C\'est des maths.',
     'Une crypto qui a pris +300 % en une journée peut en perdre 90 % le lendemain.',
-    'Les cotes du Balto reversent environ 93 % des mises. Le reste, c\'est pour le patron.',
+    'Les cotes du Royal reversent environ 93 % des mises. Le reste, c\'est pour le patron.',
     'Un objet se revend 10 % sous sa cote : achète quand c\'est bas, pas quand tout le monde en parle.',
     'Le rig mine même quand tu dors. Pense juste à le relancer.',
     'Une habitude se prend en une seconde. Pour l\'arrêter, compte 48 h de galère.'

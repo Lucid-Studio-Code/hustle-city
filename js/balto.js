@@ -1,4 +1,4 @@
-/* Hustle City : Le Balto (paris sportifs + tickets à gratter), version visuelle :
+/* Hustle City : Le Royal (paris sportifs + tickets à gratter), version visuelle :
    écussons des équipes, chances de chaque issue, terrain animé pendant le direct, « BUT ! », ticket papier. */
 (function () {
   'use strict';
@@ -94,7 +94,7 @@
     const gain = free ? amt * (odds - 1) : amt * odds;
     const legs = slip.map(l => { const m = G.match(l.m); return `<div class="tk-leg">${labels(m)[l.pick] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[l.pick] === '2', 'mini')}<span><b>${pickName(m, l.pick)}</b><small>${m.home} – ${m.away}</small></span><em>${fmtOdd(G.legOdd(m, l.pick))}</em><button class="tk-x" data-act="bPick" data-m="${m.id}" data-p="${l.pick}" aria-label="Retirer">×</button></div>`; }).join('');
     return `<div class="ticket-slip">
-      <div class="tk-head"><b>LE BALTO</b><span>${slip.length > 1 ? `Combiné ×${slip.length}` : 'Pari simple'}</span><button class="tk-clear" data-act="bClear">Vider</button></div>
+      <div class="tk-head"><b>LE ROYAL</b><span>${slip.length > 1 ? `Combiné ×${slip.length}` : 'Pari simple'}</span><button class="tk-clear" data-act="bClear">Vider</button></div>
       <div class="tk-legs">${legs}</div>
       <div class="tk-row"><span>Cote totale</span><b>${fmtOdd(odds)}</b></div>
       ${s.freebets.length ? `<label class="tk-free"><input type="checkbox" id="b-free" ${free ? 'checked' : ''}> Utiliser mon pari gratuit de ${s.freebets[0]}<i class="cur"></i></label>` : ''}
@@ -120,7 +120,7 @@
     const done = s.matches.filter(m => m.state === 'done' && ok(m)).slice(-3).reverse();
     return `${sportsBar()}
       ${tm && tm.state !== 'done' ? `<div class="tip-banner">📰 <span><b>Tuyau : ${tm.home} – ${tm.away}</b>${tm.state === 'soon' ? `coup d'envoi dans ${U.mmss(tm.kickoff - Date.now())}` : 'en direct'} · le match est en haut de la liste</span></div>` : ''}
-      <p class="hint-line">Les cotes viennent des vraies chances de chaque équipe, moins la marge du Balto (7 %). Mise max : <b>${G.betMax()}<i class="cur"></i></b>${G.habitOn('drink') ? ' (+30 % de culot 🍺)' : ''}.${s.lvl < D.COMBI_LVL ? ` Combinés au niveau ${D.COMBI_LVL}.` : ' Coche plusieurs matchs pour un combiné.'}</p>
+      <p class="hint-line">Les cotes viennent des vraies chances de chaque équipe, moins la marge du Royal (7 %). Mise max : <b>${G.betMax()}<i class="cur"></i></b>${G.habitOn('drink') ? ' (+30 % de culot 🍺)' : ''}.${s.lvl < D.COMBI_LVL ? ` Combinés au niveau ${D.COMBI_LVL}.` : ' Coche plusieurs matchs pour un combiné.'}</p>
       ${up.map(matchCard).join('') || '<p class="hint-line center">Pas de match pour ce sport en ce moment.</p>'}
       ${done.length ? `<h3 class="sec">Derniers résultats</h3>${done.map(matchCard).join('')}` : ''}
       ${slipHtml()}`;
@@ -133,7 +133,7 @@
   // ------------------------------------------------------------ mes paris : les tickets, tamponnés
   function myBetsBody() {
     const s = st();
-    if (!s.bets.length) return '<p class="hint-line center">Aucun pari pour l\'instant. Direction le Balto !</p>';
+    if (!s.bets.length) return '<p class="hint-line center">Aucun pari pour l\'instant. Direction le Royal !</p>';
     const closed = s.bets.filter(b => b.state !== 'open');
     const won = closed.filter(b => b.state === 'won').reduce((a, b) => a + b.gain, 0), staked = closed.filter(b => !b.free).reduce((a, b) => a + b.stake, 0);
     return (closed.length ? `<div class="card center bilan"><div class="muted">Bilan de tes ${closed.length} derniers tickets</div><div class="big ${won - staked >= 0 ? 'up' : 'down'}">${won - staked >= 0 ? '+' : ''}${U.eur(won - staked)}</div><p>Misé ${U.eur(staked)} · gagné ${U.eur(won)}</p></div>` : '') +
@@ -147,7 +147,7 @@
           return `<div class="tk-leg ${ok === true ? 'ok' : ok === false ? 'ko' : ''}">${labels(m)[l.pick] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[l.pick] === '2', 'mini')}
             <span><b>Ton prono : ${pickName(m, l.pick)}</b><small>${m.home} <strong>${sc ? `${sc.a} - ${sc.b}` : 'vs'}</strong> ${m.away}${m.state === 'live' ? ' · en direct' : m.state === 'soon' ? ' · pas commencé' : ''}</small>${result ? `<small class="tk-res">${ok ? '✓' : '✗'} Résultat : ${result}</small>` : ''}</span><em>${fmtOdd(l.odd)}</em></div>`;
         }).join('');
-        return `<div class="ticket-slip mine ${b.state}"><div class="tk-head"><b>LE BALTO</b><span>${b.legs.length > 1 ? `Combiné ×${b.legs.length}` : 'Simple'}${b.free ? ' · gratuit' : ''}${b.boosted ? ' · boosté' : ''}</span></div>
+        return `<div class="ticket-slip mine ${b.state}"><div class="tk-head"><b>LE ROYAL</b><span>${b.legs.length > 1 ? `Combiné ×${b.legs.length}` : 'Simple'}${b.free ? ' · gratuit' : ''}${b.boosted ? ' · boosté' : ''}</span></div>
           <div class="tk-legs">${legs}</div>
           <div class="tk-row"><span>Mise ${U.eur(b.stake)} · cote ${fmtOdd(b.odds)}</span><b>${b.state === 'won' ? `+${U.eur(b.gain)}` : b.state === 'lost' ? `−${U.eur(b.free ? 0 : b.stake)}` : `${U.eur(b.stake * (b.free ? b.odds - 1 : b.odds))} possible`}</b></div>
           ${b.state !== 'open' ? `<span class="stamp">${b.state === 'won' ? 'GAGNÉ' : 'PERDU'}</span>` : '<span class="stamp live">EN COURS</span>'}</div>`;
@@ -161,7 +161,7 @@
   function open(t) {
     if (t) tab = t;
     U.openModal({
-      title: 'Le Balto', icon: 'bld-balto', full: true,
+      title: 'Le Royal', icon: 'bld-balto', full: true,
       tabs: [{ id: 'bets', label: 'Paris' }, { id: 'scratch', label: 'Grattage' }, { id: 'mine', label: 'Mes paris' }, { id: 'bar', label: 'Le bar' }], tab,
       body: body(), onTab: id => { tab = id; U.setBody(body()); if (tab === 'scratch') initScratch(); },
       refresh: () => { if (tab !== 'scratch') U.setBody(body()); },
@@ -197,7 +197,7 @@
   });
   document.addEventListener('change', e => { if (e.target.id === 'b-free') { useFree = e.target.checked; U.setBody(body()); } });
 
-  // ouvrir le Balto avec un pronostic déjà coché (tuyau d'un pote)
+  // ouvrir le Royal avec un pronostic déjà coché (tuyau d'un pote)
   function openWithPick(mid, p) { const m = G.match(mid); if (m && m.state === 'soon') slip = [{ m: mid, pick: p }]; tab = 'bets'; open('bets'); if (!m || m.state !== 'soon') U.toast('Trop tard : le match a déjà commencé.', true); }
   window.BALTO = { open, openWithPick, openMyBets: () => { U.openModal({ title: 'Mes paris', icon: 'ticket', full: true, body: myBetsBody(), refresh: () => U.setBody(myBetsBody()) }); } };
 })();

@@ -586,7 +586,7 @@
     let txt = null;
     let ref = null;
     if (id === 'sport') {
-      // un match qui commence dans au moins 2 min (le temps d'aller au Balto), sinon le plus lointain
+      // un match qui commence dans au moins 2 min (le temps d'aller au Royal), sinon le plus lointain
       const soon = st.matches.filter(x => x.state === 'soon').sort((a, b) => a.kickoff - b.kickoff);
       const m = soon.find(x => x.kickoff - now() > 120000) || soon[soon.length - 1];
       if (!m) return { err: 'Aucun match à venir.' };

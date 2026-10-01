@@ -1912,3 +1912,6 @@ h3.sec { margin: 18px 6px 10px; }
 #app .pat-row span { flex: 1; }
 #app .pat-row b { font: 400 15px var(--title); }
 #app .pat-row small { font: 800 11px var(--text); min-width: 70px; text-align: right; }
+
+/* arrêt de bus : la zone à toucher couvre tout l'abri et le poteau (marges en % de la largeur du bloc) */
+#app .bld.spot .spot-zone { align-self: flex-start; width: 131.7%; aspect-ratio: 1.087; margin: 0 -9% -64.6% -22.7%; }

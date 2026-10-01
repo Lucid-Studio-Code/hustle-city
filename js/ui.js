@@ -777,7 +777,7 @@
   function closePhone() { const el = $('#phone-layer'); if (el) el.classList.remove('on'); }
   function openRoom() { openPhone('immo'); }
 
-  // ------------------------------------------------------------ habitudes (au Balto : fumer, boire ; au Club : sortir)
+  // ------------------------------------------------------------ habitudes (au Royal : fumer, boire ; au Club : sortir)
   function habitsBody(where) {
     const s = st();
     return `<p class="hint-line">Une habitude donne un vrai bonus… et un malus qui coûte chaque jour. Arrêter prend ${D.QUIT_H} h : pendant le sevrage, tu gardes le malus sans le bonus.</p>` +
@@ -1124,8 +1124,8 @@
     if (c.kind && c.kind !== 'col') {
       const art = { cash: ic('cash'), lingots: ic('lingot'), xp: ic('star'), ticket: pic('ticket-flash', '🎟️'), freebet: ic('ticket'), airdrop: coinIco(D.COINS[0]) }[c.kind];
       const stat = c.kind === 'cash' || c.kind === 'freebet' || c.kind === 'airdrop' ? `${short(c.n, true)}<i class="cur"></i>` : c.kind === 'xp' ? `+${c.n}` : `×${c.n}`;
-      const txt = { cash: 'Direct dans ta poche.', lingots: 'De l\'or, direct dans ta réserve.', xp: 'Expérience gagnée tout de suite.', ticket: 'Deux Cash Flash offerts au Balto.',
-        freebet: 'Une mise offerte au Balto : si tu gagnes, tu touches le bénéfice.', airdrop: 'Des Axion versés dans ton portefeuille crypto.' }[c.kind];
+      const txt = { cash: 'Direct dans ta poche.', lingots: 'De l\'or, direct dans ta réserve.', xp: 'Expérience gagnée tout de suite.', ticket: 'Deux Cash Flash offerts au Royal.',
+        freebet: 'Une mise offerte au Royal : si tu gagnes, tu touches le bénéfice.', airdrop: 'Des Axion versés dans ton portefeuille crypto.' }[c.kind];
       d = { type: 'item', name: c.name, art: `<div class="tcg-sub ico">${art}</div>`, stat, ability: 'Récompense', text: txt, flav: 'Trouvé dans un booster du Kiosque.', rarity: c.rarity, label: 'Bonus' };
     } else {
       const it = G.item(c.id), se = D.SERIES.find(x => x.id === it.series), no = CARD_ALL.indexOf(it) + 1;
@@ -1291,7 +1291,7 @@
     openModal({ title: 'Comment jouer', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55">
       <b>Le but</b> : faire grimper ton patrimoine (cash + crypto + objets).<br><br>
       🏢 <b>Ton appart</b> : ton PC pour trader la crypto, ton rig qui mine de l'Axion (relance-le quand il surchauffe), et tes étagères où s'exposent tes objets.<br><br>
-      🍺 <b>Le Balto</b> : paris sportifs (cotes réelles, le bookmaker garde 7 %) et tickets à gratter.<br><br>
+      🍺 <b>Le Royal</b> : paris sportifs (cotes réelles, le bookmaker garde 7 %) et tickets à gratter.<br><br>
       🎰 <b>Lucky Palace</b> : machine à sous et roulette européenne. Sur la durée, la maison gagne.<br><br>
       🛍️ <b>Le Comptoir</b> : cartes, sneakers, montres. Leur cote bouge toute la journée. Tes trophées aussi valent de l'argent.</div>` });
   }
@@ -1320,7 +1320,7 @@
   function intro() {
     const s = st();
     dialog('Ton cousin Momo', `Wesh ${esc(s.name)} ! Bienvenue à Hustle City. T'as 200<i class="cur"></i> en poche et un vieux PC. Commence par <b>ton appart</b> : relance le minage et achète un peu de crypto.`, 'Vas-y', () => {
-      dialog('Ton cousin Momo', 'Et au <b>Balto</b>, en face, y a les paris sur le foot. Mais retiens : le patron gagne toujours plus que les clients.', 'Compris', () => { s.tutoDone = true; G.save(); });
+      dialog('Ton cousin Momo', 'Et au <b>Royal</b>, en face, y a les paris sur le foot. Mais retiens : le patron gagne toujours plus que les clients.', 'Compris', () => { s.tutoDone = true; G.save(); });
     });
   }
 
@@ -1425,8 +1425,8 @@
     dealNo() { G.refuseDeal(); if (phoneOpen()) drawPhone(); else closeModal(); renderHud(); },
     eventInfo() { const ev = G.eventNow(); if (!ev) return; openModal({ title: ev.name, icon: ev.icon, center: true, body: `<p class="center">${ev.desc}</p><p class="center muted">Encore ${mmss(G.eventLeft())}.</p><button class="btn green wide" data-act="eventGo">J'y vais</button>` }); },
     eventGo() { const ev = G.eventNow(); closeModal(); if (!ev) return; questGo({ xp: 'balto', boost: 'balto', rig: 'rig', sale: 'shop' }[ev.id]); },
-    freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Balto, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoBalto">Au Balto</button>` }); },
-    eventGoBalto() { closeModal(); questGo('balto'); },
+    freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Royal, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoRoyal">Au Royal</button>` }); },
+    eventGoRoyal() { closeModal(); questGo('balto'); },
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
     trading() { openCrypto(); },
@@ -1496,7 +1496,7 @@
     openModal({ title: 'Niveau supérieur !', icon: 'hdr-levelup', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div>
       <div class="lv-big stroke">NIVEAU ${e.lvl} !</div>
       <div class="gains"><span>${ic('cash')}+${short(e.cash, true)}</span><span>${ic('lingot')}+${e.lingots}</span><span>${packArt(true)}+1 booster</span></div>
-      <p class="hint-line center">Mise max au Balto : <b>${G.betMax()}<i class="cur"></i></b></p>
+      <p class="hint-line center">Mise max au Royal : <b>${G.betMax()}<i class="cur"></i></b></p>
       ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>` : ''}
       <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button><button class="btn green" data-act="closeModal">Trop bien !</button></div></div>` });
   }
@@ -1507,7 +1507,7 @@
     chatPush(d.name, d.img, { from: 'them', kind: 'deal', txt: d.line, offer: { id: d.id, type: d.type, price: d.price }, acts: [{ label: d.type === 'sell' ? 'J\'achète' : 'Je vends', act: 'dealOk' }, { label: 'Non merci', act: 'dealNo' }] });
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
-  // un pote envoie un prono : on peut répondre « Je parie » et le Balto s'ouvre avec le pronostic déjà coché
+  // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
   G.on('friendTip', f => {
     const m = G.match(f.m); if (!m) return;
     const who = m.sport === 'foot' && f.pick === 1 ? 'un match nul' : `${f.pick === 0 ? m.home : m.away} gagne`;
@@ -1533,7 +1533,7 @@
   G.on('betResult', ({ b, offline }) => {
     const l = b.legs[0], what = b.legs.length > 1 ? `Combiné ×${b.legs.length}` : l.home ? `${l.home} – ${l.away}` : 'Ton pari';
     if (b.state === 'won') { if (!offline) { sfx.win(); rain('bill'); bump('#pill-cash'); } notify('bets', `Ticket gagnant : +${eur(b.gain)} !`, what, null, offline); }
-    else notify('bets', 'Ticket perdu', `${what}. Le Balto encaisse.`, null, offline);
+    else notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline);
   });
   G.on('money', () => bump('#pill-cash'));
   G.on('tilt', () => toast(`🍺 Tilt ! Tu veux te refaire : impossible de quitter la table pendant ${D.TILT.min} min.`, true));

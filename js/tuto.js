@@ -18,7 +18,7 @@
     { say: () => 'Mets <b>50<i class="cur"></i></b> sur l\'Axion. Si son prix monte, tu revends plus cher et tu gagnes la différence. S\'il baisse… tu perds.', target: '[data-act=crBuy]', before: () => { const i = $('#cr-amt'); if (i && st().cash >= 50) i.value = 50; }, done: () => S('cryptoBuy') > 0 },
     { say: () => 'Bien joué, t\'es investisseur. Ferme, on sort.', target: '#modal .sheet-close', done: () => !modalOpen() },
     { say: () => 'Retourne <b>en ville</b>.', target: '#btn-scene', done: () => U.scene === 'city' },
-    { say: () => 'En face, <b>le Balto</b> : les paris sportifs et les tickets à gratter. Entre.', target: '.bld[data-id=balto]', before: () => U.focusBld('balto'), done: () => !!$('[data-act=bPick]') },
+    { say: () => 'En face, <b>le Royal</b> : les paris sportifs et les tickets à gratter. Entre.', target: '.bld[data-id=balto]', before: () => U.focusBld('balto'), done: () => !!$('[data-act=bPick]') },
     { say: () => 'Choisis qui va gagner. <b>1</b> = l\'équipe de gauche, <b>N</b> = match nul, <b>2</b> = celle de droite. Plus la cote est haute, moins c\'est probable, mais plus ça rapporte.', target: '[data-act=bPick]', done: () => !!$('[data-act=bPlace]') },
     { say: () => 'Mets ta mise (10<i class="cur"></i>, c\'est bien pour commencer) et <b>valide ton pari</b>. Le match commence dans quelques minutes.', target: '[data-act=bPlace]', done: () => S('bets') > 0 },
     { say: () => 'Pari posé ! Tu verras le résultat dans <b>Mes paris</b>. Ferme.', target: '#modal .sheet-close', done: () => !modalOpen() },
@@ -31,7 +31,7 @@
     { say: () => 'Voilà, t\'as les bases. Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le casino et le Comptoir ouvrent. Et retiens : le casino gagne toujours à la fin. À toi de jouer !', btn: 'C\'est parti', before: () => U.closeModal() }
   ];
 
-  // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Balto sont vus dans le grand tuto.
+  // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Royal sont vus dans le grand tuto.
   const title = () => ([...document.querySelectorAll('#modal .sheet-head > span')].pop() || {}).textContent || '';
   const enter = (id, name, intro, inside, target) => [
     { say: () => intro, target: `.bld[data-id=${id}]`, before: () => U.focusBld(id), done: () => modalOpen() && title() === name },
