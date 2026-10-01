@@ -1797,3 +1797,25 @@ h3.sec { margin: 18px 6px 10px; }
 #app .six-cards .missing .crest { filter: grayscale(1) opacity(.5); }
 #app .six-cards b { font: 400 14px var(--title); }
 #app .six-end { background: #fff6c8; }
+
+/* ---------- Kiosque compact ---------- */
+#app .kiosk-hero { padding: 8px 10px; }
+#app .kh-row { display: flex; align-items: stretch; gap: 8px; margin-bottom: 8px; }
+#app .kh-row .kh-clock { flex: 1; padding: 5px 8px; gap: 8px; }
+#app .kh-clock .kh-ic { font-size: 22px; }
+#app .kh-clock b { font-size: 20px; }
+#app .kh-bar { height: 6px; }
+#app .kh-row .kh-now { flex: 0 0 auto; width: auto; margin: 0; flex-direction: column; gap: 0; padding: 4px 12px 6px; font-size: 12px; }
+#app .kiosk-hero .pe-box { padding: 4px 3px; }
+#app .kiosk-hero .pe-box b { font-size: 18px; line-height: 1.1; }
+#app .kiosk-hero .pe-foot { margin-top: 4px; }
+#app #modal .card.tip-card { padding: 14px 20px 16px; margin-bottom: 8px; }
+#app .tip-card .tc-head { display: flex; justify-content: space-between; align-items: center; }
+#app .tip-card h4 { margin: 0; font: 400 16px var(--title); }
+#app .tip-card p { margin: 3px 0 6px; font-size: 12px; line-height: 1.3; }
+#app .tip-card .tc-acts { display: flex; gap: 6px; justify-content: flex-end; }
+#app .tip-card .tc-acts .btn { flex: 0 0 auto; min-width: 0; padding: 3px 12px 5px; }
+#app .tip-card .tc-acts .btn:first-child { flex: 1; }
+#app .stock-chip { margin: 0 0 8px; padding: 6px 10px; border-radius: 12px; background: #e3f2ff; border: 2px solid #2a1a10; font: 800 12px var(--text); color: #1b2a5c; text-align: center; }
+#ticker .track { animation: none !important; will-change: transform; display: flex; }
+#ticker .track .tk-half { flex: 0 0 auto; white-space: nowrap; margin: 0; }

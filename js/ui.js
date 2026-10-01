@@ -187,7 +187,7 @@
     // une carte qui manque pour finir une série du classeur (la série la plus avancée, la carte la moins chère)
     if (G.catUnlocked('card')) {
       const se = D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).sort((x, y) => (G.seriesCards(x.id).length - G.seriesHave(x.id)) - (G.seriesCards(y.id).length - G.seriesHave(y.id)))[0];
-      const miss = se && G.seriesCards(se.id).filter(c => !(s.owned[c.id] || []).length).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
+      const miss = se && G.seriesCards(se.id).filter(c => !(s.owned[c.id] || []).length && G.inStock(c.id)).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
       if (miss) { const left = G.seriesCards(se.id).length - G.seriesHave(se.id);
         L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
           why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` }); }
@@ -295,8 +295,24 @@
     const key = coins.map(c => s.crypto.prices[c.id].toPrecision(4)).join('|');
     if (key === tickerKey) return; tickerKey = key;
     const part = coins.map(c => { const h = s.crypto.hist[c.id], ref = h[Math.max(0, h.length - 60)], v = (s.crypto.prices[c.id] / ref - 1) * 100; return `<span>${c.sym} ${coinPx(s.crypto.prices[c.id])} <b class="${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v).toFixed(1).replace('.', ',')}%</b></span>`; }).join('');
-    $('#ticker').innerHTML = `<div class="track">${part}${part}${part}${part}</div>`;
+    // on remplace seulement le texte : la position du défilement est gardée (pas de saut)
+    let tr = $('#ticker .track'); if (!tr) { $('#ticker').innerHTML = '<div class="track"></div>'; tr = $('#ticker .track'); }
+    const one = document.createElement('span'); one.innerHTML = part; one.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap'; tr.appendChild(one);
+    const w = one.offsetWidth || 1, rep = Math.max(1, Math.ceil(($('#ticker').offsetWidth + 40) / w)); one.remove();
+    tr.innerHTML = `<span class="tk-half">${part.repeat(rep)}</span><span class="tk-half">${part.repeat(rep)}</span>`;
   }
+  // défilement fluide à vitesse constante (25 px par seconde), image par image
+  let tickX = 0, tickT = 0;
+  function tickLoop(t) {
+    const tr = document.querySelector('#ticker .track'), half = tr && tr.firstElementChild;
+    if (half) {
+      const dt = tickT ? Math.min(100, t - tickT) : 0, hw = half.offsetWidth;
+      tickX += dt * .025; if (hw > 0) tickX %= hw;
+      tr.style.transform = `translate3d(${-tickX.toFixed(2)}px,0,0)`;
+    }
+    tickT = t; requestAnimationFrame(tickLoop);
+  }
+  requestAnimationFrame(tickLoop);
 
   // ------------------------------------------------------------ ville
   const cam = { x: 0, y: 0, s: 1, w: 0, h: 0 };
@@ -731,20 +747,19 @@
     // en haut : le compte à rebours du prochain journal, bien visible, et comment un tuyau fait gagner
     const leftMs = G.editionLeft(), ED = D.KIOSK.editionMin * 60000, rel = Math.round(D.KIOSK.sportReliability * 10);
     return `<div class="kiosk-hero">
-        <div class="kh-clock"><span class="kh-ic">📰</span><div class="grow"><small>Prochain journal dans</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
-        <button class="btn gold kh-now" data-act="kRefresh" ${s.lingots >= D.LINGOT.kiosk ? '' : 'disabled'}>Nouveau journal tout de suite · <span>${ic('lingot')}${D.LINGOT.kiosk}</span></button>
-        <small class="pe-title">Comment un tuyau fait gagner ?</small>
+        <div class="kh-row"><div class="kh-clock"><span class="kh-ic">📰</span><div class="grow"><small>Prochain journal</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
+          <button class="btn gold sm kh-now" data-act="kRefresh" ${s.lingots >= D.LINGOT.kiosk ? '' : 'disabled'}><span>Tout de suite</span><span>${ic('lingot')}${D.LINGOT.kiosk}</span></button></div>
         <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>📰</b><small>le tuyau</small></div><span class="pe-arr">→</span>
           <div class="pe-box mid"><small>2. Tu mises</small><b>⚽</b><small>dans son sens</small></div><span class="pe-arr">→</span>
           <div class="pe-box sell"><small>3. Tu gagnes</small><b>💰</b><small>plus souvent</small></div></div>
-        <small class="pe-foot">Un tuyau de match est juste environ ${rel} fois sur 10. Pas toujours : ne mise pas tout.</small></div>` +
+        <small class="pe-foot">Juste environ ${rel} fois sur 10 : ne mise pas tout.</small></div>` +
       D.KIOSK.tips.map(t => {
         const b = G.tipBought(t.id), lock = s.lvl < (t.lvl || 1);
-        return `<div class="card ${lock ? 'locked' : ''}"><div class="hstack" style="justify-content:space-between"><h4 style="margin:0;font-family:var(--title);font-weight:400;font-size:17px">${t.icon} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
-          <p style="margin-top:6px">${b ? `<b>« ${esc(b.txt)} »</b>` : t.desc}</p>
-          ${b ? '' : lock ? `<button class="btn sm wide" style="margin-top:8px" disabled>Niveau ${t.lvl}</button>`
-            : `<div class="hstack" style="margin-top:8px"><button class="btn sm" style="flex:2" data-act="kTip" data-id="${t.id}" ${s.cash < G.tipPrice(t) ? 'disabled' : ''}>Acheter · ${short(G.tipPrice(t))}</button>
-              <button class="btn sm gold" style="flex:1" data-act="kTipL" data-id="${t.id}" ${s.lingots < G.tipLingots(t) ? 'disabled' : ''}>ou ${ic('lingot')}${G.tipLingots(t)}</button></div>`}</div>`;
+        return `<div class="card tip-card ${lock ? 'locked' : ''}"><div class="tc-head"><h4>${t.icon} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
+          <p>${b ? `<b>« ${esc(b.txt)} »</b>` : t.desc}</p>
+          ${b ? '' : lock ? `<button class="btn xs wide" disabled>Niveau ${t.lvl}</button>`
+            : `<div class="tc-acts"><button class="btn xs" data-act="kTip" data-id="${t.id}" ${s.cash < G.tipPrice(t) ? 'disabled' : ''}>Acheter · ${short(G.tipPrice(t))}</button>
+              <button class="btn xs gold" data-act="kTipL" data-id="${t.id}" ${s.lingots < G.tipLingots(t) ? 'disabled' : ''}>${ic('lingot')}${G.tipLingots(t)}</button></div>`}</div>`;
       }).join('');
   }
   function openKiosk(tab) {
@@ -821,10 +836,10 @@
             <div class="nc-top"><span class="nc-pic">${itemPic(it)}</span><div class="nc-txt"><small>${x.tip ? 'Un pote t\'a prévenu' : x.up ? 'Ça monte' : 'Ça chute'} · ${ago(x.t)}</small><b>${esc(x.txt.replace(/^Pause clope : (.)/, (_, c) => c.toUpperCase()))}</b>
             <span class="nc-px">Prix du jour ${short(s.market.prices[it.id])} ${trend(s.market.prices[it.id], h[Math.max(0, h.length - 30)])}</span></div></div>
             <div class="nc-acts">${mine ? `<button class="btn red sm" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
-              : canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}</div></div>`;
+              : canBuy && !G.inStock(it.id) ? '<span class="nc-note">Pas en rayon en ce moment</span>' : canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}</div></div>`;
         }).join('') : '<p class="hint-line center">Pas de rumeur pour l\'instant. Repasse plus tard.</p>');
     }
-    const items = D.ITEMS.filter(i => i.cat === shopTab), mt = G.tipBought('market'), sale = G.evOn('sale');
+    const items = D.ITEMS.filter(i => i.cat === shopTab && (G.inStock(i.id) || (s.owned[i.id] || []).length)), mt = G.tipBought('market'), sale = G.evOn('sale');
     const card = it => {
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
@@ -836,7 +851,7 @@
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
       ? `<h3 class="sec">Les grandes cartes</h3><div class="grid2">${items.filter(i => !i.noBuy).map(card).join('')}</div>` +
-        D.SERIES.filter(se => se.id !== 'classics').map(se => `<h3 class="sec">${se.name} <small>· d'occasion</small></h3><div class="grid2">${items.filter(i => i.series === se.id).map(card).join('')}</div>`).join('')
+        D.SERIES.filter(se => se.id !== 'classics' && items.some(i => i.series === se.id)).map(se => `<h3 class="sec">${se.name} <small>· d'occasion</small></h3><div class="grid2">${items.filter(i => i.series === se.id).map(card).join('')}</div>`).join('')
       : `<div class="grid2">${items.map(card).join('')}</div>`;
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
     const buyEx = sale ? 89 : 105;
@@ -847,6 +862,7 @@
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}Le Comptoir garde une petite part à l'achat et à la revente : il faut que le prix monte pour être gagnant.</small></div>
+      <div class="stock-chip">🚚 Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
       <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">🏠 Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
       ${grid}`;
@@ -1393,8 +1409,9 @@
   G.on('news', n => {
     if (n.smoke) {
       const t = n.txt.replace(/^🚬 Pause clope : un pote te glisse que /, '');
-      chatPush('Karim', 'skin-hoodie-bust', { from: 'them', txt: `Entre nous : ${t}`, item: n.item, acts: [{ label: n.up ? 'J\'y vais' : 'Je regarde', act: 'shop', id: n.item }, { label: 'Merci frérot', act: 'no' }] });
-      return notify('msg', 'Karim', `Entre nous : ${t}`, null, false, 'Karim');
+      const ct = G.contactFor('Karim');
+      chatPush(ct.name, ct.img, { from: 'them', txt: `Entre nous : ${t}`, item: n.item, acts: [{ label: n.up ? 'J\'y vais' : 'Je regarde', act: 'shop', id: n.item }, { label: 'Merci', act: 'no' }] });
+      return notify('msg', ct.name, `Entre nous : ${t}`, null, false, ct.name);
     }
     notify(n.txt.includes('effondre') ? 'crypto' : 'news', n.bad ? 'Ça baisse !' : 'Ça monte !', n.txt);
   });
@@ -1436,7 +1453,9 @@
   }
   function hudBottom() { const h = $('#hud'); if (h) $('#app').style.setProperty('--hud-b', (h.getBoundingClientRect().bottom - $('#app').getBoundingClientRect().top) + 'px'); }
   window.addEventListener('resize', hudBottom);
+  function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
+    cleanChats();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode();
     setInterval(loop, 1000);

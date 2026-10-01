@@ -441,10 +441,25 @@
   const onShelf = id => item(id).cat !== 'card' || !item(id).noBuy;
   function ownedCount() { return Object.entries(st.owned).reduce((s, [id, a]) => s + (onShelf(id) ? a.length : 0), 0); }
   function roomSlots() { return D.ROOMS[st.room].slots; }
+  // le Comptoir renouvelle ses rayons toutes les 30 min : seule une partie des objets est en vente à la fois
+  const STOCK_MIN = 30, STOCK_N = { classics: 3, sneaker: 2, watch: 2, foot: 4, basket: 3, tennis: 3, rugby: 2 };
+  const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000));
+  const stockLeft = () => (stockEd() + 1) * STOCK_MIN * 60000 - now();
+  function inStock(id) {
+    const it = item(id), g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
+    const ed = stockEd(), grp = D.ITEMS.filter(i => (i.series || i.cat) === g);
+    return grp.map((i, k) => [seeded(ed * 131 + k * 17 + g.length * 7), i.id]).sort((a, b) => a[0] - b[0]).slice(0, n).some(x => x[1] === id);
+  }
+  // un contact qui n'a jamais le même visage que le joueur
+  function contactFor(name) {
+    const ok = D.DEALS.contacts.filter(c => !c.img.includes(st.skin + '-'));
+    return ok.find(c => c.name === name) || ok.find(c => c.name !== 'Momo') || ok[0];
+  }
   function buyItem(id) {
     // les cartes des boosters s'achètent aussi d'occasion au Comptoir ; elles vont dans le classeur, pas sur les étagères
     const it = item(id); if (!it || it.cat === 'trophy' || !catUnlocked(it.cat)) return { err: 'Indisponible.' };
     if (st.owned[id] && st.owned[id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
+    if (!inStock(id)) return { err: 'Plus en rayon : reviens au prochain arrivage.' };
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
@@ -885,6 +900,7 @@
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     sixMatches, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    inStock, stockLeft, contactFor,
     item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
