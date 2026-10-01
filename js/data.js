@@ -228,6 +228,22 @@
       [4, '2027-03-05T20:10Z', 2, 0], [4, '2027-03-06T14:10Z', 3, 4], [4, '2027-03-06T16:40Z', 5, 1],
       [5, '2027-03-13T14:10Z', 3, 5], [5, '2027-03-13T16:40Z', 1, 2], [5, '2027-03-13T20:10Z', 0, 4]
     ],
+    // boutique de l'événement : objets exclusifs (photos de profil, cadres, décos posées dans la ville). Images à faire plus tard.
+    // kind : avatar (photo de profil = écusson d'une équipe), frame (cadre autour de la photo), deco (posée sur la carte de la ville, x/y en %)
+    shop: [
+      { id: 'av-r1', kind: 'avatar', team: 0, name: 'Photo : Trèfles du Marché', lingots: 6 },
+      { id: 'av-r2', kind: 'avatar', team: 1, name: 'Photo : Roses du Port', lingots: 6 },
+      { id: 'av-r3', kind: 'avatar', team: 2, name: 'Photo : Chardons de la Colline', lingots: 6 },
+      { id: 'av-r4', kind: 'avatar', team: 3, name: 'Photo : Loups du Canal', lingots: 6 },
+      { id: 'av-r5', kind: 'avatar', team: 4, name: 'Photo : Coqs de la Gare', lingots: 6 },
+      { id: 'av-r6', kind: 'avatar', team: 5, name: 'Photo : Dragons des Docks', lingots: 6 },
+      { id: 'fr-six', kind: 'frame', name: 'Cadre « 6 Quartiers »', emo: '🏉', colors: ['#e63946', '#1b2a5c'], cash: 400 },
+      { id: 'fr-gold', kind: 'frame', name: 'Cadre doré du champion', emo: '🏆', colors: ['#ffd23f', '#b8860b'], lingots: 25 },
+      { id: 'dc-posts', kind: 'deco', name: 'Poteaux de rugby', emo: '🥅', desc: 'Plantés sur la place.', x: 44, y: 34, w: 9, cash: 600 },
+      { id: 'dc-flags', kind: 'deco', name: 'Guirlande de drapeaux', emo: '🎏', desc: 'Les couleurs des 6 quartiers.', x: 30, y: 72, w: 8, cash: 350 },
+      { id: 'dc-ball', kind: 'deco', name: 'Ballon géant', emo: '🏉', desc: 'Une sculpture de ballon devant le Balto.', x: 88, y: 66, w: 8, lingots: 15 },
+      { id: 'dc-trophy', kind: 'deco', name: 'Statue du trophée', emo: '🏆', desc: 'Pour les vrais fans.', x: 9, y: 54, w: 8, lingots: 30 }
+    ],
     // classement final : récompenses selon la place
     rewards: [{ top: 1, lingots: 60, boosters: 3 }, { top: 3, lingots: 35, boosters: 2 }, { top: 10, lingots: 20, boosters: 1 }, { top: 999, lingots: 8, boosters: 0 }],
     // les autres joueurs du classement (en attendant un vrai classement en ligne) : pseudo et taux de bons pronos

@@ -701,6 +701,26 @@
   function sixSeenNow() { st.sixSeen = today(); }
   // la journée en cours : la première journée ouverte qui a encore un match à venir ou en direct
   function sixCurDay() { const m = sixMatches().find(x => x.state !== 'done' && sixDayOpen(x.day)); return m ? m.day : 0; }
+  // boutique de l'événement : on achète une fois, on garde pour toujours (même après l'événement)
+  const evOwned = id => !!(st.evItems && st.evItems[id]);
+  function evBuy(id) {
+    const x = D.SIX.shop.find(o => o.id === id); if (!x) return { err: 'Introuvable.' };
+    if (evOwned(id)) return { err: 'Tu l\'as déjà.' };
+    if (sixPhase() === 'over') return { err: 'La boutique du tournoi est fermée.' };
+    if (x.lingots) { if (st.lingots < x.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-x.lingots); }
+    else if (!pay(x.cash)) return { err: 'Pas assez de cash.' };
+    (st.evItems = st.evItems || {})[id] = now();
+    if (x.kind === 'avatar') st.avatar = id; if (x.kind === 'frame') st.frame = id; if (x.kind === 'deco') (st.decoOff = st.decoOff || {})[id] = false;
+    addXp(10); emit('change'); return { x };
+  }
+  function evUse(id) {
+    const x = D.SIX.shop.find(o => o.id === id); if (!x || !evOwned(id)) return { err: 'Pas à toi.' };
+    if (x.kind === 'avatar') st.avatar = st.avatar === id ? null : id;
+    else if (x.kind === 'frame') st.frame = st.frame === id ? null : id;
+    else { st.decoOff = st.decoOff || {}; st.decoOff[id] = !st.decoOff[id]; }
+    emit('change'); return { ok: true };
+  }
+  const evUsed = id => { const x = D.SIX.shop.find(o => o.id === id); return x && evOwned(id) && (x.kind === 'avatar' ? st.avatar === id : x.kind === 'frame' ? st.frame === id : !(st.decoOff || {})[id]); };
   function claimSix() {
     const S = sixSt(); if (!S.final || S.final.claimed) return { err: 'Rien à récupérer.' };
     const r = sixReward(S.final.rank); S.final.claimed = true; addLingots(r.lingots); st.boosters += r.boosters; addXp(50);
@@ -944,7 +964,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    evOwned, evBuy, evUse, evUsed, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,

@@ -1882,3 +1882,26 @@ h3.sec { margin: 18px 6px 10px; }
 #app #rplacer .btn.xs { min-height: 28px; padding: 1px 8px 3px; font-size: 12px; }
 #app #rplacer .rp-sep { flex: 1; }
 #app #rplacer #rp-cur { text-align: center; font: 800 10.5px var(--text); color: #6a5a4a; }
+
+/* ---------- boutique de l'événement ---------- */
+#app .ev-grid { gap: 8px; }
+#app .ev-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; text-align: center; }
+#app .ev-item.used { background: #eaf9df; }
+#app .ev-item b { font: 400 14px/1.15 var(--title); }
+#app .ev-item small { font: 800 10.5px/1.25 var(--text); }
+#app .ev-item .btn { width: 100%; margin-top: auto; }
+#app .ev-art { height: 64px; display: grid; place-items: center; }
+#app .ev-art .crest { width: 56px; height: 62px; }
+#app .ev-emo { font-size: 44px; line-height: 1; }
+#app .ev-frame { position: relative; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 4px solid var(--f1); box-shadow: 0 0 0 3px var(--f2); background: #ffe9f6; }
+#app .ev-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 8%; transform: scale(1.35) translateY(12%); }
+#app .ev-frame em { position: absolute; right: -2px; bottom: -2px; font-size: 18px; font-style: normal; }
+/* photo de profil et cadre dans le HUD */
+#hud .avatar-img.crest-av { background: #fffdf6; }
+#hud .avatar-img.crest-av .crest { width: 82%; height: 88%; }
+#hud .avatar-img.crest-av .crest img, #hud .avatar-img.crest-av .crest svg { transform: none; object-fit: contain; width: 100%; height: 100%; }
+#hud .avatar.framed .avatar-img { box-shadow: 0 0 0 3px var(--f1), 0 0 0 5px var(--f2); }
+#hud .avatar.framed::before { content: attr(data-emo); position: absolute; z-index: 3; right: -6px; bottom: -4px; font-size: 16px; }
+/* décos posées dans la ville */
+#app .ev-deco { position: absolute; transform: translate(-50%, -100%); z-index: 1; pointer-events: none; display: grid; place-items: center; }
+#app .ev-deco i { font-style: normal; font-size: clamp(22px, 7vw, 40px); line-height: 1; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }

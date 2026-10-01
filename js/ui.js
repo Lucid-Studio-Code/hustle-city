@@ -154,7 +154,14 @@
     const need = G.xpNeed(); $('#xpfill').style.width = (need === Infinity ? 100 : Math.min(100, s.xp / need * 100)) + '%';
     $('#xptext').textContent = need === Infinity ? 'MAX' : `${s.xp}/${need}`;
     $('#worth-v').innerHTML = short(G.worth());
-    $('#avatar-img').innerHTML = s.skin ? skinPic(s.skin, true) : '';
+    const av = s.avatar && D.SIX.shop.find(x => x.id === s.avatar), fr = s.frame && D.SIX.shop.find(x => x.id === s.frame);
+    const avKey = (s.avatar || s.skin) + '|' + (s.frame || '');
+    if ($('#avatar-img').dataset.k !== avKey) {
+      $('#avatar-img').dataset.k = avKey;
+      $('#avatar-img').innerHTML = av ? teamCrest('rugby', av.team) : s.skin ? skinPic(s.skin, true) : '';
+      $('#avatar-img').classList.toggle('crest-av', !!av);
+      const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr ? fr.emo : '';
+    }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
     const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
     $('#pill-lingots .plus').classList.toggle('ready', G.dailyReady());
@@ -353,7 +360,7 @@
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('');
+    }).join('') + D.SIX.shop.filter(x => x.kind === 'deco' && G.evUsed(x.id)).map(x => `<span class="ev-deco" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
   }
   // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
@@ -845,6 +852,18 @@
         <h3 class="sec">Les joueurs</h3><p class="hint-line">${S.pts} points par bon prono.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
         <h3 class="sec">À la fin du tournoi</h3><div class="six-rew">${S.rewards.map((r, i) => `<div><small>${r.top === 1 ? '1<sup>er</sup>' : r.top === 999 ? 'Tous les autres' : `Top ${r.top}`}</small>${chips(0, r.lingots, r.boosters ? `<span class="need">${packArt(true)}${r.boosters}</span>` : '')}</div>`).join('')}</div>`;
     }
+    if (sixTab === 'shop') {
+      const closed = ph === 'over', price = x => x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
+      const can = x => x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
+      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}<em>${x.emo}</em></span>` : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
+      const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id);
+        const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="evUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
+          : closed ? '<button class="btn xs" disabled>Fermé</button>' : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="evBuy" data-id="${x.id}" ${can(x) ? '' : 'disabled'}>${price(x)}</button>`;
+        return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${art(x)}</div><b>${x.name.replace(/^Photo : /, '')}</b>${own ? `<small class="up">${used ? '✓ Utilisé' : 'À toi'}</small>` : x.desc ? `<small class="muted">${x.desc}</small>` : ''}${btn}</div>`; };
+      const grp = (k, t, sub) => `<h3 class="sec">${t} <small>· ${sub}</small></h3><div class="grid2 ev-grid">${S.shop.filter(x => x.kind === k).map(item).join('')}</div>`;
+      return head + `<p class="hint-line">Des objets <b>exclusifs</b> du tournoi : tu les gardes pour toujours, mais on ne peut les acheter que pendant l'événement.${closed ? ' <b>La boutique est fermée.</b>' : ''}</p>` +
+        grp('avatar', 'Photos de profil', 'l\'écusson de ton équipe') + grp('frame', 'Cadres', 'autour de ta photo') + grp('deco', 'Pour la ville', 'posés sur la carte');
+    }
     if (sixTab === 'cards') {
       const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
       return head + `<p class="hint-line">Une série en <b>édition limitée</b> : ces cartes ne sortent des boosters que pendant le tournoi (environ 1 booster sur 3). Après, on ne peut plus en avoir : leur cote grimpe.</p>
@@ -880,7 +899,7 @@
     if (tab) sixTab = tab; else sixTab = 'pronos';
     G.sixSeenNow(); renderHud();
     setTimeout(() => { const d = $('#modal .sx-today'), b = $('#modal .sheet-body'); if (d && b) b.scrollTop = d.offsetTop - b.offsetTop - 8; }, 40);
-    openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }], tab: sixTab,
+    openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }, { id: 'shop', label: 'Boutique' }], tab: sixTab,
       body: sixBody(), onTab: id => { sixTab = id; setBody(sixBody()); }, refresh: () => setBody(sixBody()) });
   }
 
@@ -1365,6 +1384,8 @@
     nextBuy: () => goNextBuy(),
     upgrades: () => openUpgrades(),
     roomPlace: () => roomPlacer(true),
+    evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
+    evUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); renderCity(); renderHud(); },
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
