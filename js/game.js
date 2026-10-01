@@ -606,9 +606,26 @@
   // tirage déterministe : le même résultat pour tout le monde (prêt pour un vrai classement en ligne plus tard)
   const seeded = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
   const sixSalt = () => sixTest() ? 7 : 2027;
+  // chances « officielles » (force des équipes + avantage du terrain), sans tenir compte des rumeurs
+  function sixOdds(i) {
+    const [, , h, a] = D.SIX.matches[i], T = D.SIX.teams, pH = 1 / (1 + Math.exp(-(T[h][1] - T[a][1] + 3) / 6));
+    return [pH * .97, .03, (1 - pH) * .97];
+  }
+  // une rumeur avant le match : parfois vraie (elle change vraiment le match), parfois fausse (elle ne change rien)
+  const RUMOR_TXT = [
+    ['Le capitaine des {t} serait blessé à la cheville.', -6], ['Grosse embrouille dans le vestiaire des {t}, paraît-il.', -5],
+    ['Les {t} auraient préparé ce match en secret depuis un mois.', 5], ['Le meilleur buteur des {t} serait de retour plus tôt que prévu.', 5],
+    ['Les {t} auraient fait la fête toute la nuit avant le match.', -5], ['Le nouveau coach des {t} aurait changé toute la tactique.', 4]
+  ];
+  function sixRumor(i) {
+    const salt = sixSalt(); if (seeded(i * 13 + salt + 5) > .75) return null;
+    const [, , h, a] = D.SIX.matches[i], side = seeded(i * 17 + salt + 9) < .5 ? h : a, k = (i * 5 + Math.floor(seeded(i * 23 + salt + 4) * RUMOR_TXT.length)) % RUMOR_TXT.length;
+    return { team: side, txt: RUMOR_TXT[k][0].replace('{t}', D.SIX.teams[side][0]), eff: RUMOR_TXT[k][1], real: seeded(i * 19 + salt + 6) < .5 };
+  }
   function sixResult(i) {
-    const [, , h, a] = D.SIX.matches[i], T = D.SIX.teams, salt = sixSalt();
-    const pH = 1 / (1 + Math.exp(-(T[h][1] - T[a][1] + 3) / 6));   // +3 : avantage du terrain
+    const [, , h, a] = D.SIX.matches[i], T = D.SIX.teams, salt = sixSalt(), ru = sixRumor(i);
+    const fx = t => ru && ru.real && ru.team === t ? ru.eff : 0;
+    const pH = 1 / (1 + Math.exp(-(T[h][1] + fx(h) - T[a][1] - fx(a) + 3) / 6));   // +3 : avantage du terrain
     const r = seeded(i * 31 + salt), r2 = seeded(i * 57 + salt + 1), r3 = seeded(i * 83 + salt + 2);
     const res = r < .03 ? 1 : (r - .03) / .97 < pH ? 0 : 2;          // ~3 % de matchs nuls, rares au rugby
     const LOS = [3, 6, 7, 9, 10, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 24, 27], GAP = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 17, 18, 21, 24, 28];
@@ -628,8 +645,28 @@
   }
   const sixMatches = () => D.SIX.matches.map((x, i) => sixMatch(i));
   function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
+  // les journées s'ouvrent une par une : la suivante quand la précédente est finie
+  function sixDayOpen(d) { return d === 1 || D.SIX.matches.every((x, i) => x[0] !== d - 1 || sixMatch(i).state === 'done'); }
+  // forme des équipes : leurs 5 derniers matchs (matchs amicaux avant le tournoi, puis ceux du tournoi)
+  function sixForm(t) {
+    const T = D.SIX.teams, res = [];
+    for (let k = 0; k < 5; k++) { const r = seeded(t * 41 + k * 7 + sixSalt()), p = (T[t][1] - 62) / 30; res.push(r < p * .85 ? 'V' : r < p * .85 + .05 ? 'N' : 'D'); }
+    D.SIX.matches.forEach((x, i) => { if ((x[2] === t || x[3] === t) && sixMatch(i).state === 'done') { const r = sixResult(i).res; res.push(r === 1 ? 'N' : (r === 0) === (x[2] === t) ? 'V' : 'D'); } });
+    return res.slice(-5);
+  }
+  // classement des équipes : 4 points la victoire, 2 le nul, 1 de bonus si on perd de 7 points ou moins
+  function sixTable() {
+    const rows = D.SIX.teams.map((t, k) => ({ k, name: t[0], j: 0, pts: 0, diff: 0 }));
+    D.SIX.matches.forEach((x, i) => {
+      if (sixMatch(i).state !== 'done') return;
+      const r = sixResult(i), H = rows[x[2]], A = rows[x[3]]; H.j++; A.j++; H.diff += r.sh - r.sa; A.diff += r.sa - r.sh;
+      if (r.res === 1) { H.pts += 2; A.pts += 2; } else { const W = r.res === 0 ? H : A, L = r.res === 0 ? A : H; W.pts += 4; if (Math.abs(r.sh - r.sa) <= 7) L.pts += 1; }
+    });
+    return rows.sort((x, y) => y.pts - x.pts || y.diff - x.diff);
+  }
   function sixPick(i, p) {
-    const m = sixMatch(i); if (m.state !== 'soon') return { err: 'Trop tard : le match a commencé.' };
+    const m = sixMatch(i); if (!sixDayOpen(m.day)) return { err: `La journée ${m.day} n'est pas encore ouverte.` };
+    if (m.state !== 'soon') return { err: 'Trop tard : le match a commencé.' };
     sixSt().picks[i] = p; emit('change'); return { ok: true };
   }
   function sixPoints() { return sixMatches().reduce((a, m) => a + (m.ok ? D.SIX.pts : 0), 0); }
@@ -899,7 +936,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    sixMatches, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,

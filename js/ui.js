@@ -783,7 +783,9 @@
       const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${r.rank}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${r.pts} pts</b></div>`;
       const fin = G.sixState().final;
       return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
-        `<p class="hint-line">${S.pts} points par bon prono. Le classement compte les pronos de tous les joueurs du tournoi.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
+        `<h3 class="sec">Les équipes</h3><div class="six-board-list">${G.sixTable().map((t, k) => `<div class="sb-row"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}</span><small class="muted">${t.j} m · ${t.diff >= 0 ? '+' : ''}${t.diff}</small><b>${t.pts} pts</b></div>`).join('')}</div>
+        <p class="hint-line">4 points la victoire, 2 le nul, 1 point de bonus si on perd de 7 points ou moins.</p>
+        <h3 class="sec">Les joueurs</h3><p class="hint-line">${S.pts} points par bon prono.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
         <h3 class="sec">À la fin du tournoi</h3><div class="six-rew">${S.rewards.map((r, i) => `<div><small>${r.top === 1 ? '1<sup>er</sup>' : r.top === 999 ? 'Tous les autres' : `Top ${r.top}`}</small>${chips(0, r.lingots, r.boosters ? `<span class="need">${packArt(true)}${r.boosters}</span>` : '')}</div>`).join('')}</div>`;
     }
     if (sixTab === 'cards') {
@@ -799,12 +801,20 @@
       const btn = (p, txt) => `<button class="sx-pick ${m.pick === p ? 'on' : ''} ${m.state === 'done' && m.res === p ? 'win' : ''}" data-act="sixPick" data-i="${m.i}" data-p="${p}" ${m.state !== 'soon' ? 'disabled' : ''}>${txt}</button>`;
       const st2 = m.state === 'soon' ? `${fDay(m.kickoff)} · ${fHour(m.kickoff)}` : m.state === 'live' ? '<span class="live-dot">●</span> En direct' : 'Terminé';
       const res = m.state === 'done' ? (m.pick == null ? '<span class="sx-res">Pas de prono</span>' : m.ok ? `<span class="sx-res ok">✓ Bon prono : +${S.pts} pts, +${S.lingotPerGood} lingot</span>` : '<span class="sx-res ko">✗ Raté</span>') : m.state === 'soon' && m.pick == null ? '<span class="sx-res todo">À toi de jouer : choisis ton prono</span>' : '';
+      const o = G.sixOdds(m.i), ru = G.sixRumor(m.i), form = t => `<span class="sx-form">${G.sixForm(t).map(x => `<i class="f${x}">${x}</i>`).join('')}</span>`;
       return `<div class="sx-match ${m.state}"><div class="sx-top"><small>${st2}</small>${res}</div>
-        <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<b>${T[m.h][0]}</b></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><b>${T[m.a][0]}</b>${teamCrest('rugby', m.a, 'mini')}</span></div>
+        <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<span><b>${T[m.h][0]}</b>${form(m.h)}</span></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><span><b>${T[m.a][0]}</b>${form(m.a)}</span>${teamCrest('rugby', m.a, 'mini')}</span></div>
+        <div class="sx-odds"><i style="width:${o[0] * 100}%"></i><i style="width:${o[1] * 100}%"></i><i style="width:${o[2] * 100}%"></i></div>
+        <div class="sx-odds-l"><span>${Math.round(o[0] * 100)} %</span><span>Chances d'après les bookmakers</span><span>${Math.round(o[2] * 100)} %</span></div>
+        ${ru && m.state === 'soon' ? `<p class="sx-rumor">🗞️ <b>Rumeur :</b> ${ru.txt} <em>Vrai ou faux ?</em></p>` : ''}
         <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
     };
-    const days = [1, 2, 3, 4, 5].map(d => { const L = ms.filter(m => m.day === d); return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`; }).join('');
-    return head + `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> au classement et <b>+${S.lingotPerGood} lingot</b>. Les favoris gagnent souvent, mais pas toujours.</p>${days}`;
+    const days = [1, 2, 3, 4, 5].map(d => {
+      const L = ms.filter(m => m.day === d), open = G.sixDayOpen(d);
+      if (!open) return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3><div class="sx-locked">🔒 S'ouvre quand la journée ${d - 1} est finie.<small>${L.map(m => `${T[m.h][0]} – ${T[m.a][0]}`).join('<br>')}</small></div>`;
+      return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`;
+    }).join('');
+    return head + `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> et <b>+${S.lingotPerGood} lingot</b>. Regarde la <b>forme</b> des équipes (V = victoire, N = nul, D = défaite) et leurs chances. Les rumeurs sont vraies… une fois sur deux.</p>${days}`;
   }
   const shortTeam = n => n.split(' ')[0];
   function openSix(tab) {

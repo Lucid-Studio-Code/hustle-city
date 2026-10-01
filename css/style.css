@@ -1809,7 +1809,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .kiosk-hero .pe-box { padding: 4px 3px; }
 #app .kiosk-hero .pe-box b { font-size: 18px; line-height: 1.1; }
 #app .kiosk-hero .pe-foot { margin-top: 4px; }
-#app #modal .card.tip-card { padding: 14px 20px 16px; margin-bottom: 8px; }
+#app #modal .card.tip-card { padding: 10px 12px 12px; margin-bottom: 8px; }
 #app .tip-card .tc-head { display: flex; justify-content: space-between; align-items: center; }
 #app .tip-card h4 { margin: 0; font: 400 16px var(--title); }
 #app .tip-card p { margin: 3px 0 6px; font-size: 12px; line-height: 1.3; }
@@ -1819,3 +1819,29 @@ h3.sec { margin: 18px 6px 10px; }
 #app .stock-chip { margin: 0 0 8px; padding: 6px 10px; border-radius: 12px; background: #e3f2ff; border: 2px solid #2a1a10; font: 800 12px var(--text); color: #1b2a5c; text-align: center; }
 #ticker .track { animation: none !important; will-change: transform; display: flex; }
 #ticker .track .tk-half { flex: 0 0 auto; white-space: nowrap; margin: 0; }
+
+/* tournoi : forme, chances, rumeur, journées fermées */
+#app .sx-t > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#app .sx-t.r > span { align-items: flex-end; }
+#app .sx-form { display: flex; gap: 2px; }
+#app .sx-form i { width: 15px; height: 15px; display: grid; place-items: center; border-radius: 4px; font: 900 9px var(--text); font-style: normal; color: #fff; }
+#app .sx-form .fV { background: #3fae2a; } #app .sx-form .fN { background: #9a8a7a; } #app .sx-form .fD { background: #d33a2c; }
+#app .sx-odds { display: flex; height: 8px; border: 2px solid #2a1a10; border-radius: 6px; overflow: hidden; }
+#app .sx-odds i:nth-child(1) { background: #45a8ec; } #app .sx-odds i:nth-child(2) { background: #c9bba6; } #app .sx-odds i:nth-child(3) { background: #ff8a3d; }
+#app .sx-odds-l { display: flex; justify-content: space-between; margin: 2px 0 6px; font: 800 10px var(--text); color: #7a6a5a; }
+#app .sx-odds-l span:first-child { color: #2c7fbf; } #app .sx-odds-l span:last-child { color: #d0661e; }
+#app .sx-rumor { margin: 0 0 8px; padding: 5px 8px; border-radius: 10px; background: #fff6c8; border: 1.5px dashed #c9a23a; font: 700 11.5px/1.3 var(--text); color: #5a4430; }
+#app .sx-rumor em { color: #b06a00; font-weight: 900; }
+#app .sx-locked { margin: 0 0 10px; padding: 10px 12px; border: 2px dashed #b8a58a; border-radius: 14px; background: rgba(255,253,246,.6); font: 900 12px var(--text); color: #7a6a5a; }
+#app .sx-locked small { display: block; margin-top: 4px; font-weight: 700; line-height: 1.5; }
+#app .sb-row .crest { flex: 0 0 24px; width: 24px; height: 26px; }
+#app .sb-row small { font: 800 10px var(--text); }
+
+/* ---------- toutes les cartes : un cadre net (plus d'image étirée), coins bien ronds ---------- */
+#app .card, #app .row, #app .explain, #app .dlg .say, #start .skin, #app .skin-grid .card {
+  border: 2.5px solid #2a1a10; border-image: none; border-radius: 16px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; }
+#app .card { padding: 12px 14px; }
+#app .row { padding: 10px 12px; }
+#app .explain { padding: 8px 12px; background: #fff6e2; box-shadow: none; border-width: 2px; }
+#app .card.locked, #app .row.locked { background: #efe7da; }
+#app .skin-grid .card.on, #start .skin.sel { border-color: #2a1a10; background: #fff1b8; box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ffc933 inset; }
