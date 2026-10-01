@@ -186,16 +186,22 @@
   // ce qui fait avancer, hors « Matos » (qui a son propre bouton) : une carte pour finir une série, un objet qu'une rumeur fait monter
   function nextBuy() {
     const s = st(), L = [];
-    if (G.catUnlocked('card')) {
-      const se = D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).sort((x, y) => (G.seriesCards(x.id).length - G.seriesHave(x.id)) - (G.seriesCards(y.id).length - G.seriesHave(y.id)))[0];
-      const miss = se && G.seriesCards(se.id).filter(c => !(s.owned[c.id] || []).length && G.inStock(c.id)).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
-      if (miss) { const left = G.seriesCards(se.id).length - G.seriesHave(se.id);
-        L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
-          why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` }); }
-    }
+    const has_ = id => (s.owned[id] || []).length, buyable = it => G.catUnlocked(it.cat) && G.inStock(it.id) && !has_(it.id);
+    // pour chaque série commencée : sa carte manquante la moins chère en rayon
+    if (G.catUnlocked('card')) D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).forEach(se => {
+      const miss = G.seriesCards(se.id).filter(buyable).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
+      if (!miss) return; const left = G.seriesCards(se.id).length - G.seriesHave(se.id);
+      L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
+        why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` });
+    });
     if (s.lvl >= 2) {
-      const n = s.market.news.find(x => x.up && Date.now() - x.t < 20 * 60000 && G.item(x.item) && G.catUnlocked(G.item(x.item).cat) && G.inStock(x.item) && !(s.owned[x.item] || []).length);
-      if (n) { const it = G.item(n.item); L.push({ kind: 'rumor', it, name: G.what(it, true), price: G.buyPrice(it.id), why: 'Une rumeur la fait grimper : achète avant que ça monte encore.' }); }
+      // les objets qu'une rumeur récente fait grimper
+      s.market.news.filter(x => x.up && Date.now() - x.t < 20 * 60000 && G.item(x.item) && buyable(G.item(x.item))).slice(0, 2).forEach(n => {
+        const it = G.item(n.item); if (!L.some(o => o.it === it)) L.push({ kind: 'rumor', it, name: G.what(it, true), price: G.buyPrice(it.id), why: 'Une rumeur le fait grimper : achète avant que ça monte encore.' }); });
+      // un objet en rayon dont le prix monte depuis un moment (et que tu peux te payer)
+      const up = D.ITEMS.filter(it => !it.series && it.cat !== 'trophy' && buyable(it)).map(it => { const h = s.market.hist[it.id]; return { it, v: s.market.prices[it.id] / h[Math.max(0, h.length - 30)] - 1 }; })
+        .filter(x => x.v > .04 && G.buyPrice(x.it.id) <= Math.max(200, s.cash * 1.5)).sort((a, b) => b.v - a.v)[0];
+      if (up && !L.some(o => o.it === up.it)) L.push({ kind: 'trend', it: up.it, name: G.what(up.it, true), price: G.buyPrice(up.it.id), why: `Son prix monte : +${Math.round(up.v * 100)} % ces dernières minutes.` });
     }
     if (!L.length) return null;
     const list = L.sort((a, b) => a.price - b.price);
