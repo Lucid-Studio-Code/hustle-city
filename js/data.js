@@ -332,10 +332,10 @@
     [52, 34.4], [58, 34.4], [64, 34.4], [70, 34.4],
     [51, 39.2], [63, 39.2], [69, 39.2], [74.5, 39.2]
   ];
-  const ROOM_LAYOUT = [
-    { pc: { x: 63, y: 61.5, w: 32 }, rig: { x: 19, y: 88, w: 24 }, shelf: { w: 6, h: 4.6 } },
-    { pc: { x: 64, y: 61.5, w: 38 }, rig: { x: 19, y: 89, w: 27 }, shelf: { w: 6, h: 4.6 } },
-    { pc: { x: 64, y: 60.5, w: 40 }, rig: { x: 19, y: 90, w: 29 }, shelf: { w: 6, h: 4.6 } }
+  const ROOM_LAYOUT = [   // positions réglées par la propriétaire (#placer-appart)
+    { pc: { x: 63, y: 62, w: 32 },   rig: { x: 17, y: 79.5, w: 24 }, shelf: { w: 6, h: 4.6 } },
+    { pc: { x: 61, y: 63, w: 38 },   rig: { x: 15.5, y: 82, w: 27 }, shelf: { w: 6, h: 4.6 } },
+    { pc: { x: 59, y: 63.5, w: 40 }, rig: { x: 15, y: 82, w: 29 },   shelf: { w: 6, h: 4.6 } }
   ];
 
   // ---------------------------------------------------------------- filet de sécurité (réaliste)

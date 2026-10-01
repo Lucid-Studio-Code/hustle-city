@@ -176,7 +176,7 @@
 
   // ------------------------------------------------------------ bouton « prochain achat » : l'image de la prochaine amélioration utile
   // on propose la moins chère entre la machine suivante et l'appart suivant ; Momo prévient quand on peut se la payer
-  // ce qui fait avancer, hors « Matos » (qui a son propre bouton) : une carte pour finir une série, un objet qu'une rumeur fait monter, un booster
+  // ce qui fait avancer, hors « Matos » (qui a son propre bouton) : une carte pour finir une série, un objet qu'une rumeur fait monter
   function nextBuy() {
     const s = st(), L = [];
     if (G.catUnlocked('card')) {
@@ -189,7 +189,6 @@
     if (s.lvl >= 2) {
       const n = s.market.news.find(x => x.up && Date.now() - x.t < 20 * 60000 && G.item(x.item) && G.catUnlocked(G.item(x.item).cat) && G.inStock(x.item) && !(s.owned[x.item] || []).length);
       if (n) { const it = G.item(n.item); L.push({ kind: 'rumor', it, name: G.what(it, true), price: G.buyPrice(it.id), why: 'Une rumeur la fait grimper : achète avant que ça monte encore.' }); }
-      L.push({ kind: 'booster', name: 'Un booster de cartes', price: G.boosterPrice(), why: '3 récompenses et 1 carte de collection, peut-être rare.' });
     }
     if (!L.length) return null;
     const list = L.sort((a, b) => a.price - b.price);
@@ -202,7 +201,8 @@
     const ready = st().cash >= n.price, key = n.kind + (n.it ? n.it.id : '');
     if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.it ? itemPic(n.it) : packArt(true); }
     btn.querySelector('b').innerHTML = short(n.price);
-    btn.classList.toggle('glow', ready); btn.querySelector('.badge').classList.toggle('hidden', !ready);
+    // il brille seulement quelques secondes, quand Momo lance sa bulle (pas en continu)
+    btn.classList.toggle('glow', ready && $('#next-tip')?.classList.contains('on')); btn.querySelector('.badge').classList.toggle('hidden', !ready);
     // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
     if (ready && !nextWasReady || ready && Date.now() - tipLast > 180000) showNextTip(n);
     nextWasReady = ready;
@@ -216,7 +216,6 @@
   function goNextBuy() {
     $('#next-tip')?.classList.remove('on');
     const n = nextBuy(); if (!n) return;
-    if (n.kind === 'booster') { setScene('city'); focusBld('kiosque'); return openKiosk('booster'); }
     if (n.it) {
       setScene('city'); focusBld('shop'); openShop(n.it.cat);
       // on descend jusqu'à la carte proposée et on la fait briller
