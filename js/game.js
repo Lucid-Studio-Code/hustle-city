@@ -537,12 +537,9 @@
     if (perDay) st.cash = Math.max(0, Math.round((st.cash - perDay * dtDay) * 100) / 100);
     D.HABITS.forEach(h => { const x = st.habits[h.id]; if (x && x.quitUntil && now() >= x.quitUntil) { delete st.habits[h.id]; emit('quit', h); } });
   }
-  function tiltCheck(lost) {
-    if (!habitOn('drink') || lost <= 0) return;
-    const before = st.cash + lost;
-    if ((lost >= D.TILT.loss || lost >= before * D.TILT.share) && Math.random() < D.TILT.chance) { st.tiltUntil = now() + D.TILT.min * 60000; emit('tilt'); }
-  }
-  function tilted() { return now() < st.tiltUntil; }
+  // l'ancien blocage au casino (« tilt ») est supprimé : il frustrait trop
+  function tiltCheck() { st.tiltUntil = 0; }
+  function tilted() { return false; }
 
   // ------------------------------------------------------------ le Club
   const clubEntry = () => cost(D.CLUB.entry(st.lvl));

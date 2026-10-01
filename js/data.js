@@ -366,9 +366,9 @@
     { id: 'smoke', name: 'Fumer', icon: '🚬', lvl: 2, perDay: 20, where: 'balto',
       bonus: 'Les pauses clope avec les gars du quartier : tu apprends les rumeurs du Comptoir 5 min avant tout le monde.',
       malus: 'Un paquet par jour : −20<i class="cur"></i> chaque jour, que tu joues ou non.' },
-    { id: 'drink', name: 'Boire', icon: '🍺', lvl: 3, perDay: 10, betBoost: .3, where: 'balto',
+    { id: 'drink', name: 'Boire', icon: '🍺', lvl: 3, perDay: 30, betBoost: .3, where: 'balto',
       bonus: 'Plus de culot : mise max au Royal +30 %.',
-      malus: '−10<i class="cur"></i> par jour, et après une grosse perte au casino, 10 min de « tilt » où tu ne peux plus quitter la table.' },
+      malus: 'Les tournées au bar : −30<i class="cur"></i> chaque jour, que tu joues ou non.' },
     { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 4, perDay: 25, xpBoost: .2, where: 'club',
       bonus: 'Réseau et rencontres : +20 % d\'XP sur tout.',
       malus: '−25<i class="cur"></i> par jour, et ta machine à crypto surchauffe 25 % plus vite (tu rentres tard).' }
@@ -376,7 +376,6 @@
   // Le Club : une soirée coûte l'entrée, rapporte de l'XP et parfois une rencontre (un contact qui propose un bon plan)
   const CLUB = { lvl: 4, entry: lvl => 40 + lvl * 12, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20 };
   const QUIT_H = 48;                 // durée du sevrage
-  const TILT = { min: 10, loss: 50, share: .25, chance: .5 };   // perte ≥ 50<i class="cur"></i> ou ≥ 25 % du cash → 1 chance sur 2
   // Santé : chaque point sous 100 rend tout 0,5 % plus cher (pharmacie, fatigue, mauvaises décisions)
   const HEALTH_COST = .005;
 
@@ -425,7 +424,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, TILT, HEALTH_COST,
+    ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

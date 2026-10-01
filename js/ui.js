@@ -134,7 +134,7 @@
     m.onclick = e => { if (e.target === m) closeModal(); };
   }
   function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; b.innerHTML = html; b.scrollTop = y; } }
-  function closeModal() { if (G.tilted() && $('#modal .sheet-head')?.textContent.includes('Lucky Palace')) return toast(`🍺 Tilt : encore ${mmss(G.st.tiltUntil - Date.now())} à la table.`, true); const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
+  function closeModal() { const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
   function dialog(who, text, btn = 'OK', cb) {
@@ -1542,7 +1542,6 @@
     else notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline);
   });
   G.on('money', () => bump('#pill-cash'));
-  G.on('tilt', () => toast(`🍺 Tilt ! Tu veux te refaire : impossible de quitter la table pendant ${D.TILT.min} min.`, true));
   G.on('quit', h => dialog('Sevrage terminé', `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'));
 
   // ------------------------------------------------------------ démarrage
