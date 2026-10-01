@@ -1,0 +1,6 @@
+# images sources en 2K et essais : trop lourds pour le dépôt (gardés en local)
+originals-2k/
+refs/
+.DS_Store
+__pycache__/
+*.pyc
