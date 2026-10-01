@@ -713,6 +713,13 @@ h3.sec { margin: 18px 6px 10px; }
 #app #toast .t-who .pic, #app #toast .t-who img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 #app #toast .t-txt { flex: 1; }
 #app #toast .cur { width: 16px; height: 12px; }
+/* version compacte : une petite pastille qui cache le moins possible la ville */
+#app #toast { left: 50%; right: auto; width: max-content; max-width: calc(100% - 40px); transform: translate(-50%, 12px); bottom: 98px;
+  gap: 7px; padding: 3px 12px 3px 3px; border-radius: 999px; box-shadow: 0 2px 0 #2a1a10; font: 800 11.5px/1.25 var(--text); }
+#app #toast.on { transform: translate(-50%, 0); }
+#app #toast .t-who { flex: 0 0 26px; width: 26px; height: 26px; border-width: 1.5px; }
+#app #toast .t-txt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#app #toast .cur { width: 13px; height: 10px; }
 
 /* ---------- effets ---------- */
 .flybill { position: absolute; width: 36px; height: 36px; z-index: 60; transition: transform .8s cubic-bezier(.5,-0.4,.7,1), opacity .8s; }

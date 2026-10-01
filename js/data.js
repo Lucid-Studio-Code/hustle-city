@@ -199,10 +199,10 @@
   const BUY_MARKUP = .05, SELL_FEE = .10;
   // Rumeurs : de temps en temps, un objet s'envole ou s'effondre
   const RUMORS = [
-    { up: true,  txt: 'Une star a posé avec « {n} » sur les réseaux. La cote s\'envole !', k: [1.25, 1.6] },
-    { up: true,  txt: 'Rupture de stock mondiale sur « {n} ».', k: [1.15, 1.35] },
-    { up: false, txt: 'Des contrefaçons de « {n} » inondent le marché.', k: [.65, .85] },
-    { up: false, txt: 'Un gros collectionneur revend tous ses « {n} ».', k: [.7, .88] }
+    { up: true,  txt: 'Une star a posé avec {n} sur les réseaux. La cote s\'envole !', k: [1.25, 1.6] },
+    { up: true,  txt: 'Plus personne n\'arrive à trouver {n} : la cote monte.', k: [1.15, 1.35] },
+    { up: false, txt: 'Des fausses copies circulent partout : la cote de {n} baisse.', k: [.65, .85] },
+    { up: false, txt: 'Un gros collectionneur revend tout son stock d\'un coup : la cote de {n} baisse.', k: [.7, .88] }
   ];
   const RUMOR_MIN = [6, 12];
 

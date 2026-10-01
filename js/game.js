@@ -374,6 +374,15 @@
 
   // ------------------------------------------------------------ objets de collection
   const item = id => D.ITEMS.find(i => i.id === id);
+  // nom d'un objet dans une phrase, pour qu'on sache toujours de quoi on parle : « la carte « Real Banlieue » »
+  function what(it, cap) {
+    const up = t => t.replace(/^./, ch => ch.toUpperCase()), q = t => t.includes('«') ? t : `« ${t} »`;
+    let t;
+    if (it.cat === 'card') t = (it.series === 'tennis' ? 'la carte du joueur ' : it.series === 'foot' || it.series === 'basket' ? 'la carte de l\'équipe ' : 'la carte ') + q(up(it.name.replace(/^Carte /, '')));
+    else if (it.cat === 'sneaker') t = 'la paire de baskets ' + q(it.name.replace(/^Baskets /, ''));
+    else t = q(it.name);
+    return cap ? up(t) : t;
+  }
   function catUnlocked(cat) { return st.lvl >= D.ITEM_CATS[cat].lvl; }
   function marketTick(stepMin) {
     const mk = st.market;
@@ -398,7 +407,7 @@
     if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
     if (mk.next && !mk.next.told && habitOn('smoke') && mk.nextRumor - now() <= 5 * 60000 && mk.nextRumor > now()) {
       mk.next.told = true; const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
-      const txt = `Pause clope : un pote te glisse que « ${it.name} » va ${ru.up ? 'grimper' : 'chuter'} d'ici quelques minutes.`;
+      const txt = `Pause clope : un pote te glisse que ${what(it)} va ${ru.up ? 'grimper' : 'chuter'} d'ici quelques minutes.`;
       mk.news.unshift({ t: now(), txt, up: ru.up, item: it.id, tip: true }); if (mk.news.length > 6) mk.news.length = 6;
       if (!offline) emit('news', { txt: '🚬 ' + txt, bad: false, item: it.id, up: ru.up, smoke: true });
     }
@@ -408,7 +417,7 @@
       if (pool.length) {
         const it = nx && item(nx.item) && catUnlocked(item(nx.item).cat) ? item(nx.item) : pick(pool), ru = nx ? D.RUMORS[nx.ru] : pick(D.RUMORS), k = rnd(...ru.k);
         mk.prices[it.id] = clamp(mk.prices[it.id] * k, it.p0 * .15, it.p0 * 12);
-        const news = { t: now(), txt: ru.txt.replace('{n}', it.name), up: ru.up, item: it.id };
+        const news = { t: now(), txt: ru.txt.replace('{n}', what(it)), up: ru.up, item: it.id };
         mk.news.unshift(news); if (mk.news.length > 6) mk.news.length = 6;
         if (!offline) emit('news', { txt: news.txt, bad: !ru.up, item: it.id });
       }
@@ -530,7 +539,7 @@
       if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
       if (!mk.next) return { err: 'Rien à raconter.' };
       const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
-      txt = `Ça va bouger sur « ${it.name} » : la cote devrait ${ru.up ? 'grimper' : 'chuter'} d'ici ${Math.max(1, Math.round((mk.nextRumor - now()) / 60000))} min.`;
+      txt = `Ça va bouger sur ${what(it)} : sa cote devrait ${ru.up ? 'grimper' : 'chuter'} d'ici ${Math.max(1, Math.round((mk.nextRumor - now()) / 60000))} min.`;
     }
     if (!pay(tipPrice(t))) return { err: 'Pas assez de cash.' };
     if (!st.kiosk || st.kiosk.ed !== edition()) st.kiosk = { ed: edition(), tips: {} };
@@ -767,7 +776,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    item, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
+    item, what, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
     edition, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,

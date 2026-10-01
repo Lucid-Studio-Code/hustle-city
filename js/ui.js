@@ -520,9 +520,9 @@
   function bubbleHtml(c, m, i) {
     if (m.from === 'me') return `<div class="bub out">${m.txt}</div>`;
     let extra = '';
-    if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${it.name}</b><small>${m.offer.type === 'sell' ? 'Il te le vend' : 'Il te le rachète'} <strong>${short(m.offer.price)}</strong> · cote ${short(st().market.prices[m.offer.id])}</small></span></div>`; }
+    if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>${(f => m.offer.type === 'sell' ? `Il te ${f} vend` : `Il te ${f} rachète`)(/^la /.test(G.what(it)) ? 'la' : 'le')} <strong>${short(m.offer.price)}</strong> · cote ${short(st().market.prices[m.offer.id])}</small></span></div>`; }
     if (m.match) { const x = G.match(m.match); if (x) extra = `<div class="bub in offer match"><span class="of-crests">${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.home), 'mini')}${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.away), 'mini')}</span><span><b>${x.home} – ${x.away}</b><small>${x.state === 'soon' ? `Coup d'envoi dans ${mmss(x.kickoff - Date.now())}` : x.state === 'live' ? 'En direct' : 'Terminé'}</small></span></div>`; }
-    if (m.item && !m.offer) { const it = G.item(m.item); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${it.name}</b><small>Cote ${short(st().market.prices[m.item])}</small></span></div>`; }
+    if (m.item && !m.offer) { const it = G.item(m.item); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>Cote ${short(st().market.prices[m.item])}</small></span></div>`; }
     // réponses rapides : seulement sur le dernier message encore ouvert
     let acts = '';
     if (m.acts && !m.done) {
@@ -1210,7 +1210,7 @@
   G.on('event', ev => { sfx.goal(); notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });
   G.on('deal', d => {
     chatPush(d.name, d.img, { from: 'them', kind: 'deal', txt: d.line, offer: { id: d.id, type: d.type, price: d.price }, acts: [{ label: d.type === 'sell' ? 'J\'achète' : 'Je vends', act: 'dealOk' }, { label: 'Non merci', act: 'dealNo' }] });
-    notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.item(d.id).name})`, null, false, d.name);
+    notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Balto s'ouvre avec le pronostic déjà coché
   G.on('friendTip', f => {
