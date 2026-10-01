@@ -31,14 +31,14 @@
   const pickName = (m, p) => labels(m)[p] === 'N' ? 'Match nul' : labels(m)[p] === '1' ? m.home : m.away;
 
   // « BUT ! » : on retient le dernier score vu de chaque match
-  const seen = {}, flash = {};
+  const seen = {}, flash = {}, flashSide = {};
   function checkGoals() {
     const mine = new Set(st().bets.filter(b => b.state === 'open').flatMap(b => b.legs.map(l => l.m)));
     st().matches.filter(m => m.state === 'live').forEach(m => {
       const sc = liveScore(m), prev = seen[m.id];
       seen[m.id] = { a: sc.a, b: sc.b };
       if (!prev || m.sport !== 'foot' || sc.a + sc.b <= prev.a + prev.b) return;
-      flash[m.id] = Date.now();
+      flash[m.id] = Date.now(); flashSide[m.id] = sc.a > prev.a ? 'r' : 'l';
       const who = sc.a > prev.a ? m.home : m.away;
       if (mine.has(m.id)) { U.sfx.goal(); U.toast(`⚽ BUT pour ${who} ! ${m.home} ${sc.a} - ${sc.b} ${m.away}`, false, 'mybets'); }
     });
@@ -50,9 +50,10 @@
 
   // ------------------------------------------------------------ cartes de match
   function pitch(m, sc) {
-    const t = Date.now() % 7000;
-    return `<div class="pitch ${m.sport}"><i class="pl-line"></i><i class="pl-circle"></i><i class="pl-goal l"></i><i class="pl-goal r"></i>
-      <i class="pl-ball" style="animation-delay:-${t}ms"></i><span class="pl-clock">${sc.clock}</span>
+    // pendant un « BUT ! », le ballon part du centre et finit dans le but (l'équipe de gauche marque à droite)
+    const g = flash[m.id] && Date.now() - flash[m.id] < 2500, t = g ? Math.min(1100, Date.now() - flash[m.id]) : Date.now() % 7000;
+    return `<div class="pitch ${m.sport}"><i class="pl-line"></i><i class="pl-circle"></i><i class="pl-goal l ${g && t >= 1000 && flashSide[m.id] === 'l' ? 'hit' : ''}"></i><i class="pl-goal r ${g && t >= 1000 && flashSide[m.id] === 'r' ? 'hit' : ''}"></i>
+      <i class="pl-ball ${g ? 'goal-' + flashSide[m.id] : ''}" style="animation-delay:-${t}ms"></i><span class="pl-clock">${sc.clock}</span>
       <i class="pl-prog" style="width:${Math.round(sc.f * 100)}%"></i></div>`;
   }
   function chances(m) {

@@ -712,8 +712,8 @@
           return `<div class="news-card ${x.up ? 'up' : 'down'}"><span class="nc-arrow">${x.up ? '▲' : '▼'}</span>
             <div class="nc-top"><span class="nc-pic">${itemPic(it)}</span><div class="nc-txt"><small>${x.tip ? 'Un pote t\'a prévenu' : x.up ? 'Ça monte' : 'Ça chute'} · ${ago(x.t)}</small><b>${esc(x.txt.replace(/^Pause clope : (.)/, (_, c) => c.toUpperCase()))}</b>
             <span class="nc-px">Prix du jour ${short(s.market.prices[it.id])} ${trend(s.market.prices[it.id], h[Math.max(0, h.length - 30)])}</span></div></div>
-            <div class="nc-acts">${canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}
-              ${mine ? `<button class="btn red sm" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>` : ''}</div></div>`;
+            <div class="nc-acts">${mine ? `<button class="btn red sm" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
+              : canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}</div></div>`;
         }).join('') : '<p class="hint-line center">Pas de rumeur pour l\'instant. Repasse plus tard.</p>');
     }
     const items = D.ITEMS.filter(i => i.cat === shopTab), mt = G.tipBought('market'), sale = G.evOn('sale');
@@ -721,9 +721,9 @@
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18)}</div>
-        <small class="muted own-line">${mine ? `Tu en as ${mine}` : 'Tu n\'en as pas'}</small>
-        <div class="hstack" style="width:100%"><button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>
-        <button class="btn xs ${mine ? 'red' : ''}" style="flex:1" data-act="itSell" data-id="${it.id}" ${mine ? '' : 'disabled'}>${mine ? `Vendre ${short(G.sellPrice(it.id))}` : 'Rien à vendre'}</button></div></div>`;
+        <small class="muted own-line">${mine ? 'Tu l\'as' : 'Tu ne l\'as pas'}</small>
+        <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
+          : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
     };
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
@@ -976,7 +976,7 @@
     let el = $('#pack'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="pack"></div>'); el = $('#pack'); }
     const ORD = { C: 0, R: 1, E: 2, L: 3 };
     const deck = cards.filter(c => c.kind !== 'col').sort((a, b) => ORD[a.rarity] - ORD[b.rarity]).concat(cards.filter(c => c.kind === 'col'));
-    const front = c => tcgCard(c) + (c.kind === 'col' ? (c.dup ? `<span class="pk-tag">Doublon · cote ${short(G.sellPrice(c.id))}</span>` : '<span class="pk-tag new">Nouvelle carte !</span>') : '');
+    const front = c => tcgCard(c) + (c.kind === 'col' ? (c.dup ? `<span class="pk-tag">Doublon revendu · +${short(c.sold || 0)}</span>` : '<span class="pk-tag new">Nouvelle carte !</span>') : '');
     el.className = 'on';
     // le paquet brille de la couleur de la meilleure carte qu'il contient (comme dans les vrais jeux)
     const best = deck.reduce((a, c) => Math.max(a, ORD[c.rarity]), 0);

@@ -435,6 +435,7 @@
   function buyItem(id) {
     // les cartes des boosters s'achètent aussi d'occasion au Comptoir ; elles vont dans le classeur, pas sur les étagères
     const it = item(id); if (!it || it.cat === 'trophy' || !catUnlocked(it.cat)) return { err: 'Indisponible.' };
+    if (st.owned[id] && st.owned[id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
@@ -595,8 +596,10 @@
   function collectionCard() {
     const rar = pickW(D.BOOSTER.colWeights), all = D.ITEMS.filter(i => i.series && i.p0 <= D.BOOSTER.maxCard);
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
+    // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
-    (st.owned[c.id] = st.owned[c.id] || []).push({ paid: 0, t: now(), booster: true });
+    if (dup) { const n = sellPrice(c.id); addCash(n); return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup, sold: n }; }
+    st.owned[c.id] = [{ paid: 0, t: now(), booster: true }];
     return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup };
   }
   function openBooster() {
@@ -679,7 +682,7 @@
     const contacts = S.contacts.filter(c => !c.img.includes(st.skin + '-'));
     const ct = pick(contacts);
     const mine = Object.keys(st.owned).filter(id => st.owned[id].length && item(id).cat !== 'trophy');
-    const buyable = D.ITEMS.filter(i => !i.noBuy && i.cat !== 'trophy' && catUnlocked(i.cat) && st.market.prices[i.id] <= Math.max(150, worth() * .6));
+    const buyable = D.ITEMS.filter(i => !i.noBuy && i.cat !== 'trophy' && catUnlocked(i.cat) && !(st.owned[i.id] && st.owned[i.id].length) && st.market.prices[i.id] <= Math.max(150, worth() * .6));
     let deal = null;
     if (mine.length && (Math.random() < .5 || !buyable.length)) {
       const id = pick(mine), k = rnd(1.15, 1.35);
@@ -696,6 +699,7 @@
   function acceptDeal() {
     const d = st.deal; if (!d || now() > d.end) return { err: 'L\'offre a expiré.' };
     if (d.type === 'sell') {
+      if (st.owned[d.id] && st.owned[d.id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
       if (ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : revends ou déménage.' };
       if (!pay(d.price)) return { err: 'Pas assez de cash.' };
       (st.owned[d.id] = st.owned[d.id] || []).push({ paid: d.price, t: now() });
