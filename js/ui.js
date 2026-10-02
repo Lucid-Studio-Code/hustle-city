@@ -138,10 +138,10 @@
 
   // ------------------------------------------------------------ fenêtres
   let modalClose = null, modalRefresh = null, tabHandler = null;
-  function openModal({ title, icon, body, tabs, tab, full, center, onClose, refresh, onTab }) {
+  function openModal({ title, icon, body, tabs, tab, full, center, onClose, refresh, onTab, theme }) {
     const m = $('#modal');
     m.className = full ? 'full' : '';
-    m.innerHTML = `<div class="sheet ${center ? 'center' : ''}">
+    m.innerHTML = `<div class="sheet ${center ? 'center' : ''} ${theme ? 'th-' + theme : ''}">
       <div class="sheet-head">${icon ? ic(icon) : ''}<span>${title}</span><button class="sheet-close" data-act="closeModal" aria-label="Fermer">×</button></div>
       ${tabs ? `<div class="tabs">${tabs.map(t => `<button class="tab ${t.id === tab ? 'on' : ''}" data-tab="${t.id}" ${t.locked ? 'disabled' : ''}>${t.label}</button>`).join('')}</div>` : ''}
       <div class="sheet-body">${body}</div></div>`;

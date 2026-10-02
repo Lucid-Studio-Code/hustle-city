@@ -11,13 +11,13 @@
   function slotBody() {
     const s = st(), S = D.SLOT.symbols;
     const shown = lastSpin ? lastSpin.reels : [S[0], S[2], S[4]];
-    return `<div class="slot-machine">
+    return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
         <div class="reels">${shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('')}</div>
         <div class="center stroke" style="margin:10px 0 6px;font-size:20px;min-height:26px" id="slot-msg">${lastSpin ? (lastSpin.win ? `+${U.eur(lastSpin.win)} (×${lastSpin.mult})` : 'Perdu') : 'Aligne 3 symboles'}</div>
         <div class="seg">${D.SLOT.bets.map(b => `<button class="btn xs ${b === bet ? 'green' : 'blue'}" data-act="slBet" data-v="${b}">${b}<i class="cur"></i></button>`).join('')}</div>
         <button class="btn wide" style="margin-top:10px;min-height:60px;font-size:24px" data-act="slSpin" ${spinning || s.cash < bet ? 'disabled' : ''}>Lancer · ${U.eur(bet)}</button>
       </div>
-      <div class="card" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${x.icon}${x.icon}${x.icon}</span><b>×${x.pay3}</b>`).join('')}<span>🍒🍒 + autre</span><b>×${S[0].pay2}</b></div>
+      <div class="card" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b>`).join('')}<span>${symHtml(S[0])}${symHtml(S[0])} + autre</span><b>×${S[0].pay2}</b></div>
         <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
   }
   function spinAnim(res) {
@@ -52,17 +52,17 @@
   function rouletteBody() {
     const s = st(), R = D.ROULETTE.reds, total = board.reduce((a, b) => a + b.amt, 0);
     const nums = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 12; c++) nums.push(c * 3 + (3 - r));
-    return `<div class="wheel-wrap"><div class="wheel-ptr"></div><div class="wheel" id="wheel" style="background:${wheelGradient()};transform:rotate(${wheelTurn}deg)"></div>
+    return `<div class="wheel-wrap"><div class="wheel-ptr"></div><div class="wheel" id="wheel" style="background:${wheelGradient()};transform:rotate(${wheelTurn}deg)">${D.ROULETTE.order.map((v, i) => `<i class="wn" style="transform:rotate(${((i + .5) * 360 / D.ROULETTE.order.length).toFixed(2)}deg)"><b>${v}</b></i>`).join('')}</div>
         <div class="wheel-res" style="${lastRoll ? `background:${lastRoll.n === 0 ? '#1f9d55' : R.includes(lastRoll.n) ? '#d33a2c' : '#222'}` : ''}">${lastRoll && !rolling ? lastRoll.n : '?'}</div></div>
       <div class="center stroke" style="font-size:18px;min-height:24px">${rolling ? 'Les jeux sont faits…' : lastRoll ? (lastRoll.win ? `Gagné : +${U.eur(lastRoll.win)}` : `Perdu (${U.eur(lastRoll.total)})`) : 'Pose tes jetons'}</div>
-      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="background:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}">${c}</button>`).join('')}</div>
-      <div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
+      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}"><span>${c}</span></button>`).join('')}</div>
+      <div class="felt"><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
         ${nums.map(n => `<button class="${R.includes(n) ? 'rd' : 'bk'}" data-act="rlBet" data-t="num" data-v="${n}">${n}${chipOn('num', n)}</button>`).join('')}</div>
       <div class="rl-outside">
         ${[['doz', 1, '1-12'], ['doz', 2, '13-24'], ['doz', 3, '25-36'], ['low', null, '1-18'], ['even', null, 'Pair'], ['red', null, 'Rouge'], ['black', null, 'Noir'], ['odd', null, 'Impair'], ['high', null, '19-36']]
           .map(([t, v, l]) => `<button data-act="rlBet" data-t="${t}" ${v != null ? `data-v="${v}"` : ''} style="${t === 'red' ? 'background:#d33a2c' : t === 'black' ? 'background:#222' : ''}">${l}${chipOn(t, v)}</button>`).join('')}
       </div>
-      <div class="grid2" style="margin-top:10px"><button class="btn red" data-act="rlClear" ${board.length && !rolling ? '' : 'disabled'}>Effacer</button>
+      </div><div class="grid2" style="margin-top:10px"><button class="btn red" data-act="rlClear" ${board.length && !rolling ? '' : 'disabled'}>Effacer</button>
         <button class="btn green" data-act="rlSpin" ${total && !rolling && s.cash >= total ? '' : 'disabled'}>Lancer · ${U.eur(total)}</button></div>
       <p class="muted center" style="margin-top:6px">Numéro plein ×36, douzaine ×3, rouge/noir, pair/impair, manque/passe ×2. Le zéro fait perdre toutes les chances simples : c'est l'avantage du casino (2,7 %).</p>`;
   }
@@ -85,7 +85,7 @@
   function open(t) {
     if (t) tab = t;
     if (tab === 'roulette' && st().lvl < D.ROULETTE.lvl) tab = 'slot';
-    U.openModal({ title: 'Lucky Palace', icon: 'dice', full: true,
+    U.openModal({ title: 'Lucky Palace', icon: 'dice', full: true, theme: 'casino',
       tabs: [{ id: 'slot', label: 'Machine à sous' }, { id: 'roulette', label: st().lvl < D.ROULETTE.lvl ? `Roulette · niv. ${D.ROULETTE.lvl}` : 'Roulette', locked: st().lvl < D.ROULETTE.lvl }], tab,
       body: body(), onTab: id => { tab = id; U.setBody(body()); } });
   }

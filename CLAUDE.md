@@ -27,7 +27,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 78).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 79).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -62,6 +62,9 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 ## Le Club = une vraie pièce (02/10)
 - D'abord le videur (entrée payante, ou lingots s'il te reconnaît), puis une soirée de `nightMin` min dans une salle à toucher : piste (XP), DJ (piste ×1,5), bar (cocktail + habitude), canapés (rencontre → bon plan), carré VIP (lingots → contact assuré), porte (sortir). Chaque coin une fois par soirée.
 - `CLUB.spots` (data.js) = zones sur l'image `club-room` (à générer ; néons dessinés en attendant), `club-door` pour l'entrée.
+
+## Casino (Lucky Palace)
+- Même menu (machine à sous, roulette) mais un style à part : `theme: 'casino'` dans openModal → classe `th-casino` (velours rouge, or, ampoules, tapis vert, jetons, numéros autour de la roue). Images à venir : `slot-<symbole>` (cherry, lemon, bell, bar, diam, seven).
 
 ## Boutique (bouton du bas, ex-Trading)
 - `CITY_SHOP` (data.js) : décos de ville achetées pour toujours, chacune à SA place (x/y/w, réglables au back-office). `IAP` : achats en vrai argent, affichés « bientôt » (pas de paiement avant la version stores).
