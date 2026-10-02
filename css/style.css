@@ -1936,3 +1936,4 @@ h3.sec { margin: 18px 6px 10px; }
 #app .tcg .mc-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 #app .tcg.mini .tcg-holo { animation: none; }
 #app .ev-deco .pic { position: relative; display: block; width: 100%; aspect-ratio: 1; } #app .ev-deco .pic img { object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 3px 0 rgba(42,26,16,.3)); }
+#app .tcg.mini .tcg-card::before { content: none; }
