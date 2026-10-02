@@ -923,10 +923,15 @@
     const doneDays = [1, 2, 3, 4, 5].filter(d => ms.filter(m => m.day === d).every(m => m.state === 'done'));
     const last = doneDays[doneDays.length - 1], lm = last ? ms.filter(m => m.day === last) : [];
     const recap = last ? `<div class="sx-recap"><b>🏁 Bilan de la journée ${last}</b><span>${lm.map(m => `<i class="${m.ok ? 'ok' : m.pick == null ? '' : 'ko'}">${m.ok ? '✓' : m.pick == null ? '–' : '✗'} ${shortTeam(m.home)} ${m.sh}-${m.sa} ${shortTeam(m.away)}</i>`).join('')}</span>
-      <small>${lm.filter(m => m.ok).length} bon${lm.filter(m => m.ok).length > 1 ? 's' : ''} prono${lm.filter(m => m.ok).length > 1 ? 's' : ''} sur ${lm.length} : <strong>+${lm.filter(m => m.ok).length * S.pts} points</strong> et <strong>+${lm.filter(m => m.ok).length * S.lingotPerGood} lingot${lm.filter(m => m.ok).length > 1 ? 's' : ''}</strong>. Tu es ${rank}${rank === 1 ? 'er' : 'e'} au classement.</small></div>` : '';
+      <small>${lm.filter(m => m.ok).length} bon${lm.filter(m => m.ok).length > 1 ? 's' : ''} prono${lm.filter(m => m.ok).length > 1 ? 's' : ''} sur ${lm.length} : <strong>+${lm.filter(m => m.ok).length * S.pts} points</strong> et <strong>+${lm.filter(m => m.ok).length * S.lingotPerGood} lingot${lm.filter(m => m.ok).length > 1 ? 's' : ''}</strong>.</small>
+      <div class="sx-rank"><span>🏆</span><div><small>Ta place au classement</small><b>${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> sur ${n}</b></div><button class="btn xs blue" data-act="sixBoard">Voir</button></div></div>` : '';
     const days = [1, 2, 3, 4, 5].map(d => {
       const L = ms.filter(m => m.day === d).sort((a, b) => a.kickoff - b.kickoff), open = G.sixDayOpen(d);
       if (!open) return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3><div class="sx-locked">🔒 S'ouvre quand la journée ${d - 1} est finie.<small>${L.map(m => `${T[m.h][0]} – ${T[m.a][0]}`).join('<br>')}</small></div>`;
+      if (L.every(m => m.state === 'done')) return `<h3 class="sec sx-past-h">Journée ${d} <small>· ${fDay(L[0].kickoff)} · terminée</small></h3><div class="sx-past">${L.map(m => {
+          const res = m.pick == null ? 'none' : m.ok ? 'ok' : 'ko', pk = m.pick == null ? 'Pas de prono' : m.pick === 1 ? 'Nul' : shortTeam(m.pick === 0 ? m.home : m.away);
+          return `<div class="sx-p ${res}"><span class="sx-pt">${teamCrest('rugby', m.h, 'mini')}<b>${shortTeam(m.home)}</b></span><span class="sx-ps">${m.sh}-${m.sa}</span><span class="sx-pt r"><b>${shortTeam(m.away)}</b>${teamCrest('rugby', m.a, 'mini')}</span>
+            <span class="sx-pv">${res === 'ok' ? `✓ ${pk}<em>+${S.pts} pts</em>` : res === 'ko' ? `✗ ${pk}` : pk}</span></div>`; }).join('')}</div>`;
       if (d === cur) return `<div class="sx-today"><div class="sx-today-h"><b>🏉 Journée ${d} · en cours</b><small>${fDay(L[0].kickoff)}</small></div>${L.map(card).join('')}</div>`;
       return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`;
     }).join('');
@@ -1423,6 +1428,7 @@
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
     upgrades: () => openUpgrades(),
+    sixBoard: () => { sixTab = 'board'; openSix('board'); },
     roomPlace: () => roomPlacer(true),
     patPay: el => openPatPay(el.dataset.k),
     patGo(el) { const k = el.dataset.k, r = G.liquidate(G.upPrice(k)); if (r.err) return toast(r.err, true);
