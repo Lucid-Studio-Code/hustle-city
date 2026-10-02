@@ -86,6 +86,12 @@
   }
 
   // ------------------------------------------------------------ le ticket (collé en bas de la fenêtre)
+  // toujours le BÉNÉFICE en gros ; avec ses propres billets, on précise ce qu'on récupère au total (mise comprise).
+  // Un pari offert : la mise n'est pas rendue (comme en vrai), donc bénéfice = mise × (cote − 1).
+  function gainTxt(amt, odds, free) {
+    const profit = amt * (odds - 1);
+    return `<em class="tk-amt">+${U.eur(profit)}</em><small class="tk-tot">${free ? 'pari offert : la mise n\'est pas rendue' : `tu récupères ${U.eur(amt * odds)} (ta mise + le gain)`}</small>`;
+  }
   function slipHtml() {
     if (!slip.length) return '';
     // on ne peut pas miser plus que la mise max, ni plus que ce qu'on a en poche
@@ -101,7 +107,7 @@
       ${s.freebets.length ? `<label class="tk-free"><input type="checkbox" id="b-free" ${free ? 'checked' : ''}> Utiliser mon pari gratuit de ${s.freebets[0]}<i class="cur"></i></label>` : ''}
       ${free ? '' : broke ? `<p class="tk-broke">💸 Tu es à sec : plus un billet en poche pour miser.</p>` : `<div class="tk-stake"><input class="amt" id="b-stake" type="number" inputmode="numeric" min="1" max="${max}" value="${amt || 1}">
         <div class="seg">${[5, 10, 20, 50].filter(v => v < max).map(v => `<button class="btn xs ${stake === v ? 'yellow' : 'blue'}" data-act="bStake" data-v="${v}">${v}</button>`).join('')}<button class="btn xs ${stake >= max ? 'yellow' : 'blue'}" data-act="bStake" data-v="${max}">Max</button></div></div>`}
-      <div class="tk-gain"><span>Gain potentiel</span><b id="b-gain">${U.eur(broke ? 0 : gain)}</b></div>
+      <div class="tk-gain"><span>Si tu gagnes</span><b id="b-gain">${gainTxt(broke ? 0 : amt, odds, free)}</b></div>
       <button class="btn green wide" data-act="bPlace" ${broke ? 'disabled' : ''}>${broke ? 'À sec' : 'Valider le ticket'}</button>
       ${slip.length > 1 ? '<p class="tk-note">Un seul prono raté et tout le combiné est perdu.</p>' : ''}
     </div>`;
@@ -194,7 +200,7 @@
     }
   });
   document.addEventListener('input', e => {
-    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1); const g = document.getElementById('b-gain'); if (g) g.innerHTML = U.eur(Math.min(v, G.betMax(), Math.floor(st().cash)) * odds); }
+    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1); const g = document.getElementById('b-gain'); if (g) g.innerHTML = gainTxt(Math.min(v, G.betMax(), Math.floor(st().cash)), odds, false); }
   });
   document.addEventListener('change', e => { if (e.target.id === 'b-free') { useFree = e.target.checked; U.setBody(body()); } });
 
