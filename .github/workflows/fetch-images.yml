@@ -1,0 +1,28 @@
+# Télécharge les images listées dans tools/inbox/urls.txt (lignes « nom url ») dans tools/inbox/, puis vide la liste.
+# Sert à la session cloud de Claude, qui n'a pas accès au site des images de Magnific.
+name: Récupérer les images
+on:
+  push:
+    paths: ['tools/inbox/urls.txt']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Télécharger
+        run: |
+          set -e
+          while read -r name url; do
+            [ -z "$name" ] && continue
+            curl -fsSL -o "tools/inbox/$name.png" "$url" && echo "ok $name"
+          done < tools/inbox/urls.txt
+          : > tools/inbox/urls.txt
+      - name: Enregistrer
+        run: |
+          git config user.name "hustle-bot"; git config user.email "hustle-bot@users.noreply.github.com"
+          git add tools/inbox
+          git diff --cached --quiet || git commit -m "Images récupérées depuis Magnific"
+          git push

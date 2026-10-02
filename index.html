@@ -1,64 +1,26 @@
-<title>Hustle City</title>
-  <meta name="description" content="Paris sportifs, casino, crypto et objets de collection : deviens riche. Facilement. Ou pas.">
-  <meta name="theme-color" content="#1b1433">
-  <link rel="preload" href="assets/fonts/lilita-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=51">
-  <div id="app" data-sign="ground">
-    <section id="scene-city" class="scene">
-      <div id="map"><div id="map-inner"></div></div>
-    </section>
-    <section id="scene-appart" class="scene hidden"></section>
-
-    <header id="hud">
-      <div class="hud-row">
-        <button class="avatar" data-act="profile" aria-label="Profil">
-          <span class="avatar-img" id="avatar-img"></span>
-          <span class="lvl" id="lvl">1</span>
-        </button>
-        <div class="who">
-          <b id="hud-name"></b>
-          <div class="xpbar"><div class="xpfill" id="xpfill"></div><span id="xptext"></span></div>
-        </div>
-        <div class="pill" id="pill-cash"><i class="ic" data-icon="cash"></i><span id="cash">0</span></div>
-        <div class="pill gold" id="pill-lingots"><i class="ic" data-icon="lingot"></i><span id="lingots">0</span><button class="plus" data-act="daily" aria-label="Cadeau du jour"></button></div>
-        <button class="round" data-act="settings" aria-label="Réglages"><i class="ic" data-icon="gear"></i></button>
-      </div>
-      <div class="hud-row2">
-        <button id="mood" data-act="moodInfo"></button>
-        <div id="ticker"></div>
-        <button id="worth" data-act="wallet"><small>Patrimoine</small><b id="worth-v">0<i class="cur"></i></b></button>
-      </div>
-    </header>
-
-    <div id="quest" class="hidden" data-act="quest"></div>
-    <div id="buffs"></div>
-    <button id="trophy" data-act="rewards" aria-label="Récompenses"><i class="ic" data-icon="trophy"></i><span class="badge ok hidden"></span></button>
-    <button id="btn-booster" data-act="boosters" aria-label="Boosters"><i class="bst-mini"><img src="assets/img/booster-pack.png" alt=""></i><b>Booster</b><span class="badge ok hidden"></span></button>
-    <button id="btn-gift" data-act="daily" aria-label="Cadeau du jour"><i class="ic" data-icon="gift"></i><b>Cadeau</b><span class="badge ok hidden">!</span></button>
-    <button id="btn-next" class="hidden" data-act="nextBuy" aria-label="Prochain achat"><span class="nx-pic"></span><b></b><span class="badge ok hidden">!</span></button>
-    <button id="next-tip" data-act="nextBuy"></button>
-    <button id="btn-upg" data-act="upgrades" aria-label="Matos"><i class="upg-ic">🛠️</i><b>Matos</b><span class="badge ok hidden">!</span></button>
-    <button id="btn-deal" class="hidden" data-act="deal" aria-label="Bon plan"></button>
-    <button id="phone-btn" data-act="phone" aria-label="Téléphone"><i class="ph-mini"><i></i></i><b>Tél.</b><span class="badge hidden"></span></button>
-
-    <nav id="bottom">
-      <button class="bigbtn" data-act="trading"><i class="ic" data-icon="trading"></i><b>Trading</b></button>
-      <button class="bigbtn" data-act="mybets"><i class="ic" data-icon="ticket"></i><b>Mes paris</b><span class="badge hidden" id="badge-bets"></span></button>
-      <button class="bigbtn" data-act="wallet"><i class="ic" data-icon="wallet"></i><b>Portefeuille</b></button>
-      <button class="bigbtn main" data-act="toggleScene" id="btn-scene"><i class="ic" data-icon="home"></i><b>Appart</b><span class="badge hidden" id="badge-rig">!</span></button>
-    </nav>
-
-    <div id="modal" class="hidden"></div>
-    <div id="fx"></div>
-    <div id="toast"></div>
-    <div id="start" class="loading"></div>
-  </div>
-
-  <script src="js/data.js?v=51"></script>
-  <script src="js/assets.js?v=51"></script>
-  <script src="js/game.js?v=51"></script>
-  <script src="js/ui.js?v=51"></script>
-  <script src="js/casino.js?v=51"></script>
-  <script src="js/scratch.js?v=51"></script>
-  <script src="js/balto.js?v=51"></script>
-  <script src="js/tuto.js?v=51"></script>
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hustle City</title><meta name="theme-color" content="#1b1433">
+<style>html,body{margin:0;height:100%;background:#1b1433;color:#fff;font:700 15px sans-serif}#ld{display:grid;place-items:center;height:100%}</style>
+</head><body><div id="ld">Chargement de Hustle City…</div>
+<script>
+// Hustle City se met à jour tout seul : à chaque ouverture, on charge la dernière version publiée sur GitHub
+// (la partie reste dans ce navigateur, rien n'est perdu). Sans internet, ou avec ?local à la fin de l'adresse : la version de ce dossier.
+(async () => {
+  const REPO = 'Lucid-Studio-Code/hustle-city';
+  const local = () => { location.replace('game.html' + location.hash); };
+  if (/[?&]local\b/.test(location.search) || location.protocol === 'file:') return local();
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, { signal: ctl.signal, headers: { Accept: 'application/vnd.github.sha' } });
+    if (!r.ok) throw new Error('github ' + r.status);
+    const sha = (await r.text()).trim().slice(0, 40);
+    const base = `https://cdn.jsdelivr.net/gh/${REPO}@${sha}/`;
+    const html = await (await fetch(base + 'game.html', { signal: ctl.signal })).text();
+    if (!html.includes('id="app"')) throw new Error('page vide');
+    document.open();
+    document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><base href="${base}">` + html.replace(/<!doctype html>/i, '') + '</html>');
+    document.close();
+  } catch (e) { console.warn('Mise à jour impossible, version locale :', e); local(); }
+})();
+</script></body></html>
