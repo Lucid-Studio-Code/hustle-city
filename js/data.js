@@ -421,6 +421,11 @@
     'Une habitude se prend en une seconde. Pour l\'arrêter, compte 48 h de galère.'
   ];
 
+  // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
+  const LY = window.LAYOUT || {};
+  Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
+  Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = SIX.shop.find(x => x.id === id); if (d) Object.assign(d, p); });
+  (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,

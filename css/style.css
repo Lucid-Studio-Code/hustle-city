@@ -2000,3 +2000,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app .sx-pday .sx-past { margin: 0; border: 0; border-top: 2px solid #b8a58a; border-radius: 0; }
 #app .sx-how { display: block; margin: 0 0 8px; padding: 2px 0; border: 0; background: transparent; font: 800 12.5px var(--text); color: #7a5a3a; cursor: pointer; }
 #app .sx-how + .hint-line { margin-top: -4px; }
+/* back-office */
+#app:has(#rplacer) #placer { display: none; }
+#placer.adm .pl-size { display: flex; gap: 4px; } #placer.adm .pl-size.hidden { display: none; }
+#app .ev-deco.adm { pointer-events: auto; cursor: grab; z-index: 3; outline: 2px dashed rgba(255,255,255,.7); outline-offset: 2px; border-radius: 8px; }
+#app .ev-deco.adm.adm-sel, #app .bld.adm-sel { outline: 3px solid #ffd23f; outline-offset: 2px; border-radius: 8px; }
+#app .ev-deco.adm.clash { outline: 3px solid #e63946; background: rgba(230,57,70,.25); }
+#placer.adm { left: 10px; right: 70px; flex-wrap: wrap; row-gap: 4px; }
+#placer.adm #pl-cur { flex: 1 0 100%; order: 9; white-space: normal; }
+#app:has(#placer) #next-tip { display: none; }

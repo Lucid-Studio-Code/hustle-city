@@ -400,7 +400,7 @@
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('') + D.SIX.shop.filter(x => x.kind === 'deco' && G.evUsed(x.id)).map(x => `<span class="ev-deco" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
+    }).join('') + D.SIX.shop.filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
   }
   // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
@@ -426,45 +426,81 @@
       D.EXT_PLACES.map(b => `<div class="row locked"><div style="width:64px;height:64px;flex:0 0 64px">${pic('bld-' + b.id, '🏙️')}</div>
         <div class="grow"><h4>${b.name}</h4><p>${b.tag}</p></div><span class="rw-tag">${ic('lock')}${s.lvl < b.lvl ? `Niveau ${b.lvl}` : 'Bientôt'}</span></div>`).join('') });
   }
-  // ------------------------------------------------------------ mode placement (lien du jeu + #placer) : on fait glisser les bâtiments,
-  // les positions s'affichent pour me les envoyer ; elles restent enregistrées sur ce téléphone pour voir le résultat
+  // ------------------------------------------------------------ back-office (adresse du jeu + #admin, ou l'ancien #placer)
+  // On fait glisser les bâtiments et TOUS les objets de la ville (même ceux qu'on n'a pas achetés), on règle leur taille,
+  // et un objet qui en chevauche un autre passe en rouge. « Publier » (seulement sur localhost) écrit js/layout.js
+  // et le met en ligne pour tout le monde. En attendant, les réglages restent dans ce navigateur.
   let placing = false;
+  const ADM_KEY = 'hustleCity.admin', admLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const admSaved = () => { try { return JSON.parse(localStorage.getItem(ADM_KEY) || '{}'); } catch (e) { return {}; } };
   function placerMode() {
-    if (location.hash !== '#placer') return;
+    if (location.hash !== '#placer' && location.hash !== '#admin') return;
     placing = true;
-    let saved = {}; try { saved = JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) {}
-    D.BUILDINGS.forEach(b => { if (saved[b.id]) Object.assign(b, saved[b.id]); });
+    const sv = admSaved(), old = (() => { try { return JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) { return {}; } })();
+    D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
+    const decos = D.SIX.shop.filter(x => x.kind === 'deco');
+    decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
     renderCity();
-    $('#app').insertAdjacentHTML('beforeend', '<div id="placer"><b>Placement</b><span id="pl-cur">Fais glisser un bâtiment</span><button class="btn green xs" id="pl-copy">Copier</button><button class="btn xs" id="pl-reset" aria-label="Remettre comme avant">↺</button><textarea id="placer-out" readonly></textarea></div>');
-    const out = (b) => { $('#placer-out').value = D.BUILDINGS.map(b => `${b.name} : x ${b.x}, y ${b.y}`).join('\n'); if (b) $("#pl-cur").textContent = `${b.name.replace(/^(Le|La|Mon) /, "")} · x${b.x} y${b.y}`; };
-    out();
-    const save = () => { const o = {}; D.BUILDINGS.forEach(b => o[b.id] = { x: b.x, y: b.y }); try { localStorage.setItem('hustleCity.placer', JSON.stringify(o)); } catch (e) {} out(); };
-    let cur = null;
+    $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
+      <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+    const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
+    const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
+    const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
+    // chevauchements : un objet ne doit toucher ni un autre objet, ni un bâtiment
+    const clashes = () => {
+      const ds = [...$('#map-inner').querySelectorAll('.ev-deco')], bs = [...$('#map-inner').querySelectorAll('.bld:not(.spot)')], bad = new Set();
+      ds.forEach((d, i) => { const r = box(d); ds.slice(i + 1).forEach(e => { if (hit(r, box(e))) { bad.add(d); bad.add(e); } }); bs.forEach(b => { if (hit(r, box(b))) bad.add(d); }); });
+      ds.forEach(d => d.classList.toggle('clash', bad.has(d))); return [...bad].map(name);
+    };
+    const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w }])) });
+    const save = () => { const o = data(); try { localStorage.setItem(ADM_KEY, JSON.stringify(o)); } catch (e) {} $('#placer-out').value = JSON.stringify(o); };
+    let cur = null, sel = null;
+    const show = () => { if (!sel) return; const o = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id); $('#pl-cur').textContent = `${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w && sel.dataset.deco ? ' · taille ' + o.w : ''}`; $('.pl-size').classList.toggle('hidden', !sel.dataset.deco); };
     $('#map-inner').addEventListener('pointerdown', e => {
-      const el = e.target.closest('.bld'); if (!el) return;
-      const r = $('#map-inner').getBoundingClientRect(), b = D.BUILDINGS.find(x => x.id === el.dataset.id);
-      cur = { el, b, dx: b.x - (e.clientX - r.left) / r.width * 100, dy: b.y - (e.clientY - r.top) / r.height * 100 };
-      el.classList.add('dragging'); e.preventDefault();
-    });
+      const el = e.target.closest('.bld, .ev-deco'); if (!el) return;
+      const r = $('#map-inner').getBoundingClientRect(), o = el.dataset.deco ? decos.find(d => d.id === el.dataset.deco) : D.BUILDINGS.find(x => x.id === el.dataset.id);
+      cur = { el, o, dx: o.x - (e.clientX - r.left) / r.width * 100, dy: o.y - (e.clientY - r.top) / r.height * 100 };
+      $('#map-inner').querySelectorAll('.adm-sel').forEach(x => x.classList.remove('adm-sel')); sel = el; el.classList.add('dragging', 'adm-sel'); show(); e.preventDefault(); e.stopPropagation();
+    }, true);
     window.addEventListener('pointermove', e => {
       if (!cur) return; const r = $('#map-inner').getBoundingClientRect();
-      cur.b.x = Math.round(((e.clientX - r.left) / r.width * 100 + cur.dx) * 2) / 2; cur.b.y = Math.round(((e.clientY - r.top) / r.height * 100 + cur.dy) * 2) / 2;
-      cur.el.style.left = cur.b.x + '%'; cur.el.style.top = cur.b.y + '%'; out(cur.b);
+      cur.o.x = Math.round(((e.clientX - r.left) / r.width * 100 + cur.dx) * 2) / 2; cur.o.y = Math.round(((e.clientY - r.top) / r.height * 100 + cur.dy) * 2) / 2;
+      cur.el.style.left = cur.o.x + '%'; cur.el.style.top = cur.o.y + '%'; show(); clashes();
     });
-    window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); } });
-    $('#pl-copy').onclick = () => { const t = $('#placer-out'); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('Positions copiées : colle-les-moi dans la conversation.')).catch(() => { t.select(); toast('Sélectionné : copie le texte et envoie-le-moi.'); }); };
-    $('#pl-reset').onclick = () => { try { localStorage.removeItem('hustleCity.placer'); } catch (e) {} location.reload(); };
+    window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); clashes(); } });
+    const size = k => { if (!sel || !sel.dataset.deco) return; const d = decos.find(x => x.id === sel.dataset.deco); d.w = Math.max(3, Math.min(30, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
+    $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
+    $('#pl-room').onclick = () => roomPlacer(true);
+    $('#pl-pub').onclick = () => publishLayout(clashes);
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); } catch (e) {} location.reload(); };
+    save(); setTimeout(clashes, 300);
+  }
+  // Publier : bâtiments + objets de la ville + disposition des 3 chambres, pour tout le monde
+  async function publishLayout(clashes) {
+    const bad = clashes ? clashes() : [];
+    if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
+    const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
+    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms };
+    if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
+    toast('Publication en cours…');
+    try {
+      const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
+      if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); } catch (e) {}
+      toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
+    } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
-  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer') location.reload(); });
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin') location.reload(); });
   function roomPlacer(force) {
     if (!force && location.hash !== '#placer-appart') return;
     if (RP.on || !st().skin) return;
     closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); setScene('appart');
     $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''}"><div class="rp-row">${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<span class="rp-sep"></span>
       <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><span class="rp-sep"></span>
-      <button class="btn xs green" id="rp-copy">Copier</button><button class="btn xs red" id="rp-reset" aria-label="Remettre">↺</button><button class="btn xs" id="rp-move" aria-label="Déplacer la barre">⇅</button><button class="btn xs blue" id="rp-close">Fini</button></div>
+      <button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs red" id="rp-reset" aria-label="Remettre">↺</button><button class="btn xs" id="rp-move" aria-label="Déplacer la barre">⇅</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <span id="rp-cur"></span><textarea id="rp-out" readonly></textarea></div>`);
     const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : 'Place ' + (+k.slice(4) + 1);
     const out = () => {
@@ -479,9 +515,9 @@
     document.querySelectorAll('.rp-room').forEach(b => b.onclick = () => { RP.room = +b.dataset.i; RP.L = roomLayout(RP.room); RP.sel = 'pc'; redraw(); });
     const size = d => { if (RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(5, RP.L[RP.sel].w + d); redraw(); };
     $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
-    $('#rp-copy').onclick = () => { const t = $('#rp-out'); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('Positions copiées : colle-les-moi dans la conversation.')).catch(() => { t.select(); }); };
+    $('#rp-copy').onclick = () => publishLayout();
     $('#rp-move').onclick = () => { RP.top = !RP.top; $('#rplacer').classList.toggle('top', RP.top); };
-    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); };
+    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); if (placing) setScene('city'); };
     $('#rp-reset').onclick = () => { const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
     if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
@@ -1342,7 +1378,7 @@
       <button class="btn ${st().sound ? 'green' : ''} wide set-sound" data-act="soundToggle">${ic(st().sound ? 'icon-sound' : 'icon-mute')}Son : ${st().sound ? 'activé' : 'coupé'}</button>
       <button class="btn blue wide" style="margin-top:8px" data-act="howto">Comment jouer</button>
       <button class="btn purple wide" style="margin-top:8px" data-act="tutoAgain">Revoir le tuto</button>
-      <button class="btn blue wide" style="margin-top:8px" data-act="roomPlace">Placer les objets de la chambre</button>
+      ${admLocal ? '<button class="btn purple wide" style="margin-top:8px" data-act="adminOpen">Back-office (placer la ville et l\'appart)</button>' : ''}
       <button class="btn red wide" style="margin-top:8px" data-act="resetAsk">Recommencer à zéro</button>
       <p class="muted center" style="margin-top:10px">Hustle City est un jeu : l'argent du jeu est fictif : il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>` });
   }
@@ -1459,6 +1495,7 @@
     upgrades: () => openUpgrades(),
     sixBoard: () => { sixTab = 'board'; openSix('board'); },
     roomPlace: () => roomPlacer(true),
+    adminOpen() { location.hash = '#admin'; },
     patPay: el => openPatPay(el.dataset.k),
     patGo(el) { const k = el.dataset.k, r = G.liquidate(G.upPrice(k)); if (r.err) return toast(r.err, true);
       const u = k === 'rig' ? G.rigUpgrade() : k === 'pc' ? G.pcUpgrade() : G.roomUpgrade(); if (u.err) return toast(u.err, true);

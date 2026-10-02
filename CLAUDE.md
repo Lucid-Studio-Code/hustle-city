@@ -14,6 +14,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Pas de jauge de santé. Les habitudes se prennent sur place : fumer et boire au Royal (ex-Balto, id `balto` dans le code), sortir au Club.
 - Pas de toasts de Momo « Mission validée » : les infos passent par le téléphone (notifications).
 - Pas de lieux externes pour l'instant, mais l'arrêt de bus reste cliquable.
+- **Back-office** : `game.html#admin` (ou Réglages → Back-office, seulement sur localhost). On fait glisser les bâtiments et TOUS les objets de la ville (même non achetés), taille avec − / +, bouton Appart pour la chambre. Un objet qui chevauche un objet ou un bâtiment passe en rouge et bloque la publication. « Publier » envoie au serveur local (`tools/serve.js`, POST /admin/layout) qui écrit `js/layout.js`, le commit et le pousse. `js/layout.js` remplace les positions de data.js : chaque nouvel objet de ville doit avoir un emplacement unique, réglé par elle.
 - Placement des objets de la chambre : `#placer-appart` (PC, machine, places d'étagère, par chambre ; gardé dans son navigateur, `roomLayout()`). Reporter ses valeurs dans `ROOM_LAYOUT` quand elle les envoie.
 - Les noms des lieux sont écrits au sol (`data-sign="ground"`). Les positions des bâtiments sont celles qu'elle a placées via `#placer` : ne pas les changer.
 - Elle tutoie, parle français, et veut des réponses courtes sans jargon technique.
@@ -26,7 +27,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 69).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 70).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -40,6 +41,9 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Les fenêtres se redessinent chaque seconde : garder l'état ouvert/fermé et le défilement.
 - Un `<button>` garde le fond gris du navigateur : mettre `background: transparent`.
 - Les emoji récents (🪩) ne s'affichent pas partout.
+
+## Bouton Idée (coach)
+- `coach()` dans ui.js : liste d'étapes utiles triées par priorité (récompenses, cadeau, machine pleine, boosters, tournoi, affaire, matos payable, série presque finie, mission, prochain déblocage, objectif d'argent, tuyau). Jamais d'achat au hasard. Un futur bouton « Promos » (achats intégrés) sera séparé.
 
 ## Économie
 - Booster : cartes ≤ 600 ; prix au Kiosque 120 + 25 × niveau (~65 % récupéré).
