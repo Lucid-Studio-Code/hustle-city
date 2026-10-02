@@ -88,9 +88,10 @@
   // ------------------------------------------------------------ le ticket (collé en bas de la fenêtre)
   function slipHtml() {
     if (!slip.length) return '';
-    const s = st(), max = G.betMax(), free = useFree && s.freebets.length;
+    // on ne peut pas miser plus que la mise max, ni plus que ce qu'on a en poche
+    const s = st(), max = Math.min(G.betMax(), Math.floor(s.cash)), free = useFree && s.freebets.length, broke = !free && max < 1;
     const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1);
-    const amt = free ? s.freebets[0] : Math.min(stake, max);
+    const amt = free ? s.freebets[0] : Math.max(0, Math.min(stake, max));
     const gain = free ? amt * (odds - 1) : amt * odds;
     const legs = slip.map(l => { const m = G.match(l.m); return `<div class="tk-leg">${labels(m)[l.pick] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[l.pick] === '2', 'mini')}<span><b>${pickName(m, l.pick)}</b><small>${m.home} – ${m.away}</small></span><em>${fmtOdd(G.legOdd(m, l.pick))}</em><button class="tk-x" data-act="bPick" data-m="${m.id}" data-p="${l.pick}" aria-label="Retirer">×</button></div>`; }).join('');
     return `<div class="ticket-slip">
@@ -98,10 +99,10 @@
       <div class="tk-legs">${legs}</div>
       <div class="tk-row"><span>Cote totale</span><b>${fmtOdd(odds)}</b></div>
       ${s.freebets.length ? `<label class="tk-free"><input type="checkbox" id="b-free" ${free ? 'checked' : ''}> Utiliser mon pari gratuit de ${s.freebets[0]}<i class="cur"></i></label>` : ''}
-      ${free ? '' : `<div class="tk-stake"><input class="amt" id="b-stake" type="number" inputmode="numeric" min="1" max="${max}" value="${Math.min(stake, max, Math.floor(s.cash)) || 1}">
-        <div class="seg">${[5, 10, 20, 50].filter(v => v <= max).map(v => `<button class="btn xs ${stake === v ? 'yellow' : 'blue'}" data-act="bStake" data-v="${v}">${v}</button>`).join('')}<button class="btn xs ${stake === max ? 'yellow' : 'blue'}" data-act="bStake" data-v="${max}">Max</button></div></div>`}
-      <div class="tk-gain"><span>Gain potentiel</span><b id="b-gain">${U.eur(gain)}</b></div>
-      <button class="btn green wide" data-act="bPlace">Valider le ticket</button>
+      ${free ? '' : broke ? `<p class="tk-broke">💸 Tu es à sec : plus un billet en poche pour miser.</p>` : `<div class="tk-stake"><input class="amt" id="b-stake" type="number" inputmode="numeric" min="1" max="${max}" value="${amt || 1}">
+        <div class="seg">${[5, 10, 20, 50].filter(v => v < max).map(v => `<button class="btn xs ${stake === v ? 'yellow' : 'blue'}" data-act="bStake" data-v="${v}">${v}</button>`).join('')}<button class="btn xs ${stake >= max ? 'yellow' : 'blue'}" data-act="bStake" data-v="${max}">Max</button></div></div>`}
+      <div class="tk-gain"><span>Gain potentiel</span><b id="b-gain">${U.eur(broke ? 0 : gain)}</b></div>
+      <button class="btn green wide" data-act="bPlace" ${broke ? 'disabled' : ''}>${broke ? 'À sec' : 'Valider le ticket'}</button>
       ${slip.length > 1 ? '<p class="tk-note">Un seul prono raté et tout le combiné est perdu.</p>' : ''}
     </div>`;
   }
@@ -193,7 +194,7 @@
     }
   });
   document.addEventListener('input', e => {
-    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1); const g = document.getElementById('b-gain'); if (g) g.innerHTML = U.eur(Math.min(v, G.betMax()) * odds); }
+    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1); const g = document.getElementById('b-gain'); if (g) g.innerHTML = U.eur(Math.min(v, G.betMax(), Math.floor(st().cash)) * odds); }
   });
   document.addEventListener('change', e => { if (e.target.id === 'b-free') { useFree = e.target.checked; U.setBody(body()); } });
 

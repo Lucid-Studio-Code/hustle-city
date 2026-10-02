@@ -1080,6 +1080,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .tk-gain span { font: 900 12px var(--text); color: #7a5a3a; }
 #app .tk-gain b { font: 400 26px var(--title); color: #1f9d55; }
 #app .tk-note { margin: 6px 0 0; text-align: center; font: 800 11px var(--text); color: #7a5a3a; }
+#app .tk-broke { margin: 8px 0 2px; padding: 10px; border-radius: 12px; background: #fde8e4; color: #b3261e; text-align: center; font: 800 13px var(--text); }
 #app .ticket-slip.mine { overflow: hidden; }
 #app .ticket-slip .stamp { position: absolute; right: 12px; top: 8px; transform: rotate(-8deg); padding: 1px 10px 3px; border: 3px solid currentColor; border-radius: 10px; font: 400 19px var(--title); background: #fffdf6; letter-spacing: 1px; opacity: .85; pointer-events: none; }
 #app .ticket-slip.won .stamp { color: #1f9d55; } #app .ticket-slip.lost .stamp { color: #c62828; } #app .ticket-slip .stamp.live { color: #e08a00; font-size: 16px; top: 12px; transform: rotate(8deg); }

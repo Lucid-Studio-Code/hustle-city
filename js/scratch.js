@@ -102,15 +102,15 @@
   function body() {
     const s = st();
     if (ticket) return `${ticketHtml()}
-      <div class="sc-acts">${ticket.done ? `<button class="btn green" data-act="scrAgain">Un autre · ${ticket.t.id === 'flash' && s.freeTickets ? 'offert' : money(ticket.t.price)}</button><button class="btn" data-act="scrBack">Changer de ticket</button>`
+      <div class="sc-acts">${ticket.done ? `<button class="btn green" data-act="scrAgain" ${ticket.t.id === 'flash' && s.freeTickets || s.cash >= ticket.t.price ? '' : 'disabled'}>Un autre · ${ticket.t.id === 'flash' && s.freeTickets ? 'offert' : money(ticket.t.price)}</button><button class="btn" data-act="scrBack">Changer de ticket</button>`
         : '<button class="btn blue wide" data-act="scrReveal">Tout gratter d\'un coup</button>'}</div>`;
     return `<p class="hint-line">Le présentoir du Royal. Choisis ton ticket, gratte case par case avec le doigt.${s.freeTickets ? ` Tu as <b>${s.freeTickets} Cash Flash offert${s.freeTickets > 1 ? 's' : ''}</b> !` : ''}</p>
       <div class="rack">${D.SCRATCH.map(t => {
-        const lock = s.lvl < t.lvl, top = t.prizes[t.prizes.length - 1][0], free = t.id === 'flash' && s.freeTickets;
+        const lock = s.lvl < t.lvl, top = t.prizes[t.prizes.length - 1][0], free = t.id === 'flash' && s.freeTickets, poor = !lock && !free && s.cash < t.price;
         const odds = Math.round(1 / t.prizes.reduce((a, [, p]) => a + p, 0));
-        return `<button class="tk-mini ${lock ? 'locked' : ''}" data-act="${lock ? 'scrLocked' : 'scrBuy'}" data-id="${t.id}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}">
+        return `<button class="tk-mini ${lock || poor ? 'locked' : ''}" data-act="${lock ? 'scrLocked' : 'scrBuy'}" ${poor ? 'disabled' : ''} data-id="${t.id}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}">
           ${U.pic(t.emblem, '🎟️', 'tk-emb')}<b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span><small>1 ticket gagnant sur ${odds}</small>
-          <span class="tk-buy">${lock ? `🔒 Niveau ${t.lvl}` : free ? 'Offert' : money(t.price)}</span></button>`;
+          <span class="tk-buy">${lock ? `🔒 Niveau ${t.lvl}` : free ? 'Offert' : poor ? `À sec · ${money(t.price)}` : money(t.price)}</span></button>`;
       }).join('')}</div>${statsHtml()}`;
   }
 

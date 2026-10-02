@@ -464,7 +464,8 @@
   function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .85 : 1)); }
   function sellPrice(id) { return Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)); }
   // les cartes vont dans le classeur : elles ne prennent pas de place sur les étagères
-  const onShelf = id => item(id).cat !== 'card' || !item(id).noBuy;
+  // les cartes vont toutes dans le classeur : elles ne prennent jamais de place chez toi (une seule de chaque)
+  const onShelf = id => item(id).cat !== 'card';
   function ownedCount() { return Object.entries(st.owned).reduce((s, [id, a]) => s + (onShelf(id) ? a.length : 0), 0); }
   function roomSlots() { return D.ROOMS[st.room].slots; }
   // le Comptoir renouvelle ses rayons toutes les 30 min : seule une partie des objets est en vente à la fois
@@ -912,7 +913,7 @@
     const d = st.deal; if (!d || now() > d.end) return { err: 'L\'offre a expiré.' };
     if (d.type === 'sell') {
       if (st.owned[d.id] && st.owned[d.id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
-      if (ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : revends ou déménage.' };
+      if (onShelf(d.id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : revends ou déménage.' };
       if (!pay(d.price)) return { err: 'Pas assez de cash.' };
       (st.owned[d.id] = st.owned[d.id] || []).push({ paid: d.price, t: now() });
       stat('itemsOwned', ownedCount(), true);

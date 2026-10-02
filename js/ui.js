@@ -522,7 +522,7 @@
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
-    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (!it.noBuy) a.forEach(() => owned.push(it)); });
+    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (it.cat !== 'card') a.forEach(() => owned.push(it)); });
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], rb = has(`room-${sk.g}-${R}`) ? `room-${sk.g}-${R}` : 'room-' + R;
     const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-' + G.pcLvl();
