@@ -748,10 +748,13 @@
       ${tr.claimed ? '<span class="got-tag">✓</span>' : `<button class="btn sm ${done ? 'gold' : ''}" data-act="traderClaim" ${done ? '' : 'disabled'}>${ic('lingot')}${D.PCX.trader.lingots + Math.floor(st().lvl / 3)}</button>`}</div>`;
   }
   function flashBanner() {
-    const f = st().crypto.flash; if (!f) return '';
+    const s = st(), f = s.crypto.flash; if (!f) return '';
     const c = G.coin(f.id);
-    if (!f.applied) return `<button class="flash-banner soon" data-act="coinSel" data-id="${f.id}">🔔 <span><b>Ton PC a repéré un mouvement sur ${c.name}</b>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</span></button>`;
-    return `<button class="flash-banner ${f.up ? 'up' : 'down'}" data-act="coinSel" data-id="${f.id}">⚡ <span><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b>${f.up ? 'Si tu en as, vends avant que ça retombe' : 'Ça plonge : acheter pas cher avant que ça remonte ?'} · encore ${mmss(f.back - Date.now())}</span></button>`;
+    if (!f.applied) return `<div class="flash-banner soon"><span class="fb-ic">🔔</span><div class="grow"><b>Ton PC a repéré un mouvement sur ${c.name}</b><small>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</small></div><button class="btn xs blue" data-act="coinSel" data-id="${f.id}">Voir</button></div>`;
+    const hold = s.crypto.hold[f.id] || 0, val = hold * s.crypto.prices[f.id], net = val * (1 - G.fee()), gain = net - (s.crypto.cost[f.id] || 0);
+    const sell = hold > 0 && val >= .01 ? `<button class="btn xs ${gain >= 0 ? 'green' : 'red'} fb-sell" data-act="flashSell"><span>Vendre · +${short(net)}</span><small>${gain >= 0 ? `gagné +${short(gain)}` : `perdu ${short(gain)}`}</small></button>` : '';
+    return `<div class="flash-banner ${f.up ? 'up' : 'down'}"><span class="fb-ic">⚡</span><div class="grow"><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b><small>${f.up ? (hold > 0 ? 'Vends avant que ça retombe' : 'Ça va sûrement retomber') : 'Ça plonge : acheter pas cher ?'} · encore ${mmss(f.back - Date.now())}</small></div>
+      ${sell || `<button class="btn xs blue" data-act="coinSel" data-id="${f.id}">${f.up ? 'Voir' : 'Acheter'}</button>`}</div>`;
   }
   function coinNewsHtml(c) {
     const L = (st().crypto.news || []).filter(n => n.id === c.id).slice(0, 3);
@@ -1718,6 +1721,7 @@
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
     trading() { openCrypto(); },
+    flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
     traderClaim() { const r = G.claimTrader(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); toast(`Défi du trader réussi : +${r.n} lingots !`); refresh(); },
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
