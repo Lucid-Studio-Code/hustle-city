@@ -2199,3 +2199,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app .mood-pick .mp-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; } #app .mood-pick .mp-row .grow { flex: 1; }
 #app .mood-pick b { display: block; font: 900 15px var(--text); } #app .mood-pick p { margin: 2px 0 0; font: 700 12px/1.35 var(--text); color: #5a4a3a; }
 #app .mood-pick .mp-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font: 900 13px var(--text); } #app .mood-pick em { font: 700 10px var(--text); color: #8a7a6a; font-style: normal; }
+/* éditeur de chambre */
+.room-obj.flip > .pic img, .room-obj.flip > .pic .emo { transform: scaleX(-1); }
+#app #rplacer { gap: 4px; }
+#app #rplacer .rp-row { flex-wrap: wrap; row-gap: 3px; }
+#app #rplacer .rp-row small { font: 900 10px var(--text); color: #6a5a4a; margin: 0 1px 0 4px; }
+#app #rplacer select { flex: 0 0 auto; max-width: 52%; padding: 4px 6px; border: 2px solid #2a1a10; border-radius: 10px; background: #fff; font: 800 12px var(--text); color: #2a1a10; }
+#app #rplacer #rp-cur { flex: 1; text-align: right; font: 800 10.5px var(--text); color: #6a5a4a; }
+#app #rplacer .rp-tools .btn.xs { min-width: 34px; }
+#app:has(#rplacer) .room-obj.rp-sel, #app:has(#rplacer) .shelf-item.sel { outline: 3px solid #ffd23f; outline-offset: 2px; }

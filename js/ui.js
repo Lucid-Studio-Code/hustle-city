@@ -541,31 +541,53 @@
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
   window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin') location.reload(); });
+  // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
+  // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
+  const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
+  const RP_NAME = k => k === 'pc' ? '🖥️ PC' : k === 'rig' ? '⛏️ Machine' : k === 'light' ? '💡 Ring light' : k === 'shelf' ? '📚 Toutes les étagères' : `📦 Place ${+k.slice(4) + 1}`;
   function roomPlacer(force) {
     if (!force && location.hash !== '#placer-appart') return;
     if (RP.on || !st().skin) return;
-    closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); setScene('appart');
-    $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''}"><div class="rp-row">${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<span class="rp-sep"></span>
-      <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><span class="rp-sep"></span>
-      <button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs red" id="rp-reset" aria-label="Remettre">↺</button><button class="btn xs" id="rp-move" aria-label="Déplacer la barre">⇅</button><button class="btn xs blue" id="rp-close">Fini</button></div>
-      <span id="rp-cur"></span><textarea id="rp-out" readonly></textarea></div>`);
-    const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : k === 'light' ? 'Ring light (agence)' : 'Place ' + (+k.slice(4) + 1);
+    closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); RP.sel = RP.sel || 'pc';
+    RP.pv = RP.pv || { pc: G.pcLvl(), rig: st().rig.lvl }; setScene('appart');
+    const objs = () => ['pc', 'rig', 'light', 'shelf', ...RP.L.slots.slice(0, D.ROOMS[RP.room].slots).map((_, i) => 'slot' + i)];
+    $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''}">
+      <div class="rp-row"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<button class="btn xs purple" id="rp-g"></button><span class="rp-sep"></span>
+        <small>PC</small>${D.PCS.map((x, i) => `<button class="btn xs rp-pv" data-k="pc" data-i="${i}">${i + 1}</button>`).join('')}<small>Mach.</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
+      <div class="rp-row"><select id="rp-sel"></select><span id="rp-cur"></span></div>
+      <div class="rp-row rp-tools"><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
+        <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔ Miroir</button><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
+      <div class="rp-row"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><span class="rp-sep"></span><button class="btn xs red" id="rp-reset" title="Remettre toute la chambre">↺ Chambre</button><button class="btn xs" id="rp-move" title="Déplacer la barre">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
+      <textarea id="rp-out" readonly></textarea></div>`);
+    const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} };
+    const cur = () => { const k = RP.sel; if (k === 'shelf') return { x: '–', y: '–', w: RP.L.shelf.w }; if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; return { x: p[0], y: p[1], w: RP.L.shelf.w }; } return RP.L[k]; };
     const out = () => {
-      const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {}
-      $('#rp-out').value = D.ROOMS.map((x, i) => { const l = i === RP.room ? RP.L : roomLayout(i); return `Chambre ${i + 1} : pc ${l.pc.x},${l.pc.y},${l.pc.w} · machine ${l.rig.x},${l.rig.y},${l.rig.w} · étagère ${l.shelf.w}x${l.shelf.h} · places ${l.slots.map(p => p.join(',')).join(' ')}`; }).join('\n');
-      const o = RP.sel.startsWith('slot') ? RP.L.slots[+RP.sel.slice(4)] : [RP.L[RP.sel].x, RP.L[RP.sel].y];
-      $('#rp-cur').textContent = `Chambre ${RP.room + 1} · ${name(RP.sel)} · x${o[0]} y${o[1]} · fais glisser pour déplacer`;
+      save(); const o = cur();
+      $('#rp-sel').innerHTML = objs().map(k => `<option value="${k}" ${k === RP.sel ? 'selected' : ''}>${RP_NAME(k)}</option>`).join('');
+      $('#rp-cur').textContent = `x ${o.x} · y ${o.y} · taille ${o.w}${o.flip ? ' · miroir' : ''}`;
+      $('#rp-g').textContent = (RP.g || curG()) === 'f' ? '♀ Fille' : '♂ Garçon';
       document.querySelectorAll('.rp-room').forEach(b => b.classList.toggle('green', +b.dataset.i === RP.room));
+      document.querySelectorAll('.rp-pv').forEach(b => b.classList.toggle('yellow', +b.dataset.i === RP.pv[b.dataset.k]));
+      $('#rp-flip').classList.toggle('yellow', !!o.flip); $('#rp-flip').disabled = RP.sel === 'shelf' || RP.sel.startsWith('slot');
     };
     const redraw = () => { renderAppart(); out(); };
     RP.out = out; redraw();
-    document.querySelectorAll('.rp-room').forEach(b => b.onclick = () => { RP.room = +b.dataset.i; RP.L = roomLayout(RP.room); RP.sel = 'pc'; redraw(); });
-    const size = d => { if (RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(5, RP.L[RP.sel].w + d); redraw(); };
+    document.querySelectorAll('.rp-room').forEach(b => b.onclick = () => { RP.room = +b.dataset.i; RP.L = roomLayout(RP.room); if (!objs().includes(RP.sel)) RP.sel = 'pc'; redraw(); });
+    document.querySelectorAll('.rp-pv').forEach(b => b.onclick = () => { RP.pv[b.dataset.k] = +b.dataset.i; redraw(); });
+    $('#rp-g').onclick = () => { RP.g = (RP.g || curG()) === 'f' ? 'm' : 'f'; redraw(); };
+    $('#rp-sel').onchange = e => { RP.sel = e.target.value; redraw(); };
+    const nudge = (dx, dy) => { const k = RP.sel, st = .5; if (k === 'shelf') RP.L.slots = RP.L.slots.map(([x, y]) => [x + dx * st, y + dy * st]); else if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; p[0] += dx * st; p[1] += dy * st; } else { RP.L[k].x += dx * st; RP.L[k].y += dy * st; } redraw(); };
+    document.querySelectorAll('#rplacer [data-n]').forEach(b => b.onclick = () => { const [dx, dy] = b.dataset.n.split(',').map(Number); nudge(dx, dy); });
+    const size = d => { if (RP.sel === 'shelf' || RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(3, Math.round((RP.L[RP.sel].w + d / 2) * 10) / 10); redraw(); };
     $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
+    $('#rp-flip').onclick = () => { const o = RP.L[RP.sel]; if (o && !RP.sel.startsWith('slot')) { o.flip = !o.flip; redraw(); } };
+    $('#rp-one').onclick = () => { const all = roomSaved(); const base = (delete all[RP.room], localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)), roomLayout(RP.room));
+      const k = RP.sel; if (k === 'shelf') { RP.L.slots = base.slots; RP.L.shelf = base.shelf; } else if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = base.slots[+k.slice(4)]; else RP.L[k] = base[k]; redraw(); };
+    $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
     $('#rp-copy').onclick = () => publishLayout();
     $('#rp-move').onclick = () => { RP.top = !RP.top; $('#rplacer').classList.toggle('top', RP.top); };
-    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); if (placing) setScene('city'); };
-    $('#rp-reset').onclick = () => { const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
+    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; RP.g = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); if (placing) setScene('city'); };
+    $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
     if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
       if (!RP.on) return;
@@ -624,12 +646,13 @@
     const rig = G.rigInfo();
     const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (it.cat !== 'card') a.forEach(() => owned.push(it)); });
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
-    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], rb = has(`room-${sk.g}-${R}`) ? `room-${sk.g}-${R}` : 'room-' + R;
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + s.rig.lvl) ? 'minerv-' + s.rig.lvl : 'rig-' + s.rig.lvl, pcImg = has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-' + G.pcLvl();
+    const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
+    const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl;
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = owned[i];
-      if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic('item-' + it.id, D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
+      if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i || RP.sel === 'shelf' ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic('item-' + it.id, D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
       return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic('item-' + it.id, D.ITEM_CATS[it.cat].icon)}</button>` : '';
     }).join('');
     // bulle de la machine : ce qu'il y a dedans (en billets) et la chaleur ; on la vide d'un geste
@@ -647,11 +670,11 @@
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
         ${owned.length ? `<button class="obj-bubble shelf-b" data-act="collectionInfo" style="left:16%;top:22%"><span><small>Ta collection</small><b>${short(iv)}</b></span></button>` : ''}
-        <button class="room-obj ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
+        <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
-        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${pic('ringlight', '💡')}</button>` : ''}
-        <button class="room-obj ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
+        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${pic('ringlight', '💡')}</button>` : ''}
+        <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
       </div>
       <div class="room-head">
