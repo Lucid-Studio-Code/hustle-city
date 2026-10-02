@@ -208,7 +208,7 @@
     D.SCRATCH.forEach(t => t.lvl > s.lvl && L.push([t.lvl, `le ticket ${t.name}`, `jusqu'à ${short(t.prizes[t.prizes.length - 1][0])}`]));
     D.COINS.forEach(c => c.lvl > s.lvl && L.push([c.lvl, `la crypto ${c.name}`, c.desc.split('.')[0]]));
     if (D.COMBI_LVL > s.lvl) L.push([D.COMBI_LVL, 'les paris combinés', 'plusieurs matchs, une grosse cote']);
-    if (D.AGENCE.lvl > s.lvl) L.push([D.AGENCE.lvl, 'ton agence PrivéFans', 'manager des créatrices de contenu']);
+    if (D.AGENCE.lvl > s.lvl) L.push([D.AGENCE.lvl, (D.SKINS.find(k => k.id === s.skin) || {}).g === 'f' ? 'ta page PrivéFans' : 'ton agence PrivéFans', (D.SKINS.find(k => k.id === s.skin) || {}).g === 'f' ? 'devenir créatrice de contenu' : 'manager des créatrices de contenu']);
     D.CITY_SHOP.forEach(x => x.lvl > s.lvl && L.push([x.lvl, `la déco « ${x.name} »`, 'pour ta ville']));
     L.sort((x, y) => x[0] - y[0]);
     return L.length ? { lvl: L[0][0], what: L.filter(x => x[0] === L[0][0]).map(x => x[1]) } : null;

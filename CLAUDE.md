@@ -28,7 +28,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 99).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 100).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -63,6 +63,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Un « abonnement » est TOUJOURS un paiement récurrent (`sub: true`, prix par jour, prélevé toutes les 24 h, résiliable, arrêté si pas assez de cash), jamais un achat unique. Ex. : spa 120/jour.
 - « Ses affaires » : 9 objets par créatrice (`AGENCE.gear` : revenus, abonnés ou moral ; ×2 si ça colle à sa niche).
 - Dilemmes : toutes les 40-90 min, une créatrice écrit par message avec 2 choix et de vraies conséquences (partenariat, fatigue, ex qui menace, télé, prix de l'abonnement, collab rivale, tenue, cadeau de fan). `DIL` dans agence.js, réponses via `AGENCE.choose` (act 'ag' dans chatAct).
+- Personnage FÉMININ : pas d'agence, elle lance SA page (« Ma page PrivéFans ») : choix de la spécialité, elle est la créatrice (id `me`), la plateforme garde 20 %, « Énergie » au lieu de « Moral », mêmes activités et objets, collab sans partenaire, dilemmes `DIL_ME` envoyés par des marques, fans, une agence, Momo.
 - Ton : glamour, jamais explicite, jamais le vrai nom de la plateforme. Portraits à venir : `cr-<id>`.
 
 ## Le Club = une vraie pièce (02/10)
