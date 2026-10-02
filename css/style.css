@@ -1973,3 +1973,6 @@ h3.sec { margin: 18px 6px 10px; }
   html, body { height: 100dvh; }
   #app { max-width: none; max-height: none; width: 100vw; height: 100dvh; border-radius: 0; }
 }
+/* déjà récupéré : du texte simple, pas un bouton ; la ligne est estompée */
+#app .rw-done { font: 900 12px var(--text); color: #3f8f2a; white-space: nowrap; }
+#app .rw-row.owned { opacity: .62; box-shadow: none; background: #f1ebdf; }

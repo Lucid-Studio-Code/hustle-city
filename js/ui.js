@@ -1060,24 +1060,27 @@
           <h4>Défi ${i + 1}</h4><p class="rw-do">${c.t.replace('{n}', c.goal)}</p>
           ${c.got ? '' : `<div class="bar"><div style="width:${(v / c.goal * 100).toFixed(0)}%"></div><span>${v} / ${c.goal}</span></div>`}
           <p class="rw-get">Tu gagnes ${chips(G.chalCash(), 0)}</p></div>
-          <div class="btns">${c.got ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
+          <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
       body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? 'Obtenu aujourd\'hui, bravo !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus && G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : `<span class="stroke">${ic('lingot')}3 + booster</span>`}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
       const focus = G.questFocus();
+      // ordre : à réclamer, en cours, à venir, puis les missions déjà obtenues tout en bas
+      const rows = [];
       D.QUESTS.forEach((q, n) => {
         const qs = G.questState(q), lock = !qs.open, it = q.trophy ? G.item(q.trophy) : null;
         if (lock && q.lvl > s.lvl + 5) return;
         const state = lock ? 'locked' : qs.claimed ? 'owned' : qs.done ? 'focus ready' : focus === q ? 'focus' : 'open';
-        const btn = lock ? `<span class="rw-tag">${ic('lock')}Niveau ${q.lvl}</span>` : qs.claimed ? `<span class="rw-tag ok">${ic('check')}Obtenue</span>` : qs.done ? `<button class="btn green" data-act="claimQuest" data-id="${q.id}">Réclamer</button>` : `<button class="btn blue rw-go" data-act="questGo" data-id="${q.id}">Y aller</button>`;
-        body += `<div class="row rw-row ${state}"><div class="art">${ic(qs.claimed ? 'check' : lock ? 'lock' : 'trophy')}</div><div class="info">
+        const btn = lock ? `<span class="rw-tag">${ic('lock')}Niveau ${q.lvl}</span>` : qs.claimed ? `<span class="rw-done">✓ Déjà récupérée</span>` : qs.done ? `<button class="btn green" data-act="claimQuest" data-id="${q.id}">Réclamer</button>` : `<button class="btn blue rw-go" data-act="questGo" data-id="${q.id}">Y aller</button>`;
+        rows.push([qs.claimed ? 3 : lock ? 2 : qs.done ? 0 : 1, `<div class="row rw-row ${state}"><div class="art">${ic(qs.claimed ? 'check' : lock ? 'lock' : 'trophy')}</div><div class="info">
           <h4>Mission ${n + 1}</h4><p class="rw-do">${q.txt}</p>
           ${!qs.claimed && !lock ? `<div class="bar"><div style="width:${Math.min(100, qs.v / q.n * 100).toFixed(0)}%"></div><span>${q.n >= 1000 ? `${short(qs.v, true)} / ${short(q.n, true)}` : `${qs.v} / ${q.n}`}</span></div>` : ''}
-          <p class="rw-get">Tu gagnes ${chips(q.cash, q.lingots, it ? `<span class="need">${pic('item-' + it.id, '🏆', 'tiny')}${it.name.replace(/^Trophée /, '')}</span>` : '')}</p></div>
-          <div class="btns">${btn}</div></div>`;
+          <p class="rw-get">${qs.claimed ? 'Tu as gagné' : 'Tu gagnes'} ${chips(q.cash, q.lingots, it ? `<span class="need">${pic('item-' + it.id, '🏆', 'tiny')}${it.name.replace(/^Trophée /, '')}</span>` : '')}</p></div>
+          <div class="btns">${btn}</div></div>`]);
       });
+      body += rows.map((r, i) => [r, i]).sort((x, y) => x[0][0] - y[0][0] || x[1] - y[1]).map(x => x[0][1]).join('');
       if (got >= D.QUESTS.length) body += '<p class="hint-line">Tu as terminé toutes les missions. Respect !</p>';
     } else {
       const need = G.xpNeed();
@@ -1207,7 +1210,7 @@
         <div class="col-grid tcg-grid">${cards.map(c => { const n = (s.owned[c.id] || []).length; return n
           ? `<div class="col-slot" data-act="cardZoom" data-id="${c.id}">${tcgCard({ id: c.id }, 'mini')}${n > 1 ? `<i class="col-n">×${n}</i>` : ''}</div>`
           : `<div class="col-slot miss"><div class="tcg-back"><span>${String(CARD_ALL.indexOf(c) + 1).padStart(2, '0')}</span></div></div>`; }).join('')}</div>
-        <div class="col-rew">Série complète : ${chips(se.reward.cash, se.reward.lingots)} ${claimed ? `<span class="rw-tag ok">${ic('check')}Obtenue</span>` : done ? `<button class="btn green" data-act="claimSeries" data-id="${se.id}">Réclamer</button>` : ''}</div></div>`;
+        <div class="col-rew">Série complète : ${chips(se.reward.cash, se.reward.lingots)} ${claimed ? '<span class="rw-done">✓ Déjà récupérée</span>' : done ? `<button class="btn green" data-act="claimSeries" data-id="${se.id}">Réclamer</button>` : ''}</div></div>`;
     }
     return body;
   }
