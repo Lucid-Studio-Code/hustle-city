@@ -1141,7 +1141,7 @@
       const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
       return head + `<p class="hint-line">Une série en <b>édition limitée</b> : ces cartes ne sortent des boosters que pendant le tournoi (environ 1 booster sur 3). Après, on ne peut plus en avoir : leur cote grimpe.</p>
         <div class="explain center">${on ? '🃏 En ce moment dans les boosters !' : ph === 'before' ? 'Dans les boosters dès le début du tournoi.' : 'Plus dans les boosters : seulement d\'occasion, au Comptoir.'}</div>
-        <div class="grid2 six-cards">${cards.map(it => { const have = (s.owned[it.id] || []).length; return `<div class="card center ${have ? '' : 'missing'}">${itemPic(it)}<b>${it.name}</b><small class="muted">${have ? `Tu l'as · cote ${short(s.market.prices[it.id])}` : 'Pas encore'}</small></div>`; }).join('')}</div>
+        <div class="grid2 six-cards">${cards.map(it => { const have = (s.owned[it.id] || []).length; return `<div class="card center ${have ? '' : 'missing'}">${itemPic(it)}<b>${it.name}</b><small class="muted">${have ? ownGain(it.id) : 'Pas encore'}</small></div>`; }).join('')}</div>
         ${on ? '<button class="btn green wide" data-act="boosters">Ouvrir mes boosters</button>' : ''}`;
     }
     // pronos, journée par journée
@@ -1220,7 +1220,7 @@
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
-        <small class="muted own-line">${mine ? `Tu l'as · repris ${short(G.sellPrice(it.id))} (−10 %)` : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
+        <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
         <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
           : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
     };
@@ -1243,6 +1243,12 @@
       <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">🏠 Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
       ${grid}`;
+  }
+  // ce que j'ai payé → ce qu'on me reprend → gagné / perdu (gratuit si l'objet vient d'un booster ou d'une récompense)
+  function ownGain(id) {
+    const a = st().owned[id] || []; if (!a.length) return '';
+    const paid = a[0].paid || 0, sp = G.sellPrice(id), d = sp - paid;
+    return `<span class="own-gain">${paid ? `Acheté ${short(paid)}` : 'Eu gratuitement'} → repris ${short(sp)} · <b class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? 'gagné +' : 'perdu '}${short(Math.abs(d))}</b></span>`;
   }
   function openItem(id) {
     const s = st(), it = G.item(id), a = s.owned[id] || [], h = s.market.hist[id];
@@ -1465,7 +1471,7 @@
   function cardZoom(id) {
     const n = (st().owned[id] || []).length, it = G.item(id), canBuy = !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
     let el = $('#cardzoom'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="cardzoom"></div>'); el = $('#cardzoom'); }
-    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts">${n ? `<button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
+    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
     el.onpointermove = e => {
