@@ -429,7 +429,19 @@
       malus: '−25<i class="cur"></i> par jour, et ta machine à crypto surchauffe 25 % plus vite (tu rentres tard).' }
   ];
   // Le Club : une soirée coûte l'entrée, rapporte de l'XP et parfois une rencontre (un contact qui propose un bon plan)
-  const CLUB = { lvl: 4, entry: lvl => 40 + lvl * 12, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20 };
+  // Le Club = une vraie pièce : on paie l'entrée au videur, puis la soirée dure nightMin minutes et on touche les coins de la salle
+  // (chacun une fois par soirée). Ensuite le videur te reconnaît pendant cooldownMin (sauf avec des lingots).
+  // spots : zones à toucher sur l'image de la salle (x, y = centre, w, h en %), réglables plus tard au back-office.
+  const CLUB = { lvl: 4, entry: lvl => 40 + lvl * 12, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
+    drink: lvl => 15 + lvl * 4, djTip: 10, vipLingots: 2,
+    spots: [
+      { id: 'dance', name: 'La piste',        icon: '🕺', x: 50, y: 62, w: 44, h: 18, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
+      { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 50, y: 33, w: 30, h: 14, desc: 'Demander ton son : la piste rapporte ×1,5.' },
+      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 15, y: 50, w: 26, h: 20, desc: 'Un cocktail, et ton habitude « sortir ».' },
+      { id: 'lounge', name: 'Les canapés',    icon: '🛋️', x: 82, y: 52, w: 30, h: 18, desc: 'Discuter : on y rencontre des gens qui ont des plans.' },
+      { id: 'vip',   name: 'Le carré VIP',    icon: '🍾', x: 82, y: 28, w: 30, h: 16, desc: 'Pour les lingots : un contact assuré et des lingots possibles.' },
+      { id: 'door',  name: 'Le videur',       icon: '🚪', x: 14, y: 82, w: 22, h: 16, desc: 'Sortir du Club.' }
+    ] };
   const QUIT_H = 48;                 // durée du sevrage
   // Santé : chaque point sous 100 rend tout 0,5 % plus cher (pharmacie, fatigue, mauvaises décisions)
   const HEALTH_COST = .005;

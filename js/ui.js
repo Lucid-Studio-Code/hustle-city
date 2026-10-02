@@ -980,14 +980,23 @@
   function openHabits(where) { openModal({ title: 'Habitudes', icon: 'star', full: true, body: habitsBody(where), refresh: () => setBody(habitsBody(where)) }); }
 
   // ------------------------------------------------------------ le Club (boîte de nuit)
+  // Le Club : d'abord le videur (entrée), puis une vraie salle avec des coins à toucher (image club-room, sinon néons dessinés)
   function clubBody() {
-    const s = st(), wait = G.clubWait(), e = G.clubEntry();
-    return `<div class="club-hero">${pic('bld-club', '🎉')}<p>Musique à fond, néons, et du beau monde. Une soirée fait monter ton XP… et on y rencontre des gens qui ont des plans.</p></div>
-      <div class="card club-night"><h4>🎉 Une soirée</h4>
-        <p><b class="up">＋</b> ${D.CLUB.xp(s.lvl)} XP · ${Math.round(D.CLUB.meet * 100)} % de chances de rencontrer un contact qui te propose un bon plan · parfois un carré VIP (+3 lingots)</p>
-        <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Le videur te reconnaît : reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
-        ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club}</span></button>
-          <p class="hint-line center" style="margin-top:4px">Les lingots convainquent le videur. L'entrée (${short(e)}) reste à payer.</p>` : ''}</div>
+    const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
+    if (!G.clubIn()) {
+      return `<div class="club-door">${has('club-door') ? `<img class="cd-bg" src="${src('club-door')}" alt="">` : '<div class="cd-bg neon"></div>'}
+          <div class="cd-say"><b>🚪 Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
+          <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
+          ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club} + ${short(e)}</span></button>` : ''}</div></div>
+        <p class="hint-line">Une soirée dure ${C.nightMin} min : danse, bar, DJ, canapés, carré VIP… chaque coin une fois par soirée.</p>
+        <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
+    }
+    const c = s.club, left = c.end - Date.now();
+    const spots = C.spots.map(p => { const done = c.done[p.id];
+      return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${p.icon} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
+    return `<div class="club-room">${has('club-room') ? `<img class="cr-bg" src="${src('club-room')}" alt="">` : '<div class="cr-bg neon"><i class="ball"></i><i class="floor"></i></div>'}${spots}
+        <div class="club-timer">🎉 Soirée : <b>${mmss(left)}</b>${c.dj ? ' · 🎧 ton son passe' : ''}</div></div>
+      <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${p.icon}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
   function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, body: clubBody(), refresh: () => setBody(clubBody()) }); }
@@ -1715,8 +1724,17 @@
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
       drawPhone();
     },
-    clubGo(el) { const r = G.clubNight(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
-    clubVip(el) { const r = G.clubNight(true); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); floatTxt(`+${r.xp} XP`); toast(`Grosse soirée ! +${r.xp} XP${r.vip ? ', et un carré VIP : +3 lingots' : ''}.${r.meet ? ' Tu as rencontré quelqu\'un qui a un plan pour toi…' : ''}`, false, r.meet ? 'deal' : null); refresh(); },
+    clubGo() { const r = G.clubEnter(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 24); toast('Tu es dans la place ! Touche les coins de la salle.'); refresh(); },
+    clubVip() { const r = G.clubEnter(true); if (r.err) return toast(r.err, true); sfx.win(); toast('Quelques lingots, et le videur s\'écarte.'); refresh(); },
+    clubSpot(el) {
+      const id = el.dataset.id; if (id === 'door') { closeModal(); return; }
+      const r = G.clubDo(id); if (r.err) return toast(r.err, true);
+      const msg = { dance: `Tu as mis le feu à la piste ! +${r.xp} XP`, dj: 'Le DJ passe ton son : la piste rapporte ×1,5.', bar: `Un cocktail au bar. +${r.xp} XP`,
+        lounge: r.meet ? 'Tu as rencontré quelqu\'un qui a un plan pour toi… regarde tes messages.' : 'Bonne discussion, mais personne d\'intéressant ce soir.',
+        vip: `Carré VIP ! +${r.xp} XP${r.lingots ? `, +${r.lingots} lingots` : ''}${r.meet ? ', et un contact te propose une affaire' : ''}.` }[id];
+      if (id === 'dance' || id === 'vip') { sfx.win(); rain('confetti', 26); } else sfx.tap();
+      if (r.xp) floatTxt(`+${r.xp} XP`); toast(msg); refresh();
+    },
     habitStart(el) { const r = G.startHabit(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
     habitQuit(el) { const r = G.quitHabit(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); }
   };

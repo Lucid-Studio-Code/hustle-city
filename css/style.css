@@ -2092,3 +2092,23 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-cand p { margin: 2px 0; font: 700 12px var(--text); } #app .ag-cand .btn { grid-column: 2; justify-self: start; }
 #app .ag-stats { display: flex; gap: 8px; font: 800 11px var(--text); color: #ff4f8b; }
 #app .ag-grow { display: flex; align-items: center; gap: 10px; margin-top: 8px; } #app .ag-grow .grow { flex: 1; } #app .ag-grow b { display: block; font: 900 14px var(--text); } #app .ag-grow small { font: 700 12px var(--text); color: #6a5a4a; }
+/* Le Club : entrée (videur) puis salle à toucher */
+#app .club-door, #app .club-room { position: relative; width: 100%; aspect-ratio: 9 / 14; border: 3px solid #2a1a10; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 0 #2a1a10; }
+#app .cd-bg, #app .cr-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#app .cd-bg.neon { background: radial-gradient(circle at 50% 30%, #ff3cac55, transparent 50%), linear-gradient(#1a0b2e, #3b0f4f 60%, #12051f); }
+#app .cr-bg.neon { background: radial-gradient(circle at 50% 30%, #16b8c855, transparent 45%), radial-gradient(circle at 15% 50%, #ff3cac44, transparent 35%), radial-gradient(circle at 85% 30%, #ffd23f44, transparent 35%), linear-gradient(#12051f, #2a0b45 55%, #1a0730); }
+#app .cr-bg .ball { position: absolute; left: 50%; top: 8%; width: 14%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: repeating-conic-gradient(#ddd 0 10deg, #888 10deg 20deg); box-shadow: 0 0 30px #fff8; animation: spin 6s linear infinite; }
+#app .cr-bg .floor { position: absolute; left: 22%; right: 22%; top: 54%; height: 20%; background: repeating-conic-gradient(#ff3cac 0 25%, #16b8c8 0 50%) 0 0 / 22% 34%; opacity: .55; transform: perspective(300px) rotateX(55deg); border-radius: 8px; }
+@keyframes spin { to { transform: translateX(-50%) rotate(360deg); } }
+#app .cd-say { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 12px; border: 2.5px solid #2a1a10; border-radius: 16px; background: #fff8ec; }
+#app .cd-say b { font: 400 18px var(--title); } #app .cd-say p { margin: 4px 0 10px; font: 700 13px/1.35 var(--text); }
+#app .club-spot { position: absolute; transform: translate(-50%, -50%); border: 2px dashed rgba(255,255,255,.55); border-radius: 18px; background: rgba(255,255,255,.06); display: grid; place-items: end center; padding: 0 0 4px; cursor: pointer; animation: spotGlow 2.2s ease-in-out infinite; }
+#app .club-spot .cs-tag { padding: 3px 9px; border: 2px solid #2a1a10; border-radius: 999px; background: #fff; color: #2a1a10; font: 900 11.5px var(--text); white-space: nowrap; box-shadow: 0 2px 0 #2a1a10; }
+#app .club-spot.done { animation: none; border-color: transparent; background: transparent; } #app .club-spot.done .cs-tag { background: #c9f5a0; }
+#app .club-room:has(img.cr-bg) .club-spot { border-color: transparent; background: transparent; }
+@keyframes spotGlow { 0%, 100% { box-shadow: 0 0 0 rgba(255,60,172,0); } 50% { box-shadow: 0 0 18px rgba(255,60,172,.55); } }
+#app .club-timer { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); padding: 4px 12px; border: 2px solid #2a1a10; border-radius: 999px; background: #ffd23f; font: 800 12px var(--text); white-space: nowrap; }
+#app .club-legend { display: grid; gap: 4px; margin-top: 10px; }
+#app .club-legend > div { display: grid; grid-template-columns: 28px 1fr; column-gap: 6px; align-items: center; padding: 6px 8px; border-radius: 12px; background: #fff8ec; }
+#app .club-legend > div.done { opacity: .55; } #app .club-legend span { grid-row: span 2; font-size: 20px; text-align: center; }
+#app .club-legend b { font: 900 13px var(--text); } #app .club-legend small { font: 700 11.5px var(--text); color: #6a5a4a; }

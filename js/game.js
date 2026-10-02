@@ -656,19 +656,38 @@
   // ------------------------------------------------------------ le Club
   const clubEntry = () => cost(D.CLUB.entry(st.lvl));
   const clubWait = () => Math.max(0, (st.clubNext || 0) - now());
-  function clubNight(vipPass) {
+  // une soirée : on paie l'entrée (ou des lingots si le videur te reconnaît), puis chaque coin de la salle se touche une fois
+  const clubIn = () => !!(st.club && now() < st.club.end);
+  function clubEnter(vipPass) {
     if (st.lvl < D.CLUB.lvl) return { err: `Le Club ouvre au niveau ${D.CLUB.lvl}.` };
-    // le videur se laisse convaincre avec quelques lingots
-    if (clubWait() && vipPass) { if (st.lingots < D.LINGOT.club) return { err: 'Pas assez de lingots.' }; if (st.cash < clubEntry()) return { err: 'Pas assez de cash pour l\'entrée.' }; addLingots(-D.LINGOT.club); st.clubNext = 0; }
-    if (clubWait()) return { err: 'Le videur t\'a vu tout à l\'heure. Reviens plus tard.' };
-    const e = clubEntry(); if (!pay(e)) return { err: 'Pas assez de cash pour l\'entrée.' };
-    st.clubNext = now() + D.CLUB.cooldownMin * 60000;
-    const xp = D.CLUB.xp(st.lvl); addXp(xp); stat('clubNights');
-    let meet = false, vip = 0;
-    if (Math.random() < D.CLUB.meet && !st.deal) { st.nextDealAt = 0; simDeal(false); meet = !!st.deal; }
-    if (Math.random() < D.CLUB.vip) { vip = 3; addLingots(vip); }
-    emit('change'); return { e, xp, meet, vip };
+    if (clubIn()) return { ok: true, already: true };
+    if (clubWait() && !vipPass) return { err: 'Le videur t\'a vu tout à l\'heure. Reviens plus tard.' };
+    if (clubWait() && st.lingots < D.LINGOT.club) return { err: 'Pas assez de lingots.' };
+    const e = clubEntry(); if (st.cash < e) return { err: 'Pas assez de cash pour l\'entrée.' };
+    if (clubWait()) addLingots(-D.LINGOT.club);
+    pay(e);
+    st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false };
+    st.clubNext = st.club.end + D.CLUB.cooldownMin * 60000;
+    stat('clubNights'); emit('change'); return { e };
   }
+  function clubDo(id) {
+    if (!clubIn()) return { err: 'La soirée est finie : repasse par le videur.' };
+    const c = st.club; if (c.done[id]) return { err: 'Déjà fait ce soir.' };
+    const C = D.CLUB, out = { id };
+    if (id === 'dance') { const xp = Math.round(C.xp(st.lvl) * (c.dj ? 1.5 : 1)); addXp(xp); out.xp = xp; }
+    else if (id === 'dj') { if (!pay(C.djTip)) return { err: 'Pas assez de cash.' }; c.dj = true; out.cost = C.djTip; }
+    else if (id === 'bar') { const p = cost(C.drink(st.lvl)); if (!pay(p)) return { err: 'Pas assez de cash.' }; const xp = 10 + st.lvl * 2; addXp(xp); out.xp = xp; out.cost = p; }
+    else if (id === 'lounge') { if (Math.random() < C.meet && !st.deal) { st.nextDealAt = 0; simDeal(false); out.meet = !!st.deal; } addXp(5); }
+    else if (id === 'vip') {
+      if (st.lingots < C.vipLingots) return { err: 'Pas assez de lingots.' }; addLingots(-C.vipLingots);
+      if (!st.deal) { st.nextDealAt = 0; simDeal(false); out.meet = !!st.deal; }
+      if (Math.random() < .35) { out.lingots = 3 + Math.floor(Math.random() * 4); addLingots(out.lingots); }
+      const xp = 20 + st.lvl * 3; addXp(xp); out.xp = xp;
+    } else return { err: 'Inconnu.' };
+    c.done[id] = now(); stat('clubSpots'); emit('change'); return out;
+  }
+  // compatibilité : l'ancienne « soirée » d'un coup = entrer puis danser
+  function clubNight(vipPass) { const r = clubEnter(vipPass); if (r.err) return r; const d = clubDo('dance'); return { e: r.e, xp: d.xp || 0, meet: false, vip: 0 }; }
 
   // ------------------------------------------------------------ kiosque
   // le journal sort toutes les 30 min ; kShift avance l'horloge du joueur quand il paie un journal tout de suite
@@ -1126,7 +1145,7 @@
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
-    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,
