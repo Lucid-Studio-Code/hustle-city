@@ -2049,3 +2049,19 @@ h3.sec { margin: 18px 6px 10px; }
 #app .hv-find > span { font-size: 34px; } #app .hv-find b { display: block; font: 900 15px var(--text); } #app .hv-find small { font: 700 12px var(--text); color: #6a5a4a; }
 #app .hv-find.virus { background: linear-gradient(#fde8e4, #f8c4bb); }
 #app .harvest .grid2 { width: 100%; margin-top: 6px; }
+/* PC : défi du trader, alertes flash, actus, ordres */
+#app .trader { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+#app .trader.ready { background: linear-gradient(#f3ffe9, #dcf7c4); } #app .trader.got { opacity: .8; }
+#app .trader .tr-ic { font-size: 28px; } #app .trader .grow { flex: 1; min-width: 0; }
+#app .trader b { display: block; font: 900 14px var(--text); } #app .trader small { display: block; font: 700 12px/1.3 var(--text); color: #6a5a4a; }
+#app .trader .kh-bar { margin: 4px 0 2px; }
+#app .flash-banner { display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 8px; padding: 10px 12px; border: 2.5px solid #2a1a10; border-radius: 16px; box-shadow: 0 3px 0 #2a1a10; font: 800 12px/1.3 var(--text); text-align: left; color: #2a1a10; animation: giftPulse 1.4s ease-in-out infinite; }
+#app .flash-banner b { display: block; font: 900 14px var(--text); }
+#app .flash-banner.up { background: linear-gradient(#e9ffd8, #b8f08e); } #app .flash-banner.down { background: linear-gradient(#fde8e4, #f6b3a8); } #app .flash-banner.soon { background: linear-gradient(#fff6d5, #ffe08a); }
+#app .cn-item { margin-bottom: 6px; padding: 8px 10px; } #app .cn-item.old { opacity: .75; }
+#app .cn-src { display: flex; align-items: center; gap: 6px; font: 800 11px var(--text); } #app .cn-src small { margin-left: auto; color: #8a7a6a; }
+#app .cn-rel { padding: 1px 6px; border-radius: 999px; font: 900 10px var(--text); color: #fff; } #app .cn-rel.r-1 { background: #1f9d55; } #app .cn-rel.r-2 { background: #e09b00; } #app .cn-rel.r-3 { background: #c62828; }
+#app .cn-item p { margin: 4px 0 0; font: 700 13px/1.3 var(--text); } #app .cn-verdict { font: 900 11px var(--text); }
+#app .orders .ord-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-top: 1.5px dashed #d8c8a8; font: 800 12px var(--text); }
+#app .orders .ord-row > span { flex: 1 0 100%; } #app .orders .ord-row b { flex: 1; }
+#app .trader small b { display: inline; font: inherit; font-weight: 900; }

@@ -27,7 +27,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 75).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 76).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -47,6 +47,12 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - La chaleur monte (`heat` × minutes / `heatMin` de la machine) ; « Refroidir » enlève 50 % (une fois toutes les 5 min). À 100 % : surchauffe → −35 % et plus de risque de virus.
 - Récolte = écran avec trouvaille possible (`FINDS` : bloc doré ×3, lingots, carte, vieux portefeuille, virus −40 %). Nouvelle partie et vieilles sauvegardes : un premier minage d'Axion déjà fini (`starterMine`).
 - `st.mine` (game.js : mineStart, mineCool, mineHarvest ; rigInfo garde l'ancienne forme pour le reste du jeu).
+
+## PC plus vivant (02/10, `PCX` dans data.js, `simPc` dans game.js)
+- Alertes flash : une crypto bondit/plonge de 8-20 % d'un coup puis revient à 85 % en 3 min (la station de trading prévient 1 min avant).
+- Actus par crypto : une source Sérieux (80 %), Moyen (60 %) ou Pas fiable (45 %) ; l'actu fait vraiment bouger la crypto (vrai sens) pendant 15 min ; verdict affiché ensuite.
+- Ordres automatiques (PC gamer) : tout vendre à +10/25/50 %, tout vendre à −10/−20 %, acheter 50 à −10/−20 %.
+- Défi du trader : faire 20 + 15 × niveau de bénéfice en crypto dans la journée → lingots.
 
 ## Boutique (bouton du bas, ex-Trading)
 - `CITY_SHOP` (data.js) : décos de ville achetées pour toujours, chacune à SA place (x/y/w, réglables au back-office). `IAP` : achats en vrai argent, affichés « bientôt » (pas de paiement avant la version stores).

@@ -83,6 +83,14 @@
     { id: 'ppc', min: 240, mult: 1.3,  heat: 1.5, need: 2, swing: 1.0, tag: 'Jackpot ou catastrophe' },
     { id: 'lmn', min: 480, mult: 1.45, heat: .45, need: 3, swing: .15, tag: 'Pour la nuit' }
   ];
+  // PC plus vivant (02/10) : alertes flash, actus par crypto avec des sources plus ou moins fiables, ordres automatiques, défi du trader
+  const PCX = {
+    flashEvery: [10, 20], flashK: [1.08, 1.2], flashBack: .85, flashMin: 3,   // une crypto bondit (ou plonge) d'un coup puis revient à 85 %
+    newsEvery: [6, 12], newsMin: 15, newsDrift: .003,                        // une actu fait bouger UNE crypto pendant 15 min (~±5 %)
+    sources: [{ name: 'Finance Hebdo', rel: .8, label: 'Sérieux' }, { name: 'CryptoBuzz', rel: .6, label: 'Moyen' }, { name: 'Le Bavard du Web', rel: .45, label: 'Pas fiable' }],
+    ordersPc: 1, preAlertPc: 2,                                              // PC gamer : ordres automatiques ; station : alerte 1 min avant
+    trader: { base: 20, perLvl: 15, lingots: 3 }                             // défi du trader : faire X de bénéfice en crypto dans la journée
+  };
   // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
   const FINDS = { gold: .04, lingots: .10, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
   const RIG = [
@@ -469,7 +477,7 @@
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
-    MINE, FINDS, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
+    MINE, FINDS, PCX, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };

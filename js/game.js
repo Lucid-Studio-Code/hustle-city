@@ -108,7 +108,8 @@
     D.COINS.forEach(c => {
       let p = st.crypto.prices[c.id];
       const vol = c.vol * m.volx * Math.sqrt(stepMin);
-      const drift = (c.drift + m.drift * (c.vol / .01)) * stepMin;
+      const nw = (st.crypto.news || []).find(n => n.id === c.id && n.until > now());
+      const drift = (c.drift + m.drift * (c.vol / .01) + (nw ? (nw.real ? 1 : -1) * D.PCX.newsDrift : 0)) * stepMin;
       p *= Math.exp(drift - vol * vol / 2 + vol * gauss());
       // rug pull : rare effondrement brutal des memecoins
       if (c.rug && Math.random() < c.rug * stepMin) { p *= rnd(.08, .25); emit('news', { txt: `${c.name} s'effondre : les créateurs ont vidé la caisse. −80 % !`, bad: true }); }
@@ -162,10 +163,63 @@
     cr.hold[id] -= q; cr.cost[id] -= costPart;
     if (frac >= .999 || cr.hold[id] * cr.prices[id] < .01) { cr.hold[id] = 0; cr.cost[id] = 0; cr.since[id] = 0; }
     addCash(net);
-    if (profit > 0) stat('cryptoProfit');
+    if (profit > 0) { stat('cryptoProfit'); const tr = traderState(); tr.profit += profit; }
     if (serious(net)) addXp(Math.min(xpCap(40), net / 25));
     emit('change'); return { net, profit };
   }
+
+  // ------------------------------------------------------------ PC : alertes flash, actus, ordres automatiques, défi du trader
+  function traderState() { const d = today(); if (!st.trader || st.trader.day !== d) st.trader = { day: d, profit: 0, claimed: false }; return st.trader; }
+  const traderGoal = () => D.PCX.trader.base + D.PCX.trader.perLvl * st.lvl;
+  function claimTrader() {
+    const tr = traderState(); if (tr.claimed) return { err: 'Déjà récupéré aujourd\'hui.' };
+    if (tr.profit < traderGoal()) return { err: 'Pas encore.' };
+    tr.claimed = true; const n = D.PCX.trader.lingots + Math.floor(st.lvl / 3); addLingots(n); addXp(30); emit('change'); return { n };
+  }
+  function pushPrice(id, k) { const cr = st.crypto; cr.prices[id] *= k; const h = cr.hist[id]; h.push(cr.prices[id]); if (h.length > D.HISTORY) h.shift(); }
+  function simPc(offline) {
+    if (offline || !st.tutoDone) return;
+    const cr = st.crypto, X = D.PCX, ok = D.COINS.filter(c => coinUnlocked(c));
+    // alerte flash : bond (ou plongeon) d'une crypto, qui retombe en grande partie 3 min après
+    if (!cr.nextFlash) cr.nextFlash = now() + rnd(...X.flashEvery) * 60000;
+    const f = cr.flash;
+    if (!f && now() >= cr.nextFlash) {
+      const c = pick(ok), up = Math.random() < .6, k = rnd(...X.flashK), pre = pcLvl() >= X.preAlertPc;
+      cr.flash = { id: c.id, up, k, at: now() + (pre ? 60000 : 0), applied: false };
+      if (pre) emit('flashSoon', cr.flash);
+    } else if (f && !f.applied && now() >= f.at) {
+      pushPrice(f.id, f.up ? f.k : 1 / f.k); f.applied = true; f.back = now() + X.flashMin * 60000; emit('flash', f);
+    } else if (f && f.applied && now() >= f.back) {
+      pushPrice(f.id, Math.pow(f.up ? 1 / f.k : f.k, X.flashBack)); cr.flash = null; cr.nextFlash = now() + rnd(...X.flashEvery) * 60000;
+    }
+    // une actu sur une crypto : vraie ou fausse selon la source
+    if (!cr.nextNews) cr.nextNews = now() + rnd(2, 5) * 60000;
+    if (now() >= cr.nextNews) {
+      cr.nextNews = now() + rnd(...X.newsEvery) * 60000;
+      const c = pick(ok), src = pick(X.sources), real = Math.random() < .5, said = Math.random() < src.rel ? real : !real;
+      const T = said ? [`${c.name} : un gros partenariat serait signé cette semaine.`, `Les grosses fortunes achètent du ${c.name} en ce moment.`, `${c.name} va être accepté dans des magasins.`]
+        : [`${c.name} : les créateurs vendraient en douce.`, `Une faille de sécurité toucherait ${c.name}.`, `Les gros portefeuilles se débarrassent du ${c.name}.`];
+      cr.news = [{ t: now(), id: c.id, src: src.name, rel: src.label, txt: pick(T), said, real, until: now() + X.newsMin * 60000 }].concat(cr.news || []).slice(0, 12);
+      emit('coinNews', cr.news[0]);
+    }
+    // ordres automatiques
+    (cr.orders || []).slice().forEach(o => {
+      const p = cr.prices[o.id], hit = o.type === 'buy' ? p <= o.price : o.type === 'take' ? p >= o.price : p <= o.price;
+      if (!hit) return;
+      cr.orders = cr.orders.filter(x => x !== o);
+      const r = o.type === 'buy' ? buyCrypto(o.id, Math.min(o.eur, Math.floor(st.cash))) : sellCrypto(o.id, 1);
+      emit('orderDone', { o, r });
+    });
+  }
+  function addOrder(id, type, pct, eur) {
+    if (pcLvl() < D.PCX.ordersPc) return { err: 'Il faut le PC gamer.' };
+    const cr = st.crypto, p = cr.prices[id];
+    if (type !== 'buy' && !(cr.hold[id] > 0)) return { err: 'Tu n\'en as pas.' };
+    if (type === 'buy' && !(eur >= 1)) return { err: 'Montant trop petit.' };
+    cr.orders = (cr.orders || []).filter(o => !(o.id === id && o.type === type));
+    cr.orders.push({ id, type, price: p * (1 + pct), pct, eur: eur || 0, t: now() }); emit('change'); return { ok: true };
+  }
+  function cancelOrder(id, type) { st.crypto.orders = (st.crypto.orders || []).filter(o => !(o.id === id && o.type === type)); emit('change'); }
 
   // ------------------------------------------------------------ rig de minage
   // ------------------------------------------------------------ machine à miner (façon Mama Farm)
@@ -1048,7 +1102,7 @@
     simEvent(offline);
     simDeal(offline);
     simSix(offline);
-    simFriendTip(offline); simCryptoTip(offline);
+    simFriendTip(offline); simCryptoTip(offline); simPc(offline);
     stat('worth', Math.floor(worth()), true);
     if (!offline) checkBailout();
   }
@@ -1064,6 +1118,7 @@
     get st() { return st; }, on, emit, load, save, reset, simulate,
     addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
+    traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,

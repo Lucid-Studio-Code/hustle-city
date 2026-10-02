@@ -219,6 +219,8 @@
     if (ri.ready) add(90, '⛏️', 'Ta récolte est prête', 'Ton minage est fini : viens voir ce qu\'il y a dedans.', () => questGo('rig'), true);
     else if (ri.idle) add(89, '⛏️', 'Ta machine est à l\'arrêt', 'Choisis une crypto à miner : elle bosse pendant que tu fais autre chose.', () => questGo('rig'), true);
     else if (!ri.burnt && ri.heat >= 70) add(92, '🌡️', `Ta machine chauffe : ${Math.round(ri.heat)} %`, 'Refroidis-la avant 100 %, sinon la récolte en prend un coup.', () => questGo('rig'), true);
+    const fl = s.crypto.flash; if (fl && fl.applied) add(86, '⚡', `Alerte flash : ${G.coin(fl.id).name} ${fl.up ? '+' : '−'}${Math.round((fl.k - 1) * 100)} %`, fl.up ? 'Vends avant que ça retombe.' : 'Ça plonge : achète pas cher ?', () => questGo('pc'), true);
+    const tr = G.traderState(); if (!tr.claimed && tr.profit >= G.traderGoal()) add(87, '🎯', 'Défi du trader réussi', 'Va chercher tes lingots sur ton PC.', () => questGo('pc'), true);
     if (G.boosterCount()) add(85, '🃏', `${G.boosterCount()} booster${G.boosterCount() > 1 ? 's' : ''} à ouvrir`, 'Des cartes à collectionner et des récompenses.', () => openBoosters('open'), true);
     if (G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
     if (s.deal && Date.now() < s.deal.end) add(78, '💬', `${s.deal.name} te propose une affaire`, 'L\'offre ne dure pas : regarde vite.', () => openPhone('msg'), true);
@@ -702,6 +704,7 @@
       return `${weather}${tipBox}
         ${cv >= .01 ? `<div class="pf-card"><small>Tes cryptos valent</small><b>${short(cv)}</b><p>Tu y as mis ${short(cc)} : ${cv - cc >= 0 ? `<span class="up">+${short(cv - cc)} de gagné</span>` : `<span class="down">${short(cv - cc)} de perdu</span>`}</p></div>` : ''}
         <details class="howto-crypto" ${howOpen ? 'open' : ''}><summary>C'est quoi, une crypto ?</summary><p>Une monnaie sur Internet dont le prix change tout le temps. Tu achètes avec tes billets, puis tu revends plus tard. <b>Si le prix a monté, tu gagnes la différence. S'il a baissé, tu perds.</b> Personne ne sait à l'avance : c'est un pari.</p></details>
+        ${traderCard()}${flashBanner()}
         <h3 class="sec">Choisis une crypto</h3><div class="coin-list">${list}</div>`;
     }
     const c = G.coin(cryptoSel), p = s.crypto.prices[c.id], h = s.crypto.hist[c.id];
@@ -725,7 +728,35 @@
         <input class="amt" id="cr-amt" type="number" inputmode="decimal" min="1" value="${amt || ''}" placeholder="Autre montant">
         <button class="btn green wide big-act" data-act="crBuy" ${s.cash >= 1 ? '' : 'disabled'}>Investir <span id="cr-amt-lbl">${eur(amt || 0)}</span></button>
         <p class="muted center">Tu as ${eur(s.cash)} en poche. La plateforme prend ${(G.fee() * 100).toFixed(1).replace('.', ',').replace(',0', '')} % à chaque achat et vente (un meilleur PC = moins de frais).</p></div>
+      ${coinNewsHtml(c)}${ordersHtml(c, hold)}
       ${weather}${tipBox}`;
+  }
+  function traderCard() {
+    const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal;
+    return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">🎯</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
+      ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div><small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}</div>
+      ${tr.claimed ? '<span class="got-tag">✓</span>' : `<button class="btn sm ${done ? 'gold' : ''}" data-act="traderClaim" ${done ? '' : 'disabled'}>${ic('lingot')}${D.PCX.trader.lingots + Math.floor(st().lvl / 3)}</button>`}</div>`;
+  }
+  function flashBanner() {
+    const f = st().crypto.flash; if (!f) return '';
+    const c = G.coin(f.id);
+    if (!f.applied) return `<button class="flash-banner soon" data-act="coinSel" data-id="${f.id}">🔔 <span><b>Ton PC a repéré un mouvement sur ${c.name}</b>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</span></button>`;
+    return `<button class="flash-banner ${f.up ? 'up' : 'down'}" data-act="coinSel" data-id="${f.id}">⚡ <span><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b>${f.up ? 'Si tu en as, vends avant que ça retombe' : 'Ça plonge : acheter pas cher avant que ça remonte ?'} · encore ${mmss(f.back - Date.now())}</span></button>`;
+  }
+  function coinNewsHtml(c) {
+    const L = (st().crypto.news || []).filter(n => n.id === c.id).slice(0, 3);
+    return `<h3 class="sec">Les actus de ${c.name}</h3>${L.length ? L.map(n => `<div class="card cn-item ${n.until > Date.now() ? 'live' : 'old'}"><div class="cn-src"><b>${n.src}</b><span class="cn-rel r-${n.rel === 'Sérieux' ? 1 : n.rel === 'Moyen' ? 2 : 3}">${n.rel}</span><small>${ago(n.t)}</small></div><p>${n.said ? '📈' : '📉'} ${esc(n.txt)}</p>
+        ${n.until > Date.now() ? '' : `<small class="cn-verdict ${n.said === n.real ? 'up' : 'down'}">${n.said === n.real ? '✓ C\'était vrai' : '✗ C\'était faux'}</small>`}</div>`).join('') : '<p class="hint-line">Pas d\'actu pour l\'instant. Elles tombent toutes les 10 min environ.</p>'}`;
+  }
+  function ordersHtml(c, hold) {
+    const s = st(), O = (s.crypto.orders || []).filter(o => o.id === c.id), lock = G.pcLvl() < D.PCX.ordersPc, p = s.crypto.prices[c.id];
+    const has_ = t => O.find(o => o.type === t);
+    const row = (t, label, opts) => { const o = has_(t);
+      return `<div class="ord-row"><span>${label}</span>${o ? `<b>${o.pct > 0 ? '+' : '−'}${Math.round(Math.abs(o.pct) * 100)} % ✓ <small class="muted">(${o.type === 'buy' ? `${short(o.eur)} à ` : 'à '}${coinPx(o.price)})</small></b><button class="btn xs red" data-act="ordCancel" data-t="${t}">Annuler</button>`
+        : opts.map(v => `<button class="btn xs blue" data-act="ordAdd" data-t="${t}" data-p="${v}" ${t !== 'buy' && !(hold > 0) ? 'disabled' : ''}>${v > 0 ? '+' : ''}${Math.round(v * 100)} %</button>`).join('')}</div>`; };
+    return `<h3 class="sec">Ordres automatiques</h3>${lock ? `<div class="explain">🔒 Avec le <b>PC gamer</b>, ton PC achète et vend tout seul quand le prix atteint ce que tu veux, même quand tu n'es pas là.</div>`
+      : `<div class="card orders"><p class="hint-line">Ton PC le fait tout seul quand le prix y arrive, même si tu n'es pas là.</p>
+        ${row('take', 'Tout vendre s\'il monte de', [.1, .25, .5])}${row('stop', 'Tout vendre s\'il baisse de', [-.1, -.2])}${row('buy', `Acheter ${short(Math.min(50, Math.floor(s.cash)) || 0)} s'il baisse de`, [-.1, -.2])}</div>`}`;
   }
 
   // ------------------------------------------------------------ machine à crypto
@@ -1634,6 +1665,9 @@
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
     trading() { openCrypto(); },
+    traderClaim() { const r = G.claimTrader(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); toast(`Défi du trader réussi : +${r.n} lingots !`); refresh(); },
+    ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
+    ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
     boutique() { openBoutique(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
@@ -1731,6 +1765,10 @@
     chatPush(f.name, f.img, { from: 'them', txt, acts: [{ label: f.up ? 'J\'achète' : 'Je regarde', act: 'crypto', id: f.coin }, { label: 'Pas confiance', act: 'no' }] });
     notify('msg', f.name, txt, null, false, f.name);
   });
+  G.on('flashSoon', f => notify('crypto', '🔔 Ton PC a repéré quelque chose', `${G.coin(f.id).name} va bouger d'un coup dans 1 min. Prépare-toi !`));
+  G.on('flash', f => notify('crypto', `⚡ ${G.coin(f.id).name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !`, f.up ? 'Si tu en as, c\'est le moment de vendre : ça va sûrement retomber.' : 'Ça plonge : ça pourrait remonter dans quelques minutes.'));
+  G.on('coinNews', n => { if (st().crypto.hold[n.id] > 0) notify('crypto', `📰 ${n.src} (${n.rel.toLowerCase()})`, n.txt); });
+  G.on('orderDone', ({ o, r }) => notify('crypto', '🤖 Ordre exécuté', r.err ? `Ton ordre sur ${G.coin(o.id).name} n'a pas pu passer : ${r.err}` : o.type === 'buy' ? `Ton PC a acheté du ${G.coin(o.id).name}.` : `Ton PC a tout vendu : ${r.profit >= 0 ? `+${short(r.profit)} de gagné` : `${short(r.profit)} de perdu`}.`));
   G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; notify('crypto', `Météo du marché : ${w[0]} ${w[1]}`, w[2]); });
   G.on('news', n => {
     if (n.smoke) {
