@@ -30,7 +30,7 @@
     { say: () => 'Cadeau : <b>un booster de cartes gratuit chaque jour</b>. Touche « Booster ».', target: '#btn-booster', done: () => !!$('[data-act=boosterOpen]:not([disabled])') || S('boosters') > 0 },
     { say: () => '<b>Ouvre-le</b> !', target: '[data-act=boosterOpen]:not([disabled])', done: () => !!$('#pack.on') || S('boosters') > 0 },
     { say: () => 'Touche les cartes pour les retourner. La dernière est une <b>carte de collection</b> : elle a une vraie cote, comme une vraie carte.', target: '#pack .pk-stack:not(.hidden), #pack .pk-done:not(.hidden)', done: () => S('boosters') > 0 && !$('#pack.on') },
-    { say: () => 'Voilà, t\'as les bases. Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le casino et le Comptoir ouvrent. Et retiens : le casino gagne toujours à la fin. À toi de jouer !', btn: 'C\'est parti', before: () => U.closeModal() }
+    { say: () => 'Voilà, t\'as les bases. Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le casino et le Comptoir ouvrent. Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l\'écran : je te dirai quoi faire pour avancer. À toi de jouer !', btn: 'C\'est parti', before: () => U.closeModal() }
   ];
 
   // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Royal sont vus dans le grand tuto.
@@ -50,8 +50,8 @@
       'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
     six: enter('six', 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
       'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
-    club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Entre.',
-      'Une soirée coûte l\'entrée, mais te fait gagner de l\'XP. Tu peux y rencontrer des contacts qui te proposent des <b>bons plans</b>. Sortir peut aussi devenir une habitude : un bonus, mais aussi un malus.', '[data-act=clubGo]')
+    club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Va voir le videur.',
+      'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo]')
   };
   const BLD_ORDER = ['kiosque', 'bus', 'six', 'shop', 'casino', 'club'];
   const seen = () => (st().bldTuto = st().bldTuto || {});

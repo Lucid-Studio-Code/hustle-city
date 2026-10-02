@@ -1415,6 +1415,8 @@
     D.HABITS.filter(h => h.lvl === L).forEach(h => u.push({ emo: h.icon, name: h.name }));
     if (L === D.EVENTS.lvl) u.push({ emo: '⚡', name: 'Mini-événements' });
     if (L === D.DEALS.lvl) u.push({ img: 'guide', name: 'Bons plans' });
+    if (L === D.AGENCE.lvl) u.push({ img: 'app-agence', emo: '📸', name: (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Ta page PrivéFans' : 'Agence PrivéFans' });
+    D.CITY_SHOP.filter(x => x.lvl === L && L > 1).forEach(x => u.push({ img: 'deco-' + x.id, emo: x.emo, name: x.name }));
     return u;
   }
   function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }

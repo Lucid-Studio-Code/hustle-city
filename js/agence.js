@@ -229,7 +229,13 @@
     if (solo()) return head + crew + `<p class="hint-line">Plus tu bosses, plus ton <b>énergie</b> baisse : sans énergie, tu gagnes moins. Le repos, le spa et les bonnes nouvelles la font remonter.</p>`;
     return head + off + (a.crew.length ? crew : '<div class="explain center">Ton agence est vide : recrute ta première créatrice.</div>') + cand + grow + how;
   }
-  function open() { U.openModal({ title: solo() ? 'Ma page PrivéFans' : 'PrivéFans', icon: 'star', full: true, body: body(), refresh: () => U.setBody(body()) }); }
+  // la première fois : Momo explique en deux phrases
+  function intro() {
+    const s = st(); if (s.agIntro || !unlocked()) return; s.agIntro = true;
+    U.dialog('Momo', solo() ? 'Ta page <b>PrivéFans</b> : choisis ta spécialité, poste du contenu (shooting, live, collab) et encaisse tes abonnés. Fais gaffe à ton <b>énergie</b> : fatiguée, tu gagnes moins.'
+      : 'Ton agence <b>PrivéFans</b> : recrute des créatrices, organise leurs journées, et touche ta part. Plus tu prends, plus leur <b>moral</b> baisse… et les agences rivales rôdent.', 'Compris');
+  }
+  function open() { U.openModal({ title: solo() ? 'Ma page PrivéFans' : 'PrivéFans', icon: 'star', full: true, body: body(), refresh: () => U.setBody(body()) }); setTimeout(intro, 300); }
 
   setInterval(() => { try { sim(); } catch (e) { console.error(e); } }, 5000);
   window.AGENCE = { open, sim, choose, pending: () => st() && st().agence ? st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0) : 0, offer: () => st() && st().agence && st().agence.offer, unlocked };
