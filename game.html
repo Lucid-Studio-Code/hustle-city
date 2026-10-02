@@ -41,9 +41,9 @@
     <button id="trophy" data-act="rewards" aria-label="Récompenses"><i class="ic" data-icon="trophy"></i><span class="badge ok hidden"></span></button>
     <button id="btn-booster" data-act="boosters" aria-label="Boosters"><i class="bst-mini"><img src="assets/img/booster-pack.png" alt=""></i><b>Booster</b><span class="badge ok hidden"></span></button>
     <button id="btn-gift" data-act="daily" aria-label="Cadeau du jour"><i class="ic" data-icon="gift"></i><b>Cadeau</b><span class="badge ok hidden">!</span></button>
-    <button id="btn-next" class="hidden" data-act="nextBuy" aria-label="Une idée ?"><span class="nx-pic"></span><b></b><span class="badge ok hidden">!</span></button>
+    <button id="btn-next" class="hidden" data-act="nextBuy" aria-label="Momo"><span class="nx-pic"></span><b></b><span class="badge ok hidden">!</span></button>
     <button id="next-tip" data-act="nextBuy"></button>
-    <button id="btn-upg" data-act="upgrades" aria-label="Matos"><i class="upg-ic">🛠️</i><b>Matos</b><span class="badge ok hidden">!</span></button>
+    <button id="btn-upg" data-act="upgrades" aria-label="Mon setup"><i class="upg-ic"><img src="assets/img/btn-setup.png" alt=""></i><b>Mon setup</b><span class="badge ok hidden">!</span></button>
     <button id="btn-promo" data-act="promo" aria-label="Promos"><span class="pr-rib">PROMO</span><i class="pr-ic">💎</i><b id="promo-t"></b></button>
     <button id="btn-deal" class="hidden" data-act="deal" aria-label="Bon plan"></button>
     <button id="phone-btn" data-act="phone" aria-label="Téléphone"><i class="ph-mini"><i></i></i><b>Tél.</b><span class="badge hidden"></span></button>
@@ -65,7 +65,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=89', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=90', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

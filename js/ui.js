@@ -258,7 +258,7 @@
     btn.classList.toggle('hidden', !st().tutoDone); if (!st().tutoDone) return;
     const top = coach()[0], urgent = top && top.now;
     const key = top ? top.t : '';
-    if (key !== nextKey) { nextKey = key; nextClicked = false; btn.querySelector('.nx-pic').innerHTML = `<span class="nx-emo">💡</span>`; btn.querySelector('b').textContent = 'Idée';
+    if (key !== nextKey) { nextKey = key; nextClicked = false; btn.querySelector('.nx-pic').innerHTML = has('btn-momo') ? `<img src="${src('btn-momo')}" alt="">` : pic('guide', '🧢'); btn.querySelector('b').textContent = 'Momo';
       // Momo souffle l'idée quand quelque chose d'important apparaît (pas plus d'une fois par minute)
       if (urgent && Date.now() - tipLast > 60000) showNextTip(top); }
     btn.classList.toggle('glow', !!urgent && !nextClicked); btn.querySelector('.badge').classList.toggle('hidden', !urgent || nextClicked);
@@ -278,7 +278,7 @@
   function goNextBuy() {
     nextClicked = true; $('#btn-next .badge')?.classList.add('hidden'); $('#btn-next')?.classList.remove('glow');
     $('#next-tip')?.classList.remove('on');
-    openModal({ title: 'Une idée ?', icon: 'star', body: coachBody() });
+    openModal({ title: 'Momo', icon: 'btn-momo', body: coachBody() });
   }
 
   // ------------------------------------------------------------ bouton « Améliorations » : la machine et l'appart, côte à côte
@@ -301,7 +301,7 @@
       : `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>`;
     return `<p class="hint-line">Ton matos. En vert : tu as de quoi te le payer. Sinon tu peux compléter avec des lingots, ou payer avec ton patrimoine (on revend tes cryptos, puis tes objets).</p>${rig}${pcCard}${flat}`;
   }
-  function openUpgrades() { openModal({ title: 'Matos', icon: 'star', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
+  function openUpgrades() { openModal({ title: 'Mon setup', icon: 'btn-setup', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
 
   // ------------------------------------------------------------ carte mission (apparaît quelques secondes, comme Mama Kana)
   let questKey = '', questPeekUntil = 0;

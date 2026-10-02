@@ -2208,3 +2208,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app #rplacer #rp-cur { flex: 1; text-align: right; font: 800 10.5px var(--text); color: #6a5a4a; }
 #app #rplacer .rp-tools .btn.xs { min-width: 34px; }
 #app:has(#rplacer) .room-obj.rp-sel, #app:has(#rplacer) .shelf-item.sel { outline: 3px solid #ffd23f; outline-offset: 2px; }
+#app #btn-upg .upg-ic { display: grid; place-items: center; width: 44px; height: 36px; font-style: normal; }
+#app #btn-upg .upg-ic img { width: 100%; height: 100%; object-fit: contain; }
+#app #btn-next .nx-pic img { width: 100%; height: 100%; object-fit: contain; object-position: center top; }
+#app #btn-upg b { font-size: 9px; white-space: nowrap; }
