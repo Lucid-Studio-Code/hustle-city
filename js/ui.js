@@ -32,9 +32,9 @@
   const EMO = {
     cash: '💵', lingot: '🪙', gear: '⚙️', wallet: '💼', chart: '📈', dice: '🎲', ticket: '🎟️', trophy: '🏆', home: '🏠', city: '🏙️', lock: '🔒', check: '✅', star: '⭐', gift: '🎁',
     'bld-appart': '🏢', 'bld-balto': '🍺', 'bld-casino': '🎰', 'bld-shop': '🛍️', 'bld-club': '🎉', 'bld-kiosque': '📰', 'bld-bijou': '💍', 'bld-garage': '🏎️', 'bld-tour': '🏙️',
-    pc: '🖥️', trading: '📈', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
+    pc: '🖥️', trading: '📈', shop: '🛍️', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
   };
-  const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', bolt: 'icon-bolt' };
+  const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', shop: 'nav-shop', bolt: 'icon-bolt' };
   function has(name) { return IMG.has(name); }
   // chargé depuis internet (mise à jour auto) mais joué sur ton ordi : les images viennent de ton dossier, c'est bien plus rapide
   // (une image absente de ton dossier est reprise sur internet, voir plus bas)
@@ -400,7 +400,7 @@
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('') + D.SIX.shop.filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
+    }).join('') + D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
   }
   // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
@@ -438,7 +438,7 @@
     placing = true;
     const sv = admSaved(), old = (() => { try { return JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) { return {}; } })();
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
-    const decos = D.SIX.shop.filter(x => x.kind === 'deco');
+    const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
@@ -771,7 +771,7 @@
     { id: 'bets', name: 'Mes paris', img: 'app-bets', emo: '🎟️', bg: '#e63946' },
     { id: 'msg', name: 'Messages', img: 'app-msg', emo: '💬', bg: '#8a4dd4' },
     { id: 'missions', name: 'Missions', img: 'app-missions', emo: '🏆', bg: '#f2b01e' },
-    { id: 'boosters', name: 'Boosters', img: 'app-boosters', emo: '🃏', bg: '#ff6fb5' },
+    { id: 'agence', name: 'PrivéFans', img: 'app-agence', emo: '📸', bg: '#ff4f8b' },
     { id: 'binder', name: 'Classeur', img: 'app-binder', emo: '📒', bg: '#139c8c' },
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
@@ -915,6 +915,29 @@
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
   function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, body: clubBody(), refresh: () => setBody(clubBody()) }); }
+
+  // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
+  let bqTab = 'deco';
+  function boutiqueBody() {
+    const s = st();
+    if (bqTab === 'vip') {
+      const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack');
+      return `<p class="hint-line">Des lingots et des exclusivités, en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
+        <div class="grid2 iap-grid">${L.map(x => `<div class="card iap-card">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n} lingots</b><small>${x.name}</small><button class="btn gold xs" data-act="iapSoon">${x.price}</button></div>`).join('')}</div>
+        <h3 class="sec">Exclusivités</h3>${P.map(x => `<div class="card iap-pack"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}<button class="btn purple xs" data-act="iapSoon">${x.price}</button></div>`).join('')}`;
+    }
+    const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
+      const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
+      const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${used ? 'Ranger' : 'Poser en ville'}</button>`
+        : lock ? `<button class="btn xs" disabled>🔒 Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
+      return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
+    return `<p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
+  }
+  function openBoutique(tab) {
+    if (tab) bqTab = tab;
+    openModal({ title: 'Boutique', icon: 'shop', full: true, tabs: [{ id: 'deco', label: 'Ma ville' }, { id: 'vip', label: 'Lingots & exclus' }], tab: bqTab,
+      body: boutiqueBody(), onTab: id => { bqTab = id; setBody(boutiqueBody()); }, refresh: () => setBody(boutiqueBody()) });
+  }
 
   // ------------------------------------------------------------ Le Kiosque
   let kioskTab = 'news', boosterReveal = null;
@@ -1461,6 +1484,7 @@
     if (id === 'bets') { notifs().forEach(n => { if (n.app === 'bets') n.read = true; }); return window.BALTO.openMyBets(); }
     if (id === 'missions') return openRewards();
     if (id === 'boosters') return openBoosters('open');
+    if (id === 'agence') return window.AGENCE ? AGENCE.open() : toast('L\'agence ouvre très bientôt.');
     if (id === 'binder') return openBoosters('col');
     if (id === 'settings') return openSettings();
     if (id === 'shopNews') return st().lvl >= 2 ? openShop('news') : null;
@@ -1566,6 +1590,10 @@
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
     trading() { openCrypto(); },
+    boutique() { openBoutique(); },
+    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
+    bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
+    iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
     setSkin(el) { st().skin = el.dataset.id; G.save(); openProfile(); renderHud(); },
     settings: () => openSettings(),

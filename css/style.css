@@ -2015,3 +2015,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app:has(#admin-banner) { box-shadow: inset 0 0 0 4px #e63946; }
 #app.txt-edit *:not(#placer *):not(#admin-banner *) { cursor: text !important; }
 #app.txt-edit #modal, #app.txt-edit #hud { outline: 2px dashed #9b5de5; }
+/* Boutique : achats intégrés */
+#app .iap-grid { gap: 8px; }
+#app .iap-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 14px 8px 10px; background: linear-gradient(#fff8dc, #ffe9a8); }
+#app .iap-card .iap-ic .ic, #app .iap-card .iap-ic img { width: 42px; height: 42px; }
+#app .iap-card b { font: 900 15px var(--text); } #app .iap-card small { font: 700 11px var(--text); color: #7a5a3a; }
+#app .iap-tag { position: absolute; top: -8px; right: -6px; padding: 2px 8px; border: 2px solid #2a1a10; border-radius: 999px; background: #e63946; color: #fff; font: 900 10.5px var(--text); }
+#app .iap-tag.in { position: static; flex: 0 0 auto; }
+#app .iap-pack { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: linear-gradient(#f4ecff, #e2d1ff); }
+#app .iap-pack .grow { flex: 1; } #app .iap-pack b { display: block; font: 900 14px var(--text); } #app .iap-pack small { font: 700 12px var(--text); color: #5a4a6a; }

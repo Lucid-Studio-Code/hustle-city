@@ -48,7 +48,7 @@
     <button id="phone-btn" data-act="phone" aria-label="Téléphone"><i class="ph-mini"><i></i></i><b>Tél.</b><span class="badge hidden"></span></button>
 
     <nav id="bottom">
-      <button class="bigbtn" data-act="trading"><i class="ic" data-icon="trading"></i><b>Trading</b></button>
+      <button class="bigbtn" data-act="boutique"><i class="ic" data-icon="shop"></i><b>Boutique</b></button>
       <button class="bigbtn" data-act="mybets"><i class="ic" data-icon="ticket"></i><b>Mes paris</b><span class="badge hidden" id="badge-bets"></span></button>
       <button class="bigbtn" data-act="wallet"><i class="ic" data-icon="wallet"></i><b>Portefeuille</b></button>
       <button class="bigbtn main" data-act="toggleScene" id="btn-scene"><i class="ic" data-icon="home"></i><b>Appart</b><span class="badge hidden" id="badge-rig">!</span></button>
@@ -64,7 +64,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=73', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=74', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

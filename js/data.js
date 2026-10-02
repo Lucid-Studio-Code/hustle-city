@@ -426,15 +426,37 @@
     'Une habitude se prend en une seconde. Pour l\'arrêter, compte 48 h de galère.'
   ];
 
+  // ---------------------------------------------------------------- Boutique (bouton du bas)
+  // Décos pour la ville, achetées pour toujours. Chacune a SA place sur la carte (réglée dans le back-office, jamais deux au même endroit).
+  const CITY_SHOP = [
+    { id: 'dc-bench',    kind: 'deco', name: 'Banc graffé',          emo: '🪑', desc: 'Le QG des discussions du quartier.', x: 36, y: 78, w: 7,  cash: 250,   lvl: 1 },
+    { id: 'dc-lamp',     kind: 'deco', name: 'Lampadaire rétro',     emo: '🏮', desc: 'Pour éclairer tes nuits de hustle.', x: 14, y: 70, w: 5,  cash: 400,   lvl: 2 },
+    { id: 'dc-palm',     kind: 'deco', name: 'Palmier en pot',       emo: '🌴', desc: 'Un air de vacances sur la place.',  x: 92, y: 48, w: 7,  cash: 700,   lvl: 3 },
+    { id: 'dc-kebab',    kind: 'deco', name: 'Food truck kebab',     emo: '🥙', desc: 'Sauce blanche, toujours.',          x: 84, y: 84, w: 12, cash: 2500,  lvl: 4 },
+    { id: 'dc-arcade',   kind: 'deco', name: 'Borne d\'arcade',      emo: '🕹️', desc: 'Le high score est à toi.',          x: 6,  y: 84, w: 6,  cash: 1200,  lvl: 3 },
+    { id: 'dc-fountain', kind: 'deco', name: 'Fontaine',             emo: '⛲', desc: 'On y jette une pièce pour la chance.', x: 50, y: 88, w: 10, cash: 5000, lvl: 6 },
+    { id: 'dc-car',      kind: 'deco', name: 'Voiture de sport',     emo: '🏎️', desc: 'Garée devant chez toi. Tout le monde regarde.', x: 30, y: 62, w: 14, lingots: 60, lvl: 8 },
+    { id: 'dc-statue',   kind: 'deco', name: 'Ta statue en or',      emo: '🗿', desc: 'Toi, en or massif, au milieu de la place.', x: 66, y: 50, w: 8, lingots: 150, lvl: 10 }
+  ];
+  // Achats intégrés (vrai argent) : affichés, pas encore achetables (il faudra la version App Store / Google Play)
+  const IAP = [
+    { id: 'l-80',   kind: 'lingots', n: 80,   name: 'Poignée de lingots', price: '1,99 €' },
+    { id: 'l-450',  kind: 'lingots', n: 450,  name: 'Sac de lingots',     price: '9,99 €', tag: '+12 %' },
+    { id: 'l-1000', kind: 'lingots', n: 1000, name: 'Coffre de lingots',  price: '19,99 €', tag: '+25 %' },
+    { id: 'l-2800', kind: 'lingots', n: 2800, name: 'Camion de lingots',  price: '49,99 €', tag: '+40 %' },
+    { id: 'x-start', kind: 'pack', name: 'Pack de départ', desc: '200 lingots, 5 boosters, la machine niveau 2', price: '4,99 €', tag: 'Une seule fois' },
+    { id: 'x-gold',  kind: 'pack', name: 'Skin exclusif « Gold »', desc: 'Survêt en or, chaîne XXL : introuvable ailleurs', price: '7,99 €', tag: 'Exclusif' }
+  ];
+
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
-  Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = SIX.shop.find(x => x.id === id); if (d) Object.assign(d, p); });
+  Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = SIX.shop.concat(CITY_SHOP).find(x => x.id === id); if (d) Object.assign(d, p); });
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();
