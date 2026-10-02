@@ -18,7 +18,7 @@ POCKETS = {
     # objets à anses ou à structure ajourée
     'item-t-collect': 'all', 'item-t-first': 'all', 'item-t-jackpot': 'all', 'item-t-hodl': 'all',
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
-    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)},
+    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [],   # pcv-1 : écrans blancs, aucun vide à retirer
 }
 MAX = {'bg': 1080, 'room': 1080, 'bld': 640, 'skin': 560, 'default': 420}
 
