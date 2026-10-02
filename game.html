@@ -43,7 +43,7 @@
     <button id="btn-gift" data-act="daily" aria-label="Cadeau du jour"><i class="ic" data-icon="gift"></i><b>Cadeau</b><span class="badge ok hidden">!</span></button>
     <button id="btn-next" class="hidden" data-act="nextBuy" aria-label="Momo"><span class="nx-pic"></span><b></b><span class="badge ok hidden">!</span></button>
     <button id="next-tip" data-act="nextBuy"></button>
-    <button id="btn-upg" data-act="upgrades" aria-label="Mon setup"><i class="upg-ic"><img src="assets/img/btn-setup.png" alt=""></i><b>Mon setup</b><span class="badge ok hidden">!</span></button>
+    <button id="btn-upg" data-act="upgrades" aria-label="Améliorer"><i class="upg-ic"><img src="assets/img/btn-upgrade.png" alt=""></i><span class="badge ok hidden">!</span></button>
     <button id="btn-promo" data-act="promo" aria-label="Promos"><span class="pr-rib">PROMO</span><i class="pr-ic">💎</i><b id="promo-t"></b></button>
     <button id="btn-deal" class="hidden" data-act="deal" aria-label="Bon plan"></button>
     <button id="phone-btn" data-act="phone" aria-label="Téléphone"><i class="ph-mini"><i></i></i><b>Tél.</b><span class="badge hidden"></span></button>
@@ -65,7 +65,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=92', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=93', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

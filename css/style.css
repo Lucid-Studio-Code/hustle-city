@@ -2222,3 +2222,4 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-g { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px; background: #fff8ec; }
 #app .ag-g.own { background: #e9f9df; } #app .ag-g > span { font-size: 22px; } #app .ag-g .grow { flex: 1; min-width: 0; }
 #app .ag-g b { display: block; font: 900 12.5px var(--text); } #app .ag-g b em { font-style: normal; color: #c2187a; font-size: 10.5px; } #app .ag-g small { display: block; font: 700 11px var(--text); color: #6a5a4a; }
+#app #btn-upg .upg-ic { width: 42px; height: 42px; }
