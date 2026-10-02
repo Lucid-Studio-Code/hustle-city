@@ -742,10 +742,11 @@
       ${weather}${tipBox}`;
   }
   function traderCard() {
-    const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal;
+    const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal, n = D.PCX.trader.lingots + Math.floor(st().lvl / 3);
     return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">🎯</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
-      ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div><small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}</div>
-      ${tr.claimed ? '<span class="got-tag">✓</span>' : `<button class="btn sm ${done ? 'gold' : ''}" data-act="traderClaim" ${done ? '' : 'disabled'}>${ic('lingot')}${D.PCX.trader.lingots + Math.floor(st().lvl / 3)}</button>`}</div>`;
+      ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div><small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}
+      <p class="rw-get">Tu gagnes ${chips(0, n)}</p></div>
+      ${tr.claimed ? '<span class="rw-done">✓ Déjà récupéré</span>' : done ? '<button class="btn green sm" data-act="traderClaim">Réclamer</button>' : ''}</div>`;
   }
   function flashBanner() {
     const s = st(), f = s.crypto.flash; if (!f) return '';
