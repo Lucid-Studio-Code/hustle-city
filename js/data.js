@@ -106,6 +106,20 @@
       { id: 'rest',   name: 'Repos',          icon: '🛌', min: 180, cost: 0,   subs: 0,   mood: 35,  desc: 'Elle recharge les batteries.' },
       { id: 'trip',   name: 'Voyage pro',     icon: '✈️', min: 480, cost: 400, subs: .25, mood: 20,  lvl: 8, desc: 'Shooting au soleil : énorme pour les abonnés et le moral.' }
     ],
+    // objets à acheter pour une créatrice (une fois chacun) : rev = revenus, subs = croissance des abonnés, mood = moral par heure
+    // niche : ×2 sur l'effet si ça colle à sa spécialité
+    gear: [
+      { id: 'ring',   name: 'Ring light pro',        icon: '💡', cost: 300,  subs: .15, desc: 'Des photos nettes : les abonnés montent plus vite.' },
+      { id: 'cam',    name: 'Appareil photo hybride', icon: '📷', cost: 900,  subs: .25, desc: 'Qualité pro pour chaque shooting.' },
+      { id: 'mic',    name: 'Micro de stream',       icon: '🎙️', cost: 400,  rev: .08,  desc: 'Les lives rapportent plus de pourboires.' },
+      { id: 'sport',  name: 'Tenue de sport premium', icon: '🏋️', cost: 350,  rev: .10, niche: ['Fitness', 'Danse', 'Bien-être'], desc: 'Parfaite pour les vidéos qui bougent.' },
+      { id: 'gown',   name: 'Robe de soirée',        icon: '👗', cost: 800,  rev: .12, niche: ['Mode & luxe', 'Beauté', 'Musique'], desc: 'Pour les photos glamour.' },
+      { id: 'cosplay', name: 'Costume de héroïne',   icon: '🦸', cost: 600,  rev: .12, niche: ['Cosplay', 'Gaming'], desc: 'Les fans adorent.' },
+      { id: 'travel', name: 'Valise de voyage',      icon: '🧳', cost: 500,  rev: .08, niche: ['Voyage', 'Cuisine'], desc: 'Prête à partir tourner au soleil.' },
+      { id: 'spa',    name: 'Abonnement spa',        icon: '🧖', cost: 700,  mood: 2,   desc: 'Elle récupère toute seule : +2 de moral par heure.' },
+      { id: 'studio', name: 'Déco de studio',        icon: '🛋️', cost: 2500, rev: .15, subs: .1, desc: 'Un vrai décor : tout son contenu prend de la valeur.' }
+    ],
+    dilEvery: [40, 90],   // une créatrice t'écrit pour te demander de choisir, toutes les 40 à 90 min
     crew: [
       { id: 'lola',  name: 'Lola Vibes',   niche: 'Fitness',    cha: 3, reg: 4, drama: 2, subs: 1200, desc: 'Coach sportive, toujours motivée.' },
       { id: 'mila',  name: 'Mila Cosplay', niche: 'Cosplay',    cha: 4, reg: 3, drama: 3, subs: 1800, desc: 'Costumes faits main, fans très fidèles.' },

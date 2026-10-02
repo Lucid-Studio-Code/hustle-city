@@ -1813,6 +1813,7 @@
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
       if (a.act === 'crypto') { closePhone(); setScene('appart'); return openCrypto(a.id); }
       if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news') : toast('Le Comptoir ouvre au niveau 2.'); }
+      if (a.act === 'ag' && window.AGENCE) { const r = AGENCE.choose(a.d, a.k); setTimeout(() => chatPush(c.name, null, { from: 'them', txt: r }), 900); refresh(); return drawPhone(); }
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
       drawPhone();
     },
@@ -1964,7 +1965,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; } };
+  window.UI = { chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

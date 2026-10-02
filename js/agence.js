@@ -18,7 +18,9 @@
   const slotsN = () => A.slots[ag().slots].n;
   const share = m => m.pct;
   const moodK = m => .5 + m.mood / 100 * .6;   // moral 0 → ×0,5 ; 100 → ×1,1
-  const perHour = m => m.subs * A.subPrice * moodK(m) * (.8 + prof(m.id).reg * .05) * share(m);
+  // objets achetés pour elle : effet ×2 s'il colle à sa niche
+  const gearK = (m, key) => A.gear.reduce((t, g) => t + (m.gear && m.gear[g.id] && g[key] ? g[key] * (g.niche && g.niche.includes(prof(m.id).niche) ? 2 : 1) : 0), 0);
+  const perHour = m => m.subs * A.subPrice * moodK(m) * (.8 + prof(m.id).reg * .05) * share(m) * (1 + gearK(m, 'rev')) * (m.priceK || 1);
   const recruitCost = c => Math.round(100 * Math.pow(c.cha, 1.5) + c.subs * .05);   // remboursée en ~1 journée de jeu
 
   // ------------------------------------------------------------ simulation (au temps réel)
@@ -29,16 +31,18 @@
       const h = Math.min(48, (t - (m.last || t)) / 3600000); m.last = t; if (h <= 0) return;
       const p = prof(m.id);
       m.pend = Math.min((m.pend || 0) + perHour(m) * h, perHour(m) * A.payCapH);
-      m.subs *= 1 + .004 * p.cha / 3 * moodK(m) * h;
-      m.mood = Math.max(0, Math.min(100, m.mood - (share(m) - .2) * 20 * h));
+      m.subs *= 1 + .004 * p.cha / 3 * moodK(m) * (1 + gearK(m, 'subs')) * h;
+      m.mood = Math.max(0, Math.min(100, m.mood - (share(m) - .2) * 20 * h + gearK(m, 'mood') * h));
       if (m.act && t >= m.act.start + m.act.dur) finishAct(m);
       if (m.mood < 15 && !a.offer) rivalOffer(m, true);
     });
     if (a.crew.length && t >= a.nextEv) { a.nextEv = t + rnd(...A.eventEvery) * 60000; randomEvent(); }
+    if (!a.nextDil) a.nextDil = t + rnd(10, 25) * 60000;
+    if (a.crew.length && t >= a.nextDil && !(a.dil && t < a.dil.until)) { a.nextDil = t + rnd(...A.dilEvery) * 60000; dilemma(); }
   }
   function finishAct(m) {
     const x = A.acts.find(o => o.id === m.act.k), p = prof(m.id), duo = m.act.with && ag().crew.find(o => o.id === m.act.with);
-    const gain = m.subs * x.subs * (p.cha / 3);
+    const gain = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
     m.subs += gain; m.mood = Math.max(0, Math.min(100, m.mood + x.mood));
     let tips = 0; if (x.cash) { tips = Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)); m.pend = (m.pend || 0) + tips; }
     if (duo) { duo.subs += duo.subs * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
@@ -50,6 +54,46 @@
     if (r < .35) { const k = rnd(.15, .35); m.subs *= 1 + k; U.notify('agence', `🔥 ${p.name} fait le buzz !`, `Une de ses vidéos explose : +${Math.round(k * 100)} % d'abonnés.`); }
     else if (r < .35 + .3 * d) { const k = rnd(.08, .18); m.subs *= 1 - k; m.mood = Math.max(0, m.mood - 10); U.notify('agence', `😬 Bad buzz pour ${p.name}`, `Une polémique sur les réseaux : −${Math.round(k * 100)} % d'abonnés. Un peu de repos lui ferait du bien.`); }
     else if (r < .35 + .3 * d + .2 * d && !a.offer) rivalOffer(m, false);
+  }
+  // ------------------------------------------------------------ dilemmes : une créatrice t'écrit, tu choisis, ça a des conséquences
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const DIL = [
+    { id: 'sponsor', txt: (m, c) => `Une marque de maillots me propose un partenariat : ${U.short(c)} tout de suite pour toi, mais je devrai poster leurs pubs pendant un mois… On accepte ?`, cost: m => Math.round(m.subs * .12 + 80),
+      opts: [['Accepte', (m, c) => { G.addCash(c); m.mood = clamp(m.mood - 12); m.subs *= .97; return `Ok… ${U.short(c)} sur ton compte. Mes fans vont râler pour les pubs 😅`; }],
+             ['Refuse', m => { m.mood = clamp(m.mood + 8); return 'Merci de me protéger, ça me touche ❤️'; }]] },
+    { id: 'tired', txt: () => 'Je suis épuisée… Je peux faire une pause de 3 h ? Promis je reviens à fond.',
+      opts: [['Repose-toi', m => { if (!m.act) m.act = { k: 'rest', start: Date.now(), dur: 180 * 60000 }; else m.mood = clamp(m.mood + 20); return 'Merci, t\'es le meilleur manager 🥹'; }],
+             ['On a besoin de toi', m => { m.mood = clamp(m.mood - 18); m.pend = (m.pend || 0) + perHour(m) * 2; return 'Ok… je fais un live de plus. Mais je suis à bout.'; }]] },
+    { id: 'ex', txt: (m, c) => `Un ex menace de balancer des vieilles photos de moi… Un avocat coûte ${U.short(c)}. Je fais quoi ?`, cost: () => 150 + G.st.lvl * 40,
+      opts: [['Je paie l\'avocat', (m, c) => { if (!G.pay(c)) return 'Tu n\'as pas assez… Je vais devoir me débrouiller seule 😟'; m.mood = clamp(m.mood + 12); return 'Lettre envoyée, il s\'est calmé direct. Merci 🙏'; }],
+             ['Ignore-le', m => { if (Math.random() < .5) return 'Tu avais raison, il a lâché l\'affaire.'; m.subs *= .8; m.mood = clamp(m.mood - 20); return 'Il a tout posté… J\'ai perdu plein d\'abonnés 😭'; }]] },
+    { id: 'tv', txt: (m, c) => `Une émission de télé m'invite !! Le train et l'hôtel coûtent ${U.short(c)}. On y va ?`, cost: m => Math.round(200 + m.subs * .05),
+      opts: [['On y va', (m, c) => { if (!G.pay(c)) return 'Pas assez de cash… tant pis pour cette fois.'; if (Math.random() < .6) { m.subs *= 1.35; m.mood = clamp(m.mood + 10); return 'J\'ai cartonné à la télé !! +35 % d\'abonnés 🔥'; } m.subs *= .9; return 'L\'animateur m\'a piégée… les réseaux se moquent de moi 😩'; }],
+             ['Pas cette fois', m => { m.mood = clamp(m.mood - 6); return 'Dommage… c\'était ma chance.'; }]] },
+    { id: 'price', txt: () => 'Je veux augmenter le prix de mon abonnement. Plus d\'argent par fan… mais certains vont partir. T\'en penses quoi ?',
+      opts: [['Augmente', m => { m.priceK = (m.priceK || 1) * 1.15; m.subs *= .9; return 'C\'est fait : +15 % par abonné. On verra qui reste !'; }],
+             ['Garde ton prix', () => 'Ok, je reste accessible. Mes fans vont apprécier.']] },
+    { id: 'rival', txt: () => 'Une créatrice d\'une agence rivale me propose une collab. Ça peut m\'apporter plein de fans… On le fait ?',
+      opts: [['Fonce', m => { m.subs *= 1.2; if (Math.random() < .3 && !ag().offer) setTimeout(() => rivalOffer(m, false), 4000); return 'Collab postée : +20 % d\'abonnés ! Son agence m\'a fait des compliments d\'ailleurs… 👀'; }],
+             ['Non, reste chez nous', m => { m.mood = clamp(m.mood - 6); return 'Ok, je reste fidèle à l\'agence.'; }]] },
+    { id: 'outfit', txt: (m, c) => `J'ai trouvé une tenue de folie pour mon prochain shooting, ${U.short(c)}. Tu me l'offres ? 🥺`, cost: () => 80 + G.st.lvl * 15,
+      opts: [['Je t\'offre', (m, c) => { if (!G.pay(c)) return 'Ah, t\'es à sec ? Pas grave 😅'; m.mood = clamp(m.mood + 20); m.subs *= 1.05; return 'Merciii !! Mes fans adorent déjà 😍'; }],
+             ['Pas cette fois', m => { m.mood = clamp(m.mood - 10); return 'Ok… je ferai avec mes vieilles tenues.'; }]] },
+    { id: 'gift', txt: () => 'Un fan m\'a offert un sac de luxe hors de prix… Je le garde ?',
+      opts: [['Garde-le', m => { m.mood = clamp(m.mood + 15); if (Math.random() < .2) { m.subs *= .92; return 'Ça a fuité sur les réseaux, ils me traitent de profiteuse 😬'; } return 'Trop beau, je l\'adore 😍'; }],
+             ['Rends-le', m => { m.subs *= 1.05; return 'Je l\'ai rendu en story : les gens ont adoré mon honnêteté ✨'; }]] }
+  ];
+  function dilemma() {
+    const a = ag(), m = pick(a.crew), p = prof(m.id), d = pick(DIL), c = d.cost ? d.cost(m) : 0;
+    a.dil = { id: Date.now(), m: m.id, d: d.id, c, until: Date.now() + 30 * 60000 };
+    const txt = d.txt(m, c), img = U.has('cr-' + m.id) ? 'cr-' + m.id : 'icon-star';
+    U.chatPush(p.name, img, { from: 'them', txt, acts: d.opts.map(([label], k) => ({ label, act: 'ag', d: a.dil.id, k })) });
+    U.notify('msg', p.name, txt, null, false, p.name);
+  }
+  function choose(id, k) {
+    const a = ag(), dl = a.dil; if (!dl || dl.id !== id || Date.now() > dl.until) return 'Trop tard, j\'ai dû décider sans toi…';
+    const m = a.crew.find(x => x.id === dl.m); a.dil = null; if (!m) return 'Je ne suis plus dans ton agence…';
+    const d = DIL.find(x => x.id === dl.d); G.stat('agChoices'); return d.opts[k][1](m, dl.c);
   }
   // une agence rivale veut la récupérer : on la garde (prime ou part réduite) ou on la laisse partir
   function rivalOffer(m, unhappy) {
@@ -67,7 +111,10 @@
     }
     return a.cand.map(prof).filter(c => c && !a.crew.some(m => m.id === c.id));
   }
+  const gearOpen = new Set();
   const act = {
+    agGearOpen(el) { const id = el.dataset.id; gearOpen.has(id) ? gearOpen.delete(id) : gearOpen.add(id); refresh(); },
+    agGear(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return; if (m.gear && m.gear[g.id]) return; if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); (m.gear = m.gear || {})[g.id] = Date.now(); m.mood = clamp(m.mood + 8); G.addXp(10); U.sfx.coin(); U.toast(`${g.icon} ${g.name} pour ${prof(m.id).name} : elle adore !`); refresh(); },
     agRecruit(el) {
       const a = ag(), c = prof(el.dataset.id), cost = recruitCost(c);
       if (a.crew.length >= slotsN()) return U.toast('Agence pleine : agrandis-la pour en recruter une autre.', true);
@@ -120,6 +167,10 @@
       return `<div class="card ag-cr"><div class="ag-top">${face(p)}<div class="grow"><b>${p.name}</b><small>${p.niche} · <strong>${fmtSubs(m.subs)}</strong> abonnés</small>
           <div class="ag-mood"><span>Moral</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div></div>
           <div class="ag-earn"><small>Pour toi</small><b>${U.short(perHour(m))}/h</b></div></div>
+        ${(() => { const n = A.gear.filter(g => m.gear && m.gear[g.id]).length, open = gearOpen.has(m.id);
+          return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">🛍️ Ses affaires · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
+          ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = m.gear && m.gear[g.id], fit = g.niche && g.niche.includes(p.niche);
+            return `<div class="ag-g ${own ? 'own' : ''}"><span>${g.icon}</span><div class="grow"><b>${g.name}${fit ? ' <em>×2 pour elle</em>' : ''}</b><small>${g.desc}</small></div>${own ? '<small class="up">✓ À elle</small>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
         <div class="ag-share"><span>Ta part</span>${A.shares.map(v => `<button class="btn xs ${m.pct === v ? 'yellow' : 'blue'}" data-act="agShare" data-id="${m.id}" data-v="${v}">${Math.round(v * 100)} %</button>`).join('')}<button class="btn xs purple" data-act="agGift" data-id="${m.id}">🎁 ${U.short(50 + s.lvl * 10)}</button></div>
         ${m.act ? `<div class="ag-busy">${x.icon} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
           : `<div class="ag-acts">${A.acts.map(o => `<button class="ag-act" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${o.lvl && s.lvl < o.lvl ? 'disabled' : ''}><span>${o.icon}</span><b>${o.name}</b><small>${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}</small></button>`).join('')}</div>`}
@@ -137,5 +188,5 @@
   function open() { U.openModal({ title: 'PrivéFans', icon: 'star', full: true, body: body(), refresh: () => U.setBody(body()) }); }
 
   setInterval(() => { try { sim(); } catch (e) { console.error(e); } }, 5000);
-  window.AGENCE = { open, sim, pending: () => st() && st().agence ? st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0) : 0, offer: () => st() && st().agence && st().agence.offer, unlocked };
+  window.AGENCE = { open, sim, choose, pending: () => st() && st().agence ? st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0) : 0, offer: () => st() && st().agence && st().agence.offer, unlocked };
 })();
