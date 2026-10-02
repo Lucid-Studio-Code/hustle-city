@@ -196,64 +196,80 @@
     renderTicker();
   }
 
-  // ------------------------------------------------------------ bouton « prochain achat » : l'image de la prochaine amélioration utile
-  // on propose la moins chère entre la machine suivante et l'appart suivant ; Momo prévient quand on peut se la payer
-  // ce qui fait avancer, hors « Matos » (qui a son propre bouton) : une carte pour finir une série, un objet qu'une rumeur fait monter
-  function nextBuy() {
+  // ------------------------------------------------------------ bouton « Idée » : le coach
+  // Il regarde où en est le joueur et lui dit quoi faire pour avancer (jamais un achat au hasard).
+  // Chaque étape : ic (emoji), t (titre), d (détail), go (ce que fait « Y aller »), p (priorité), now (à faire tout de suite).
+  function nextUnlock() {
     const s = st(), L = [];
-    const has_ = id => (s.owned[id] || []).length, buyable = it => G.catUnlocked(it.cat) && G.inStock(it.id) && !has_(it.id);
-    // pour chaque série commencée : sa carte manquante la moins chère en rayon
-    if (G.catUnlocked('card')) D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).forEach(se => {
-      const miss = G.seriesCards(se.id).filter(buyable).sort((x, y) => G.buyPrice(x.id) - G.buyPrice(y.id))[0];
-      if (!miss) return; const left = G.seriesCards(se.id).length - G.seriesHave(se.id);
-      L.push({ kind: 'card', it: miss, name: G.what(miss, true), price: G.buyPrice(miss.id),
-        why: `${left === 1 ? 'La dernière carte' : `Encore ${left} cartes`} pour finir « ${se.name} » : +${short(se.reward.cash)} à la clé.` });
-    });
-    if (s.lvl >= 2) {
-      // les objets qu'une rumeur récente fait grimper
-      s.market.news.filter(x => x.up && Date.now() - x.t < 20 * 60000 && G.item(x.item) && buyable(G.item(x.item))).slice(0, 2).forEach(n => {
-        const it = G.item(n.item); if (!L.some(o => o.it === it)) L.push({ kind: 'rumor', it, name: G.what(it, true), price: G.buyPrice(it.id), why: 'Une rumeur le fait grimper : achète avant que ça monte encore.' }); });
-      // un objet en rayon dont le prix monte depuis un moment (et que tu peux te payer)
-      const up = D.ITEMS.filter(it => !it.series && it.cat !== 'trophy' && buyable(it)).map(it => { const h = s.market.hist[it.id]; return { it, v: s.market.prices[it.id] / h[Math.max(0, h.length - 30)] - 1 }; })
-        .filter(x => x.v > .04 && G.buyPrice(x.it.id) <= Math.max(200, s.cash * 1.5)).sort((a, b) => b.v - a.v)[0];
-      if (up && !L.some(o => o.it === up.it)) L.push({ kind: 'trend', it: up.it, name: G.what(up.it, true), price: G.buyPrice(up.it.id), why: `Son prix monte : +${Math.round(up.v * 100)} % ces dernières minutes.` });
-    }
-    if (!L.length) return null;
-    const list = L.sort((a, b) => a.price - b.price);
-    return list[Math.floor(Date.now() / 120000) % list.length];
+    D.BUILDINGS.forEach(b => b.lvl > s.lvl && L.push([b.lvl, `le ${b.name.replace(/^(Le|La) /, '')}`.replace('le Lucky', 'le Lucky'), b.tag]));
+    Object.values(D.SPORTS).forEach(x => x.lvl > s.lvl && L.push([x.lvl, `les paris ${x.name.toLowerCase()}`, x.league]));
+    Object.entries(D.ITEM_CATS).forEach(([, c]) => !c.noBuy && c.lvl > s.lvl && L.push([c.lvl, `les ${c.name.toLowerCase()} au Comptoir`, 'des objets qui prennent de la valeur']));
+    D.SCRATCH.forEach(t => t.lvl > s.lvl && L.push([t.lvl, `le ticket ${t.name}`, `jusqu'à ${short(t.prizes[t.prizes.length - 1][0])}`]));
+    D.COINS.forEach(c => c.lvl > s.lvl && L.push([c.lvl, `la crypto ${c.name}`, c.desc.split('.')[0]]));
+    if (D.COMBI_LVL > s.lvl) L.push([D.COMBI_LVL, 'les paris combinés', 'plusieurs matchs, une grosse cote']);
+    L.sort((x, y) => x[0] - y[0]);
+    return L.length ? { lvl: L[0][0], what: L.filter(x => x[0] === L[0][0]).map(x => x[1]) } : null;
   }
-  // pastille « ! » : enlevée dès qu'on clique, elle revient au prochain lancement du jeu
-  let nextClicked = false;
-  let nextKey = '', nextWasReady = false, tipT = 0, tipLast = 0;
+  function coach() {
+    const s = st(), L = [], add = (p, ic, t, d, go, now) => L.push({ p, ic, t, d, go, now: !!now });
+    const rw = G.questsReady() + G.chalReady();
+    if (rw) add(100, '🏆', `${rw} récompense${rw > 1 ? 's' : ''} à récupérer`, 'Tes missions ou tes défis sont réussis : encaisse.', () => openRewards(), true);
+    if (G.dailyReady()) add(95, '🎁', 'Ton cadeau du jour t\'attend', 'Reviens chaque jour : il grossit avec la série.', () => openDaily(), true);
+    const ri = G.rigInfo();
+    if (ri.hot) add(90, '⛏️', 'Ta machine est pleine', `Elle s'est arrêtée avec ${short(ri.value)} dedans : encaisse et relance-la.`, () => questGo('rig'), true);
+    if (G.boosterCount()) add(85, '🃏', `${G.boosterCount()} booster${G.boosterCount() > 1 ? 's' : ''} à ouvrir`, 'Des cartes à collectionner et des récompenses.', () => openBoosters('open'), true);
+    if (G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
+    if (s.deal && Date.now() < s.deal.end) add(78, '💬', `${s.deal.name} te propose une affaire`, 'L\'offre ne dure pas : regarde vite.', () => openPhone('msg'), true);
+    const up = G.upgradeReady();
+    if (up) add(75, '🛠️', { pc: 'Tu peux te payer un meilleur PC', rig: 'Tu peux améliorer ta machine', room: 'Tu peux déménager' }[up], { pc: 'Moins de frais sur la crypto.', rig: 'Elle minera plus vite.', room: 'Plus de place pour tes objets.' }[up], () => openUpgrades(), true);
+    // une série presque finie, avec la carte qui manque en rayon
+    if (G.catUnlocked('card')) D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).forEach(se => {
+      const all = G.seriesCards(se.id), left = all.length - G.seriesHave(se.id);
+      if (left > 2) return;
+      if (G.seriesDone && G.seriesDone(se.id)) return add(88, '📒', `Série « ${se.name} » complète !`, `Réclame ta prime de ${short(se.reward.cash)}.`, () => openBoosters('col'), true);
+      const miss = all.find(it => !(s.owned[it.id] || []).length && G.inStock(it.id));
+      add(60, '📒', `${left === 1 ? 'Plus qu\'une carte' : 'Plus que 2 cartes'} pour finir « ${se.name} »`, miss ? `${miss.name} est au Comptoir. Prime : ${short(se.reward.cash)}.` : `Ouvre des boosters ou guette le Comptoir. Prime : ${short(se.reward.cash)}.`,
+        () => miss ? questGo('shop') : openBoosters('col'));
+    });
+    const q = G.questFocus();
+    if (q && !G.questState(q).done) add(50, '🎯', `Mission : ${q.txt}`, `${q.cash ? `+${short(q.cash)}` : `+${q.lingots || 0} lingots`} et de l'XP pour monter de niveau.`, () => questGo(q.go));
+    const nu = nextUnlock();
+    if (nu) add(40, '🔓', `Niveau ${nu.lvl} : ${nu.what.slice(0, 2).join(' et ')}`, `Encore ${Math.max(0, G.xpNeed() - s.xp)} XP. Missions, paris, soirées : tout en rapporte.`, () => openRewards());
+    if (!up) {
+      const nx = G.rigNext(), np = G.pcNext && G.pcNext();
+      const goal = [nx && { n: 'la prochaine machine', p: nx.price }, np && { n: 'un meilleur PC', p: np.price }].filter(Boolean).sort((a, b) => a.p - b.p)[0];
+      if (goal) add(30, '💰', `Encore ${short(Math.max(0, goal.p - s.cash))} pour ${goal.n}`, 'Encaisse ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', () => openUpgrades());
+    }
+    add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
+    return L.sort((a, b) => b.p - a.p);
+  }
+  let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
   function renderNextBtn() {
-    const n = nextBuy(), btn = $('#btn-next'); if (!btn) return;
-    btn.classList.toggle('hidden', !n || !st().tutoDone); if (!n) return;
-    const ready = st().cash >= n.price, key = n.kind + (n.it ? n.it.id : '');
-    if (key !== nextKey) { nextKey = key; nextWasReady = false; $('#next-tip')?.classList.remove('on'); btn.querySelector('.nx-pic').innerHTML = n.it ? itemPic(n.it) : packArt(true); }
-    btn.querySelector('b').innerHTML = short(n.price);
-    // il brille seulement quelques secondes, quand Momo lance sa bulle (pas en continu)
-    btn.classList.toggle('glow', ready && $('#next-tip')?.classList.contains('on')); btn.querySelector('.badge').classList.toggle('hidden', !ready || nextClicked);
-    // la bulle : dès que ça devient payable, puis toutes les 3 min tant que ce n'est pas acheté
-    if (ready && !nextWasReady || ready && Date.now() - tipLast > 180000) showNextTip(n);
-    nextWasReady = ready;
+    const btn = $('#btn-next'); if (!btn) return;
+    btn.classList.toggle('hidden', !st().tutoDone); if (!st().tutoDone) return;
+    const top = coach()[0], urgent = top && top.now;
+    const key = top ? top.t : '';
+    if (key !== nextKey) { nextKey = key; nextClicked = false; btn.querySelector('.nx-pic').innerHTML = `<span class="nx-emo">💡</span>`; btn.querySelector('b').textContent = 'Idée';
+      // Momo souffle l'idée quand quelque chose d'important apparaît (pas plus d'une fois par minute)
+      if (urgent && Date.now() - tipLast > 60000) showNextTip(top); }
+    btn.classList.toggle('glow', !!urgent && !nextClicked); btn.querySelector('.badge').classList.toggle('hidden', !urgent || nextClicked);
   }
   function showNextTip(n) {
     const t = $('#next-tip'); if (!t || modalOpen() || phoneOpen() || (window.TUTO && TUTO.active)) return;
     tipLast = Date.now();
-    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>Hé, achète ça, ça va t'aider !</b><small>${n.name} · ${n.why}</small></span>`;
+    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>${n.ic} ${n.t}</b><small>${n.d}</small></span>`;
     t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
   }
+  let coachList = [];
+  function coachBody() {
+    coachList = coach().slice(0, 4);
+    return `<div class="coach-top"><span class="t-who">${pic('guide', '🧢')}</span><p><b>Momo</b>Voilà ce que je ferais à ta place, dans l'ordre :</p></div>` +
+      coachList.map((c, i) => `<div class="card coach-step ${c.now ? 'now' : ''}"><span class="cs-ic">${c.ic}</span><div class="grow"><b>${c.t}</b><small>${c.d}</small></div><button class="btn sm ${i === 0 ? 'green' : 'blue'}" data-act="coachGo" data-i="${i}">Y aller</button></div>`).join('');
+  }
   function goNextBuy() {
-    nextClicked = true; $('#btn-next .badge')?.classList.add('hidden');
+    nextClicked = true; $('#btn-next .badge')?.classList.add('hidden'); $('#btn-next')?.classList.remove('glow');
     $('#next-tip')?.classList.remove('on');
-    const n = nextBuy(); if (!n) return;
-    if (n.it) {
-      setScene('city'); focusBld('shop'); openShop(n.it.cat);
-      // on descend jusqu'à la carte proposée et on la fait briller
-      return setTimeout(() => { const c = $(`#modal [data-act=itBuy][data-id="${n.it.id}"]`)?.closest('.item-card'), b = $('#modal .sheet-body');
-        if (c && b) { b.scrollTop = c.offsetTop - b.offsetTop - 60; c.classList.add('spot'); } }, 50);
-    }
-    return openRoom();
+    openModal({ title: 'Une idée ?', icon: 'star', body: coachBody() });
   }
 
   // ------------------------------------------------------------ bouton « Améliorations » : la machine et l'appart, côte à côte
@@ -730,7 +746,7 @@
   function bubbleHtml(c, m, i) {
     if (m.from === 'me') return `<div class="bub out">${m.txt}</div>`;
     let extra = '';
-    if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>${(f => m.offer.type === 'sell' ? `Il te ${f} vend` : `Il te ${f} rachète`)(/^la /.test(G.what(it)) ? 'la' : 'le')} <strong>${short(m.offer.price)}</strong> · cote ${short(st().market.prices[m.offer.id])}</small></span></div>`; }
+    if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>${(f => m.offer.type === 'sell' ? `Il te ${f} vend` : `Il te ${f} rachète`)(/^la /.test(G.what(it)) ? 'la' : 'le')} <strong>${short(m.offer.price)}</strong>${m.offer.type === 'buy' && paidFor(m.offer.id) != null ? `<br>${gainTxt(m.offer.id, m.offer.price)}` : ` · cote ${short(st().market.prices[m.offer.id])}`}</small></span></div>`; }
     if (m.match) { const x = G.match(m.match); if (x) extra = `<div class="bub in offer match"><span class="of-crests">${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.home), 'mini')}${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.away), 'mini')}</span><span><b>${x.home} – ${x.away}</b><small>${x.state === 'soon' ? `Coup d'envoi dans ${mmss(x.kickoff - Date.now())}` : x.state === 'live' ? 'En direct' : 'Terminé'}</small></span></div>`; }
     if (m.item && !m.offer) { const it = G.item(m.item); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>Cote ${short(st().market.prices[m.item])}</small></span></div>`; }
     // réponses rapides : seulement sur le dernier message encore ouvert
@@ -1062,7 +1078,7 @@
           <p class="rw-get">Tu gagnes ${chips(G.chalCash(), 0)}</p></div>
           <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
-      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? 'Obtenu aujourd\'hui, bravo !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus && G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : `<span class="stroke">${ic('lingot')}3 + booster</span>`}</div>`;
+      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '3 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}3 + booster</span>`}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
@@ -1289,6 +1305,9 @@
   }
 
   // ------------------------------------------------------------ bon plan d'un contact
+  // rachat : « tu l'as payé X → il t'en donne Y = +Z » (plus parlant que la cote)
+  const paidFor = id => { const a = st().owned[id]; return a && a.length ? a[0].paid : null; };
+  const gainTxt = (id, price) => { const p = paidFor(id); if (p == null) return ''; const g = Math.round(price - p); return `Acheté ${short(p)} · <b class="${g >= 0 ? 'up' : 'down'}">${g >= 0 ? 'tu gagnes +' : 'tu perds '}${short(Math.abs(g))}</b>`; };
   function openDeal() {
     const d = st().deal; if (!d) return;
     const body = () => {
@@ -1296,8 +1315,8 @@
       const it = G.item(x.id), cote = st().market.prices[x.id], diff = x.type === 'sell' ? (1 - x.price / cote) : (x.price / cote - 1);
       return `<div class="deal-top"><span class="deal-face">${pic(x.img, '🧑')}</span><div class="say"><b>${x.name}</b>« ${x.line} »</div></div>
         <div class="card deal-card center"><span class="rtag r${it.r}">${RAR[it.r]}</span><div class="deal-art">${itemPic(it)}</div><h4>${it.name}</h4>
-          <div class="deal-prices"><div><small>Cote</small><b>${short(cote)}</b></div><div class="arrow">${x.type === 'sell' ? '→' : '→'}</div><div class="hot"><small>${x.type === 'sell' ? 'Il te le vend' : 'Il te le rachète'}</small><b>${short(x.price)}</b></div></div>
-          <p class="deal-gain">${x.type === 'sell' ? `${Math.round(diff * 100)} % sous la cote` : `${Math.round(diff * 100)} % au-dessus de la cote (au Comptoir, tu aurais ${short(G.sellPrice(x.id))})`}</p>
+          <div class="deal-prices"><div><small>${x.type === 'buy' && paidFor(x.id) != null ? 'Acheté' : 'Cote'}</small><b>${short(x.type === 'buy' && paidFor(x.id) != null ? paidFor(x.id) : cote)}</b></div><div class="arrow">${x.type === 'sell' ? '→' : '→'}</div><div class="hot"><small>${x.type === 'sell' ? 'Il te le vend' : 'Il te le rachète'}</small><b>${short(x.price)}</b></div></div>
+          <p class="deal-gain">${x.type === 'sell' ? `${Math.round(diff * 100)} % sous la cote` : paidFor(x.id) != null ? `${gainTxt(x.id, x.price)} (au Comptoir, tu aurais ${short(G.sellPrice(x.id))})` : `${Math.round(diff * 100)} % au-dessus de la cote (au Comptoir, tu aurais ${short(G.sellPrice(x.id))})`}</p>
           <p class="muted">L'offre expire dans <b>${mmss(x.end - Date.now())}</b></p></div>
         <div class="grid2"><button class="btn green" data-act="dealOk">${x.type === 'sell' ? `Acheter ${short(x.price)}` : `Vendre ${short(x.price)}`}</button><button class="btn" data-act="dealNo">Refuser</button></div>`;
     };
@@ -1431,6 +1450,7 @@
     quests: () => openRewards(),
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
+    coachGo(el) { const c = coachList[+el.dataset.i]; closeModal(); if (c) setTimeout(c.go, 60); },
     upgrades: () => openUpgrades(),
     sixBoard: () => { sixTab = 'board'; openSix('board'); },
     roomPlace: () => roomPlacer(true),
