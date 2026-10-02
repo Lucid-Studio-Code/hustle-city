@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Hustle City</title><meta name="theme-color" content="#1b1433">
 <style>html,body{margin:0;height:100%;background:#1b1433;color:#fff;font:700 15px sans-serif}#ld{display:grid;place-items:center;height:100%}</style>
 </head><body><div id="ld">Chargement de Hustle City…</div>
@@ -21,7 +21,7 @@
     const html = await (await fetch(raw + 'game.html', { signal: ctl.signal })).text();
     if (!html.includes('id="app"')) throw new Error('page vide');
     document.open();
-    document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><base href="' + cdn + '">' + html.replace(/<!doctype html>/i, '') + '</html>');
+    document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><base href="' + cdn + '">' + html.replace(/<!doctype html>/i, '') + '</html>');
     document.close();
   } catch (e) { console.warn('Mise à jour impossible, version locale :', e); local(); }
 })();

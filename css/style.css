@@ -1968,3 +1968,8 @@ h3.sec { margin: 18px 6px 10px; }
 #app .sx-pv em { font-style: normal; margin-left: 6px; opacity: .9; }
 #app .nc-fee { display: block; margin-top: 2px; font: 700 11.5px/1.3 var(--text); color: #6a5a4a; } #app .nc-fee b { color: #2a1a10; }
 #app .sx-rumor.true { background: #e3f6d8; border-color: #6cbf4a; } #app .sx-rumor.true em { color: #1f9d55; } #app .sx-rumor.false { background: #fbe3df; border-color: #d98a7e; } #app .sx-rumor.false em { color: #c62828; }
+/* téléphone : le jeu prend tout l'écran (hauteur réelle, sans la barre d'adresse) */
+@media (max-width: 520px) {
+  html, body { height: 100dvh; }
+  #app { max-width: none; max-height: none; width: 100vw; height: 100dvh; border-radius: 0; }
+}
