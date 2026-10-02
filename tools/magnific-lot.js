@@ -1,0 +1,44 @@
+// Lot d'images Hustle City : à coller dans la console de Chrome, sur magnific.com/app/ai-image-generator
+// Avant : mode Unlimited sur ON, qualité « 2K · High », Smart prompt sur OFF. Le script s'arrête tout seul sinon (jamais de crédits).
+// Outil d'automatisation Magnific (à coller dans la page magnific.com/app/ai-image-generator)
+window.HC = {
+  w: ms => new Promise(r => setTimeout(r, ms)),
+  S: "2D mobile game art, polished cartoon illustration, thick dark brown outlines, bold saturated colors, soft cel shading with subtle highlights, slightly exaggerated funny proportions, humorous cartoon vibe, clean vector-like rendering, high detail, same art style as the reference images, a bit more urban street style. ",
+  results: {}, log: [],
+  btn: re => [...document.querySelectorAll('button')].find(b => re.test(b.innerText.trim())),
+  async prompt(t) { const ed = document.querySelector('[contenteditable=true]'); ed.focus(); document.execCommand('selectAll'); document.execCommand('insertText', false, t); await HC.w(300); },
+  async ratio(r) { const cur = [...document.querySelectorAll('button')].find(b => /^\d+:\d+$|^auto$/i.test(b.innerText.trim())); if (cur.innerText.trim() === r) return; cur.click(); await HC.w(500); const o = [...document.querySelectorAll('button,[role=option],li,div')].filter(e => e.children.length < 6 && (e.innerText || '').trim().startsWith(r + '\n')).pop(); o.click(); await HC.w(400); },
+  check() { const t = document.querySelector('[data-cy=smart-prompt-toggle]'); const off = !t || t.querySelector('span').className.includes('bg-surface-4'); const gen = [...document.querySelectorAll('button')].find(x => x.innerText.trim().startsWith('Generate')); const ub = document.querySelector('[data-cy=unlimited-mode-toggle-button]'); return { off, unl: !!gen && gen.innerText.includes('Unlimited') && (!ub || ub.innerText.trim() === 'ON'), q: [...document.querySelectorAll('button')].map(x => x.innerText.trim()).filter(t => /·/.test(t))[0], gen }; },
+  async go() { let c; for (let i = 0; i < 25; i++) { c = HC.check(); if (c.off && c.unl && c.q === '2K · High') break; await HC.w(800); } if (!c.off || !c.unl || c.q !== '2K · High') return 'STOP ' + JSON.stringify({ off: c.off, unl: c.unl, q: c.q }); c.gen.click(); return 'generating'; },
+  api: 'https://www.magnific.com/app/api/projects/folders/7fabba97-a6a0-4437-be44-e477002c2690/files?page=1&per_page=60&order_by=created_at&order_direction=desc&folder_reference=7fabba97-a6a0-4437-be44-e477002c2690&lang=en_US&user_id=98122212',
+  async list() { const j = await (await fetch(HC.api, { credentials: 'include', headers: { Accept: 'application/json' } })).json(); return j.data.map(f => { const s = JSON.stringify(f.creation || {}); const m = s.match(/https:\\?\/\\?\/pikaso[^"]+render\.png\?token=[^"\\&]+/); return { t: Date.parse(f.created_at), name: f.name, url: m ? m[0].replace(/\\\//g, '/') : null }; }); },
+  async find(prompt, since) { const l = await HC.list(); const hit = l.find(x => x.url && x.t >= since - 15000 && x.name === prompt); return hit ? hit.url : null; },
+  async run(list) { HC.running = true; try { for (const [name, ratio, p] of list) { if (HC.results[name] || HC.stop) continue; if (!document.querySelector('[contenteditable=true]')) { HC.log.push('pas de zone de saisie'); break; } await HC.prompt(p); await HC.ratio(ratio); await HC.w(300); const since = Date.now(); const g = await HC.go(); if (g !== 'generating') { HC.log.push(name + ' ' + g); HC.stop = true; break; } let url = null; for (let i = 0; i < 70 && !url; i++) { await HC.w(5000); try { url = await HC.find(p, since); } catch (e) {} } if (url) HC.results[name] = url; else HC.log.push(name + ' timeout'); await HC.w(1000); } } catch (e) { HC.log.push('erreur ' + e.message); } HC.running = false; },
+  async swapToUrl(url) {
+    if (HC.btn(/^Clear all$/)) { HC.btn(/^Clear all$/).click(); await HC.w(800); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await HC.w(800); }
+    for (const b of [...document.querySelectorAll('[aria-label^="Remove"]')]) { b.click(); await HC.w(600); }
+    const blob = await (await fetch(url)).blob();
+    const add = [...document.querySelectorAll('div,button')].find(e => /^Add$/.test((e.innerText || '').trim()) && e.children.length <= 2); add.click(); await HC.w(2000);
+    if (HC.btn(/^Clear all$/)) { HC.btn(/^Clear all$/).click(); await HC.w(800); }
+    const inp = [...document.querySelectorAll('input[type=file]')].find(i => i.accept.includes('image/'));
+    const dt = new DataTransfer(); dt.items.add(new File([blob], 'reference.png', { type: 'image/png' }));
+    inp.files = dt.files; inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true }));
+    await HC.w(6000);
+    const b = HC.btn(/^Add( \d+)?$/); if (b) b.click(); await HC.w(3000);
+    return document.body.innerText.match(/\d+\/14/)?.[0];
+  }
+};
+
+HC.LOT = [["sheet-crests-r", "3:2", "2D mobile game art, polished cartoon illustration, thick dark brown outlines, bold saturated colors, soft cel shading with subtle highlights, slightly exaggerated funny proportions, humorous cartoon vibe, clean vector-like rendering, high detail, a bit more urban street style. A sheet of 6 rugby club crests (shields) arranged in a grid of 3 columns and 2 rows, each well separated by white space, all the same size, front view. 1: green and white shield with a four-leaf clover. 2: white and red shield with a red rose. 3: navy and purple shield with a cute hedgehog. 4: blue and white shield with a howling wolf head. 5: royal blue and red shield with a proud rooster. 6: red and green shield with a small fierce dragon. Plain pure white background, no shadow on the ground, no text, no letters, no logo."], ["bld-six", "1:1", "2D mobile game art, polished cartoon illustration, thick dark brown outlines, bold saturated colors, soft cel shading with subtle highlights, slightly exaggerated funny proportions, humorous cartoon vibe, clean vector-like rendering, high detail, a bit more urban street style. An isometric city notice board on two wooden posts, like a big street billboard for a rugby tournament event: navy blue frame, cream panel showing a rugby ball and colorful pennants of 6 team colors (green, red, navy, blue, royal blue, dark red), small spotlight on top, standing on a little paved square, 3/4 isometric view matching a city builder game. Plain pure white background, no shadow on the ground, no text, no letters, no logo."], ["sheet-deco-six", "1:1", "2D mobile game art, polished cartoon illustration, thick dark brown outlines, bold saturated colors, soft cel shading with subtle highlights, slightly exaggerated funny proportions, humorous cartoon vibe, clean vector-like rendering, high detail, a bit more urban street style. A sheet of 4 isometric city decorations for a rugby tournament, arranged in a 2 by 2 grid, each well separated by white space, same isometric 3/4 view as a city builder game. 1: a pair of white H-shaped rugby goal posts on a small grass patch. 2: a string of colorful triangle pennant flags between two short poles. 3: a giant brown rugby ball sculpture on a stone pedestal. 4: a golden trophy statue on a stone pedestal. Plain pure white background, no shadow on the ground, no text, no letters, no logo."]];
+(async () => {
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;z-index:99999;right:16px;bottom:16px;width:280px;padding:14px;border-radius:14px;background:#2a1a10;color:#fff;font:600 14px sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  document.body.appendChild(box);
+  const show = () => { const n = Object.keys(HC.results).length; box.innerHTML = `<b>Hustle City</b><br>${n} / ${HC.LOT.length} images faites${HC.log.length ? '<br><span style="color:#ff8a7a">' + HC.log.join('<br>') + '</span>' : ''}`; };
+  const t = setInterval(show, 2000); show();
+  await HC.run(HC.LOT); clearInterval(t); show();
+  const b = document.createElement('button'); b.textContent = 'Copier les résultats'; b.style.cssText = 'display:block;width:100%;margin-top:10px;padding:10px;border:0;border-radius:10px;background:#5fc73a;color:#fff;font:700 14px sans-serif;cursor:pointer';
+  b.onclick = () => { const txt = Object.entries(HC.results).map(([k, v]) => k + ' ' + v).join('\n'); navigator.clipboard.writeText(txt); b.textContent = 'Copié ! Colle-le à Claude'; };
+  box.appendChild(b);
+})();
+'Lot lancé';

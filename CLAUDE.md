@@ -54,4 +54,5 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 ## Images
 - Générées sur magnific.com en mode **illimité uniquement** (jamais de crédits), puis `tools/process.py` (détourage) et `tools/split.py` (planches).
 - Les originaux 2K et les références ne sont pas dans le dépôt (seulement sur son Mac). Une session cloud ne peut pas générer d'images : signaler le besoin plutôt que d'en inventer.
+- **Sans crédits depuis le cloud** : préparer un lot dans `tools/magnific-lot.js` (liste [nom, format, prompt], planches `sheet-*` pour grouper). Elle le colle dans la console de Chrome sur la page Magnific (le script refuse de lancer si l'illimité n'est pas actif), puis colle ici les résultats (« nom url »). On les télécharge avec `tools/fetch.sh` (domaine `pikaso.cdnpk.net` à autoriser dans le réseau de l'environnement), puis `split.py`, `process.py`, `manifest.py`.
 - Une session cloud n'a pas non plus accès à la version publiée (artifact claude.ai). On travaille dans le dépôt, puis on pousse.
