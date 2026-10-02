@@ -1062,7 +1062,7 @@
           <p class="rw-get">Tu gagnes ${chips(G.chalCash(), 0)}</p></div>
           <div class="btns">${c.got ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
-      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? 'Obtenu aujourd\'hui, bravo !' : `${nGot} / 3 défis réussis`}</small></div><span class="stroke">${ic('lingot')}3 + booster</span></div>`;
+      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? 'Obtenu aujourd\'hui, bravo !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus && G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : `<span class="stroke">${ic('lingot')}3 + booster</span>`}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
@@ -1441,7 +1441,7 @@
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); if (r.trophy) toast(`🏆 ${r.trophy.name} rejoint ton appart !`); refresh(); },
-    claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) { toast('Les 3 défis du jour : 1 booster et 3 lingots en plus !', false, 'boosters'); rain('bill', 30); } refresh(); },
+    claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
     questGo(el) { questGo(D.QUESTS.find(q => q.id === el.dataset.id).go); },
     daily: () => openDaily(),
     claimDaily(el) { const r = G.claimDaily(); if (r.err) return toast(r.err, true); sfx.win(); rain('bill', 24); flyTo(el, '#pill-cash', 8); toast(`Jour ${r.day} : +${eur(r.r.cash)} et ${r.r.lingots} lingots${r.r.boosters ? ` et ${r.r.boosters} booster${r.r.boosters > 1 ? 's' : ''}` : ''} !`); refresh(); },
