@@ -590,6 +590,11 @@
   }
   function tipPrice(t) { return cost(Math.round(t.base * (1 + st.lvl * .6))); }
   function tipBought(id) { const k = st.kiosk || {}; return k.ed === edition() && k.tips && k.tips[id]; }
+  // un tuyau nomme une issue du match : la bonne avec une probabilité « hasard + edge », sinon une autre au hasard
+  function tipPick(m, edge) {
+    const n = m.odds.length, real = m.res;
+    return Math.random() < 1 / n + edge ? real : pick([...Array(n).keys()].filter(i => i !== real));
+  }
   function buyTip(id, withLingots) {
     const t = D.KIOSK.tips.find(x => x.id === id); if (!t || st.lvl < (t.lvl || 1)) return { err: 'Pas encore.' };
     if (tipBought(id)) return { err: 'Déjà lu dans cette édition.' };
@@ -602,21 +607,20 @@
       if (!m) return { err: 'Aucun match à venir.' };
       playMatch(m);   // le résultat est tiré maintenant : le tuyau parle du vrai résultat
       ref = m.id;
-      const honest = Math.random() < D.KIOSK.sportReliability;
-      const winner = m.res === 0 ? m.home : m.res === 2 ? m.away : (m.sport === 'foot' ? null : m.res === 1 ? m.away : m.home);
-      const loser = m.res === 0 ? m.away : m.res === 2 ? m.home : (m.res === 1 ? m.home : m.away);
-      const team = honest ? (winner || pick([m.home, m.away])) : loser;
-      txt = winner || !honest ? `Selon nos infos, ${team} ne perdra pas contre ${team === m.home ? m.away : m.home}.` : `Selon nos infos, ${m.home} – ${m.away} sera très serré. Les deux équipes ne se font pas de cadeau.`;
+      const tp = tipPick(m, D.KIOSK.sportEdge), names = m.odds.length === 3 ? [m.home, null, m.away] : [m.home, m.away];
+      txt = names[tp] ? `Selon nos infos, ${names[tp]} devrait gagner contre ${names[tp] === m.home ? m.away : m.home}.` : `Selon nos infos, ${m.home} – ${m.away} finira sur un match nul.`;
     } else if (id === 'crypto') {
       const cr = st.crypto; if (!cr.nextMood) cr.nextMood = weighted(D.MOODS).id;
-      const nm = D.MOODS.find(x => x.id === cr.nextMood);
+      // 7 fois sur 10 la vraie prochaine météo, sinon une autre (on ne sait jamais à l'avance)
+      const nm = Math.random() < D.KIOSK.cryptoTrue ? D.MOODS.find(x => x.id === cr.nextMood) : pick(D.MOODS.filter(x => x.id !== cr.nextMood));
       txt = `Dans environ ${Math.max(1, Math.round((cr.moodUntil - now()) / 60000))} min, la météo du marché passe à « ${nm.name} » : ${nm.desc}`;
     } else {
       const mk = st.market, pool = rumorPool();
       if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
       if (!mk.next) return { err: 'Rien à raconter.' };
       const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
-      txt = `Ça va bouger sur ${what(it)} : sa cote devrait ${ru.up ? 'grimper' : 'chuter'} d'ici ${Math.max(1, Math.round((mk.nextRumor - now()) / 60000))} min.`;
+      const up = Math.random() < D.KIOSK.marketTrue ? ru.up : !ru.up;
+      txt = `Ça va bouger sur ${what(it)} : sa cote devrait ${up ? 'grimper' : 'chuter'} d'ici ${Math.max(1, Math.round((mk.nextRumor - now()) / 60000))} min.`;
     }
     if (withLingots) { if (st.lingots < tipLingots(t)) return { err: 'Pas assez de lingots.' }; addLingots(-tipLingots(t)); }
     else if (!pay(tipPrice(t))) return { err: 'Pas assez de cash.' };
@@ -874,7 +878,7 @@
   }
 
   // ------------------------------------------------------------ bons plans
-  // un pote t'envoie un tuyau sur un match (fiable environ 6 fois sur 10, comme les vrais « pronos de potes »)
+  // un pote t'envoie un tuyau sur un match (un peu mieux que le hasard, comme les vrais « pronos de potes »)
   function simFriendTip(offline) {
     if (offline || !st.tutoDone) return;
     if (!st.nextTipAt) st.nextTipAt = now() + rnd(4, 8) * 60000;
@@ -883,10 +887,23 @@
     const m = st.matches.filter(x => x.state === 'soon' && x.kickoff - now() > 120000).sort((a, b) => a.kickoff - b.kickoff)[0];
     if (!m) return;
     playMatch(m);
-    const honest = Math.random() < .6, n = m.odds.length;
-    const real = m.res, pickIdx = honest ? real : pick([...Array(n).keys()].filter(i => i !== real));
+    const pickIdx = tipPick(m, D.KIOSK.friendEdge);
     const ct = pick(D.DEALS.contacts.filter(c => !c.img.includes(st.skin + '-')));
     emit('friendTip', { name: ct.name, img: ct.img, m: m.id, pick: pickIdx });
+  }
+  // un pote parle crypto : « Nova va grimper ». Il se base sur la prochaine météo du marché, mais se trompe 4 fois sur 10.
+  function simCryptoTip(offline) {
+    if (offline || !st.tutoDone) return;
+    if (!st.nextCryptoTipAt) st.nextCryptoTipAt = now() + rnd(6, 12) * 60000;
+    const cr = st.crypto, left = cr.moodUntil - now();
+    if (now() < st.nextCryptoTipAt || left < 2 * 60000 || left > 10 * 60000) return;
+    st.nextCryptoTipAt = now() + rnd(12, 25) * 60000;
+    if (!cr.nextMood) cr.nextMood = weighted(D.MOODS).id;
+    const dir = { bull: 1, fomo: 1, bear: -1, krach: -1 }[cr.nextMood] || pick([1, -1]);   // « calme » : il invente
+    const up = Math.random() < D.DEALS.cryptoTipTrue ? dir > 0 : dir < 0;
+    const c = pick(D.COINS.filter(x => coinUnlocked(x)));
+    const ct = pick(D.DEALS.contacts.filter(x => !x.img.includes(st.skin + '-')));
+    emit('cryptoTip', { name: ct.name, img: ct.img, coin: c.id, up, min: Math.max(1, Math.round(left / 60000)) });
   }
   function simDeal(offline) {
     const S = D.DEALS;
@@ -977,7 +994,7 @@
     simEvent(offline);
     simDeal(offline);
     simSix(offline);
-    simFriendTip(offline);
+    simFriendTip(offline); simCryptoTip(offline);
     stat('worth', Math.floor(worth()), true);
     if (!offline) checkBailout();
   }

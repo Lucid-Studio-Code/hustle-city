@@ -268,7 +268,9 @@
 
   // ---------------------------------------------------------------- kiosque
   // Le journal sort une nouvelle édition toutes les 30 min. Chaque tuyau s'achète une fois par édition.
-  // Le tuyau sport n'est fiable qu'à 80 % (comme les vrais « infos vestiaire »).
+  // Tuyaux : ils donnent un petit avantage, jamais une certitude (sinon suivre les tuyaux et tout miser rend riche sans risque).
+  // tipEdge = combien de points de % on ajoute au hasard pur pour « tomber juste » (journal : 3 issues 39 %, 2 issues 56 % ; potes : 36 % et 53 %).
+  // Avec la marge du bookmaker, miser sur le journal rapporte en moyenne +4 à +10 %, sur un pote à peu près rien : on perd souvent (simulé le 02/10).
   const KIOSK = {
     editionMin: 30,
     tips: [
@@ -276,7 +278,8 @@
       { id: 'crypto', name: 'La rumeur crypto',    icon: '📈', base: 25, desc: 'Ce que va faire le marché dans les prochaines minutes : ça monte ou ça baisse ?', lvl: 1 },
       { id: 'market', name: 'Les potins du Comptoir', icon: '🛍️', base: 30, desc: 'Quel objet va bouger, et dans quel sens.', lvl: 2 }
     ],
-    sportReliability: .8,
+    sportEdge: .06, friendEdge: .03,   // journal (payant) un peu plus sûr que les potes (gratuit)
+    cryptoTrue: .7, marketTrue: .7,    // la rumeur crypto et les potins disent vrai 7 fois sur 10
     booster: { base: 120, perLvl: 25, lvl: 2 }   // prix = 120 + 25 × niveau : un booster rend ~65 % de son prix en moyenne
   };
 
@@ -318,7 +321,9 @@
 
   // ---------------------------------------------------------------- bons plans (les commandes spéciales de Mama, version quartier)
   // Un contact propose une affaire pendant 10 min : il te vend un objet sous la cote, ou il veut racheter un des tiens au-dessus.
-  const DEALS = { lvl: 2, first: 150, every: [420, 840], time: 600,
+  const DEALS = {
+    cryptoTipTrue: .6,   // les tuyaux crypto des potes : justes 6 fois sur 10
+    lvl: 2, first: 150, every: [420, 840], time: 600,
     contacts: [
       { name: 'Momo', img: 'guide', lines: { sell: ['J\'ai récupéré ça, je te le fais pas cher. Mais faut faire vite.', 'Un pote déménage, il brade tout.'], buy: ['J\'ai un acheteur pour ton objet, il paie bien. Tu vends ?', 'Un collectionneur cherche exactement ça. Je te fais le lien.'] } },
       { name: 'Inès', img: 'skin-doudoune-bust', lines: { sell: ['Je liquide ma collection, je te fais un prix.', 'Je pars en voyage, j\'ai besoin de cash.'], buy: ['Je cherche ça depuis des mois. Je te paie plus que la cote.', 'Mon copain en rêve, tu me le vends ?'] } },

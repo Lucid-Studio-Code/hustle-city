@@ -894,14 +894,14 @@
           <button class="btn blue" data-act="collection">Voir mon classeur</button></div>`;
     }
     // en haut : le compte à rebours du prochain journal, bien visible, et comment un tuyau fait gagner
-    const leftMs = G.editionLeft(), ED = D.KIOSK.editionMin * 60000, rel = Math.round(D.KIOSK.sportReliability * 10);
+    const leftMs = G.editionLeft(), ED = D.KIOSK.editionMin * 60000;
     return `<div class="kiosk-hero">
         <div class="kh-row"><div class="kh-clock"><span class="kh-ic">📰</span><div class="grow"><small>Prochain journal</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
           <button class="btn gold sm kh-now" data-act="kRefresh" ${s.lingots >= D.LINGOT.kiosk ? '' : 'disabled'}><span>Tout de suite</span><span>${ic('lingot')}${D.LINGOT.kiosk}</span></button></div>
         <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>📰</b><small>le tuyau</small></div><span class="pe-arr">→</span>
           <div class="pe-box mid"><small>2. Tu mises</small><b>⚽</b><small>dans son sens</small></div><span class="pe-arr">→</span>
           <div class="pe-box sell"><small>3. Tu gagnes</small><b>💰</b><small>plus souvent</small></div></div>
-        <small class="pe-foot">Juste environ ${rel} fois sur 10 : ne mise pas tout.</small></div>` +
+        <small class="pe-foot">Juste un peu plus souvent que le hasard : ne mise jamais tout.</small></div>` +
       D.KIOSK.tips.map(t => {
         const b = G.tipBought(t.id), lock = s.lvl < (t.lvl || 1);
         return `<div class="card tip-card ${lock ? 'locked' : ''}"><div class="tc-head"><h4>${t.icon} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
@@ -1564,6 +1564,7 @@
         return drawPhone();
       }
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
+      if (a.act === 'crypto') { closePhone(); setScene('appart'); return openCrypto(a.id); }
       if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news') : toast('Le Comptoir ouvre au niveau 2.'); }
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
       drawPhone();
@@ -1614,6 +1615,13 @@
     const who = m.sport === 'foot' && f.pick === 1 ? 'un match nul' : `${f.pick === 0 ? m.home : m.away} gagne`;
     const txt = pick([`Crois-moi : ${who} sur ${m.home} – ${m.away}. J'ai mes sources.`, `Gros tuyau : ${who}. ${m.home} – ${m.away}, tu me remercieras.`, `Mise sur ${who.replace(' gagne', '')}, ${m.home} – ${m.away}. Je le sens trop.`]);
     chatPush(f.name, f.img, { from: 'them', txt, match: f.m, acts: [{ label: 'Je parie', act: 'bet', m: f.m, p: f.pick }, { label: 'Pas confiance', act: 'no' }] });
+    notify('msg', f.name, txt, null, false, f.name);
+  });
+  G.on('cryptoTip', f => {
+    const c = D.COINS.find(x => x.id === f.coin); if (!c) return;
+    const txt = f.up ? pick([`Mon cousin bosse dans la crypto : ${c.name} va grimper d'ici ${f.min} min. Achète avant les autres.`, `Ça chuchote fort sur ${c.name} : ça va monter dans ${f.min} min. Moi j'en prends.`])
+      : pick([`Sors de ${c.name} si t'en as : ça va chuter d'ici ${f.min} min, crois-moi.`, `Info de mon cousin : ${c.name} va dégringoler dans ${f.min} min. Vends avant.`]);
+    chatPush(f.name, f.img, { from: 'them', txt, acts: [{ label: f.up ? 'J\'achète' : 'Je regarde', act: 'crypto', id: f.coin }, { label: 'Pas confiance', act: 'no' }] });
     notify('msg', f.name, txt, null, false, f.name);
   });
   G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; notify('crypto', `Météo du marché : ${w[0]} ${w[1]}`, w[2]); });
