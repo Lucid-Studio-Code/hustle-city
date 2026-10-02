@@ -2223,3 +2223,21 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-g.own { background: #e9f9df; } #app .ag-g > span { font-size: 22px; } #app .ag-g .grow { flex: 1; min-width: 0; }
 #app .ag-g b { display: block; font: 900 12.5px var(--text); } #app .ag-g b em { font-style: normal; color: #c2187a; font-size: 10.5px; } #app .ag-g small { display: block; font: 700 11px var(--text); color: #6a5a4a; }
 #app #btn-upg .upg-ic { width: 42px; height: 42px; }
+#app #btn-upg .upg-ic { width: 46px; height: 46px; }
+#app #btn-upg .upg-arrow { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; filter: drop-shadow(0 2px 0 rgba(42,26,16,.4)); pointer-events: none; }
+#app #btn-upg .badge { top: auto; bottom: -8px; }
+/* Ses affaires : cartes visuelles avec les effets en clair */
+#app .ag-gear { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+#app .ag-g { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px 8px; border: 2px solid #2a1a10; border-radius: 14px; background: #fff; box-shadow: 0 2px 0 #2a1a10; text-align: center; }
+#app .ag-g.fit { background: linear-gradient(#ffe3ee, #fff 60%); } #app .ag-g.own { background: linear-gradient(#e9f9df, #fff 60%); }
+#app .ag-g .gpic { display: grid; place-items: center; width: 56px; height: 56px; font-size: 40px; } #app .ag-g .gpic img { width: 100%; height: 100%; object-fit: contain; }
+#app .ag-g b { font: 900 12.5px/1.2 var(--text); }
+#app .ag-g .gfx { display: flex; flex-direction: column; gap: 3px; width: 100%; }
+#app .ag-g .gx { display: block; padding: 3px 6px; border-radius: 8px; font: 900 11px var(--text); }
+#app .ag-g .gx small { display: block; font: 700 9.5px var(--text); opacity: .8; }
+#app .ag-g .gx.rev { background: #e3f6d6; color: #1f7a3a; } #app .ag-g .gx.subs { background: #e0efff; color: #1d5fa8; } #app .ag-g .gx.mood { background: #fff1d0; color: #9a6200; }
+#app .ag-g .gfit { position: absolute; top: -8px; right: -6px; padding: 1px 7px; border: 2px solid #2a1a10; border-radius: 999px; background: #ff4f8b; color: #fff; font: 900 10px var(--text); }
+#app .ag-g .gown { font: 900 12px var(--text); color: #1f9d55; } #app .ag-g .btn { width: 100%; }
+#app #btn-upg { z-index: 21; overflow: visible; }
+#app #btn-upg .upg-arrow { top: -12px; right: -12px; width: 30px; height: 30px; z-index: 2; }
+#app #btn-upg .upg-arrow { top: -10px; right: -3px; }
