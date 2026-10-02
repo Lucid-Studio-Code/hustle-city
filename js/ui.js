@@ -882,7 +882,8 @@
   }
 
   // ------------------------------------------------------------ Tournoi des 6 Quartiers : pronos gratuits, classement, cartes
-  let sixTab = 'pronos';
+  let sixTab = 'pronos', sixHowOpen = false;
+  const sixPastOpen = new Set();
   const fDay = t => new Date(t).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
   const fHour = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   function untilTxt(ms) { const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24; return d >= 1 ? `${d} j ${h} h` : mmss(ms); }
@@ -935,29 +936,31 @@
         <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
     };
     const cur = G.sixCurDay();
-    // bilan de la dernière journée terminée : bons pronos et points gagnés
-    const doneDays = [1, 2, 3, 4, 5].filter(d => ms.filter(m => m.day === d).every(m => m.state === 'done'));
-    const last = doneDays[doneDays.length - 1], lm = last ? ms.filter(m => m.day === last) : [];
-    const recap = last ? `<div class="sx-recap"><b>🏁 Bilan de la journée ${last}</b><span>${lm.map(m => `<i class="${m.ok ? 'ok' : m.pick == null ? '' : 'ko'}">${m.ok ? '✓' : m.pick == null ? '–' : '✗'} ${shortTeam(m.home)} ${m.sh}-${m.sa} ${shortTeam(m.away)}</i>`).join('')}</span>
-      <small>${lm.filter(m => m.ok).length} bon${lm.filter(m => m.ok).length > 1 ? 's' : ''} prono${lm.filter(m => m.ok).length > 1 ? 's' : ''} sur ${lm.length} : <strong>+${lm.filter(m => m.ok).length * S.pts} points</strong> et <strong>+${lm.filter(m => m.ok).length * S.lingotPerGood} lingot${lm.filter(m => m.ok).length > 1 ? 's' : ''}</strong>.</small>
-      <div class="sx-rank"><span>🏆</span><div><small>Ta place au classement</small><b>${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> sur ${n}</b></div><button class="btn xs blue" data-act="sixBoard">Voir</button></div></div>` : '';
-    const days = [1, 2, 3, 4, 5].map(d => {
-      const L = ms.filter(m => m.day === d).sort((a, b) => a.kickoff - b.kickoff), open = G.sixDayOpen(d);
-      if (!open) return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3><div class="sx-locked">🔒 S'ouvre quand la journée ${d - 1} est finie.<small>${L.map(m => `${T[m.h][0]} – ${T[m.a][0]}`).join('<br>')}</small></div>`;
-      if (L.every(m => m.state === 'done')) return `<h3 class="sec sx-past-h">Journée ${d} <small>· ${fDay(L[0].kickoff)} · terminée</small></h3><div class="sx-past">${L.map(m => {
+    // Une journée terminée tient sur UNE ligne (bons pronos, points) ; on la déplie d'un geste pour voir les scores.
+    // Les journées à venir sont regroupées en une seule ligne. La journée en cours est toujours en haut.
+    const pastRow = m => {
           const res = m.pick == null ? 'none' : m.ok ? 'ok' : 'ko', pk = m.pick == null ? 'Pas de prono' : m.pick === 1 ? 'Nul' : shortTeam(m.pick === 0 ? m.home : m.away);
           return `<div class="sx-p ${res}"><span class="sx-pt">${teamCrest('rugby', m.h, 'mini')}<b>${shortTeam(m.home)}</b></span><span class="sx-ps">${m.sh}-${m.sa}</span><span class="sx-pt r"><b>${shortTeam(m.away)}</b>${teamCrest('rugby', m.a, 'mini')}</span>
-            <span class="sx-pv">${res === 'ok' ? `✓ ${pk}<em>+${S.pts} pts</em>` : res === 'ko' ? `✗ ${pk}` : pk}</span></div>`; }).join('')}</div>`;
-      if (d === cur) return `<div class="sx-today"><div class="sx-today-h"><b>🏉 Journée ${d} · en cours</b><small>${fDay(L[0].kickoff)}</small></div>${L.map(card).join('')}</div>`;
-      return `<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`;
-    }).join('');
-    return head + `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> et <b>+${S.lingotPerGood} lingot</b>. Regarde la <b>forme</b> des équipes (V = victoire, N = nul, D = défaite) et leurs chances. Les rumeurs sont vraies… une fois sur deux.</p>${recap}${days}`;
+            <span class="sx-pv">${res === 'ok' ? `✓ ${pk}<em>+${S.pts} pts</em>` : res === 'ko' ? `✗ ${pk}` : pk}</span></div>`; };
+    const today = [], upcoming = [], locked = [], past = [];
+    [1, 2, 3, 4, 5].forEach(d => {
+      const L = ms.filter(m => m.day === d).sort((a, b) => a.kickoff - b.kickoff), open = G.sixDayOpen(d);
+      if (!open) return locked.push(d);
+      if (L.every(m => m.state === 'done')) {
+        const good = L.filter(m => m.ok).length, isOpen = sixPastOpen.has(d);
+        return past.unshift(`<div class="sx-pday ${isOpen ? 'open' : ''}"><button class="sx-pline" data-act="sixPast" data-d="${d}"><b>Journée ${d}</b><span>${good} / ${L.length} bons pronos</span><em>+${good * S.pts} pts</em><i>${isOpen ? '▾' : '▸'}</i></button>${isOpen ? `<div class="sx-past">${L.map(pastRow).join('')}</div>` : ''}</div>`);
+      }
+      if (d === cur) return today.push(`<div class="sx-today"><div class="sx-today-h"><b>🏉 Journée ${d}</b><small>${fDay(L[0].kickoff)}</small></div>${L.filter(m => m.state !== 'done').map(card).join('')}${L.some(m => m.state === 'done') ? `<div class="sx-past">${L.filter(m => m.state === 'done').map(pastRow).join('')}</div>` : ''}</div>`);
+      upcoming.push(`<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`);
+    });
+    const lockTxt = locked.length ? `<div class="sx-locked">🔒 ${locked.length > 1 ? `Journées ${locked[0]} à ${locked[locked.length - 1]}` : `Journée ${locked[0]}`} : ${locked.length > 1 ? 'elles s\'ouvrent' : 'elle s\'ouvre'} une par une, quand la précédente est finie.</div>` : '';
+    const how = `<button class="sx-how" data-act="sixHow">${sixHowOpen ? '▾' : '▸'} Comment ça marche ?</button>${sixHowOpen ? `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> et <b>+${S.lingotPerGood} lingot</b>. La <b>forme</b> : V = victoire, N = nul, D = défaite. Les rumeurs sont vraies… une fois sur deux.</p>` : ''}`;
+    return head + how + today.join('') + upcoming.join('') + lockTxt + (past.length ? `<h3 class="sec">Journées passées</h3>${past.join('')}` : '');
   }
   const shortTeam = n => n.split(' ')[0];
   function openSix(tab) {
     if (tab) sixTab = tab; else sixTab = 'pronos';
     G.sixSeenNow(); renderHud();
-    setTimeout(() => { const d = $('#modal .sx-recap') || $('#modal .sx-today'), b = $('#modal .sheet-body'); if (d && b) b.scrollTop = d.offsetTop - b.offsetTop - 8; }, 40);
     openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }, { id: 'shop', label: 'Boutique' }], tab: sixTab,
       body: sixBody(), onTab: id => { sixTab = id; setBody(sixBody()); }, refresh: () => setBody(sixBody()) });
   }
@@ -1450,6 +1453,8 @@
     quests: () => openRewards(),
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
+    sixPast(el) { const d = +el.dataset.d; sixPastOpen.has(d) ? sixPastOpen.delete(d) : sixPastOpen.add(d); setBody(sixBody()); },
+    sixHow() { sixHowOpen = !sixHowOpen; setBody(sixBody()); },
     coachGo(el) { const c = coachList[+el.dataset.i]; closeModal(); if (c) setTimeout(c.go, 60); },
     upgrades: () => openUpgrades(),
     sixBoard: () => { sixTab = 'board'; openSix('board'); },
