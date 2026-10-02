@@ -2178,7 +2178,7 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .wheel-hub { position: absolute; inset: 26%; width: 48%; height: 48%; object-fit: contain; z-index: 2; pointer-events: none; }
 #modal .th-casino .wheel-wrap:has(.wheel-hub) .wheel-res { z-index: 3; inset: 38%; }
 /* bouton Promos : à GAUCHE (côté « marketing »), bien distinct des boutons de progression à droite */
-#app #btn-promo { position: absolute; z-index: 18; left: 8px; top: calc(var(--hud-b, 96px) + 10px); width: 58px; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 0 0 4px; border: 2.5px solid #2a1a10; border-radius: 16px; background: linear-gradient(#ff7ac0, #c2187a); box-shadow: 0 3px 0 #2a1a10; animation: giftPulse 2.4s ease-in-out infinite; }
+#app #btn-promo { position: absolute; z-index: 18; left: 8px; top: calc(var(--hud-b, 96px) + 10px); width: 58px; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 0 0 4px; border: 2.5px solid #2a1a10; border-radius: 16px; background: linear-gradient(#ff7ac0, #c2187a); box-shadow: 0 3px 0 #2a1a10; animation: promoNudge 25s ease-in-out 4s infinite; }
 #app #btn-promo .pr-rib { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 6px; border: 2px solid #2a1a10; border-radius: 6px; background: #ffd23f; font: 400 10px var(--title); color: #2a1a10; white-space: nowrap; }
 #app #btn-promo .pr-ic { font-size: 26px; font-style: normal; line-height: 1; margin-bottom: 2px; }
 #app #btn-promo b { font: 900 10px var(--text); color: #fff; }
@@ -2191,3 +2191,6 @@ h3.sec { margin: 18px 6px 10px; }
 #app .promo-banner .pb-price s { display: block; font-size: 10px; opacity: .7; }
 #app .own-gain { display: block; font: 800 12px/1.35 var(--text); color: #6a5a4a; text-align: center; } #app .own-gain b { font-weight: 900; }
 #app #cardzoom .cz-gain { width: 100%; margin: 0 0 6px; padding: 6px 10px; border-radius: 12px; background: #fff8ec; }
+
+/* Promos : un petit coup d'œil toutes les 25 s (un balancement d'1 s), puis il reste tranquille */
+@keyframes promoNudge { 0%, 5%, 100% { transform: none; } 1% { transform: rotate(-8deg) scale(1.06); } 2% { transform: rotate(7deg) scale(1.06); } 3% { transform: rotate(-4deg); } 4% { transform: rotate(2deg); } }
