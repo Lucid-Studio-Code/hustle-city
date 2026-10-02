@@ -742,7 +742,7 @@
   function phoneBody() {
     const s = st(), sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], now = new Date();
     const hh = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const status = `<div class="ph-status"><b>${hh}</b><span>▂▄▆ 5G <i class="ph-batt"><i style="width:${60 + (now.getMinutes() % 35)}%"></i></i></span></div>`;
+    const status = `<div class="ph-status"><b>${hh}</b><span><svg class="ph-sig" viewBox="0 0 17 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.6" y="5.5" width="3" height="6.5" rx="1"/><rect x="9.2" y="3" width="3" height="9" rx="1"/><rect x="13.8" y="0" width="3" height="12" rx="1"/></svg>5G <i class="ph-batt"><i style="width:${60 + (now.getMinutes() % 35)}%"></i></i></span></div>`;
     const head = t => `${status}<div class="ph-bar"><button class="ph-back" data-act="phoneHome">‹</button><b>${t}</b><span></span></div>`;
     if (phoneApp === 'immo') {
       return head('Appart\'Immo') + `<div class="ph-scroll"><p class="ph-hint">Des annonces près de chez toi. Plus grand = plus de place pour exposer ta collection.</p>` +
