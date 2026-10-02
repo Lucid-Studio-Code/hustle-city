@@ -19,7 +19,8 @@
   const share = m => m.pct;
   const moodK = m => .5 + m.mood / 100 * .6;   // moral 0 → ×0,5 ; 100 → ×1,1
   // objets achetés pour elle : effet ×2 s'il colle à sa niche
-  const gearK = (m, key) => A.gear.reduce((t, g) => t + (m.gear && m.gear[g.id] && g[key] ? g[key] * (g.niche && g.niche.includes(prof(m.id).niche) ? 2 : 1) : 0), 0);
+  const hasG = (m, g) => g.sub ? !!(m.abo && m.abo[g.id]) : !!(m.gear && m.gear[g.id]);
+  const gearK = (m, key) => A.gear.reduce((t, g) => t + (hasG(m, g) && g[key] ? g[key] * (g.niche && g.niche.includes(prof(m.id).niche) ? 2 : 1) : 0), 0);
   const perHour = m => m.subs * A.subPrice * moodK(m) * (.8 + prof(m.id).reg * .05) * share(m) * (1 + gearK(m, 'rev')) * (m.priceK || 1);
   const recruitCost = c => Math.round(100 * Math.pow(c.cha, 1.5) + c.subs * .05);   // remboursée en ~1 journée de jeu
 
@@ -36,6 +37,11 @@
       if (m.act && t >= m.act.start + m.act.dur) finishAct(m);
       if (m.mood < 15 && !a.offer) rivalOffer(m, true);
     });
+    // spa acheté avant qu'il devienne un abonnement : on le transforme en abonnement déjà payé pour 24 h
+    a.crew.forEach(m => { if (m.gear && m.gear.spa) { (m.abo = m.abo || {}).spa = m.abo.spa || t + 86400000; delete m.gear.spa; } });
+    // abonnements : prélevés toutes les 24 h ; pas assez de cash = abonnement arrêté
+    a.crew.forEach(m => Object.keys(m.abo || {}).forEach(id => { const g = A.gear.find(x => x.id === id); let n = 0;
+      while (m.abo[id] && t >= m.abo[id] && n++ < 7) { if (G.st.cash >= g.cost) { G.addCash(-g.cost); m.abo[id] += 86400000; } else { delete m.abo[id]; U.notify('agence', `${g.icon} ${g.name} arrêté`, `Pas assez de cash pour payer l'abonnement de ${prof(m.id).name}.`); } } }));
     if (a.crew.length && t >= a.nextEv) { a.nextEv = t + rnd(...A.eventEvery) * 60000; randomEvent(); }
     if (!a.nextDil) a.nextDil = t + rnd(10, 25) * 60000;
     if (a.crew.length && t >= a.nextDil && !(a.dil && t < a.dil.until)) { a.nextDil = t + rnd(...A.dilEvery) * 60000; dilemma(); }
@@ -114,6 +120,9 @@
   const gearOpen = new Set();
   const act = {
     agGearOpen(el) { const id = el.dataset.id; gearOpen.has(id) ? gearOpen.delete(id) : gearOpen.add(id); refresh(); },
+    agAbo(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return;
+      m.abo = m.abo || {}; if (m.abo[g.id]) { delete m.abo[g.id]; U.toast(`${g.name} résilié.`); return refresh(); }
+      if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); m.abo[g.id] = Date.now() + 86400000; m.mood = clamp(m.mood + 8); U.sfx.coin(); U.toast(`${g.icon} ${prof(m.id).name} est abonnée au spa : ${U.short(g.cost)} par jour.`); refresh(); },
     agGear(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return; if (m.gear && m.gear[g.id]) return; if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); (m.gear = m.gear || {})[g.id] = Date.now(); m.mood = clamp(m.mood + 8); G.addXp(10); U.sfx.coin(); U.toast(`${g.icon} ${g.name} pour ${prof(m.id).name} : elle adore !`); refresh(); },
     agRecruit(el) {
       const a = ag(), c = prof(el.dataset.id), cost = recruitCost(c);
@@ -167,14 +176,16 @@
       return `<div class="card ag-cr"><div class="ag-top">${face(p)}<div class="grow"><b>${p.name}</b><small>${p.niche} · <strong>${fmtSubs(m.subs)}</strong> abonnés</small>
           <div class="ag-mood"><span>Moral</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div></div>
           <div class="ag-earn"><small>Pour toi</small><b>${U.short(perHour(m))}/h</b></div></div>
-        ${(() => { const n = A.gear.filter(g => m.gear && m.gear[g.id]).length, open = gearOpen.has(m.id);
+        ${(() => { const n = A.gear.filter(g => hasG(m, g)).length, open = gearOpen.has(m.id);
           return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">🛍️ Ses affaires · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
-          ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = m.gear && m.gear[g.id], fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
+          ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
             const fx = [g.rev ? `<span class="gx rev">💰 +${Math.round(g.rev * k * 100)} % de revenus<small>≈ +${U.short(Math.max(1, Math.round(perHour(m) / (1 + gearK(m, 'rev')) * g.rev * k)))}/h pour toi</small></span>` : '',
               g.subs ? `<span class="gx subs">👥 +${Math.round(g.subs * k * 100)} % d'abonnés<small>ils montent plus vite</small></span>` : '',
               g.mood ? `<span class="gx mood">😊 +${g.mood * k} de moral<small>chaque heure, toute seule</small></span>` : ''].join('');
             return `<div class="ag-g ${own ? 'own' : ''} ${fit ? 'fit' : ''}">${fit ? '<span class="gfit">×2 pour elle</span>' : ''}<span class="gpic">${U.has('gear-' + g.id) ? `<img src="${U.src('gear-' + g.id)}" alt="">` : g.icon}</span>
-              <b>${g.name}</b><div class="gfx">${fx}</div>${own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
+              <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
+                : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
+              : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
         <div class="ag-share"><span>Ta part</span>${A.shares.map(v => `<button class="btn xs ${m.pct === v ? 'yellow' : 'blue'}" data-act="agShare" data-id="${m.id}" data-v="${v}">${Math.round(v * 100)} %</button>`).join('')}<button class="btn xs purple" data-act="agGift" data-id="${m.id}">🎁 ${U.short(50 + s.lvl * 10)}</button></div>
         ${m.act ? `<div class="ag-busy">${x.icon} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
           : `<div class="ag-acts">${A.acts.map(o => `<button class="ag-act" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${o.lvl && s.lvl < o.lvl ? 'disabled' : ''}><span>${o.icon}</span><b>${o.name}</b><small>${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}</small></button>`).join('')}</div>`}

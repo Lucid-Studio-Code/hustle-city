@@ -116,7 +116,7 @@
       { id: 'gown',   name: 'Robe de soirée',        icon: '👗', cost: 800,  rev: .12, niche: ['Mode & luxe', 'Beauté', 'Musique'], desc: 'Pour les photos glamour.' },
       { id: 'cosplay', name: 'Costume de héroïne',   icon: '🦸', cost: 600,  rev: .12, niche: ['Cosplay', 'Gaming'], desc: 'Les fans adorent.' },
       { id: 'travel', name: 'Valise de voyage',      icon: '🧳', cost: 500,  rev: .08, niche: ['Voyage', 'Cuisine'], desc: 'Prête à partir tourner au soleil.' },
-      { id: 'spa',    name: 'Abonnement spa',        icon: '🧖', cost: 700,  mood: 2,   desc: 'Elle récupère toute seule : +2 de moral par heure.' },
+      { id: 'spa',    name: 'Abonnement spa',        icon: '🧖', cost: 120,  mood: 2,   sub: true, desc: 'Elle récupère toute seule. Prélevé chaque jour, résiliable quand tu veux.' },   // sub = abonnement : cost par jour
       { id: 'studio', name: 'Déco de studio',        icon: '🛋️', cost: 2500, rev: .15, subs: .1, desc: 'Un vrai décor : tout son contenu prend de la valeur.' }
     ],
     dilEvery: [40, 90],   // une créatrice t'écrit pour te demander de choisir, toutes les 40 à 90 min
