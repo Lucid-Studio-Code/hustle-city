@@ -42,9 +42,9 @@
   // Prix en billets du jeu. vol = volatilité par minute de jeu (écart-type), drift = tendance par minute.
   // Les cours bougent vraiment : marche aléatoire log-normale + humeur du marché.
   const COINS = [
-    { id: 'btk', sym: 'AXN', name: 'Axion',       lvl: 1, p0: 58000, vol: .006, drift: .00008, color: '#f7931a', desc: 'La plus ancienne. Solide, mais chère.' },
-    { id: 'eta', sym: 'VKT', name: 'Vektor',      lvl: 1, p0: 2400,  vol: .008, drift: .00006, color: '#7b8cff', desc: 'La deuxième du marché. Bouge un peu plus.' },
-    { id: 'slr', sym: 'NVA', name: 'Nova',        lvl: 3, p0: 140,   vol: .012, drift: .00004, color: '#14c9a5', desc: 'Rapide et nerveuse.' },
+    { id: 'btk', sym: 'AXN', name: 'Axion',       lvl: 1, p0: 58000, vol: .004, drift: .000003, color: '#f7931a', desc: 'La plus ancienne. Solide, mais chère.' },
+    { id: 'eta', sym: 'VKT', name: 'Vektor',      lvl: 1, p0: 2400,  vol: .008, drift: .000002, color: '#7b8cff', desc: 'La deuxième du marché. Bouge un peu plus.' },
+    { id: 'slr', sym: 'NVA', name: 'Nova',        lvl: 3, p0: 140,   vol: .012, drift: 0, color: '#14c9a5', desc: 'Rapide et nerveuse.' },
     { id: 'dgk', sym: 'PGN', name: 'PigeonCoin',  lvl: 4, p0: .12,   vol: .02,  drift: 0,      color: '#8a9bb0', desc: 'Né d\'une blague sur les pigeons du quartier. Tout peut arriver.' },
     { id: 'ppc', sym: 'KBB', name: 'KebabCoin',   lvl: 6, p0: .0009, vol: .03,  drift: -.0001, color: '#e0662f', desc: 'Memecoin très spéculatif. Sauce blanche en option.', rug: .0006 },
     { id: 'lmn', sym: 'ZPH', name: 'Zéphyr',      lvl: 8, p0: 3.2,   vol: .025, drift: 0,      color: '#c77dff', desc: '« Stablecoin algorithmique ». Ça tient… jusqu\'au jour où.', rug: .0004 }
@@ -72,11 +72,11 @@
 
   // Rig de minage : produit de l'Axion en continu, chauffe, il faut le relancer
   const RIG = [
-    { name: 'Vieille tour bricolée', cost: 0,     btkH: .0004,  heatMin: 20, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
-    { name: 'Tour gamer',          cost: 900,   btkH: .0011,  heatMin: 30, desc: 'Une vraie machine, ça tourne plus vite.' },
-    { name: 'Borne à pièces',      cost: 3500,  btkH: .003,   heatMin: 45, desc: 'Elle sort des pièces comme une borne d\'arcade.' },
-    { name: 'Imprimante à crypto', cost: 12000, btkH: .0075,  heatMin: 60, desc: 'Le radiateur de tout l\'immeuble. Mais quel débit.' },
-    { name: 'Usine en or',         cost: 40000, btkH: .02,    heatMin: 90, desc: 'Ça déborde de pièces. Bruit garanti.' }
+    { name: 'Vieille tour bricolée', cost: 0,     btkH: .0004,  heatMin: 40, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
+    { name: 'Tour gamer',          cost: 900,   btkH: .0011,  heatMin: 75, desc: 'Une vraie machine, ça tourne plus vite.' },
+    { name: 'Borne à pièces',      cost: 3500,  btkH: .003,   heatMin: 120, desc: 'Elle sort des pièces comme une borne d\'arcade.' },
+    { name: 'Imprimante à crypto', cost: 12000, btkH: .0075,  heatMin: 180, desc: 'Le radiateur de tout l\'immeuble. Mais quel débit.' },
+    { name: 'Usine en or',         cost: 40000, btkH: .02,    heatMin: 240, desc: 'Ça déborde de pièces. Bruit garanti.' }
   ];
 
   // ---------------------------------------------------------------- paris sportifs
@@ -182,9 +182,9 @@
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
     { id: 't-combi',    cat: 'trophy',  name: 'Trophée « Combiné de fou »',     r: 'R', p0: 400, vol: .04 },
-    { id: 't-jackpot',  cat: 'trophy',  name: 'Trophée « Jackpot »',            r: 'E', p0: 2500, vol: .05 },
-    { id: 't-hodl',     cat: 'trophy',  name: 'Trophée « Mains de diamant »',   r: 'R', p0: 600, vol: .04 },
-    { id: 't-collect',  cat: 'trophy',  name: 'Trophée « Collectionneur »',     r: 'E', p0: 3000, vol: .05 }
+    { id: 't-jackpot',  cat: 'trophy',  name: 'Trophée « Jackpot »',            r: 'E', p0: 900, vol: .05 },
+    { id: 't-hodl',     cat: 'trophy',  name: 'Trophée « Mains de diamant »',   r: 'R', p0: 200, vol: .04 },
+    { id: 't-collect',  cat: 'trophy',  name: 'Trophée « Collectionneur »',     r: 'E', p0: 1000, vol: .05 }
   ];
   // Cartes à collectionner des boosters : écussons des clubs et joueurs de tennis. On ne les achète pas au Comptoir,
   // on les tire dans les boosters ; elles ont une cote comme le reste et se revendent.
@@ -280,7 +280,7 @@
     ],
     sportEdge: .06, friendEdge: .03,   // journal (payant) un peu plus sûr que les potes (gratuit)
     cryptoTrue: .7, marketTrue: .7,    // la rumeur crypto et les potins disent vrai 7 fois sur 10
-    booster: { base: 120, perLvl: 25, lvl: 2 }   // prix = 120 + 25 × niveau : un booster rend ~65 % de son prix en moyenne
+    booster: { base: 150, perLvl: 30, lvl: 2 }   // prix = 150 + 30 × niveau : un booster rend ~65-75 % de son prix (équilibré le 02/10)
   };
 
   // ---------------------------------------------------------------- boosters (comme Mama Kana)
@@ -340,7 +340,7 @@
   const ROOMS = [
     { name: 'Studio sous les toits', cost: 0,     slots: 4,  desc: '12 m², matelas au sol, vue sur la cour.' },
     { name: 'Chambre refaite',       cost: 5000,  slots: 8,  desc: 'Vrai lit, guirlandes, cadres aux murs.' },
-    { name: 'Chambre de luxe',       cost: 60000, slots: 12, desc: 'Lit lumineux, néons, déco de collectionneur.' }
+    { name: 'Chambre de luxe',       cost: 25000, slots: 12, desc: 'Lit lumineux, néons, déco de collectionneur.' }
   ];
 
   // Disposition des objets d'action dans la chambre (en % de l'image de la chambre, x = centre, y = pied, w = largeur).

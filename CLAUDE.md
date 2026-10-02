@@ -27,7 +27,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 72).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 73).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -46,13 +46,14 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `coach()` dans ui.js : liste d'étapes utiles triées par priorité (récompenses, cadeau, machine pleine, boosters, tournoi, affaire, matos payable, série presque finie, mission, prochain déblocage, objectif d'argent, tuyau). Jamais d'achat au hasard. Un futur bouton « Promos » (achats intégrés) sera séparé.
 
 ## Économie
-- Booster : cartes ≤ 600 ; prix au Kiosque 120 + 25 × niveau (~65 % récupéré).
+- Booster : cartes ≤ 600 ; prix au Kiosque 150 + 30 × niveau.
 - Les cartes > 600 ne se vendent qu'au Comptoir.
 - Lingots (`LINGOT` dans data.js) : 1 lingot = 20 billets pour compléter un achat (machine, déménagement) ; journal du Kiosque tout de suite 3, tuyau ≈ prix / 20, videur du Club 2.
 - PC (`PCS`) : 3 niveaux, frais crypto 1,5 % → 0,8 % → 0,2 %. Le bouton « Matos » regroupe machine, PC et appart.
 - Comptoir : rayons renouvelés toutes les 30 min ; cartes = 3 communes + 1 plus rare à la fois (`cardStock()`).
 - Un seul exemplaire par objet (un doublon de booster est revendu tout de suite). Les cartes (toutes) vont au classeur et ne prennent jamais de place chez soi.
-- Bons plans : -18 à -32 % sous la cote (vente) ou +15 à 35 % au-dessus (rachat).
+- Bons plans : -5 à -15 % sous la cote (vente) ou 0 à +12 % au-dessus (rachat) : jamais de profit garanti en revendant tout de suite.
+- Équilibrage du 02/10 (audit complet) : pas d'XP pour les micro-mises (`serious()` dans game.js) ni à la revente d'objets, plafonds d'XP qui grandissent avec le niveau (`xpCap`), cryptos qui ne montent plus toutes seules (dérive ~0,3 %/jour), hors ligne la météo du marché change toutes les 20 min, cotes boostées ×1,05, déstockage -10 %, pause clope juste 7 fois sur 10, trophées moins chers (hodl 200, jackpot 900, collection 1000), booster 150 + 30 × niveau, machine qui tient 40 à 240 min avant de chauffer, chambre de luxe 25 000.
 
 ## Images
 - Générées sur magnific.com en mode **illimité uniquement** (jamais de crédits), puis `tools/process.py` (détourage) et `tools/split.py` (planches).

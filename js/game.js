@@ -73,6 +73,10 @@
   function pay(n) { if (!canPay(n)) return false; addCash(-n); return true; }
   function addLingots(n) { st.lingots += n; emit('money'); }
   function xpNeed() { return D.XP_TABLE[st.lvl] || Infinity; }
+  // équilibrage (02/10) : une toute petite mise ne rapporte presque pas d'XP et ne compte pas pour les défis
+  // (sinon on monte de niveau en misant 1 billet en boucle). Les plafonds d'XP grandissent avec le niveau.
+  const serious = v => v >= Math.max(5, betMax() / 20);
+  const xpCap = c => Math.round(c * (1 + st.lvl / 10));
   function addXp(n) {
     if (n <= 0) return;
     if (habitOn('club')) n *= 1 + D.HABITS.find(h => h.id === 'club').xpBoost;
@@ -123,12 +127,14 @@
     let n = Math.floor((now() - cr.lastTick) / stepMs);
     if (n <= 0) return;
     if (n > 60) { // hors ligne : pas de 1 min, max 720 points
-      const mins = Math.min(720, Math.floor((now() - cr.lastTick) / 60000));
-      for (let i = 0; i < mins; i++) cryptoTick(1);
+      // la météo change toutes les MOOD_MIN minutes pendant le rattrapage (sinon 12 h d'une seule météo, révélée par le tuyau)
+      const mins = Math.min(720, Math.floor((now() - cr.lastTick) / 60000)), real = cr.mood;
+      for (let i = 0; i < mins; i++) { if (i && i % D.MOOD_MIN === 0) cr.mood = weighted(D.MOODS).id; cryptoTick(1); }
+      cr.mood = real;
     } else for (let i = 0; i < n; i++) cryptoTick(D.TICK_S / 60);
     cr.lastTick = now();
     // mission « garder 30 min »
-    D.COINS.forEach(c => { if (cr.hold[c.id] > 0 && cr.since[c.id] && now() - cr.since[c.id] >= 30 * 60000) stat('hodl30', 1, true); });
+    D.COINS.forEach(c => { if (holdValue(c.id) >= 50 && cr.since[c.id] && now() - cr.since[c.id] >= 30 * 60000) stat('hodl30', 1, true); });
     emit('prices');
   }
   function holdValue(id) { return (st.crypto.hold[id] || 0) * st.crypto.prices[id]; }
@@ -141,7 +147,7 @@
     const qty = eur * (1 - fee()) / st.crypto.prices[id];
     if (!st.crypto.hold[id]) st.crypto.since[id] = now();
     st.crypto.hold[id] += qty; st.crypto.cost[id] += eur;
-    stat('cryptoBuy'); addXp(3 + Math.min(40, eur / 25));
+    if (serious(eur)) { stat('cryptoBuy'); addXp(3 + Math.min(xpCap(40), eur / 25)); }
     emit('change'); return { qty };
   }
   function sellCrypto(id, frac) {
@@ -153,7 +159,7 @@
     if (frac >= .999 || cr.hold[id] * cr.prices[id] < .01) { cr.hold[id] = 0; cr.cost[id] = 0; cr.since[id] = 0; }
     addCash(net);
     if (profit > 0) stat('cryptoProfit');
-    addXp(3 + Math.min(40, net / 25));
+    if (serious(net)) addXp(Math.min(xpCap(40), net / 25));
     emit('change'); return { net, profit };
   }
 
@@ -174,8 +180,8 @@
     if (mode === 'sell') { cash = Math.floor(eur * (1 - fee()) * 100) / 100; addCash(cash); }
     else { if (!st.crypto.hold.btk) st.crypto.since.btk = now(); st.crypto.hold.btk += i.mined; st.crypto.cost.btk += eur; }
     st.rig.pending = 0; st.rig.start = now();
-    stat('rigCollect'); if (wasHot) stat('rigRestart');
-    addXp(4 + Math.min(30, eur / 10));
+    if (i.pct >= .5) stat('rigCollect'); if (wasHot) stat('rigRestart');
+    if (i.pct >= .5) addXp(Math.min(xpCap(30), eur / 10));
     emit('change'); return { btk: i.mined, eur, cash, mode, restarted: wasHot };
   }
   // amélioration : combien elle rapporte de plus, et en combien d'heures de minage elle est remboursée
@@ -294,7 +300,7 @@
   }
   function match(id) { return st.matches.find(m => m.id === id); }
   // cote d'un pronostic au moment du pari (événement « Cotes boostées » : +15 %)
-  function legOdd(m, pick) { return Math.round(m.odds[pick] * (evOn('boost') ? 1.15 : 1) * 100) / 100; }
+  function legOdd(m, pick) { return Math.round(m.odds[pick] * (evOn('boost') ? 1.05 : 1) * 100) / 100; }
   // free = utiliser un pari gratuit (gagné dans un booster) : la mise est offerte, on ne touche que le bénéfice
   function placeBet(legs, stake, free) {
     stake = Math.floor(stake);
@@ -309,7 +315,7 @@
     const odds = Math.round(legs.reduce((o, l) => o * legOdd(match(l.m), l.pick), 1) * 100) / 100;
     st.bets.unshift({ id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
     if (st.bets.length > 30) st.bets.length = 30;
-    stat('bets'); addXp(4 + Math.min(40, stake / 4));
+    if (serious(stake) || free) { stat('bets'); addXp(4 + Math.min(xpCap(40), stake / 4)); } else addXp(stake / 4);
     emit('change'); return { ok: true, odds };
   }
   function settle(m, offline) {
@@ -328,7 +334,7 @@
       if (won) {
         b.gain = Math.round(b.stake * (b.free ? b.odds - 1 : b.odds) * 100) / 100; addCash(b.gain); stat('betsWon');
         if (b.legs.length > 1) stat('combiWon');
-        addXp(10 + Math.min(80, b.gain / 10));
+        addXp((b.stake >= 5 ? 10 : 0) + Math.min(xpCap(80), (b.gain - b.stake) / 10));
       }
       emit('betResult', { b, offline });
     });
@@ -365,8 +371,8 @@
     else if (reels[0].id === 'cherry' && reels[1].id === 'cherry') mult = reels[0].pay2;
     const win = Math.round(bet * mult * 100) / 100;
     if (win) addCash(win);
-    stat('spins'); addXp(1 + Math.min(20, bet / 5));
-    if (mult >= 100) stat('bigWin');
+    if (serious(bet)) { stat('spins'); addXp(1 + Math.min(xpCap(20), bet / 5)); }
+    if (mult >= 100 && bet >= 10) stat('bigWin');
     tiltCheck(bet - win);
     emit('change'); return { reels, mult, win };
   }
@@ -400,7 +406,7 @@
     const n = Math.floor(Math.random() * 37);
     const win = bets.reduce((s, b) => s + b.amt * rouletteWins(b, n), 0);
     if (win) addCash(win);
-    stat('roulette'); addXp(2 + Math.min(30, total / 5));
+    if (serious(total)) { stat('roulette'); addXp(2 + Math.min(xpCap(30), total / 5)); }
     tiltCheck(total - win);
     emit('change'); return { n, win, total };
   }
@@ -426,7 +432,7 @@
     D.ITEMS.forEach(i => {
       // la « vraie valeur » dérive lentement, le prix tourne autour (retour à la moyenne)
       const hv = i.vol / Math.sqrt(60) * Math.sqrt(stepMin);
-      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + .00002 * stepMin), i.p0 * .25, i.p0 * 8);
+      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + .000005 * stepMin), i.p0 * .25, i.p0 * 8);
       let p = mk.prices[i.id];
       p *= Math.exp(hv * gauss() + .08 * stepMin / 60 * Math.log(mk.fair[i.id] / p) * 6);
       mk.prices[i.id] = clamp(p, i.p0 * .15, i.p0 * 12);
@@ -444,9 +450,10 @@
     if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
     if (mk.next && !mk.next.told && habitOn('smoke') && mk.nextRumor - now() <= 5 * 60000 && mk.nextRumor > now()) {
       mk.next.told = true; const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
-      const txt = `Pause clope : un pote te glisse que ${what(it)} va ${ru.up ? 'grimper' : 'chuter'} d'ici quelques minutes.`;
-      mk.news.unshift({ t: now(), txt, up: ru.up, item: it.id, tip: true }); if (mk.news.length > 6) mk.news.length = 6;
-      if (!offline) emit('news', { txt: '🚬 ' + txt, bad: false, item: it.id, up: ru.up, smoke: true });
+      const up = Math.random() < D.KIOSK.marketTrue ? ru.up : !ru.up;   // un pote de clope se trompe aussi
+      const txt = `Pause clope : un pote te glisse que ${what(it)} va ${up ? 'grimper' : 'chuter'} d'ici quelques minutes.`;
+      mk.news.unshift({ t: now(), txt, up, item: it.id, tip: true }); if (mk.news.length > 6) mk.news.length = 6;
+      if (!offline) emit('news', { txt: '🚬 ' + txt, bad: false, item: it.id, up, smoke: true });
     }
     if (now() >= mk.nextRumor) {
       mk.nextRumor = now() + rnd(...D.RUMOR_MIN) * 60000;
@@ -461,7 +468,7 @@
     }
     emit('prices');
   }
-  function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .85 : 1)); }
+  function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .9 : 1)); }
   function sellPrice(id) { return Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)); }
   // les cartes vont dans le classeur : elles ne prennent pas de place sur les étagères
   // les cartes vont toutes dans le classeur : elles ne prennent jamais de place chez toi (une seule de chaque)
@@ -499,7 +506,7 @@
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
     if (it.series) st.lastUp = 'card';
-    stat('itemBuy'); stat('itemsOwned', ownedCount(), true); addXp(5 + Math.min(60, p / 40));
+    stat('itemBuy'); stat('itemsOwned', ownedCount(), true); addXp(5 + Math.min(xpCap(60), p / 40));
     emit('change'); return { p };
   }
   function sellItem(id) {
@@ -507,7 +514,7 @@
     const e = a.shift(); if (!a.length) delete st.owned[id];
     const p = sellPrice(id); addCash(p);
     const profit = p - e.paid; if (profit > 0 && e.paid > 0) stat('itemProfit');
-    addXp(3 + Math.min(50, p / 50));
+    // pas d'XP à la revente : sinon acheter / revendre en boucle fait monter de niveau
     emit('change'); return { p, profit, paid: e.paid };
   }
   function giveTrophy(id) {
@@ -786,13 +793,13 @@
     const opts = {
       C: [
         () => { const n = R((20 + L * 8) * (1 + Math.random())); addCash(n); return { kind: 'cash', n, name: 'Billets' }; },
-        () => { st.freeTickets += 2; return { kind: 'ticket', n: 2, name: 'Tickets offerts' }; },
-        () => { const n = 20 + L * 8; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
+        () => { st.freeTickets += 5; return { kind: 'ticket', n: 5, name: 'Tickets offerts' }; },
+        () => { const n = 10 + L * 4; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
       ],
       R: [
         () => { addLingots(3); return { kind: 'lingots', n: 3, name: 'Lingots' }; },
-        () => { const n = R(10 + L * 3); st.freebets.push(n); return { kind: 'freebet', n, name: 'Pari gratuit' }; },
-        () => { const n = 40 + L * 20; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
+        () => { const n = R(30 + L * 8); st.freebets.push(n); return { kind: 'freebet', n, name: 'Pari gratuit' }; },
+        () => { const n = 20 + L * 10; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
       ],
       E: [
         () => { addLingots(8); return { kind: 'lingots', n: 8, name: 'Lingots' }; },
@@ -915,10 +922,10 @@
     const buyable = D.ITEMS.filter(i => !i.noBuy && i.cat !== 'trophy' && catUnlocked(i.cat) && !(st.owned[i.id] && st.owned[i.id].length) && st.market.prices[i.id] <= Math.max(150, worth() * .6));
     let deal = null;
     if (mine.length && (Math.random() < .5 || !buyable.length)) {
-      const id = pick(mine), k = rnd(1.15, 1.35);
+      const id = pick(mine), k = rnd(1.0, 1.12);
       deal = { type: 'buy', id, price: Math.round(st.market.prices[id] * k), k };
     } else if (buyable.length) {
-      const it = pick(buyable), k = rnd(.68, .82);
+      const it = pick(buyable), k = rnd(.85, .95);
       deal = { type: 'sell', id: it.id, price: Math.round(st.market.prices[it.id] * k), k };
     }
     st.nextDealAt = now() + rnd(...S.every) * 1000;
