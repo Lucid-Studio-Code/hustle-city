@@ -967,7 +967,8 @@
           const canBuy = G.catUnlocked(it.cat);
           return `<div class="news-card ${x.up ? 'up' : 'down'}"><span class="nc-arrow">${x.up ? '▲' : '▼'}</span>
             <div class="nc-top"><span class="nc-pic">${itemPic(it)}</span><div class="nc-txt"><small>${x.tip ? 'Un pote t\'a prévenu' : x.up ? 'Ça monte' : 'Ça chute'} · ${ago(x.t)}</small><b>${esc(x.txt.replace(/^Pause clope : (.)/, (_, c) => c.toUpperCase()))}</b>
-            <span class="nc-px">Prix du jour ${short(s.market.prices[it.id])} ${trend(s.market.prices[it.id], h[Math.max(0, h.length - 30)])}</span></div></div>
+            <span class="nc-px">Cote ${short(s.market.prices[it.id])} ${trend(s.market.prices[it.id], h[Math.max(0, h.length - 30)])}</span>
+            <span class="nc-fee">${mine ? `Le Comptoir te la reprend <b>${short(G.sellPrice(it.id))}</b> : il garde 10 % de commission.` : `Le Comptoir te la vend <b>${short(G.buyPrice(it.id))}</b> : la cote + 5 % pour lui.`}</span></div></div>
             <div class="nc-acts">${mine ? `<button class="btn red sm" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
               : canBuy && !G.inStock(it.id) ? '<span class="nc-note">Pas en rayon en ce moment</span>' : canBuy ? `<button class="btn green sm" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>` : '<span class="nc-note">Se trouve dans les boosters</span>'}</div></div>`;
         }).join('') : '<p class="hint-line center">Pas de rumeur pour l\'instant. Repasse plus tard.</p>');
@@ -977,7 +978,7 @@
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
-        <small class="muted own-line">${mine ? 'Tu l\'as' : 'Tu ne l\'as pas'}</small>
+        <small class="muted own-line">${mine ? `Tu l'as · repris ${short(G.sellPrice(it.id))} (−10 %)` : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
         <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
           : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
     };

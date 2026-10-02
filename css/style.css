@@ -1966,3 +1966,4 @@ h3.sec { margin: 18px 6px 10px; }
 #app .sx-p.ok { filter: none; } #app .sx-p.ok .sx-pv { background: #3fae2a; color: #fff; }
 #app .sx-p.ko .sx-pv { background: #d33a2c; color: #fff; }
 #app .sx-pv em { font-style: normal; margin-left: 6px; opacity: .9; }
+#app .nc-fee { display: block; margin-top: 2px; font: 700 11.5px/1.3 var(--text); color: #6a5a4a; } #app .nc-fee b { color: #2a1a10; }
