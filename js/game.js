@@ -28,6 +28,7 @@
       stats: {}, quests: {},
       crypto: { mood: 'calm', moodUntil: t + D.MOOD_MIN * 60000, lastTick: t, prices: {}, hist: {}, hold: {}, cost: {}, since: {} },
       rig: { lvl: 0, start: t, pending: 0 },
+      mine: starterMine(0, t),   // un premier minage d'Axion déjà fini : la première chose qu'on fait, c'est récolter
       matches: [], bets: [], nextMatchId: 1, matchClock: t,
       market: { lastTick: t, prices: {}, fair: {}, hist: {}, nextRumor: t + rnd(...D.RUMOR_MIN) * 60000, news: [] },
       owned: {},            // id -> [{ paid, t }]
@@ -47,6 +48,8 @@
   }
   let st = fresh();
 
+  // minage d'Axion de 15 min déjà terminé (nouvelle partie, ou ancienne sauvegarde d'avant la nouvelle machine)
+  function starterMine(lvl, t) { return { id: 'btk', start: t - 15 * 60000, dur: 15 * 60000, amt: D.RIG[lvl].btkH * .25, cool: 0, coolAt: 0, burnt: false, lvl }; }
   function load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
@@ -56,6 +59,7 @@
         st = Object.assign(base, saved);
         ['crypto', 'market', 'rig', 'daily'].forEach(k => { st[k] = Object.assign(fresh()[k], saved[k] || {}); });
         // nouveaux objets / cryptos ajoutés après la sauvegarde
+        if (saved.mine === undefined) st.mine = starterMine(st.rig.lvl || 0, now());
         D.COINS.forEach(c => { if (st.crypto.prices[c.id] == null) { st.crypto.prices[c.id] = c.p0; st.crypto.hist[c.id] = [c.p0]; st.crypto.hold[c.id] = 0; st.crypto.cost[c.id] = 0; } });
         D.ITEMS.forEach(i => { if (st.market.prices[i.id] == null) { st.market.prices[i.id] = i.p0; st.market.fair[i.id] = i.p0; st.market.hist[i.id] = [i.p0]; } });
       }
@@ -164,30 +168,65 @@
   }
 
   // ------------------------------------------------------------ rig de minage
+  // ------------------------------------------------------------ machine à miner (façon Mama Farm)
+  // st.mine = null (à l'arrêt) ou { id, start, dur, amt, cool, coolAt, burnt, lvl } : on a CHOISI une crypto à miner,
+  // la quantité est fixée au départ (sa valeur suit le cours), la chaleur monte, on peut refroidir, puis on RÉCOLTE.
+  const powerH = (lvl = st.rig.lvl) => D.RIG[lvl].btkH * coin('btk').p0;            // billets par heure, au prix de base
+  const mineOpt = id => D.MINE.find(x => x.id === id);
+  function mineHeat(m, t) {
+    const o = mineOpt(m.id), el = (Math.min(t, m.start + m.dur) - m.start) / 60000;
+    return Math.max(0, o.heat * (el - (m.cool || 0)) / D.RIG[m.lvl].heatMin * 100);
+  }
   function rigInfo() {
-    const r = D.RIG[st.rig.lvl], heatMs = r.heatMin * 60000 * (habitMalus('club') ? .75 : 1);
-    const run = Math.min(now() - st.rig.start, heatMs);
-    const mined = st.rig.pending + r.btkH * run / 3600000, px = st.crypto.prices.btk;
-    // tout est aussi donné en billets, au cours du moment : c'est ce qui parle à tout le monde
-    return { r, mined, value: mined * px, perHour: r.btkH * px, hot: now() - st.rig.start >= heatMs, left: Math.max(0, heatMs - (now() - st.rig.start)), pct: run / heatMs, heatMs };
+    const r = D.RIG[st.rig.lvl], m = st.mine, perHour = powerH();
+    if (!m) return { r, idle: true, hot: true, ready: false, value: 0, mined: 0, pct: 0, left: 0, heat: 0, perHour, heatMs: 0 };
+    const t = now(), end = m.start + m.dur, ready = t >= end, pct = Math.min(1, (t - m.start) / m.dur);
+    const heat = mineHeat(m, t); if (heat >= 100 && !m.burnt) { m.burnt = true; emit('mineBurnt'); }
+    const full = m.amt * st.crypto.prices[m.id];
+    return { r, run: m, opt: mineOpt(m.id), idle: false, ready, hot: ready, value: full * pct, full, mined: m.amt * pct, pct, left: Math.max(0, end - t), heat, burnt: !!m.burnt,
+      coolLeft: Math.max(0, (m.coolAt || 0) + D.FINDS.coolCd * 60000 - t), perHour, heatMs: m.dur };
   }
-  // mode 'sell' : on vend tout de suite l'Axion récupéré (frais de 0,5 %) ; 'keep' : on le garde dans le PC, sa valeur suivra le cours
-  function rigCollect(mode = 'keep') {
-    const i = rigInfo();
-    if (i.mined <= 0) return { err: 'Rien à récupérer.' };
-    const eur = i.value, wasHot = i.hot;
-    let cash = 0;
-    if (mode === 'sell') { cash = Math.floor(eur * (1 - fee()) * 100) / 100; addCash(cash); }
-    else { if (!st.crypto.hold.btk) st.crypto.since.btk = now(); st.crypto.hold.btk += i.mined; st.crypto.cost.btk += eur; }
-    st.rig.pending = 0; st.rig.start = now();
-    if (i.pct >= .5) stat('rigCollect'); if (wasHot) stat('rigRestart');
-    if (i.pct >= .5) addXp(Math.min(xpCap(30), eur / 10));
-    emit('change'); return { btk: i.mined, eur, cash, mode, restarted: wasHot };
+  function mineStart(id) {
+    const o = mineOpt(id); if (!o) return { err: 'Introuvable.' };
+    if (st.mine) return { err: 'Ta machine tourne déjà.' };
+    if (st.rig.lvl < o.need) return { err: `Il faut la machine niveau ${o.need + 1}.` };
+    const h = o.min / 60, val = powerH() * h * o.mult * (1 + o.swing * (2 * Math.random() - 1));   // l'imprévu est tiré au départ, révélé à la récolte
+    st.mine = { id, start: now(), dur: o.min * 60000 * (evOn('rig') ? .5 : 1), amt: Math.max(0, val) / st.crypto.prices[id], cool: 0, coolAt: 0, burnt: false, lvl: st.rig.lvl };
+    stat('rigRestart'); addXp(2); emit('change'); return { ok: true };
   }
+  function mineCool() {
+    const i = rigInfo(); if (i.idle || i.ready) return { err: 'Rien à refroidir.' };
+    if (i.burnt) return { err: 'Trop tard : elle a déjà surchauffé.' };
+    if (i.coolLeft > 0) return { err: 'Le ventilo souffle déjà. Attends un peu.' };
+    const m = st.mine, o = mineOpt(m.id), el = (now() - m.start) / 60000;
+    m.cool = Math.min(el, (m.cool || 0) + D.RIG[m.lvl].heatMin / o.heat * .5); m.coolAt = now();
+    stat('rigCool'); addXp(2); emit('change'); return { ok: true, heat: mineHeat(m, now()) };
+  }
+  function mineHarvest() {
+    const i = rigInfo(); if (i.idle) return { err: 'Ta machine est à l\'arrêt : choisis quoi miner.' };
+    if (!i.ready) return { err: 'Pas encore fini.' };
+    const m = st.mine, o = i.opt, F = D.FINDS, h = m.dur / 3600000;
+    let value = i.full * (m.burnt ? 1 - F.burnt : 1) * (evOn('rig') ? 1.5 : 1);
+    // une seule trouvaille au plus : plus de chances avec une grosse machine et un long minage
+    const k = 1 + m.lvl * .15 + h * .05, r = Math.random();
+    const virus = F.virus + (m.burnt ? F.virusHot : 0);
+    let find = null, c = 0;
+    if (r < (c += virus)) { value *= .6; find = { kind: 'virus' }; }
+    else if (r < (c += F.gold * k)) { value *= 3; find = { kind: 'gold' }; }
+    else if (r < (c += F.wallet * k)) { const n = Math.round(value * rnd(1, 3)); addCash(n); find = { kind: 'wallet', n }; }
+    else if (r < (c += F.card * k)) { find = Object.assign({ kind: 'card' }, collectionCard()); }
+    else if (r < (c += F.lingots * k)) { const n = 1 + m.lvl + Math.floor(Math.random() * 3); addLingots(n); find = { kind: 'lingots', n }; }
+    const cash = Math.floor(value * (1 - fee()) * 100) / 100; addCash(cash);
+    st.mine = null; stat('rigCollect');
+    addXp(5 + Math.min(xpCap(30), value / 10));
+    emit('change'); return { id: o.id, value, cash, find, burnt: m.burnt, eur: cash, mode: 'sell' };
+  }
+  // compatibilité : l'ancien « encaisser » = récolter
+  function rigCollect() { return mineHarvest(); }
   // amélioration : combien elle rapporte de plus, et en combien d'heures de minage elle est remboursée
   function rigNext() {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return null;
-    const px = st.crypto.prices.btk, cur = D.RIG[st.rig.lvl], price = cost(nx.cost);
+    const px = coin('btk').p0, cur = D.RIG[st.rig.lvl], price = cost(nx.cost);
     const gainH = (nx.btkH - cur.btkH) * px;
     return { nx, price, mult: nx.btkH / cur.btkH, perHour: nx.btkH * px, payback: gainH > 0 ? price / gainH : Infinity };
   }
@@ -233,8 +272,7 @@
   function rigUpgrade(mix) {
     const nx = D.RIG[st.rig.lvl + 1]; if (!nx) return { err: 'Déjà au max.' };
     if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
-    const i = rigInfo(); st.rig.pending = i.hot ? i.mined : i.mined; st.rig.lvl++; st.rig.start = now(); st.lastUp = 'rig';
-    // on garde ce qui était déjà miné
+    st.rig.lvl++; st.lastUp = 'rig';   // le minage en cours finit à l'ancienne puissance
     addXp(40 + nx.cost / 100); emit('change'); return { ok: true };
   }
 
@@ -890,9 +928,7 @@
     emit('event', ev);
   }
   function simRigBoost() {
-    const t = now(), dt = t - (st.rigBoostT || t); st.rigBoostT = t;
-    if (!evOn('rig') || dt <= 0 || dt > 60000) return;
-    const i = rigInfo(); if (!i.hot) st.rig.pending += i.r.btkH * dt / 3600000;
+    // « Heures creuses » : les minages lancés pendant l'événement vont deux fois plus vite et la récolte vaut ×1,5 (voir mineStart/mineHarvest)
   }
 
   // ------------------------------------------------------------ bons plans
@@ -1028,7 +1064,7 @@
     get st() { return st; }, on, emit, load, save, reset, simulate,
     addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
-    rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk,
+    rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),

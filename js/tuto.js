@@ -11,8 +11,10 @@
   const MAIN = [
     { say: n => `Wesh ${n} ! Moi c'est Momo, ton cousin. T'as 200<i class="cur"></i> en poche et un vieux PC. Je vais te montrer comment ça tourne ici.`, btn: 'Vas-y' },
     { say: () => 'Ça, c\'est <b>ton appart</b>. Entre, on commence par là.', target: '.bld[data-id=appart]', before: () => U.focusBld('appart'), done: () => U.scene === 'appart' },
-    { say: () => 'Ta <b>machine à crypto</b> fabrique de l\'argent toute seule, même quand t\'es pas là. Touche-la.', target: '[data-act=rig]', done: () => !!$('[data-act=rigCollect]') },
-    { say: () => '<b>Encaisse</b> ce qu\'elle a fabriqué. Elle chauffe et s\'arrête au bout de 20 min : reviens la vider, ça la relance. Plus tard, touche juste sa bulle.', target: '[data-act=rigCollect]', done: () => S('rigCollect') > 0 },
+    { say: () => 'Ta <b>machine à crypto</b> : tu choisis quoi miner, elle bosse pendant que t\'es pas là. Elle a déjà fini un minage. Touche-la.', target: '[data-act=rig]', done: () => !!$('[data-act=mineHarvest]') || S('rigCollect') > 0 },
+    { say: () => '<b>Récolte</b> ! À chaque récolte, tu peux tomber sur une trouvaille : lingots, carte, bloc doré… ou un virus.', target: '[data-act=mineHarvest]', done: () => S('rigCollect') > 0 },
+    { say: () => 'Joli ! Maintenant relance-la : touche « Relancer un minage ».', target: '#modal [data-act=rig]', done: () => !!$('[data-act=mineStart]') || !!st().mine },
+    { say: () => 'Choisis l\'<b>Axion</b> : rapide et sans risque. Plus tard, tu mineras des cryptos plus longues et plus folles. Pense à la <b>refroidir</b> quand elle chauffe.', target: '[data-act=mineStart][data-id=btk]', done: () => !!st().mine },
     { say: () => 'Ferme cette fenêtre.', target: '#modal .sheet-close', done: () => !modalOpen() },
     { say: () => 'Et là, <b>ton PC</b> : tu y achètes des cryptos, des monnaies dont le prix bouge tout le temps.', target: '[data-act=pc]', done: () => !!$('#cr-amt') },
     { say: () => 'Mets <b>50<i class="cur"></i></b> sur l\'Axion. Si son prix monte, tu revends plus cher et tu gagnes la différence. S\'il baisse… tu perds.', target: '[data-act=crBuy]', before: () => { const i = $('#cr-amt'); if (i && st().cash >= 50) i.value = 50; }, done: () => S('cryptoBuy') > 0 },

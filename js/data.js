@@ -70,7 +70,21 @@
   ];
   const MOOD_MIN = 20;
 
-  // Rig de minage : produit de l'Axion en continu, chauffe, il faut le relancer
+  // Machine à miner (façon Mama Farm) : on CHOISIT quoi miner (comme une graine), elle tourne un temps donné, chauffe,
+  // et à la fin on RÉCOLTE (écran de récolte avec trouvailles possibles). btkH = puissance (en Axion par heure au prix de base),
+  // heatMin = endurance : plus elle est haute, moins la machine chauffe.
+  // MINE : ce qu'on peut miner. min = durée, mult = rendement, heat = chauffe, need = niveau de machine requis (0 = la première),
+  // swing = imprévisible (la récolte peut valoir de ×(1-swing) à ×(1+swing)).
+  const MINE = [
+    { id: 'btk', min: 15,  mult: 1.0,  heat: .5,  need: 0, swing: .1,  tag: 'Rapide et sûr' },
+    { id: 'eta', min: 45,  mult: 1.1,  heat: .8,  need: 0, swing: .15, tag: 'Le bon compromis' },
+    { id: 'dgk', min: 30,  mult: 1.05, heat: 1.1, need: 1, swing: .8,  tag: 'Tout ou rien' },
+    { id: 'slr', min: 120, mult: 1.25, heat: 1.0, need: 1, swing: .2,  tag: 'Long mais costaud' },
+    { id: 'ppc', min: 240, mult: 1.3,  heat: 1.5, need: 2, swing: 1.0, tag: 'Jackpot ou catastrophe' },
+    { id: 'lmn', min: 480, mult: 1.45, heat: .45, need: 3, swing: .15, tag: 'Pour la nuit' }
+  ];
+  // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
+  const FINDS = { gold: .04, lingots: .10, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
   const RIG = [
     { name: 'Vieille tour bricolée', cost: 0,     btkH: .0004,  heatMin: 40, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
     { name: 'Tour gamer',          cost: 900,   btkH: .0011,  heatMin: 75, desc: 'Une vraie machine, ça tourne plus vite.' },
@@ -299,7 +313,7 @@
     { k: 'bets',        t: 'Place {n} paris au Royal',          g: [2, 6] },
     { k: 'scratch',     t: 'Gratte {n} tickets',                g: [3, 8] },
     { k: 'cryptoBuy',   t: 'Achète de la crypto {n} fois',      g: [2, 6] },
-    { k: 'rigCollect',  t: 'Récupère ton minage {n} fois',      g: [2, 5] },
+    { k: 'rigCollect',  t: 'Récolte {n} minages',               g: [2, 5] },
     { k: 'betsWon',     t: 'Gagne {n} paris',                   g: [1, 3] },
     { k: 'tips',        t: 'Achète {n} tuyau au Kiosque',       g: [1, 2] },
     { k: 'boosters',    t: 'Ouvre {n} booster',                 g: [1, 1] },
@@ -315,7 +329,7 @@
     list: [
       { id: 'xp',    name: 'Happy hour',        short: 'XP ×2',       icon: 'star',   desc: 'Toute l\'XP gagnée compte double.' },
       { id: 'boost', name: 'Cotes boostées',    short: 'Cotes +15 %', icon: 'ticket', desc: 'Le Royal booste toutes ses cotes de 15 % sur les paris posés maintenant.' },
-      { id: 'rig',   name: 'Heures creuses',    short: 'Minage ×2',   icon: 'bolt',   desc: 'L\'électricité ne coûte rien : ta machine mine deux fois plus vite.' },
+      { id: 'rig',   name: 'Heures creuses',    short: 'Minage ×2',   icon: 'bolt',   desc: 'L\'électricité ne coûte rien : les minages lancés maintenant vont deux fois plus vite et rapportent ×1,5.' },
       { id: 'sale',  name: 'Déstockage',        short: 'Comptoir −15 %', icon: 'trophy', desc: 'Le Comptoir vide sa réserve : tout est 15 % moins cher à l\'achat.' }
     ] };
 
@@ -395,7 +409,7 @@
   // stat = compteur dans st.stats ; n = objectif
   // go = où mène le bouton « Y aller » ; lvl = niveau d'ouverture (les suivantes sont montrées grisées)
   const QUESTS = [
-    { id: 'q1',  txt: 'Relance ta machine à crypto',        stat: 'rigRestart', n: 1,  cash: 30,  xp: 20, go: 'rig' },
+    { id: 'q1',  txt: 'Lance un minage sur ta machine',     stat: 'rigRestart', n: 1,  cash: 30,  xp: 20, go: 'rig' },
     { id: 'q2',  txt: 'Achète ta première crypto',          stat: 'cryptoBuy',  n: 1,  cash: 40,  xp: 25, go: 'pc' },
     { id: 'q3',  txt: 'Place un pari au Royal',             stat: 'bets',       n: 1,  cash: 40,  xp: 25, go: 'balto' },
     { id: 'q17', txt: 'Ouvre ton premier booster',          stat: 'boosters',   n: 1,  cash: 60,  xp: 50, go: 'boosters' },
@@ -455,7 +469,7 @@
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
-    BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
+    MINE, FINDS, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };

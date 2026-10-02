@@ -216,7 +216,9 @@
     if (rw) add(100, '🏆', `${rw} récompense${rw > 1 ? 's' : ''} à récupérer`, 'Tes missions ou tes défis sont réussis : encaisse.', () => openRewards(), true);
     if (G.dailyReady()) add(95, '🎁', 'Ton cadeau du jour t\'attend', 'Reviens chaque jour : il grossit avec la série.', () => openDaily(), true);
     const ri = G.rigInfo();
-    if (ri.hot) add(90, '⛏️', 'Ta machine est pleine', `Elle s'est arrêtée avec ${short(ri.value)} dedans : encaisse et relance-la.`, () => questGo('rig'), true);
+    if (ri.ready) add(90, '⛏️', 'Ta récolte est prête', 'Ton minage est fini : viens voir ce qu\'il y a dedans.', () => questGo('rig'), true);
+    else if (ri.idle) add(89, '⛏️', 'Ta machine est à l\'arrêt', 'Choisis une crypto à miner : elle bosse pendant que tu fais autre chose.', () => questGo('rig'), true);
+    else if (!ri.burnt && ri.heat >= 70) add(92, '🌡️', `Ta machine chauffe : ${Math.round(ri.heat)} %`, 'Refroidis-la avant 100 %, sinon la récolte en prend un coup.', () => questGo('rig'), true);
     if (G.boosterCount()) add(85, '🃏', `${G.boosterCount()} booster${G.boosterCount() > 1 ? 's' : ''} à ouvrir`, 'Des cartes à collectionner et des récompenses.', () => openBoosters('open'), true);
     if (G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
     if (s.deal && Date.now() < s.deal.end) add(78, '💬', `${s.deal.name} te propose une affaire`, 'L\'offre ne dure pas : regarde vite.', () => openPhone('msg'), true);
@@ -620,9 +622,9 @@
       return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic('item-' + it.id, D.ITEM_CATS[it.cat].icon)}</button>` : '';
     }).join('');
     // bulle de la machine : ce qu'il y a dedans (en billets) et la chaleur ; on la vide d'un geste
-    const rigBubble = rig.hot
-      ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>Pleine, arrêtée !</b><small>Touche : +${short(rig.value)}</small></span></button>`
-      : `<button class="obj-bubble" data-act="rigQuick"><i class="ring" style="--p:${Math.round(rig.pct * 100)}"></i><span><b>+${short(rig.value)}</b><small>S'arrête dans ${mmss(rig.left)}</small></span></button>`;
+    const rigBubble = rig.idle ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>À l'arrêt</b><small>Choisis quoi miner</small></span></button>`
+      : rig.ready ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>⛏️ Récolte prête !</b><small>Touche pour voir</small></span></button>`
+      : `<button class="obj-bubble ${rig.burnt ? 'down' : rig.heat >= 80 ? 'hot' : ''}" data-act="rigQuick"><i class="ring" style="--p:${Math.round(rig.pct * 100)}"></i><span><b>${rig.burnt ? '💥 Surchauffe' : rig.heat >= 80 ? `🌡️ ${Math.round(rig.heat)} % : refroidis !` : G.coin(rig.run.id).name}</b><small>Fini dans ${mmss(rig.left)}</small></span></button>`;
     // bulle du PC : ce que valent tes cryptos, gagné ou perdu
     const cv = G.cryptoValue(), cc = D.COINS.reduce((a, c) => a + (s.crypto.hold[c.id] > 0 ? s.crypto.cost[c.id] : 0), 0), diff = cv - cc;
     const pcBubble = cv >= .01
@@ -742,24 +744,63 @@
       <div class="card pat-list">${rows}</div><p class="hint-line">Ce qui est revendu ne pourra plus monter. Réfléchis : vendre au mauvais moment, c'est perdre.</p>
       <div class="grid2"><button class="btn" data-act="upgrades">Annuler</button><button class="btn purple" data-act="patGo" data-k="${k}">Vendre et payer</button></div>` });
   }
-  function openRig() {
-    const body = () => {
-      const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
-      const full = i.perHour * i.heatMs / 3600000;
-      return `<div class="rig-top">${pic(img(s.rig.lvl), EMO.rig)}<div><b>${i.r.name}</b><small>Machine niveau ${s.rig.lvl + 1} / ${D.RIG.length}</small>
-          <p>Elle fabrique de l'Axion (une crypto) toute seule, même quand tu n'es pas là. Elle rapporte environ <b>${short(i.perHour)} par heure</b>.</p></div></div>
-        <div class="gauge"><div class="g-lbl"><span>💰 Dans la machine</span><b>${short(i.value)}</b></div><div class="g-bar cashbar"><i style="width:${Math.min(100, i.value / full * 100)}%"></i></div></div>
-        <div class="gauge"><div class="g-lbl"><span>🌡️ Chaleur</span><b class="${i.hot ? 'down' : ''}">${i.hot ? 'Trop chaude : arrêtée' : `S'arrête dans ${mmss(i.left)}`}</b></div><div class="g-bar heat ${i.hot ? 'hot' : ''}"><i style="width:${Math.round(i.pct * 100)}%"></i></div></div>
-        <button class="btn green wide big-act" data-act="rigCollect" data-mode="sell" ${i.value >= .01 ? '' : 'disabled'}>Encaisser ${short(i.value * (1 - G.fee()))}</button>
-        <p class="hint-line center" style="margin-top:6px">L'argent va direct dans ta poche, et la machine refroidit puis repart.</p>
-        ${nx ? `<h3 class="sec">Améliorer ta machine</h3><div class="card up-card"><div class="up-img">${pic(img(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><b>${nx.nx.name}</b>
-            <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus rapide : ≈ ${short(nx.perHour)} par heure, et elle tient ${nx.nx.heatMin} min avant de chauffer.</p>
-            <p class="muted">${isFinite(nx.payback) ? `Remboursée en ≈ ${Math.max(1, Math.round(nx.payback))} h de minage (au prix actuel de l'Axion).` : ''}</p>
-            <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button>
-            ${mixBtn(nx.price, 'rigUpL')}</div></div>`
-          : '<div class="explain center">Ta machine est au maximum. Respect.</div>'}`;
-    };
-    openModal({ title: 'Machine à crypto', icon: 'bolt', full: true, body: body(), refresh: () => setBody(body()) });
+  // ------------------------------------------------------------ la machine à miner (façon Mama Farm)
+  // 3 états : à l'arrêt (on choisit quoi miner), en marche (chaleur, refroidir), finie (on récolte → écran de récolte)
+  const deC = n => /^[AEIOUYÉ]/i.test(n) ? `d'${n}` : `de ${n}`;
+  const coinPic = id => has('coin-' + id) ? `<img src="${src('coin-' + id)}" alt="">` : `<b>${G.coin(id).sym}</b>`;
+  const flames = n => '🔥'.repeat(Math.max(1, Math.min(4, Math.ceil(n))));
+  function minePicker() {
+    const s = st();
+    return `<h3 class="sec">Choisis quoi miner</h3><div class="mine-grid">${D.MINE.map(o => {
+      const c = G.coin(o.id), lock = s.rig.lvl < o.need, lv = Math.max(s.rig.lvl, o.need), est = G.powerH(lv) * o.min / 60 * o.mult, maxHeat = o.heat * o.min / D.RIG[lv].heatMin;
+      const cools = Math.max(0, Math.ceil((maxHeat - 1) / .5));
+      return `<div class="card mine-opt ${lock ? 'locked' : ''}"><span class="mo-coin">${coinPic(o.id)}</span><b>${c.name}</b><small class="mo-tag">${o.tag}</small>
+        <div class="mo-row"><span>⏱️ ${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}</span><span>💰 ≈ ${short(est)}</span></div>
+        <div class="mo-row"><span title="Chaleur">${flames(maxHeat * 2)}</span><span>${cools ? `À refroidir ×${cools}` : 'Ne chauffe pas'}</span></div>
+        ${lock ? `<button class="btn xs" disabled>🔒 Machine niv. ${o.need + 1}</button>` : `<button class="btn xs green" data-act="mineStart" data-id="${o.id}">Miner</button>`}</div>`;
+    }).join('')}</div><p class="hint-line">Ce que tu mines est payé au <b>cours du moment</b> à la récolte : si la crypto monte pendant ce temps, tu gagnes plus. Les cryptos « tout ou rien » peuvent rapporter le double… ou presque rien.</p>`;
+  }
+  function mineRunning(i) {
+    const c = G.coin(i.run.id), heat = Math.min(100, Math.round(i.heat));
+    return `<div class="mine-run ${i.burnt ? 'burnt' : ''}"><div class="mr-coin"><i class="ring big" style="--p:${Math.round(i.pct * 100)}"></i>${coinPic(i.run.id)}</div>
+        <div><b>Minage ${deC(c.name)}</b><small>Fini dans <strong>${mmss(i.left)}</strong></small><small>Déjà ≈ ${short(i.value)} (au cours du moment)</small></div></div>
+      <div class="gauge"><div class="g-lbl"><span>🌡️ Chaleur</span><b class="${heat >= 80 ? 'down' : ''}">${i.burnt ? 'Surchauffe !' : heat + ' %'}</b></div><div class="g-bar heat ${heat >= 80 ? 'hot' : ''}"><i style="width:${heat}%"></i></div></div>
+      ${i.burnt ? `<p class="mine-warn">💥 Elle a surchauffé : la récolte perdra ${Math.round(D.FINDS.burnt * 100)} % et un virus est plus probable. La prochaine fois, refroidis-la avant 100 %.</p>`
+        : `<button class="btn blue wide" data-act="mineCool" ${i.coolLeft > 0 ? 'disabled' : ''}>${i.coolLeft > 0 ? `💨 Le ventilo souffle… ${mmss(i.coolLeft)}` : '💨 Refroidir (−50 % de chaleur)'}</button>
+           <p class="hint-line center" style="margin-top:4px">À 100 %, elle surchauffe : la récolte en prend un coup. Passe la refroidir de temps en temps.</p>`}`;
+  }
+  function rigBody() {
+    const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
+    const top = `<div class="rig-top">${pic(img(s.rig.lvl), EMO.rig)}<div><b>${i.r.name}</b><small>Machine niveau ${s.rig.lvl + 1} / ${D.RIG.length} · puissance ≈ ${short(i.perHour)} par heure</small></div></div>`;
+    const main = i.idle ? minePicker()
+      : i.ready ? `<div class="mine-ready"><span class="mr-coin pop">${coinPic(i.run.id)}</span><b>Ton minage ${deC(G.coin(i.run.id).name)} est fini !</b><small>Qu'est-ce qu'il y a dedans ?</small>
+          <button class="btn green wide big-act pulse" data-act="mineHarvest">⛏️ Récolter</button></div>`
+      : mineRunning(i);
+    const up = nx ? `<h3 class="sec">Améliorer ta machine</h3><div class="card up-card"><div class="up-img">${pic(img(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><b>${nx.nx.name}</b>
+        <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus puissante, elle chauffe moins, et elle débloque ${D.MINE.filter(o => o.need === s.rig.lvl + 1).map(o => G.coin(o.id).name).join(' et ') || 'plus de trouvailles'}.</p>
+        <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button>
+        ${mixBtn(nx.price, 'rigUpL')}</div></div>` : '<div class="explain center">Ta machine est au maximum. Respect.</div>';
+    return top + main + up;
+  }
+  function openRig() { openModal({ title: 'Machine à crypto', icon: 'bolt', full: true, body: rigBody(), refresh: () => setBody(rigBody()) }); }
+  // l'écran de récolte : ce qu'on a miné, et la trouvaille éventuelle
+  const FIND_TXT = {
+    gold: ['🟨', 'Bloc doré !', 'Tu es tombé sur un bloc rare : la récolte vaut ×3.'],
+    lingots: ['🪙', 'Des lingots !', n => `Coincés dans la machine : +${n} lingots.`],
+    card: ['🃏', 'Une carte !', x => `Planquée derrière le ventilo : ${x.name}${x.dup ? ' (doublon revendu)' : ''}.`],
+    wallet: ['👛', 'Un vieux portefeuille !', n => `Un portefeuille crypto oublié : +${short(n)} en plus.`],
+    virus: ['🦠', 'Un virus !', 'Un virus s\'est glissé dans ta machine : −40 % sur la récolte.']
+  };
+  function showHarvest(r) {
+    const c = G.coin(r.id), f = r.find && FIND_TXT[r.find.kind];
+    const fTxt = f ? (typeof f[2] === 'function' ? f[2](r.find.kind === 'card' ? r.find : r.find.n) : f[2]) : '';
+    openModal({ title: 'Récolte', icon: 'bolt', center: true, body: `<div class="harvest">
+        <span class="hv-coin">${coinPic(r.id)}</span><small>Minage ${deC(c.name)} terminé</small>
+        <b class="hv-amt stroke" data-to="${Math.round(r.cash)}">+0</b>${r.burnt ? '<p class="mine-warn">💥 Surchauffe : −35 % sur cette récolte.</p>' : ''}
+        ${f ? `<div class="hv-find ${r.find.kind}"><span>${f[0]}</span><div><b>${f[1]}</b><small>${fTxt}</small></div></div>` : '<p class="hint-line center">Pas de trouvaille cette fois. La prochaine, peut-être…</p>'}
+        <div class="grid2"><button class="btn" data-act="closeModal">Fermer</button><button class="btn green" data-act="rig">Relancer un minage</button></div></div>` });
+    sfx.coin(); if (r.find && r.find.kind !== 'virus') { sfx.win && sfx.win(); rain('confetti', 24); }
+    const el = $('#modal .hv-amt'); if (el) { const to = +el.dataset.to, t0 = performance.now(); const step = t => { const k = Math.min(1, (t - t0) / 900); el.innerHTML = `+${short(Math.round(to * k))}`; if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
   }
 
   // ------------------------------------------------------------ le téléphone : toujours dans la poche, avec ses notifications
@@ -1524,8 +1565,11 @@
     rigUpOpen: () => { openRig(); setTimeout(() => { const c = $('#modal .up-card'), b = $('#modal .sheet-body'); if (c && b) b.scrollTop = c.offsetTop - b.offsetTop - 40; }, 30); },
     room: () => openRoom(),
     roomUp() { const r = G.roomUpgrade(); if (r.err) return toast(r.err, true); rain('confetti'); closeModal(); renderAppart(); },
-    rigCollect(el) { const r = G.rigCollect(el.dataset.mode || 'keep'); if (r.err) return toast(r.err, true); rigDone(r, el); },
-    rigQuick(el, e) { e.stopPropagation(); const r = G.rigCollect('sell'); if (r.err) return toast(r.err, true); rigDone(r, el); },
+    rigCollect() { A.mineHarvest(); },
+    rigQuick(el, e) { e.stopPropagation(); const i = G.rigInfo(); if (i.ready) return A.mineHarvest(); if (!i.idle && !i.burnt && i.heat >= 50 && i.coolLeft <= 0) return A.mineCool(); openRig(); },
+    mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
+    mineCool() { const r = G.mineCool(); if (r.err) return toast(r.err, true); sfx.tap(); floatTxt('💨 −50 %'); refresh(); },
+    mineHarvest() { const r = G.mineHarvest(); if (r.err) return toast(r.err, true); closeModal(); setTimeout(() => { showHarvest(r); refresh(); }, 80); },
     roomHelp: () => openRoomHelp(),
     wSellCoin(el) { cryptoSel = el.dataset.id; sellCoin(1); },
     collectionInfo: () => openWallet(),
@@ -1714,9 +1758,10 @@
   let lastSave = 0;
   // notifications « du quotidien » : machine pleine, cadeau et booster du jour
   function dailyNotifs() {
-    const s = st(), hot = G.rigInfo().hot;
-    if (hot && !s.rigNotified) { s.rigNotified = true; notify('rig', 'Ta machine est pleine', 'Elle a chauffé et s\'est arrêtée. Encaisse pour la relancer.'); }
-    if (!hot) s.rigNotified = false;
+    const s = st(), ri = G.rigInfo(), hot = ri.hot;
+    if (ri.ready && !s.rigNotified) { s.rigNotified = true; notify('rig', '⛏️ Ta récolte est prête', `Ton minage ${deC(G.coin(ri.run.id).name)} est fini. Viens voir ce qu'il y a dedans !`); }
+    if (!ri.ready) s.rigNotified = false;
+    if (!ri.idle && !ri.ready && !ri.burnt && ri.heat >= 80 && s.heatNotified !== ri.run.start) { s.heatNotified = ri.run.start; notify('rig', '🌡️ Ta machine chauffe', 'Elle est à plus de 80 %. Refroidis-la vite, sinon elle surchauffe.'); }
     const day = new Date().toDateString();
     if (s.notifDay !== day && s.tutoDone) {
       s.notifDay = day;
