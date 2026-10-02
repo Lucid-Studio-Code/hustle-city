@@ -447,8 +447,8 @@
   // Le Club = une vraie pièce : on paie l'entrée au videur, puis la soirée dure nightMin minutes et on touche les coins de la salle
   // (chacun une fois par soirée). Ensuite le videur te reconnaît pendant cooldownMin (sauf avec des lingots).
   // spots : zones à toucher sur l'image de la salle (x, y = centre, w, h en %), réglables plus tard au back-office.
-  const CLUB = { lvl: 4, entry: lvl => 40 + lvl * 12, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
-    drink: lvl => 15 + lvl * 4, djTip: 10, vipLingots: 2,
+  const CLUB = { lvl: 4, entryBase: 40, entryPer: 12, entry: lvl => CLUB.entryBase + lvl * CLUB.entryPer, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
+    drinkBase: 15, drinkPer: 4, drink: lvl => CLUB.drinkBase + lvl * CLUB.drinkPer, djTip: 10, vipLingots: 2,
     spots: [
       { id: 'dance', name: 'La piste',        icon: '🕺', x: 50, y: 62, w: 44, h: 18, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
       { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 50, y: 33, w: 30, h: 14, desc: 'Demander ton son : la piste rapporte ×1,5.' },
@@ -539,6 +539,15 @@
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   if (LY.slot) Object.assign(SLOT.ui, LY.slot);
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
+  const TABLES = { CITY_SHOP, IAP, PROMOS, AGENCE, CLUB, RIG, PCS, ROOMS };
+  Object.entries(LY.values || {}).forEach(([path, v]) => {
+    try {
+      const [t, ...rest] = path.split('.'); let [tn, id] = t.split('#'), o = TABLES[tn]; if (!o) return;
+      if (id) o = (Array.isArray(o) ? o : o.gear || o.crew).find(x => x.id === id);
+      for (let i = 0; i < rest.length - 1; i++) o = o[rest[i]];
+      if (o) o[rest[rest.length - 1]] = v;
+    } catch (e) {}
+  });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,

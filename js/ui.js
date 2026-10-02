@@ -450,11 +450,12 @@
     const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
     if (sv.slot) Object.assign(D.SLOT.ui, sv.slot);
+    Object.entries(localVals()).forEach(([p, v]) => { try { setVal(p, v); } catch (e) {} });
     Object.entries(sv.club || {}).forEach(([id, p]) => { const z = D.CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -484,12 +485,13 @@
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
     $('#pl-room').onclick = () => setScene('appart');
     $('#pl-club').onclick = () => openClub();
+    $('#pl-val').onclick = () => openValues();
     $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
-    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); } catch (e) {} location.reload(); };
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
   }
   // ------------------------------------------------------------ textes modifiables (back-office, bouton ✏️ Textes)
@@ -522,19 +524,58 @@
     toast('Texte changé. Pense à « Publier ».');
   }, true);
 
+  // ------------------------------------------------------------ éditeur de valeurs (back-office, bouton « Valeurs ») : prix, niveaux, effets, textes d'offres
+  // chemin « TABLE#id.champ » / « TABLE.position.champ » ; appliqué tout de suite ici, publié dans layout.js (values)
+  const VAL_KEY = 'hustleCity.adminValues';
+  const localVals = () => { try { return JSON.parse(localStorage.getItem(VAL_KEY) || '{}'); } catch (e) { return {}; } };
+  const allVals = () => Object.assign({}, (window.LAYOUT && window.LAYOUT.values) || {}, placing ? localVals() : {});
+  const VTAB = () => ({ CITY_SHOP: D.CITY_SHOP, IAP: D.IAP, PROMOS: D.PROMOS, AGENCE: D.AGENCE, CLUB: D.CLUB, RIG: D.RIG, PCS: D.PCS, ROOMS: D.ROOMS });
+  function valObj(path) { const [t, ...rest] = path.split('.'); const [tn, id] = t.split('#'); let o = VTAB()[tn]; if (id) o = (Array.isArray(o) ? o : o.gear).find(x => x.id === id); for (let i = 0; i < rest.length - 1; i++) o = o[rest[i]]; return [o, rest[rest.length - 1]]; }
+  function setVal(path, v) { const [o, k] = valObj(path); if (o) o[k] = v; }
+  function valSchema() {
+    const G_ = [], f = (path, label, type = 'num') => ({ path, label, type });
+    G_.push({ t: '🛍️ Boutique : décos de la ville', rows: D.CITY_SHOP.map(x => ({ n: x.emo + ' ' + x.name, f: [f(`CITY_SHOP#${x.id}.name`, 'Nom', 'text'), f(`CITY_SHOP#${x.id}.${x.lingots ? 'lingots' : 'cash'}`, x.lingots ? 'Prix (lingots)' : 'Prix'), f(`CITY_SHOP#${x.id}.lvl`, 'Niveau')] })) });
+    G_.push({ t: '📸 PrivéFans : objets', rows: D.AGENCE.gear.map(g => ({ n: g.icon + ' ' + g.name, f: [f(`AGENCE#${g.id}.name`, 'Nom', 'text'), f(`AGENCE#${g.id}.cost`, g.sub ? 'Prix / jour' : 'Prix'), f(`AGENCE#${g.id}.rev`, 'Revenus %', 'pct'), f(`AGENCE#${g.id}.subs`, 'Abonnés %', 'pct'), f(`AGENCE#${g.id}.mood`, 'Moral / h')] })) });
+    G_.push({ t: '💎 Promos (une par jour)', rows: D.PROMOS.map((p, i) => ({ n: p.title, f: [f(`PROMOS.${i}.title`, 'Titre', 'text'), f(`PROMOS.${i}.desc`, 'Détail', 'text'), f(`PROMOS.${i}.off`, 'Réduction %')] })) });
+    G_.push({ t: '💳 Achats intégrés', rows: D.IAP.map((x, i) => ({ n: x.name, f: [f(`IAP.${i}.name`, 'Nom', 'text'), f(`IAP.${i}.price`, 'Prix affiché', 'text'), ...(x.n ? [f(`IAP.${i}.n`, 'Lingots')] : [f(`IAP.${i}.desc`, 'Détail', 'text')])] })) });
+    G_.push({ t: '🎉 Le Club', rows: [{ n: 'Prix', f: [f('CLUB.entryBase', 'Entrée (base)'), f('CLUB.entryPer', 'Entrée + par niveau'), f('CLUB.drinkBase', 'Cocktail (base)'), f('CLUB.drinkPer', 'Cocktail + par niveau'), f('CLUB.djTip', 'Pourboire DJ'), f('CLUB.vipLingots', 'Carré VIP (lingots)'), f('CLUB.nightMin', 'Durée soirée (min)'), f('CLUB.cooldownMin', 'Attente videur (min)')] }] });
+    G_.push({ t: '⛏️ Machines à miner', rows: D.RIG.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`RIG.${i}.name`, 'Nom', 'text'), f(`RIG.${i}.cost`, 'Prix'), f(`RIG.${i}.heatMin`, 'Endurance (min)')] })) });
+    G_.push({ t: '🖥️ PC', rows: D.PCS.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`PCS.${i}.name`, 'Nom', 'text'), f(`PCS.${i}.cost`, 'Prix'), f(`PCS.${i}.fee`, 'Frais %', 'pct')] })) });
+    G_.push({ t: '🏠 Chambres', rows: D.ROOMS.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`ROOMS.${i}.name`, 'Nom', 'text'), f(`ROOMS.${i}.cost`, 'Prix'), f(`ROOMS.${i}.slots`, 'Places')] })) });
+    return G_;
+  }
+  const valOpen = new Set();
+  function valuesBody() {
+    const L = localVals();
+    return `<p class="hint-line">Change un chiffre ou un texte : c'est appliqué tout de suite ici. Les joueurs ne le voient qu'après <b>Publier</b>. Les champs modifiés sont en jaune.</p>` +
+      valSchema().map((g, gi) => `<div class="card val-g"><button class="val-h" data-act="valToggle" data-i="${gi}">${g.t}<i>${valOpen.has(gi) ? '▾' : '▸'}</i></button>${valOpen.has(gi) ? g.rows.map(r => `<div class="val-row"><b>${esc(r.n)}</b><div class="val-f">${r.f.map(x => {
+        const [o, k] = valObj(x.path), v = o ? o[k] : '', shown = x.type === 'pct' ? (v ? Math.round(v * 1000) / 10 : '') : v == null ? '' : v;
+        return `<label class="${L[x.path] !== undefined ? 'chg' : ''}"><small>${x.label}</small><input data-vpath="${x.path}" data-vtype="${x.type}" type="${x.type === 'text' ? 'text' : 'number'}" step="any" value="${esc(String(shown))}"></label>`; }).join('')}</div></div>`).join('') : ''}</div>`).join('') +
+      `<div class="grid2" style="margin-top:8px"><button class="btn red" data-act="valReset">Annuler mes changements</button><button class="btn green" data-act="valPub">Publier</button></div>`;
+  }
+  function openValues() { openModal({ title: 'Valeurs du jeu', icon: 'gear', full: true, body: valuesBody() }); }
+  document.addEventListener('change', e => {
+    const el = e.target.closest && e.target.closest('[data-vpath]'); if (!el || !placing) return;
+    const t = el.dataset.vtype, raw = el.value; let v = t === 'text' ? raw : parseFloat(String(raw).replace(',', '.'));
+    if (t !== 'text' && !isFinite(v)) return toast('Il faut un nombre.', true);
+    if (t === 'pct') v = v / 100;
+    const L = localVals(); L[el.dataset.vpath] = v; try { localStorage.setItem(VAL_KEY, JSON.stringify(L)); } catch (er) {}
+    setVal(el.dataset.vpath, v); el.closest('label').classList.add('chg'); renderCity(); renderHud();
+  });
+
   // Publier : bâtiments + objets de la ville + disposition des 3 chambres + textes, pour tout le monde
   async function publishLayout(clashes) {
     const bad = clashes ? clashes() : [];
     if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
-    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, slot: sv.slot || D.SLOT.ui, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
+    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, values: allVals(), slot: sv.slot || D.SLOT.ui, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
       const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
       if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
-      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); } catch (e) {}
-      if (window.LAYOUT) window.LAYOUT.texts = body.texts;
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {}
+      if (window.LAYOUT) { window.LAYOUT.texts = body.texts; window.LAYOUT.values = body.values; }
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
   }
@@ -1781,6 +1822,9 @@
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
     boutique() { openBoutique(); },
+    valToggle(el) { const i = +el.dataset.i; valOpen.has(i) ? valOpen.delete(i) : valOpen.add(i); setBody(valuesBody()); },
+    valPub() { publishLayout(); },
+    valReset() { if (!confirm('Annuler tous tes changements de valeurs pas encore publiés ?')) return; try { localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); },
     promo() { openBoutique('vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
