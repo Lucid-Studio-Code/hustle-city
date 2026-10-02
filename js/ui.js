@@ -915,7 +915,7 @@
         <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<span><b>${T[m.h][0]}</b>${form(m.h)}</span></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><span><b>${T[m.a][0]}</b>${form(m.a)}</span>${teamCrest('rugby', m.a, 'mini')}</span></div>
         <div class="sx-odds"><i style="width:${o[0] * 100}%"></i><i style="width:${o[1] * 100}%"></i><i style="width:${o[2] * 100}%"></i></div>
         <div class="sx-odds-l"><span>${Math.round(o[0] * 100)} %</span><span>Chances d'après les bookmakers</span><span>${Math.round(o[2] * 100)} %</span></div>
-        ${ru && m.state === 'soon' ? `<p class="sx-rumor">🗞️ <b>Rumeur :</b> ${ru.txt} <em>Vrai ou faux ?</em></p>` : ''}
+        ${ru ? `<p class="sx-rumor ${m.state === 'done' ? (ru.real ? 'true' : 'false') : ''}">🗞️ <b>Rumeur :</b> ${ru.txt} <em>${m.state === 'done' ? (ru.real ? '✓ C\'était vrai' : '✗ C\'était faux') : 'Vrai ou faux ?'}</em></p>` : ''}
         <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
     };
     const cur = G.sixCurDay();
