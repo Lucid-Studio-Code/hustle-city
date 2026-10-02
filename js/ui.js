@@ -221,6 +221,8 @@
     else if (!ri.burnt && ri.heat >= 70) add(92, '🌡️', `Ta machine chauffe : ${Math.round(ri.heat)} %`, 'Refroidis-la avant 100 %, sinon la récolte en prend un coup.', () => questGo('rig'), true);
     const fl = s.crypto.flash; if (fl && fl.applied) add(86, '⚡', `Alerte flash : ${G.coin(fl.id).name} ${fl.up ? '+' : '−'}${Math.round((fl.k - 1) * 100)} %`, fl.up ? 'Vends avant que ça retombe.' : 'Ça plonge : achète pas cher ?', () => questGo('pc'), true);
     const tr = G.traderState(); if (!tr.claimed && tr.profit >= G.traderGoal()) add(87, '🎯', 'Défi du trader réussi', 'Va chercher tes lingots sur ton PC.', () => questGo('pc'), true);
+    if (window.AGENCE && AGENCE.offer()) add(84, '📩', 'Une de tes créatrices hésite à partir', 'Une agence rivale lui fait les yeux doux : décide vite.', () => AGENCE.open(), true);
+    if (window.AGENCE && AGENCE.pending() >= 30 + s.lvl * 10) add(76, '📸', `${short(AGENCE.pending())} de commission t'attendent`, 'Tes créatrices ont bossé : encaisse ta part sur PrivéFans.', () => AGENCE.open(), true);
     if (G.boosterCount()) add(85, '🃏', `${G.boosterCount()} booster${G.boosterCount() > 1 ? 's' : ''} à ouvrir`, 'Des cartes à collectionner et des récompenses.', () => openBoosters('open'), true);
     if (G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
     if (s.deal && Date.now() < s.deal.end) add(78, '💬', `${s.deal.name} te propose une affaire`, 'L\'offre ne dure pas : regarde vite.', () => openPhone('msg'), true);
@@ -540,7 +542,7 @@
       <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><span class="rp-sep"></span>
       <button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs red" id="rp-reset" aria-label="Remettre">↺</button><button class="btn xs" id="rp-move" aria-label="Déplacer la barre">⇅</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <span id="rp-cur"></span><textarea id="rp-out" readonly></textarea></div>`);
-    const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : 'Place ' + (+k.slice(4) + 1);
+    const name = k => k === 'pc' ? 'PC' : k === 'rig' ? 'Machine' : k === 'light' ? 'Ring light (agence)' : 'Place ' + (+k.slice(4) + 1);
     const out = () => {
       const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {}
       $('#rp-out').value = D.ROOMS.map((x, i) => { const l = i === RP.room ? RP.L : roomLayout(i); return `Chambre ${i + 1} : pc ${l.pc.x},${l.pc.y},${l.pc.w} · machine ${l.rig.x},${l.rig.y},${l.rig.w} · étagère ${l.shelf.w}x${l.shelf.h} · places ${l.slots.map(p => p.join(',')).join(' ')}`; }).join('\n');
@@ -607,7 +609,7 @@
   const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer') || '{}'); } catch (e) { return {}; } };
   function roomLayout(i) {
     const base = D.ROOM_LAYOUT[i], sv = roomSaved()[i] || {};
-    return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
+    return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), light: Object.assign({ x: 84, y: 58, w: 13 }, base.light, sv.light), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
   }
   const RP = { on: false, room: 0, sel: 'pc', drag: null };
   function renderAppart() {
@@ -641,6 +643,7 @@
         <button class="room-obj ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
+        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${pic('ringlight', '💡')}</button>` : ''}
         <button class="room-obj ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
       </div>
@@ -910,6 +913,7 @@
     if (id === 'msg') return chatUnread();
     if (id === 'missions') return G.questsReady() + G.chalReady();
     if (id === 'boosters') return G.boosterCount();
+    if (id === 'agence') return window.AGENCE ? (AGENCE.offer() ? 1 : 0) + (AGENCE.pending() >= 50 ? 1 : 0) : 0;
     if (id === 'bets') return notifs().filter(n => n.app === 'bets' && !n.read).length;
     return 0;
   }
@@ -1669,6 +1673,7 @@
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
     boutique() { openBoutique(); },
+    agence() { if (window.AGENCE) AGENCE.open(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },

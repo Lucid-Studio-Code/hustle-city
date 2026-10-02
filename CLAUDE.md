@@ -27,7 +27,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 76).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 77).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -53,6 +53,11 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Actus par crypto : une source Sérieux (80 %), Moyen (60 %) ou Pas fiable (45 %) ; l'actu fait vraiment bouger la crypto (vrai sens) pendant 15 min ; verdict affiché ensuite.
 - Ordres automatiques (PC gamer) : tout vendre à +10/25/50 %, tout vendre à −10/−20 %, acheter 50 à −10/−20 %.
 - Défi du trader : faire 20 + 15 × niveau de bénéfice en crypto dans la journée → lingots.
+
+## Agence PrivéFans (js/agence.js, `AGENCE` dans data.js, niveau 6)
+- App du téléphone + objet « ring light » dans l'appart (position `light` dans la disposition de la chambre, déplaçable au back-office).
+- On recrute des créatrices (10 inventées : charisme, régularité, drama), on choisit sa part (20/35/50 %) : plus elle est grosse, plus le moral baisse. Activités en temps réel (shooting, live, collab à deux, repos, voyage pro). Événements : buzz, bad buzz, agence rivale (prime, baisser sa part, ou la laisser partir). Commission plafonnée à 12 h, à encaisser.
+- Ton : glamour, jamais explicite, jamais le vrai nom de la plateforme. Portraits à venir : `cr-<id>`.
 
 ## Boutique (bouton du bas, ex-Trading)
 - `CITY_SHOP` (data.js) : décos de ville achetées pour toujours, chacune à SA place (x/y/w, réglables au back-office). `IAP` : achats en vrai argent, affichés « bientôt » (pas de paiement avant la version stores).

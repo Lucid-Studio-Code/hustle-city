@@ -91,6 +91,34 @@
     ordersPc: 1, preAlertPc: 2,                                              // PC gamer : ordres automatiques ; station : alerte 1 min avant
     trader: { base: 20, perLvl: 15, lingots: 3 }                             // défi du trader : faire X de bénéfice en crypto dans la journée
   };
+  // ---------------------------------------------------------------- l'agence « PrivéFans » (parodie : jamais le vrai nom ; glamour, jamais explicite)
+  // Tu manages des créatrices de contenu : tu touches ta part (commission) de leurs abonnements. Plus ta part est grosse,
+  // plus leur moral baisse. Activités = durée réelle. cha = charisme (fait grimper les abonnés), reg = régularité (revenu stable),
+  // drama = risque de bad buzz et d'agence rivale. Tout est inventé.
+  const AGENCE = {
+    lvl: 6, subPrice: .06, payCapH: 12, candEvery: 120, eventEvery: [30, 60],
+    slots: [{ n: 1, cost: 0 }, { n: 2, cost: 3000 }, { n: 3, cost: 10000 }, { n: 4, cost: 30000 }],
+    shares: [.2, .35, .5],
+    acts: [
+      { id: 'shoot',  name: 'Shooting photo', icon: '📸', min: 120, cost: 60,  subs: .06, mood: -5,  desc: 'Des nouvelles photos : les abonnés montent.' },
+      { id: 'live',   name: 'Live',           icon: '🔴', min: 60,  cost: 0,   subs: .02, mood: -10, cash: .15, desc: 'Gros pourboires tout de suite, mais ça fatigue.' },
+      { id: 'collab', name: 'Collab',         icon: '🤝', min: 240, cost: 120, subs: .12, mood: 5,   duo: true, desc: 'Avec une autre créatrice de ton agence : abonnés ×2 pour les deux.' },
+      { id: 'rest',   name: 'Repos',          icon: '🛌', min: 180, cost: 0,   subs: 0,   mood: 35,  desc: 'Elle recharge les batteries.' },
+      { id: 'trip',   name: 'Voyage pro',     icon: '✈️', min: 480, cost: 400, subs: .25, mood: 20,  lvl: 8, desc: 'Shooting au soleil : énorme pour les abonnés et le moral.' }
+    ],
+    crew: [
+      { id: 'lola',  name: 'Lola Vibes',   niche: 'Fitness',    cha: 3, reg: 4, drama: 2, subs: 1200, desc: 'Coach sportive, toujours motivée.' },
+      { id: 'mila',  name: 'Mila Cosplay', niche: 'Cosplay',    cha: 4, reg: 3, drama: 3, subs: 1800, desc: 'Costumes faits main, fans très fidèles.' },
+      { id: 'ines',  name: 'Inès Luxe',    niche: 'Mode & luxe', cha: 5, reg: 2, drama: 4, subs: 3000, desc: 'Sacs, palaces et caprices.' },
+      { id: 'jade',  name: 'Jade Gamer',   niche: 'Gaming',     cha: 3, reg: 5, drama: 1, subs: 1500, desc: 'En live tous les soirs, sans faute.' },
+      { id: 'sasha', name: 'Sasha Travel', niche: 'Voyage',     cha: 4, reg: 3, drama: 2, subs: 2200, desc: 'Une plage différente chaque semaine.' },
+      { id: 'nora',  name: 'Nora Glow',    niche: 'Beauté',     cha: 3, reg: 4, drama: 2, subs: 1400, desc: 'Tutos make-up et routines skincare.' },
+      { id: 'kim',   name: 'Kim Dance',    niche: 'Danse',      cha: 4, reg: 4, drama: 3, subs: 2500, desc: 'Ses chorés font le tour des réseaux.' },
+      { id: 'leila', name: 'Leïla Zen',    niche: 'Bien-être',  cha: 3, reg: 5, drama: 1, subs: 1300, desc: 'Yoga au lever du soleil.' },
+      { id: 'rose',  name: 'Rose Rock',    niche: 'Musique',    cha: 4, reg: 2, drama: 5, subs: 2800, desc: 'Guitare, tatouages et coups de gueule.' },
+      { id: 'eva',   name: 'Eva Gourmande', niche: 'Cuisine',   cha: 2, reg: 5, drama: 1, subs: 900,  desc: 'Recettes glamour, toujours de bonne humeur.' }
+    ]
+  };
   // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
   const FINDS = { gold: .04, lingots: .10, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
   const RIG = [
@@ -477,7 +505,7 @@
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
-    MINE, FINDS, PCX, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
+    MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };

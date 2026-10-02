@@ -2065,3 +2065,30 @@ h3.sec { margin: 18px 6px 10px; }
 #app .orders .ord-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-top: 1.5px dashed #d8c8a8; font: 800 12px var(--text); }
 #app .orders .ord-row > span { flex: 1 0 100%; } #app .orders .ord-row b { flex: 1; }
 #app .trader small b { display: inline; font: inherit; font-weight: 900; }
+/* PrivéFans (agence) */
+#app .ag-lock { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 46px; }
+#app .ag-lock b { font: 400 22px var(--title); } #app .ag-lock p { font: 700 14px/1.4 var(--text); margin: 0; }
+#app .ag-head { display: flex; align-items: center; gap: 10px; background: linear-gradient(#ffe3ee, #ffc2d8); }
+#app .ag-head .grow { flex: 1; } #app .ag-head small { display: block; font: 800 11.5px var(--text); color: #7a3a52; } #app .ag-head b { display: block; font: 400 28px var(--title); color: #2a1a10; }
+#app .ag-offer { background: linear-gradient(#fff6d5, #ffe08a); } #app .ag-offer p { margin: 4px 0 8px; font: 700 13px var(--text); }
+#app .ag-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+#app .ag-cr { margin-bottom: 10px; }
+#app .ag-top { display: flex; align-items: center; gap: 10px; } #app .ag-top .grow { flex: 1; min-width: 0; }
+#app .ag-top b { display: block; font: 900 15px var(--text); } #app .ag-top small { display: block; font: 700 12px var(--text); color: #6a5a4a; }
+#app .cr-face { flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; border: 2.5px solid #2a1a10; background: linear-gradient(#ff8fb8, #ff4f8b); display: grid; place-items: center; }
+#app .cr-face.big { width: 72px; height: 72px; flex-basis: 72px; } #app .cr-face img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+#app .cr-face.emo { font: 400 24px var(--title); color: #fff; }
+#app .ag-mood { display: flex; align-items: center; gap: 6px; font: 800 11px var(--text); } #app .ag-mood .kh-bar { flex: 1; }
+#app .ag-earn { text-align: right; } #app .ag-earn b { font: 900 14px var(--text); color: #1f7a3a; }
+#app .ag-share { display: flex; align-items: center; gap: 5px; margin: 8px 0 6px; font: 800 12px var(--text); } #app .ag-share > span { margin-right: auto; }
+#app .ag-busy { padding: 8px 10px; border-radius: 12px; background: #f1ebff; font: 800 12.5px var(--text); }
+#app .ag-acts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+#app .ag-act { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 2px; border: 2px solid #2a1a10; border-radius: 12px; background: #fff; box-shadow: 0 2px 0 #2a1a10; font: 800 10px var(--text); color: #2a1a10; }
+#app .ag-act span { font-size: 20px; } #app .ag-act b { font: 900 10.5px/1.1 var(--text); text-align: center; } #app .ag-act small { font: 700 9.5px var(--text); color: #7a6a5a; }
+#app .ag-act:disabled { opacity: .45; }
+#app .ag-cands { display: grid; grid-template-columns: 1fr; gap: 8px; }
+#app .ag-cand { display: grid; grid-template-columns: 72px 1fr; column-gap: 10px; align-items: center; }
+#app .ag-cand .cr-face { grid-row: span 4; } #app .ag-cand b { font: 900 15px var(--text); } #app .ag-cand small { font: 700 12px var(--text); color: #6a5a4a; }
+#app .ag-cand p { margin: 2px 0; font: 700 12px var(--text); } #app .ag-cand .btn { grid-column: 2; justify-self: start; }
+#app .ag-stats { display: flex; gap: 8px; font: 800 11px var(--text); color: #ff4f8b; }
+#app .ag-grow { display: flex; align-items: center; gap: 10px; margin-top: 8px; } #app .ag-grow .grow { flex: 1; } #app .ag-grow b { display: block; font: 900 14px var(--text); } #app .ag-grow small { font: 700 12px var(--text); color: #6a5a4a; }
