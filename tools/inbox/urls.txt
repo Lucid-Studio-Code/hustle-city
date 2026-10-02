@@ -1,8 +1,0 @@
-sheet-crests-r https://pikaso.cdnpk.net/private/production/5617895716/render.png?token=exp=1791331200~hmac=a937f60d96784083872086603d572c8daf5f3f9d450c1b88175692bc1686f15a
-bld-six https://pikaso.cdnpk.net/private/production/5617911470/render.png?token=exp=1791331200~hmac=f5de23ff691a918dcd6c08ff30227891527c35d21a87c2849b30c5556357cdd3
-sheet-deco-six https://pikaso.cdnpk.net/private/production/5617926858/render.png?token=exp=1791331200~hmac=4bb3b52568e7b8f90d869d76fdf0aee30ab885adc07a002dcb8fef2fabc9ae2b
-card-bg-foot https://pikaso.cdnpk.net/private/production/5617943720/render.png?token=exp=1791331200~hmac=31d7a8077232f3b0ed1ae41cae225b1bce1d1ef1267e7f3ffd62f26cd5bf1308
-card-bg-basket https://pikaso.cdnpk.net/private/production/5617955190/render.png?token=exp=1791331200~hmac=3f39a1f44702d92c2c5a3405309ca24c20a0557a6bf76ef577c5b72fec0248d7
-card-bg-tennis https://pikaso.cdnpk.net/private/production/5617973930/render.png?token=exp=1791331200~hmac=0f5232745e5e401c1c29af6be4c2ef04a379a8f86bf81261555e41899cd453c1
-card-bg-rugby https://pikaso.cdnpk.net/private/production/5617991204/render.png?token=exp=1791331200~hmac=e0978ff6879017804caa023d79a2b2177107e9698bd71a06e23cf26b4040386f
-sheet-tickets https://pikaso.cdnpk.net/private/production/5618003164/render.png?token=exp=1791331200~hmac=4446e16529fb21b550a8510c5c81bb2dc782fdf11a0e5003cd99ed8e9931bf73
