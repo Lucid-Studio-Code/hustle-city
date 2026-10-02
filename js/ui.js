@@ -741,6 +741,22 @@
       ${coinNewsHtml(c)}${ordersHtml(c, hold)}
       ${weather}${tipBox}`;
   }
+  // la crypto à regarder selon la météo : celle qui bouge le plus profite le plus d'une hausse (et souffre le plus d'une baisse)
+  function moodPick() {
+    const s = st(), m = G.mood().id, C = D.COINS.filter(c => G.coinUnlocked(c));
+    const held = C.filter(c => G.holdValue(c.id) >= 1).sort((a, b) => G.holdValue(b.id) - G.holdValue(a.id));
+    const wild = (rug) => C.filter(c => rug || !c.rug).sort((a, b) => b.vol - a.vol)[0], calm = C.slice().sort((a, b) => a.vol - b.vol)[0];
+    let c, t, d, btn;
+    if (m === 'bull') { c = wild(false); t = `${c.name} : c'est elle qui grimpe le plus`; d = 'Elle bouge fort : quand le marché monte, elle monte plus que les autres. Mais si ça se retourne, elle chute plus vite aussi.'; btn = 'Voir'; }
+    else if (m === 'fomo') { c = wild(true); t = `${c.name} : la plus folle du moment`; d = 'Tout le monde achète : elle peut s\'envoler… et retomber d\'un coup. Ne mets que ce que tu peux perdre, et revends vite.'; btn = 'Voir'; }
+    else if ((m === 'bear' || m === 'krach') && held.length) { c = held[0]; t = `Tu as ${short(G.holdValue(c.id))} en ${c.name}`; d = m === 'krach' ? 'Tout s\'effondre : vendre maintenant limite la casse. Ou garder si tu crois à la remontée.' : 'Le marché baisse : elle risque de perdre de la valeur dans les prochaines minutes. Vendre maintenant ?'; btn = 'Vendre ?'; }
+    else if (m === 'krach') { c = wild(false); t = `${c.name} est en soldes`; d = 'Panique générale : les prix s\'écroulent. Pour les joueurs, c\'est le moment d\'acheter pas cher… si ça remonte.'; btn = 'Voir'; }
+    else if (m === 'bear') { c = calm; t = 'Garde plutôt tes billets'; d = `Quand ça baisse, mieux vaut attendre que ça reparte. Si tu veux quand même acheter, ${c.name} est la plus tranquille.`; btn = 'Voir'; }
+    else { c = calm; t = `${c.name} : la plus tranquille`; d = 'Le marché dort : bon moment pour acheter sans stress, avant que ça bouge.'; btn = 'Voir'; }
+    const h = s.crypto.hist[c.id], p = s.crypto.prices[c.id];
+    return `<div class="card mood-pick"><small>👀 À regarder maintenant</small><div class="mp-row">${coinIco(c)}<div class="grow"><b>${t}</b><p>${d}</p></div></div>
+      <div class="mp-foot"><span>${trend(p, h[Math.max(0, h.length - 60)])} <em>5 min</em></span><button class="btn sm ${btn === 'Vendre ?' ? 'red' : 'green'}" data-act="moodCoin" data-id="${c.id}">${btn === 'Voir' ? `Voir ${c.name}` : btn}</button></div></div>`;
+  }
   function traderCard() {
     const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal, n = D.PCX.trader.lingots + Math.floor(st().lvl / 3);
     return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">🎯</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
@@ -1728,6 +1744,7 @@
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
     trading() { openCrypto(); },
+    moodCoin(el) { closeModal(); setTimeout(() => openCrypto(el.dataset.id), 60); },
     flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
     traderClaim() { const r = G.claimTrader(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); toast(`Défi du trader réussi : +${r.n} lingots !`); refresh(); },
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
@@ -1745,7 +1762,7 @@
     tutoAgain() { closeModal(); setScene('city'); st().tutoStep = 0; window.TUTO.start(0); },
     resetAsk() { openModal({ title: 'Recommencer', center: true, body: '<p class="center">Tout ton argent, tes cryptos et tes objets seront effacés.</p><button class="btn red wide" data-act="resetGo">Tout effacer</button>' }); },
     resetGo() { G.reset(); location.reload(); },
-    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm; if (modalOpen()) return; openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div><p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
+    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm; if (modalOpen()) return; openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div>${moodPick()}<p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
     mybets: () => window.BALTO.openMyBets(),
     kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); refresh(); },
