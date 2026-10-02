@@ -64,12 +64,43 @@
     el.say = document.createElement('div'); el.say.id = 'tuto-say';
     app.append(el.spot, el.arrow, el.say);
   }
+  // l'encadré suit le dessin réel : on ignore les parties transparentes des images, et on reste dans l'écran
+  const alphaBox = {};
+  function imgBox(img) {
+    const k = img.currentSrc || img.src; if (alphaBox[k] !== undefined) return alphaBox[k];
+    if (!img.complete || !img.naturalWidth) return null;
+    try {
+      const w = 96, h = Math.max(1, Math.round(96 * img.naturalHeight / img.naturalWidth)), c = document.createElement('canvas'); c.width = w; c.height = h;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0, w, h); const d = x.getImageData(0, 0, w, h).data;
+      let x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (d[(j * w + i) * 4 + 3] > 40) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; }
+      return alphaBox[k] = x1 < 0 ? null : { l: x0 / w, t: y0 / h, r: (x1 + 1) / w, b: (y1 + 1) / h };
+    } catch (e) { return alphaBox[k] = null; }
+  }
+  function tightRect(t, app) {
+    const imgs = [...t.querySelectorAll('.pic img')], parts = [];
+    const zone = t.querySelector('.spot-zone');   // arrêt de bus : la zone à toucher couvre tout l'abri
+    if (zone) parts.push(zone.getBoundingClientRect()); else if (!imgs.length) parts.push(t.getBoundingClientRect());
+    imgs.forEach(img => {
+      const r = img.getBoundingClientRect(), b = imgBox(img); if (!r.width) return;
+      // image en « contain » : on retrouve la zone réellement dessinée
+      const ir = img.naturalWidth / img.naturalHeight || 1, rr = r.width / r.height;
+      let w = r.width, h = r.height, x = r.left, y = r.top;
+      if (ir > rr) { h = w / ir; y += (r.height - h) * (getComputedStyle(img).objectPosition.includes('100%') ? 1 : .5); } else { w = h * ir; x += (r.width - w) / 2; }
+      parts.push(b ? { left: x + b.l * w, top: y + b.t * h, right: x + b.r * w, bottom: y + b.b * h } : { left: x, top: y, right: x + w, bottom: y + h });
+    });
+    // le nom du lieu (plaque) fait partie de l'encadré
+    t.querySelectorAll('.plaque').forEach(e => parts.push(e.getBoundingClientRect()));
+    const L = Math.max(app.left + 4, Math.min(...parts.map(p => p.left))), T = Math.max(app.top + 4, Math.min(...parts.map(p => p.top)));
+    const R = Math.min(app.right - 4, Math.max(...parts.map(p => p.right))), B = Math.min(app.bottom - 4, Math.max(...parts.map(p => p.bottom)));
+    return { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T };
+  }
   function place() {
     const step = STEPS[idx]; if (!step) return;
     const app = $('#app').getBoundingClientRect();
     const t = step.target && [...document.querySelectorAll(step.target)].find(e => e.offsetParent !== null);
     if (!t) { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; el.say.classList.remove('low'); return; }
-    const r = t.getBoundingClientRect(), pad = 6;
+    const r = tightRect(t, app), pad = 6;
     Object.assign(el.spot.style, { display: 'block', left: (r.left - app.left - pad) + 'px', top: (r.top - app.top - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
     const above = r.top - app.top > 90;
     Object.assign(el.arrow.style, { display: 'block', left: (r.left - app.left + r.width / 2 - 24) + 'px', top: (above ? r.top - app.top - 62 : r.bottom - app.top + 6) + 'px' });
