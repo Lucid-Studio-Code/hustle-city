@@ -2,7 +2,6 @@
   <meta name="description" content="Paris sportifs, casino, crypto et objets de collection : deviens riche. Facilement. Ou pas.">
   <meta name="theme-color" content="#1b1433">
   <link rel="preload" href="assets/fonts/lilita-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=60">
   <div id="app" data-sign="ground">
     <section id="scene-city" class="scene">
       <div id="map"><div id="map-inner"></div></div>
@@ -54,11 +53,27 @@
     <div id="start" class="loading"></div>
   </div>
 
-  <script src="js/data.js?v=60"></script>
-  <script src="js/assets.js?v=60"></script>
-  <script src="js/game.js?v=60"></script>
-  <script src="js/ui.js?v=60"></script>
-  <script src="js/casino.js?v=60"></script>
-  <script src="js/scratch.js?v=60"></script>
-  <script src="js/balto.js?v=60"></script>
-  <script src="js/tuto.js?v=60"></script>
+  <script>
+  // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
+  // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
+  (function () {
+    var V = '?v=61', FILES = ['js/data.js', 'js/assets.js', 'js/game.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
+    var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
+    if (!m) {
+      document.write('<link rel="stylesheet" href="' + CSS + V + '">');
+      FILES.forEach(function (f) { document.write('<script src="' + f + V + '"><\/script>'); });
+      return;
+    }
+    var raw = 'https://raw.githubusercontent.com/' + m[1] + '/' + m[2] + '/';
+    var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + '/' : raw;
+    var get = function (f) { return fetch(raw + f).then(function (r) { if (!r.ok) throw new Error(f); return r.text(); }); };
+    Promise.all([get(CSS)].concat(FILES.map(get))).then(function (t) {
+      var st = document.createElement('style'); st.textContent = t[0].replace(/url\(\.\.\//g, 'url(' + local); document.head.appendChild(st);
+      t.slice(1).forEach(function (code, i) { var sc = document.createElement('script'); sc.textContent = code + '\n//# sourceURL=' + FILES[i]; document.body.appendChild(sc); });
+    }).catch(function (e) {
+      console.warn('Code en ligne indisponible, on prend le CDN', e);
+      document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="' + CSS + V + '">');
+      (function next(i) { if (i >= FILES.length) return; var sc = document.createElement('script'); sc.src = FILES[i] + V; sc.onload = function () { next(i + 1); }; document.body.appendChild(sc); })(0);
+    });
+  })();
+  </script>

@@ -15,20 +15,12 @@
     const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, { signal: ctl.signal, headers: { Accept: 'application/vnd.github.sha' } });
     if (!r.ok) throw new Error('github ' + r.status);
     const sha = (await r.text()).trim().slice(0, 40);
-    const cdn = `https://cdn.jsdelivr.net/gh/${REPO}@${sha}/`;
-    let html = await (await fetch(cdn + 'game.html', { signal: ctl.signal })).text();
+    const cdn = `https://cdn.jsdelivr.net/gh/${REPO}@${sha}/`, raw = `https://raw.githubusercontent.com/${REPO}/${sha}/`;
+    // la page vient de raw.githubusercontent (rapide) ; game.html charge ensuite le code, et les images viennent du dossier local
+    const html = await (await fetch(raw + 'game.html', { signal: ctl.signal })).text();
     if (!html.includes('id="app"')) throw new Error('page vide');
-    // seul le code (léger) vient d'internet ; les images viennent de ton dossier (rapide).
-    // Une image qui n'est pas encore dans ton dossier est prise sur internet automatiquement.
-    const cssHref = (html.match(/<link rel="stylesheet" href="([^"]+)">/) || [])[1];
-    if (cssHref) {
-      const css = (await (await fetch(cdn + cssHref, { signal: ctl.signal })).text()).replace(/url\(\.\.\//g, 'url(/');
-      html = html.replace(/<link rel="stylesheet" href="[^"]+">/, () => '<style>' + css + '</style>');
-    }
-    html = html.replace(/<script src="(js\/[^"]+)"><\/script>/g, (m, f) => `<script src="${cdn}${f}"><\/script>`);
-    const fallback = `<script>document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(location.origin)) { t.dataset.cdn = 1; t.src = '${cdn}' + t.src.slice(location.origin.length + 1); } }, true);<\/script>`;
     document.open();
-    document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><base href="/">' + fallback + html.replace(/<!doctype html>/i, '') + '</html>');
+    document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><base href="' + cdn + '">' + html.replace(/<!doctype html>/i, '') + '</html>');
     document.close();
   } catch (e) { console.warn('Mise à jour impossible, version locale :', e); local(); }
 })();
