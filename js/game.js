@@ -152,6 +152,7 @@
     const qty = eur * (1 - fee()) / st.crypto.prices[id];
     if (!st.crypto.hold[id]) st.crypto.since[id] = now();
     st.crypto.hold[id] += qty; st.crypto.cost[id] += eur;
+    if (st.crypto.flash && st.crypto.flash.applied && st.crypto.flash.id === id) st.crypto.flash.acted = true;   // l'alerte a servi
     if (serious(eur)) { stat('cryptoBuy'); addXp(3 + Math.min(xpCap(40), eur / 25)); }
     emit('change'); return { qty };
   }
@@ -163,6 +164,7 @@
     cr.hold[id] -= q; cr.cost[id] -= costPart;
     if (frac >= .999 || cr.hold[id] * cr.prices[id] < .01) { cr.hold[id] = 0; cr.cost[id] = 0; cr.since[id] = 0; }
     addCash(net);
+    if (cr.flash && cr.flash.applied && cr.flash.id === id) cr.flash.acted = true;
     if (profit > 0) { stat('cryptoProfit'); const tr = traderState(); tr.profit += profit; }
     if (serious(net)) addXp(Math.min(xpCap(40), net / 25));
     emit('change'); return { net, profit };

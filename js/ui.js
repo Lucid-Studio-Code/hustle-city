@@ -222,7 +222,7 @@
     if (ri.ready) add(90, '⛏️', 'Ta récolte est prête', 'Ton minage est fini : viens voir ce qu\'il y a dedans.', () => questGo('rig'), true);
     else if (ri.idle) add(89, '⛏️', 'Ta machine est à l\'arrêt', 'Choisis une crypto à miner : elle bosse pendant que tu fais autre chose.', () => questGo('rig'), true);
     else if (!ri.burnt && ri.heat >= 70) add(92, '🌡️', `Ta machine chauffe : ${Math.round(ri.heat)} %`, 'Refroidis-la avant 100 %, sinon la récolte en prend un coup.', () => questGo('rig'), true);
-    const fl = s.crypto.flash; if (fl && fl.applied) add(86, '⚡', `Alerte flash : ${G.coin(fl.id).name} ${fl.up ? '+' : '−'}${Math.round((fl.k - 1) * 100)} %`, fl.up ? 'Vends avant que ça retombe.' : 'Ça plonge : achète pas cher ?', () => questGo('pc'), true);
+    const fl = s.crypto.flash; if (fl && fl.applied && !fl.acted && (!fl.up || G.holdValue(fl.id) >= 1)) add(86, '⚡', `Alerte flash : ${G.coin(fl.id).name} ${fl.up ? '+' : '−'}${Math.round((fl.k - 1) * 100)} %`, fl.up ? 'Vends avant que ça retombe.' : 'Ça plonge : achète pas cher ?', () => questGo('pc'), true);
     const tr = G.traderState(); if (!tr.claimed && tr.profit >= G.traderGoal()) add(87, '🎯', 'Défi du trader réussi', 'Va chercher tes lingots sur ton PC.', () => questGo('pc'), true);
     if (window.AGENCE && AGENCE.offer()) add(84, '📩', 'Une de tes créatrices hésite à partir', 'Une agence rivale lui fait les yeux doux : décide vite.', () => AGENCE.open(), true);
     if (window.AGENCE && AGENCE.pending() >= 30 + s.lvl * 10) add(76, '📸', `${short(AGENCE.pending())} de commission t'attendent`, 'Tes créatrices ont bossé : encaisse ta part sur PrivéFans.', () => AGENCE.open(), true);
