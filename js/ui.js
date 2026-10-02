@@ -443,7 +443,7 @@
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -471,23 +471,57 @@
     window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); clashes(); } });
     const size = k => { if (!sel || !sel.dataset.deco) return; const d = decos.find(x => x.id === sel.dataset.deco); d.w = Math.max(3, Math.min(30, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
-    $('#pl-room').onclick = () => roomPlacer(true);
+    $('#pl-room').onclick = () => setScene('appart');
+    $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
+    $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
+    $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
-    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); } catch (e) {} location.reload(); };
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
   }
-  // Publier : bâtiments + objets de la ville + disposition des 3 chambres, pour tout le monde
+  // ------------------------------------------------------------ textes modifiables (back-office, bouton ✏️ Textes)
+  // On remplace un texte affiché par un autre : « texte d'origine » → « nouveau texte ». Ça marche pour tout texte fixe
+  // (titres, boutons, menus, explications). Publié dans js/layout.js (texts) : appliqué chez tout le monde.
+  const TXT_KEY = 'hustleCity.adminTexts';
+  let textEdit = false;
+  const localTexts = () => { try { return JSON.parse(localStorage.getItem(TXT_KEY) || '{}'); } catch (e) { return {}; } };
+  const allTexts = () => Object.assign({}, (window.LAYOUT && window.LAYOUT.texts) || {}, placing ? localTexts() : {});
+  let TX = allTexts();
+  const origOf = new WeakMap();
+  function applyTexts(root) {
+    if (!Object.keys(TX).length || !root) return;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+    while ((n = w.nextNode())) { const v = n.nodeValue, k = v.trim(); if (k && Object.prototype.hasOwnProperty.call(TX, k) && TX[k] !== k) { origOf.set(n, k); n.nodeValue = v.replace(k, TX[k]); } }
+  }
+  new MutationObserver(ms => { if (!Object.keys(TX).length) return; ms.forEach(m => m.type === 'characterData' ? applyTexts(m.target.parentNode) : m.addedNodes.forEach(x => x.nodeType === 3 ? applyTexts(x.parentNode) : x.nodeType === 1 && applyTexts(x))); })
+    .observe(document.body, { childList: true, subtree: true, characterData: true });
+  setTimeout(() => applyTexts(document.body), 0);
+  document.addEventListener('click', e => {
+    if (!textEdit || e.target.closest('#placer, #admin-banner, #rplacer')) return;
+    const el = e.target; const tn = [...el.childNodes].find(x => x.nodeType === 3 && x.nodeValue.trim()); if (!tn) return;
+    e.preventDefault(); e.stopPropagation();
+    const cur = tn.nodeValue.trim(), orig = origOf.get(tn) || Object.keys(TX).find(k => TX[k] === cur) || cur;
+    const nv = prompt(`Texte d'origine :\n« ${orig} »\n\nNouveau texte (vide = remettre l'original) :`, cur);
+    if (nv == null) return;
+    const L = localTexts(); if (nv.trim() && nv.trim() !== orig) L[orig] = nv.trim(); else L[orig] = orig;
+    try { localStorage.setItem(TXT_KEY, JSON.stringify(L)); } catch (er) {}
+    TX = allTexts(); tn.nodeValue = tn.nodeValue.replace(cur, TX[orig] || orig); origOf.set(tn, orig);
+    toast('Texte changé. Pense à « Publier ».');
+  }, true);
+
+  // Publier : bâtiments + objets de la ville + disposition des 3 chambres + textes, pour tout le monde
   async function publishLayout(clashes) {
     const bad = clashes ? clashes() : [];
     if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
-    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms };
+    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
       const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
       if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
-      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); } catch (e) {}
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); } catch (e) {}
+      if (window.LAYOUT) window.LAYOUT.texts = body.texts;
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
   }
@@ -562,6 +596,7 @@
     btn.querySelector('.ic').outerHTML = ic(s === 'city' ? 'home' : 'city');
     if (s === 'appart') renderAppart();
     renderHud();
+    if (placing) { if (s === 'appart' && !RP.on) setTimeout(() => roomPlacer(true), 0); if (s !== 'appart' && RP.on) $('#rp-close')?.click(); }
   }
   // ------------------------------------------------------------ appart : chaque objet affiche une bulle qui dit ce qu'il fait
   // disposition d'une chambre : celle du jeu, ou celle réglée à la main (mode #placer-appart, gardée dans ce navigateur)
