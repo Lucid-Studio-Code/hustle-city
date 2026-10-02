@@ -2153,3 +2153,24 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .sheet.th-casino .tabs .tab { border-image: none; border: 2px solid #d4a24c; border-radius: 12px; }
 /* fonds illustrés des tickets à gratter (images tkbg-<id>, sans texte) */
 #app .tk.has-bg, #app .tk-mini.has-bg { background-image: linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.35)), var(--tkbg); background-size: cover; background-position: center; }
+/* la vraie machine à sous (image casino-machine + zones posées dessus) */
+#modal .th-casino .real-slot { position: relative; width: 100%; max-width: 420px; margin: 0 auto; }
+#modal .th-casino .real-slot .rs-img { display: block; width: 100%; height: auto; }
+#modal .th-casino .rs-screen { position: absolute; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4%; padding: 2%; background: transparent; border: 0; box-shadow: none; }
+#modal .th-casino .rs-screen .reel { height: 100%; border-width: 2px; }
+#modal .th-casino .rs-screen .reel .sym { height: 100%; }
+#modal .th-casino .rs-led { position: absolute; display: grid; place-items: center; border-radius: 8px; background: #120204; box-shadow: inset 0 0 8px #000; color: #ffe066; font: 400 17px var(--title); text-shadow: 0 0 8px #ffb300; }
+#modal .th-casino .rs-bets { position: absolute; display: flex; justify-content: space-between; align-items: center; gap: 2%; }
+#modal .th-casino .rs-bet { flex: 1; aspect-ratio: 1; max-height: 100%; border: 2px solid #2a1a10; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #f2c14e 45%, #b8860b); font: 400 12px var(--title); color: #3a0610; box-shadow: 0 3px 0 #2a1a10; }
+#modal .th-casino .rs-bet.on { background: radial-gradient(circle at 35% 30%, #fff, #6ee36e 45%, #1f9d55); color: #fff; transform: translateY(2px); box-shadow: 0 1px 0 #2a1a10, 0 0 12px #6ee36e; }
+#modal .th-casino .rs-spin { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #2a1a10; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ff8a8a, #e63946 50%, #8a0f1a); color: #fff; font: 400 16px var(--title); box-shadow: 0 6px 0 #2a1a10, 0 0 18px #ff3c3c88; }
+#modal .th-casino .rs-spin small { font: 800 11px var(--text); } #modal .th-casino .rs-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #2a1a10; }
+#modal .th-casino .rs-spin:disabled { filter: grayscale(.7); }
+#modal .th-casino .rs-lever { position: absolute; border: 0; background: transparent; cursor: grab; transform-origin: 50% 100%; }
+#modal .th-casino .rs-lever.pulled { animation: lever .6s ease-in-out; }
+@keyframes lever { 50% { transform: scaleY(.55); } }
+#modal .th-casino .chips button img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+#modal .th-casino .chips button:has(img) { background: none; } #modal .th-casino .chips button:has(img) span { background: transparent; border: 0; text-shadow: 0 1px 2px #000; }
+#modal .th-casino .felt[style*="background-image"] { background-size: cover; background-position: center; }
+#modal .th-casino .wheel-hub { position: absolute; inset: 26%; width: 48%; height: 48%; object-fit: contain; z-index: 2; pointer-events: none; }
+#modal .th-casino .wheel-wrap:has(.wheel-hub) .wheel-res { z-index: 3; inset: 38%; }

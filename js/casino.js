@@ -11,6 +11,21 @@
   function slotBody() {
     const s = st(), S = D.SLOT.symbols;
     const shown = lastSpin ? lastSpin.reels : [S[0], S[2], S[4]];
+    const msg = lastSpin ? (lastSpin.win ? `+${U.eur(lastSpin.win)} (×${lastSpin.mult})` : 'Perdu') : 'Aligne 3 symboles';
+    const reels = shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('');
+    const pays = `<div class="card sm-pay" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b>`).join('')}</div>
+        <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
+    // la vraie machine : image casino-machine, et les zones (écran, panneau, bouton, levier) en % de l'image (D.SLOT.ui, réglable)
+    if (U.has('casino-machine')) {
+      const L = D.SLOT.ui, z = r => `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
+      return `<div class="real-slot"><img class="rs-img" src="${U.src('casino-machine')}" alt="">
+          <div class="rs-screen reels" style="${z(L.screen)}">${reels}</div>
+          <div class="rs-led stroke" id="slot-msg" style="${z(L.led)}">${msg}</div>
+          <div class="rs-bets" style="${z(L.bets)}">${D.SLOT.bets.map(b => `<button class="rs-bet ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
+          <button class="rs-spin" data-act="slSpin" style="${z(L.spin)}" ${spinning || s.cash < bet ? 'disabled' : ''}><span>LANCER</span><small>${U.eur(bet)}</small></button>
+          <button class="rs-lever ${spinning ? 'pulled' : ''}" data-act="slSpin" style="${z(L.lever)}" aria-label="Tirer le levier" ${spinning || s.cash < bet ? 'disabled' : ''}></button>
+        </div>${pays}`;
+    }
     return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
         <div class="reels">${shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('')}</div>
         <div class="center stroke" style="margin:10px 0 6px;font-size:20px;min-height:26px" id="slot-msg">${lastSpin ? (lastSpin.win ? `+${U.eur(lastSpin.win)} (×${lastSpin.mult})` : 'Perdu') : 'Aligne 3 symboles'}</div>
@@ -25,13 +40,13 @@
     res.reels.forEach((sym, i) => {
       const reel = document.getElementById('reel-' + i); if (!reel) return;
       reel.classList.remove('win');
-      const n = 14 + i * 5, strip = reel.querySelector('.strip');
+      const n = 14 + i * 5, strip = reel.querySelector('.strip'), rh = reel.clientHeight || 96;
       const syms = []; for (let k = 0; k < n; k++) syms.push(S[Math.floor(Math.random() * S.length)]); syms.push(sym);
       strip.innerHTML = syms.map(x => `<div class="sym">${symHtml(x)}</div>`).join('');
       strip.style.transition = 'none'; strip.style.transform = 'translateY(0)';
       void strip.offsetHeight;
       strip.style.transition = `transform ${0.9 + i * .35}s cubic-bezier(.2,.8,.25,1)`;
-      strip.style.transform = `translateY(-${n * 96}px)`;
+      strip.style.transform = `translateY(-${n * rh}px)`;
     });
     setTimeout(() => {
       spinning = false; lastSpin = res;
@@ -53,10 +68,10 @@
     const s = st(), R = D.ROULETTE.reds, total = board.reduce((a, b) => a + b.amt, 0);
     const nums = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 12; c++) nums.push(c * 3 + (3 - r));
     return `<div class="wheel-wrap"><div class="wheel-ptr"></div><div class="wheel" id="wheel" style="background:${wheelGradient()};transform:rotate(${wheelTurn}deg)">${D.ROULETTE.order.map((v, i) => `<i class="wn" style="transform:rotate(${((i + .5) * 360 / D.ROULETTE.order.length).toFixed(2)}deg)"><b>${v}</b></i>`).join('')}</div>
-        <div class="wheel-res" style="${lastRoll ? `background:${lastRoll.n === 0 ? '#1f9d55' : R.includes(lastRoll.n) ? '#d33a2c' : '#222'}` : ''}">${lastRoll && !rolling ? lastRoll.n : '?'}</div></div>
+        ${U.has('roulette-hub') ? `<img class="wheel-hub" src="${U.src('roulette-hub')}" alt="">` : ''}<div class="wheel-res" style="${lastRoll ? `background:${lastRoll.n === 0 ? '#1f9d55' : R.includes(lastRoll.n) ? '#d33a2c' : '#222'}` : ''}">${lastRoll && !rolling ? lastRoll.n : '?'}</div></div>
       <div class="center stroke" style="font-size:18px;min-height:24px">${rolling ? 'Les jeux sont faits…' : lastRoll ? (lastRoll.win ? `Gagné : +${U.eur(lastRoll.win)}` : `Perdu (${U.eur(lastRoll.total)})`) : 'Pose tes jetons'}</div>
-      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}"><span>${c}</span></button>`).join('')}</div>
-      <div class="felt"><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
+      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}">${U.has('chip-' + c) ? `<img src="${U.src('chip-' + c)}" alt="">` : ''}<span>${c}</span></button>`).join('')}</div>
+      <div class="felt" ${U.has('roulette-felt') ? `style="background-image:url(${U.src('roulette-felt')})"` : ''}><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
         ${nums.map(n => `<button class="${R.includes(n) ? 'rd' : 'bk'}" data-act="rlBet" data-t="num" data-v="${n}">${n}${chipOn('num', n)}</button>`).join('')}</div>
       <div class="rl-outside">
         ${[['doz', 1, '1-12'], ['doz', 2, '13-24'], ['doz', 3, '25-36'], ['low', null, '1-18'], ['even', null, 'Pair'], ['red', null, 'Rouge'], ['black', null, 'Noir'], ['odd', null, 'Impair'], ['high', null, '19-36']]
