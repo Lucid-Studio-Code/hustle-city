@@ -1916,3 +1916,22 @@ h3.sec { margin: 18px 6px 10px; }
 /* arrêt de bus : la zone à toucher couvre tout l'abri et le poteau (marges en % de la largeur du bloc) */
 #app .bld.spot .spot-zone { align-self: flex-start; width: 131.7%; aspect-ratio: 1.087; margin: 0 -9% -64.6% -22.7%; }
 #app .ph-status .ph-sig { width: 17px; height: 12px; fill: #fff; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
+
+/* ---------- cartes de sport en miniature : toujours au format carte ---------- */
+#app .card-mini { display: inline-block; vertical-align: middle; flex: 0 0 auto; width: 64px; line-height: 0; }
+#app .card-mini .tcg { width: 100%; display: block; }
+#app .item-card .card-mini { width: 92px; margin: 2px 0 4px; }
+#app .item-big:has(.card-mini) { width: 120px; height: auto; }
+#app .item-big .card-mini { width: 120px; }
+#app .six-cards .card-mini, #app .deal-art .card-mini { width: 96px; }
+#app .own-pic .card-mini, #app .nc-pic .card-mini, #app .of-art .card-mini { width: 40px; }
+#app #btn-next .nx-pic .card-mini { width: 30px; }
+#app .six-cards .missing .card-mini { filter: grayscale(1) opacity(.5); }
+#app .tcg.mini .tcg-card { border-width: 1.6cqw; border-radius: 7cqw; box-shadow: 0 2.5cqw 0 #2a1a10; }
+#app .tcg.mini .fa-rar { width: 16cqw; height: 16cqw; font-size: 9cqw; border-width: 1cqw; }
+#app .tcg.mini .fa-crest { top: 13%; bottom: 26%; left: 10%; right: 10%; }
+#app .tcg.mini .fa-plate { padding: 4cqw 4cqw 5cqw; }
+#app .tcg.mini .fa-plate b { font-size: 12cqw; -webkit-text-stroke-width: 2cqw; }
+#app .tcg.mini .fa-plate b.xl { font-size: 9.5cqw; }
+#app .tcg .mc-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#app .tcg.mini .tcg-holo { animation: none; }

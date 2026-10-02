@@ -41,7 +41,18 @@
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   function hydrateIcons(root = document) { root.querySelectorAll('i.ic[data-icon]').forEach(el => { el.outerHTML = ic(el.dataset.icon); }); }
   function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼'][D.SKINS.indexOf(sk)]); }
-  function itemPic(it) { return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon); }
+  // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
+  function itemPic(it) {
+    if (it.cat === 'card' && it.team) return `<span class="card-mini">${miniCard(it)}</span>`;
+    return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon);
+  }
+  function miniCard(it) {
+    const sp = it.team[0], bg = has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
+    const art = sp === 'tennis' && has(it.img) ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
+    const nm = it.name.replace(/^Carte /, '');
+    return `<span class="tcg full mini r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span>${bg}${art}<span class="fa-rar">${RSYM[it.r]}</span>
+      <span class="fa-plate"><b class="${nm.length > 14 ? 'xl' : ''}">${nm}</b></span><i class="tcg-holo"></i></span></span>`;
+  }
   // écusson d'une équipe (ou portrait d'un joueur de tennis) ; à défaut d'image, un blason dessiné à ses couleurs
   function teamCrest(sport, i, cls = '') {
     const t = D.TEAMS[sport][i], n = (D.SPORTS[sport] || D.SIX).img + (i + 1);
@@ -1141,7 +1152,8 @@
       if (it.r !== 'C' || it.series === 'classics') {
         const nm = it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase());
         const art = !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
-        return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${art}
+        const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
+        return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
           <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b><small>${RAR[it.r]} · cote ${short(st().market.prices[it.id])}</small></div>
           <i class="tcg-holo"></i></div></div>`;
