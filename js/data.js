@@ -211,7 +211,7 @@
     name: 'Tournoi des 6 Quartiers', short: '6 Quartiers', img: 'crest-r',
     // simulation : si une date est indiquée, la journée 1 a lieu ce jour-là et les suivantes un jour après l'autre
     // (mêmes heures que le vrai tournoi). Mettre null pour revenir au vrai calendrier 2027.
-    sim: '2026-10-02', pts: 3, liveMin: 100, lingotPerGood: 1, cardChance: .35,
+    sim: '2026-10-01', pts: 3, liveMin: 100, lingotPerGood: 1, cardChance: .35,
     teams: [
       ['Trèfles du Marché',     87, '#1f9d55', '#ffffff', '☘️'],
       ['Roses du Port',         84, '#ffffff', '#d33a2c', '🌹'],

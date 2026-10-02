@@ -1937,3 +1937,10 @@ h3.sec { margin: 18px 6px 10px; }
 #app .tcg.mini .tcg-holo { animation: none; }
 #app .ev-deco .pic { position: relative; display: block; width: 100%; aspect-ratio: 1; } #app .ev-deco .pic img { object-fit: contain; object-position: 50% 100%; filter: drop-shadow(0 3px 0 rgba(42,26,16,.3)); }
 #app .tcg.mini .tcg-card::before { content: none; }
+#app .sx-recap { margin: 0 0 10px; padding: 10px 12px; border: 2.5px solid #2a1a10; border-radius: 16px; background: #e9f9df; box-shadow: 0 3px 0 #2a1a10; }
+#app .sx-recap b { display: block; font: 400 16px var(--title); margin-bottom: 4px; }
+#app .sx-recap span { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+#app .sx-recap i { font: 800 12px var(--text); font-style: normal; color: #7a6a5a; }
+#app .sx-recap i.ok { color: #1f9d55; } #app .sx-recap i.ko { color: #c62828; }
+#app .sx-recap small { font: 700 12px/1.35 var(--text); color: #2a1a10; }
+#app .sx-recap strong { color: #1f7a3a; }
