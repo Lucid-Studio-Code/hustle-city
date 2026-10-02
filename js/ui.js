@@ -455,7 +455,7 @@
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -486,6 +486,7 @@
     $('#pl-room').onclick = () => setScene('appart');
     $('#pl-club').onclick = () => openClub();
     $('#pl-val').onclick = () => openValues();
+    $('#pl-test').onclick = () => openModal({ title: 'Tests', icon: 'gear', body: testsBody() });
     $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
@@ -562,6 +563,24 @@
     const L = localVals(); L[el.dataset.vpath] = v; try { localStorage.setItem(VAL_KEY, JSON.stringify(L)); } catch (er) {}
     setVal(el.dataset.vpath, v); el.closest('label').classList.add('chg'); renderCity(); renderHud();
   });
+
+  // ------------------------------------------------------------ back-office : panneau « Tests » (essayer chaque fonction sans attendre)
+  const TESTS = [
+    ['💰 +1 000 de cash', () => G.addCash(1000)], ['🪙 +50 lingots', () => G.addLingots(50)], ['⭐ +1 niveau', () => G.addXp(Math.max(1, G.xpNeed() - st().xp))],
+    ['⛏️ Finir le minage', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; m.start -= m.dur; }],
+    ['🌡️ Machine à 90 %', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; const o = D.MINE.find(x => x.id === m.id); m.cool = 0; m.start = Date.now() - Math.min(m.dur - 60000, .9 * D.RIG[m.lvl].heatMin / o.heat * 60000); }],
+    ['⚡ Alerte flash', () => { const c = st().crypto; c.flash = null; c.nextFlash = 1; }],
+    ['📰 Actu crypto', () => { st().crypto.nextNews = 1; }],
+    ['📈 Tuyau crypto d\'un pote', () => { st().crypto.moodUntil = Date.now() + 5 * 60000; st().nextCryptoTipAt = 1; }],
+    ['⚽ Tuyau match d\'un pote', () => { st().nextTipAt = 1; }],
+    ['🤝 Bon plan', () => { st().deal = null; st().nextDealAt = 0; }],
+    ['🛍️ Rumeur au Comptoir', () => { st().market.nextRumor = Date.now(); }],
+    ['🎉 Mini-événement', () => { st().event = null; st().nextEventAt = 0; }],
+    ['📩 Dilemme PrivéFans', () => { const a = st().agence; if (!a || !a.crew.length) return 'Lance d\'abord PrivéFans (niveau 6).'; a.dil = null; a.nextDil = 1; window.AGENCE && AGENCE.sim(); }],
+    ['🔁 Perso garçon / fille', () => { const g = (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g; st().skin = g === 'f' ? 'survet' : 'doudoune'; renderHud(); }],
+    ['🎓 Revoir le tutoriel', () => { if (!confirm('Relancer le tutoriel depuis le début ?')) return 'Annulé.'; st().tutoDone = false; st().tutoStep = 0; st().bldTuto = {}; G.save(); location.hash = ''; location.reload(); }]
+  ];
+  function testsBody() { return `<p class="hint-line">Pour essayer chaque fonction sans attendre. Ça ne touche que <b>ta</b> partie, rien n'est publié.</p><div class="grid2 tests">${TESTS.map((t, i) => `<button class="btn blue sm" data-act="admTest" data-i="${i}">${t[0]}</button>`).join('')}</div>`; }
 
   // Publier : bâtiments + objets de la ville + disposition des 3 chambres + textes, pour tout le monde
   async function publishLayout(clashes) {
@@ -1824,6 +1843,7 @@
     boutique() { openBoutique(); },
     valToggle(el) { const i = +el.dataset.i; valOpen.has(i) ? valOpen.delete(i) : valOpen.add(i); setBody(valuesBody()); },
     valPub() { publishLayout(); },
+    admTest(el) { const t = TESTS[+el.dataset.i]; if (!t || !placing) return; const r = t[1](); toast(r || `${t[0]} : fait. Ça arrive dans quelques secondes si c'est une notification.`); refresh(); },
     valReset() { if (!confirm('Annuler tous tes changements de valeurs pas encore publiés ?')) return; try { localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); },
     promo() { openBoutique('vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },

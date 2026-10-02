@@ -2252,3 +2252,4 @@ h3.sec { margin: 18px 6px 10px; }
 #app .val-f label { display: flex; flex-direction: column; gap: 2px; padding: 4px 6px; border-radius: 8px; background: #fff8ec; } #app .val-f label.chg { background: #fff1a8; box-shadow: inset 0 0 0 2px #f2b01e; }
 #app .val-f small { font: 800 10px var(--text); color: #7a6a5a; } #app .val-f input { width: 100%; padding: 4px 6px; border: 1.5px solid #c8b090; border-radius: 6px; background: #fff; font: 800 13px var(--text); color: #2a1a10; }
 #app:has(#modal:not(.hidden)) #placer { display: none; }
+#app .tests { gap: 6px; } #app .tests .btn { font-size: 12px; }
