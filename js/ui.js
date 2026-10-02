@@ -191,6 +191,7 @@
     const gift = $('#btn-gift'), dr = G.dailyReady();
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
+    { const t = $('#promo-t'); if (t) { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 1 ? `${h} h` : mmss(ms); } }
     $('.six-badge')?.classList.toggle('hidden', !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
@@ -207,6 +208,8 @@
     D.SCRATCH.forEach(t => t.lvl > s.lvl && L.push([t.lvl, `le ticket ${t.name}`, `jusqu'à ${short(t.prizes[t.prizes.length - 1][0])}`]));
     D.COINS.forEach(c => c.lvl > s.lvl && L.push([c.lvl, `la crypto ${c.name}`, c.desc.split('.')[0]]));
     if (D.COMBI_LVL > s.lvl) L.push([D.COMBI_LVL, 'les paris combinés', 'plusieurs matchs, une grosse cote']);
+    if (D.AGENCE.lvl > s.lvl) L.push([D.AGENCE.lvl, 'ton agence PrivéFans', 'manager des créatrices de contenu']);
+    D.CITY_SHOP.forEach(x => x.lvl > s.lvl && L.push([x.lvl, `la déco « ${x.name} »`, 'pour ta ville']));
     L.sort((x, y) => x[0] - y[0]);
     return L.length ? { lvl: L[0][0], what: L.filter(x => x[0] === L[0][0]).map(x => x[1]) } : null;
   }
@@ -446,11 +449,12 @@
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
     const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
+    if (sv.slot) Object.assign(D.SLOT.ui, sv.slot);
     Object.entries(sv.club || {}).forEach(([id, p]) => { const z = D.CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -480,6 +484,7 @@
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
     $('#pl-room').onclick = () => setScene('appart');
     $('#pl-club').onclick = () => openClub();
+    $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
@@ -522,7 +527,7 @@
     const bad = clashes ? clashes() : [];
     if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
-    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
+    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, slot: sv.slot || D.SLOT.ui, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
@@ -993,6 +998,21 @@
     const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); saveClubZones(); };
     window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
   }, true);
+  // back-office : les zones de la machine à sous (écran, LED, mises, bouton, levier) se calent sur l'image casino-machine
+  // glisser = déplacer ; poignée en bas à droite = taille. Publiées avec le reste.
+  function saveSlotZones() { const sv = admSaved(); sv.slot = JSON.parse(JSON.stringify(D.SLOT.ui)); try { localStorage.setItem(ADM_KEY, JSON.stringify(sv)); } catch (e) {} }
+  document.addEventListener('pointerdown', e => {
+    if (!placing) return; const el = e.target.closest('.real-slot [data-zone]'); if (!el) return;
+    const box = el.closest('.real-slot').getBoundingClientRect(), Z = D.SLOT.ui[el.dataset.zone], r = el.getBoundingClientRect();
+    const resize = e.clientX > r.right - 18 && e.clientY > r.bottom - 18, x0 = e.clientX, y0 = e.clientY, s0 = { ...Z };
+    e.preventDefault(); e.stopPropagation();
+    const mv = ev => { const dx = (ev.clientX - x0) / box.width * 100, dy = (ev.clientY - y0) / box.height * 100;
+      if (resize) { Z.w = Math.max(4, Math.round((s0.w + dx) * 2) / 2); Z.h = Math.max(3, Math.round((s0.h + dy) * 2) / 2); } else { Z.x = Math.round((s0.x + dx) * 2) / 2; Z.y = Math.round((s0.y + dy) * 2) / 2; }
+      Object.assign(el.style, { left: Z.x + '%', top: Z.y + '%', width: Z.w + '%', height: Z.h + '%' }); };
+    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); saveSlotZones(); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  }, true);
+  document.addEventListener('click', e => { if (placing && e.target.closest('.real-slot [data-zone]')) { e.preventDefault(); e.stopPropagation(); } }, true);
   // Le Club : d'abord le videur (entrée), puis une vraie salle avec des coins à toucher (image club-room, sinon néons dessinés)
   function clubBody() {
     const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
@@ -1017,11 +1037,17 @@
 
   // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
   let bqTab = 'deco';
+  const promoNow = () => D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length];
+  const promoLeft = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
+  function promoBanner() {
+    const p = promoNow(), x = D.IAP.find(i => i.id === p.id);
+    return `<div class="promo-banner"><span class="pb-off">−${p.off} %</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon">${x && p.id.startsWith('x-') ? `<s>${x.price}</s>${(parseFloat(x.price.replace(',', '.')) * (1 - p.off / 100) - .005).toFixed(2).replace('.', ',')} €` : x ? x.price : ''}</button></div>`;
+  }
   function boutiqueBody() {
     const s = st();
     if (bqTab === 'vip') {
       const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack');
-      return `<p class="hint-line">Des lingots et des exclusivités, en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
+      return `${promoBanner()}<p class="hint-line">Des lingots et des exclusivités, en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
         <div class="grid2 iap-grid">${L.map(x => `<div class="card iap-card">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n} lingots</b><small>${x.name}</small><button class="btn gold xs" data-act="iapSoon">${x.price}</button></div>`).join('')}</div>
         <h3 class="sec">Exclusivités</h3>${P.map(x => `<div class="card iap-pack"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}<button class="btn purple xs" data-act="iapSoon">${x.price}</button></div>`).join('')}`;
     }
@@ -1696,6 +1722,7 @@
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
     boutique() { openBoutique(); },
+    promo() { openBoutique('vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },

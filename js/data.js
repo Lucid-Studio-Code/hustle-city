@@ -511,16 +511,24 @@
     { id: 'x-gold',  kind: 'pack', name: 'Skin exclusif « Gold »', desc: 'Survêt en or, chaîne XXL : introuvable ailleurs', price: '7,99 €', tag: 'Exclusif' }
   ];
 
+  // Bouton « Promos » (à gauche, séparé du coach à droite) : une offre du moment en vrai argent, qui change chaque jour à minuit
+  const PROMOS = [
+    { id: 'x-start', off: 50, title: 'Pack de départ à −50 %', desc: '200 lingots, 5 boosters et la machine niveau 2' },
+    { id: 'l-450',   off: 30, title: 'Sac de lingots +30 %',   desc: '585 lingots au lieu de 450' },
+    { id: 'x-gold',  off: 40, title: 'Skin « Gold » à −40 %',  desc: 'Survêt en or, chaîne XXL : exclusif' },
+    { id: 'l-1000',  off: 25, title: 'Coffre de lingots +25 %', desc: '1 250 lingots au lieu de 1 000' }
+  ];
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
   Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = SIX.shop.concat(CITY_SHOP).find(x => x.id === id); if (d) Object.assign(d, p); });
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
+  if (LY.slot) Object.assign(SLOT.ui, LY.slot);
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

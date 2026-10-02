@@ -2174,3 +2174,15 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .felt[style*="background-image"] { background-size: cover; background-position: center; }
 #modal .th-casino .wheel-hub { position: absolute; inset: 26%; width: 48%; height: 48%; object-fit: contain; z-index: 2; pointer-events: none; }
 #modal .th-casino .wheel-wrap:has(.wheel-hub) .wheel-res { z-index: 3; inset: 38%; }
+/* bouton Promos : à GAUCHE (côté « marketing »), bien distinct des boutons de progression à droite */
+#app #btn-promo { position: absolute; z-index: 18; left: 8px; top: calc(var(--hud-b, 96px) + 10px); width: 58px; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 0 0 4px; border: 2.5px solid #2a1a10; border-radius: 16px; background: linear-gradient(#ff7ac0, #c2187a); box-shadow: 0 3px 0 #2a1a10; animation: giftPulse 2.4s ease-in-out infinite; }
+#app #btn-promo .pr-rib { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 6px; border: 2px solid #2a1a10; border-radius: 6px; background: #ffd23f; font: 400 10px var(--title); color: #2a1a10; white-space: nowrap; }
+#app #btn-promo .pr-ic { font-size: 26px; font-style: normal; line-height: 1; margin-bottom: 2px; }
+#app #btn-promo b { font: 900 10px var(--text); color: #fff; }
+#app.in-appart #btn-promo, #app:has(#placer) #btn-promo { display: none; }
+#app .promo-banner { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px 12px; border: 3px solid #2a1a10; border-radius: 18px; background: linear-gradient(120deg, #ff7ac0, #ffd23f); box-shadow: 0 3px 0 #2a1a10; }
+#app .promo-banner .pb-off { flex: 0 0 auto; padding: 6px 8px; border: 2px solid #2a1a10; border-radius: 12px; background: #e63946; color: #fff; font: 400 18px var(--title); transform: rotate(-6deg); }
+#app .promo-banner .grow { flex: 1; } #app .promo-banner b { display: block; font: 900 15px var(--text); } #app .promo-banner small { display: block; font: 800 11px var(--text); color: #3a0a2a; }
+#app:has(#placer) .real-slot [data-zone] { outline: 2px dashed #ffe066; outline-offset: -2px; cursor: move; }
+#app:has(#placer) .real-slot [data-zone]::after { content: ''; position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; background: #ffe066; border: 2px solid #2a1a10; cursor: nwse-resize; }
+#app .promo-banner .pb-price s { display: block; font-size: 10px; opacity: .7; }

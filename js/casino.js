@@ -19,11 +19,11 @@
     if (U.has('casino-machine')) {
       const L = D.SLOT.ui, z = r => `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
       return `<div class="real-slot"><img class="rs-img" src="${U.src('casino-machine')}" alt="">
-          <div class="rs-screen reels" style="${z(L.screen)}">${reels}</div>
-          <div class="rs-led stroke" id="slot-msg" style="${z(L.led)}">${msg}</div>
-          <div class="rs-bets" style="${z(L.bets)}">${D.SLOT.bets.map(b => `<button class="rs-bet ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
-          <button class="rs-spin" data-act="slSpin" style="${z(L.spin)}" ${spinning || s.cash < bet ? 'disabled' : ''}><span>LANCER</span><small>${U.eur(bet)}</small></button>
-          <button class="rs-lever ${spinning ? 'pulled' : ''}" data-act="slSpin" style="${z(L.lever)}" aria-label="Tirer le levier" ${spinning || s.cash < bet ? 'disabled' : ''}></button>
+          <div class="rs-screen reels" data-zone="screen" style="${z(L.screen)}">${reels}</div>
+          <div class="rs-led stroke" id="slot-msg" data-zone="led" style="${z(L.led)}">${msg}</div>
+          <div class="rs-bets" data-zone="bets" style="${z(L.bets)}">${D.SLOT.bets.map(b => `<button class="rs-bet ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
+          <button class="rs-spin" data-act="slSpin" data-zone="spin" style="${z(L.spin)}" ${spinning || s.cash < bet ? 'disabled' : ''}><span>LANCER</span><small>${U.eur(bet)}</small></button>
+          <button class="rs-lever ${spinning ? 'pulled' : ''}" data-act="slSpin" data-zone="lever" style="${z(L.lever)}" aria-label="Tirer le levier" ${spinning || s.cash < bet ? 'disabled' : ''}></button>
         </div>${pays}`;
     }
     return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
