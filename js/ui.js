@@ -967,7 +967,7 @@
     const card = it => {
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
-        ${itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
+        ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
         <small class="muted own-line">${mine ? 'Tu l\'as' : 'Tu ne l\'as pas'}</small>
         <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
           : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
@@ -1163,7 +1163,7 @@
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b><small>${RAR[it.r]} · cote ${short(st().market.prices[it.id])}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
-      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
+      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
         stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: `Cote du jour : ${short(st().market.prices[it.id])}`, flav: se.name, rarity: it.r, label: se.sub, no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
@@ -1208,9 +1208,9 @@
   }
   // carte en grand : on la penche avec le doigt, reflets holographiques ; on peut la revendre
   function cardZoom(id) {
-    const n = (st().owned[id] || []).length; if (!n) return;
+    const n = (st().owned[id] || []).length, it = G.item(id), canBuy = !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
     let el = $('#cardzoom'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="cardzoom"></div>'); el = $('#cardzoom'); }
-    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts"><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button><button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
+    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts">${n ? `<button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
     el.onpointermove = e => {
@@ -1443,6 +1443,7 @@
     claimSeries(el) { const r = G.claimSeries(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('bill', 40); toast(`Série « ${r.se.name} » complète : +${eur(r.se.reward.cash)} et ${r.se.reward.lingots} lingots !`); refresh(); },
     cardZoom: el => cardZoom(el.dataset.id),
     czClose: () => closeZoom(),
+    czBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); closeZoom(); refresh(); },
     czSell(el) { const id = el.dataset.id, r = G.sellItem(id); if (r.err) return toast(r.err, true); sfx.coin(); closeZoom(); refresh(); },
     deal: () => openPhone('msg'),
     dealOk() { const r = G.acceptDeal(); if (r.err) return toast(r.err, true); sfx.win(); if (phoneOpen()) drawPhone(); else closeModal(); refresh(); },

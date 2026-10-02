@@ -416,6 +416,10 @@
     else t = q(it.name);
     return cap ? up(t) : t;
   }
+  // les rumeurs et les tuyaux ne parlent que d'objets utiles : un que tu as (à vendre) ou un en rayon (à acheter)
+  const owns = id => !!(st.owned[id] && st.owned[id].length);
+  function rumorOk(i) { return i.cat !== 'trophy' && catUnlocked(i.cat) && (owns(i.id) || inStock(i.id)); }
+  function rumorPool() { const L = D.ITEMS.filter(rumorOk); return L.length ? L : D.ITEMS.filter(i => i.cat !== 'trophy' && catUnlocked(i.cat)); }
   function catUnlocked(cat) { return st.lvl >= D.ITEM_CATS[cat].lvl; }
   function marketTick(stepMin) {
     const mk = st.market;
@@ -436,7 +440,7 @@
     for (let i = 0; i < mins; i++) marketTick(1);
     mk.lastTick = now();
     D.ITEMS.forEach(i => { const h = mk.hist[i.id]; h.push(mk.prices[i.id]); if (h.length > 120) h.splice(0, h.length - 120); });
-    const pool = D.ITEMS.filter(i => i.cat !== 'trophy' && catUnlocked(i.cat));
+    const pool = rumorPool();
     if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
     if (mk.next && !mk.next.told && habitOn('smoke') && mk.nextRumor - now() <= 5 * 60000 && mk.nextRumor > now()) {
       mk.next.told = true; const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
@@ -448,7 +452,7 @@
       mk.nextRumor = now() + rnd(...D.RUMOR_MIN) * 60000;
       const nx = mk.next; mk.next = null;
       if (pool.length) {
-        const it = nx && item(nx.item) && catUnlocked(item(nx.item).cat) ? item(nx.item) : pick(pool), ru = nx ? D.RUMORS[nx.ru] : pick(D.RUMORS), k = rnd(...ru.k);
+        const it = nx && item(nx.item) && rumorOk(item(nx.item)) ? item(nx.item) : pick(pool), ru = nx ? D.RUMORS[nx.ru] : pick(D.RUMORS), k = rnd(...ru.k);
         mk.prices[it.id] = clamp(mk.prices[it.id] * k, it.p0 * .15, it.p0 * 12);
         const news = { t: now(), txt: ru.txt.replace('{n}', what(it)), up: ru.up, item: it.id };
         mk.news.unshift(news); if (mk.news.length > 6) mk.news.length = 6;
@@ -607,7 +611,7 @@
       const nm = D.MOODS.find(x => x.id === cr.nextMood);
       txt = `Dans environ ${Math.max(1, Math.round((cr.moodUntil - now()) / 60000))} min, la météo du marché passe à « ${nm.name} » : ${nm.desc}`;
     } else {
-      const mk = st.market, pool = D.ITEMS.filter(i => i.cat !== 'trophy' && catUnlocked(i.cat));
+      const mk = st.market, pool = rumorPool();
       if (!mk.next && pool.length) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
       if (!mk.next) return { err: 'Rien à raconter.' };
       const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru];
