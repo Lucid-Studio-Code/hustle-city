@@ -869,7 +869,7 @@
   function sixBody() {
     const s = st(), S = D.SIX, ph = G.sixPhase(), ms = G.sixMatches(), pts = G.sixPoints(), rank = G.sixRank(), n = S.rivals.length + 1;
     const next = ms.find(m => m.state === 'soon');
-    const head = `<div class="six-hero"><div class="sh-top">${sixBoardArt()}<div><b>${S.name}</b><small>${ph === 'before' ? `Coup d'envoi le ${fDay(G.sixKick(0))} · dans <strong>${untilTxt(G.sixKick(0) - Date.now())}</strong>` : ph === 'on' ? `En cours · journée ${(next || ms[ms.length - 1]).day} / 5` : 'Tournoi terminé'}${G.sixTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
+    const head = `<div class="six-hero"><div class="sh-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><b>${S.name}</b><small>${ph === 'before' ? `Coup d'envoi le ${fDay(G.sixKick(0))} · dans <strong>${untilTxt(G.sixKick(0) - Date.now())}</strong>` : ph === 'on' ? `En cours · journée ${(next || ms[ms.length - 1]).day} / 5` : 'Tournoi terminé'}${G.sixTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
       <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
     if (sixTab === 'board') {
       const rows = G.sixBoard(), me = rows.find(r => r.me), top = rows.slice(0, 10);
