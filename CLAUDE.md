@@ -28,7 +28,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 98).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 99).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -47,6 +47,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 ## Machine à miner (façon Mama Farm, 02/10)
 - On CHOISIT quoi miner (`MINE` dans data.js : durée, rendement, chaleur, niveau de machine requis, imprévu « swing »), la quantité est fixée au départ et payée au cours du moment à la récolte.
 - La chaleur monte (`heat` × minutes / `heatMin` de la machine) ; « Refroidir » enlève 50 % (une fois toutes les 5 min). À 100 % : surchauffe → −35 % et plus de risque de virus.
+- La récolte donne de la CRYPTO (la quantité minée va dans le portefeuille du PC, point de départ = sa valeur à la récolte) ; bouton « Vendre tout de suite » sur l'écran de récolte pour qui veut du cash.
 - Récolte = écran avec trouvaille possible (`FINDS` : bloc doré ×3, lingots, carte, vieux portefeuille, virus −40 %). Nouvelle partie et vieilles sauvegardes : un premier minage d'Axion déjà fini (`starterMine`).
 - `st.mine` (game.js : mineStart, mineCool, mineHarvest ; rigInfo garde l'ancienne forme pour le reste du jeu).
 

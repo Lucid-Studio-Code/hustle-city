@@ -247,7 +247,7 @@
     if (!up) {
       const nx = G.rigNext(), np = G.pcNext && G.pcNext();
       const goal = [nx && { n: 'la prochaine machine', p: nx.price }, np && { n: 'un meilleur PC', p: np.price }].filter(Boolean).sort((a, b) => a.p - b.p)[0];
-      if (goal) add(30, '💰', `Encore ${short(Math.max(0, goal.p - s.cash))} pour ${goal.n}`, 'Encaisse ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', () => openUpgrades());
+      if (goal) add(30, '💰', `Encore ${short(Math.max(0, goal.p - s.cash))} pour ${goal.n}`, 'Récolte ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', () => openUpgrades());
     }
     add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
     return L.sort((a, b) => b.p - a.p);
@@ -830,6 +830,7 @@
   }
   // ------------------------------------------------------------ la machine à miner (façon Mama Farm)
   // 3 états : à l'arrêt (on choisit quoi miner), en marche (chaleur, refroidir), finie (on récolte → écran de récolte)
+  const coinQty = q => q >= 100 ? Math.round(q).toLocaleString('fr-FR') : q >= 1 ? q.toFixed(2).replace('.', ',') : q.toPrecision(3).replace('.', ',');
   const deC = n => /^[AEIOUYÉ]/i.test(n) ? `d'${n}` : `de ${n}`;
   const coinPic = id => has('coin-' + id) ? `<img src="${src('coin-' + id)}" alt="">` : `<b>${G.coin(id).sym}</b>`;
   const flames = n => '🔥'.repeat(Math.max(1, Math.min(4, Math.ceil(n))));
@@ -872,7 +873,7 @@
     gold: ['🟨', 'Bloc doré !', 'Tu es tombé sur un bloc rare : la récolte vaut ×3.'],
     lingots: ['🪙', 'Des lingots !', n => `Coincés dans la machine : +${n} lingots.`],
     card: ['🃏', 'Une carte !', x => `Planquée derrière le ventilo : ${x.name}${x.dup ? ' (doublon revendu)' : ''}.`],
-    wallet: ['👛', 'Un vieux portefeuille !', n => `Un portefeuille crypto oublié : +${short(n)} en plus.`],
+    wallet: ['👛', 'Un vieux portefeuille !', n => `Un portefeuille crypto oublié : ≈ ${short(n)} d'Axion en plus, rangés dans ton PC.`],
     virus: ['🦠', 'Un virus !', 'Un virus s\'est glissé dans ta machine : −40 % sur la récolte.']
   };
   function showHarvest(r) {
@@ -880,11 +881,13 @@
     const fTxt = f ? (typeof f[2] === 'function' ? f[2](r.find.kind === 'card' ? r.find : r.find.n) : f[2]) : '';
     openModal({ title: 'Récolte', icon: 'bolt', center: true, body: `<div class="harvest">
         <span class="hv-coin">${coinPic(r.id)}</span><small>Minage ${deC(c.name)} terminé</small>
-        <b class="hv-amt stroke" data-to="${Math.round(r.cash)}">+0</b>${r.burnt ? '<p class="mine-warn">💥 Surchauffe : −35 % sur cette récolte.</p>' : ''}
+        <b class="hv-amt stroke">+${coinQty(r.amt)} ${c.sym}</b><small class="hv-val">≈ ${short(r.value)} au cours du moment · rangé dans ton PC</small>${r.burnt ? '<p class="mine-warn">💥 Surchauffe : −35 % sur cette récolte.</p>' : ''}
         ${f ? `<div class="hv-find ${r.find.kind}"><span>${f[0]}</span><div><b>${f[1]}</b><small>${fTxt}</small></div></div>` : '<p class="hint-line center">Pas de trouvaille cette fois. La prochaine, peut-être…</p>'}
-        <div class="grid2"><button class="btn" data-act="closeModal">Fermer</button><button class="btn green" data-act="rig">Relancer un minage</button></div></div>` });
+        <button class="btn gold wide" data-act="hvSell" data-id="${r.id}" data-q="${r.amt}">Vendre tout de suite · +${short(r.value * (1 - G.fee()))}</button>
+        <p class="hint-line center" style="margin:2px 0 6px">Ou garde-la : si ${c.name} monte, ta récolte vaudra plus.</p>
+        <div class="grid2"><button class="btn" data-act="coinSelPc" data-id="${r.id}">Voir sur mon PC</button><button class="btn green" data-act="rig">Relancer un minage</button></div></div>` });
     sfx.coin(); if (r.find && r.find.kind !== 'virus') { sfx.win && sfx.win(); rain('confetti', 24); }
-    const el = $('#modal .hv-amt'); if (el) { const to = +el.dataset.to, t0 = performance.now(); const step = t => { const k = Math.min(1, (t - t0) / 900); el.innerHTML = `+${short(Math.round(to * k))}`; if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+
   }
 
   // ------------------------------------------------------------ le téléphone : toujours dans la poche, avec ses notifications
@@ -1702,6 +1705,9 @@
     rigQuick(el, e) { e.stopPropagation(); const i = G.rigInfo(); if (i.ready) return A.mineHarvest(); if (!i.idle && !i.burnt && i.heat >= 50 && i.coolLeft <= 0) return A.mineCool(); openRig(); },
     mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
     mineCool() { const r = G.mineCool(); if (r.err) return toast(r.err, true); sfx.tap(); floatTxt('💨 −50 %'); refresh(); },
+    hvSell(el) { const id = el.dataset.id, q = +el.dataset.q, h = st().crypto.hold[id] || 0; if (!(h > 0)) return toast('Plus rien à vendre.', true);
+      const r = G.sellCrypto(id, Math.min(1, q / h)); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); el.disabled = true; el.innerHTML = `Vendu · +${short(r.net)}`; refresh(); },
+    coinSelPc(el) { const id = el.dataset.id; closeModal(); setTimeout(() => openCrypto(id), 60); },
     mineHarvest() { const r = G.mineHarvest(); if (r.err) return toast(r.err, true); closeModal(); setTimeout(() => { showHarvest(r); refresh(); }, 80); },
     roomHelp: () => openRoomHelp(),
     wSellCoin(el) { cryptoSel = el.dataset.id; sellCoin(1); },

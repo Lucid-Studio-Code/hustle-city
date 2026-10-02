@@ -261,21 +261,22 @@
   function mineHarvest() {
     const i = rigInfo(); if (i.idle) return { err: 'Ta machine est à l\'arrêt : choisis quoi miner.' };
     if (!i.ready) return { err: 'Pas encore fini.' };
-    const m = st.mine, o = i.opt, F = D.FINDS, h = m.dur / 3600000;
-    let value = i.full * (m.burnt ? 1 - F.burnt : 1) * (evOn('rig') ? 1.5 : 1);
-    // une seule trouvaille au plus : plus de chances avec une grosse machine et un long minage
-    const k = 1 + m.lvl * .15 + h * .05, r = Math.random();
-    const virus = F.virus + (m.burnt ? F.virusHot : 0);
+    const m = st.mine, o = i.opt, F = D.FINDS, h = m.dur / 3600000, px = st.crypto.prices[m.id];
+    // ce qu'on a miné est de la CRYPTO : elle va dans le portefeuille du PC et suit le cours (on la vend quand on veut)
+    let amt = m.amt * (m.burnt ? 1 - F.burnt : 1) * (evOn('rig') ? 1.5 : 1);
+    const k = 1 + m.lvl * .15 + h * .05, r = Math.random(), virus = F.virus + (m.burnt ? F.virusHot : 0);
     let find = null, c = 0;
-    if (r < (c += virus)) { value *= .6; find = { kind: 'virus' }; }
-    else if (r < (c += F.gold * k)) { value *= 3; find = { kind: 'gold' }; }
-    else if (r < (c += F.wallet * k)) { const n = Math.round(value * rnd(1, 3)); addCash(n); find = { kind: 'wallet', n }; }
+    if (r < (c += virus)) { amt *= .6; find = { kind: 'virus' }; }
+    else if (r < (c += F.gold * k)) { amt *= 3; find = { kind: 'gold' }; }
+    else if (r < (c += F.wallet * k)) { const v = amt * px * rnd(1, 3), q = airdrop(v); find = { kind: 'wallet', n: Math.round(v), q }; }
     else if (r < (c += F.card * k)) { find = Object.assign({ kind: 'card' }, collectionCard()); }
     else if (r < (c += F.lingots * k)) { const n = 1 + m.lvl + Math.floor(Math.random() * 3); addLingots(n); find = { kind: 'lingots', n }; }
-    const cash = Math.floor(value * (1 - fee()) * 100) / 100; addCash(cash);
+    const cr = st.crypto, value = amt * px;
+    if (!cr.hold[m.id]) cr.since[m.id] = now();
+    cr.hold[m.id] += amt; cr.cost[m.id] += value;   // ce qu'elle valait à la récolte = ton point de départ pour gagné / perdu
     st.mine = null; stat('rigCollect');
     addXp(5 + Math.min(xpCap(30), value / 10));
-    emit('change'); return { id: o.id, value, cash, find, burnt: m.burnt, eur: cash, mode: 'sell' };
+    emit('change'); return { id: o.id, amt, value, find, burnt: m.burnt, eur: value, mode: 'keep' };
   }
   // compatibilité : l'ancien « encaisser » = récolter
   function rigCollect() { return mineHarvest(); }
