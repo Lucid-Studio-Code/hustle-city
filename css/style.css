@@ -2151,3 +2151,5 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .chips button.sel { transform: translateY(-5px); box-shadow: 0 0 0 3px #ffe066, 0 5px 0 3px #2a1a10, 0 0 16px #ffe066; }
 #modal .sheet.th-casino { border-image: none; border: 4px solid #d4a24c; border-radius: 24px; }
 #modal .sheet.th-casino .tabs .tab { border-image: none; border: 2px solid #d4a24c; border-radius: 12px; }
+/* fonds illustrés des tickets à gratter (images tkbg-<id>, sans texte) */
+#app .tk.has-bg, #app .tk-mini.has-bg { background-image: linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.35)), var(--tkbg); background-size: cover; background-position: center; }

@@ -446,10 +446,11 @@
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
     const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
+    Object.entries(sv.club || {}).forEach(([id, p]) => { const z = D.CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -478,6 +479,7 @@
     const size = k => { if (!sel || !sel.dataset.deco) return; const d = decos.find(x => x.id === sel.dataset.deco); d.w = Math.max(3, Math.min(30, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
     $('#pl-room').onclick = () => setScene('appart');
+    $('#pl-club').onclick = () => openClub();
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
@@ -520,7 +522,7 @@
     const bad = clashes ? clashes() : [];
     if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
-    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, texts: allTexts() };
+    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
@@ -980,10 +982,21 @@
   function openHabits(where) { openModal({ title: 'Habitudes', icon: 'star', full: true, body: habitsBody(where), refresh: () => setBody(habitsBody(where)) }); }
 
   // ------------------------------------------------------------ le Club (boîte de nuit)
+  // back-office : les zones du Club se déplacent au doigt et sont publiées avec le reste
+  let clubSel = null;
+  function saveClubZones() { const sv = admSaved(); sv.club = Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])); try { localStorage.setItem(ADM_KEY, JSON.stringify(sv)); } catch (e) {} }
+  document.addEventListener('pointerdown', e => {
+    if (!placing) return; const el = e.target.closest('.club-spot'); if (!el) return;
+    const room = el.closest('.club-room'), r = room.getBoundingClientRect(), p = D.CLUB.spots.find(x => x.id === el.dataset.id); clubSel = p.id;
+    e.preventDefault(); e.stopPropagation();
+    const mv = ev => { p.x = Math.round((ev.clientX - r.left) / r.width * 200) / 2; p.y = Math.round((ev.clientY - r.top) / r.height * 200) / 2; el.style.left = p.x + '%'; el.style.top = p.y + '%'; };
+    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); saveClubZones(); };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  }, true);
   // Le Club : d'abord le videur (entrée), puis une vraie salle avec des coins à toucher (image club-room, sinon néons dessinés)
   function clubBody() {
     const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
-    if (!G.clubIn()) {
+    if (!G.clubIn() && !placing) {
       return `<div class="club-door">${has('club-door') ? `<img class="cd-bg" src="${src('club-door')}" alt="">` : '<div class="cd-bg neon"></div>'}
           <div class="cd-say"><b>🚪 Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
           <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
@@ -991,11 +1004,12 @@
         <p class="hint-line">Une soirée dure ${C.nightMin} min : danse, bar, DJ, canapés, carré VIP… chaque coin une fois par soirée.</p>
         <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
     }
-    const c = s.club, left = c.end - Date.now();
+    const c = G.clubIn() ? s.club : { end: Date.now() + 1, done: {}, dj: false }, left = c.end - Date.now();
     const spots = C.spots.map(p => { const done = c.done[p.id];
       return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${p.icon} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
     return `<div class="club-room">${has('club-room') ? `<img class="cr-bg" src="${src('club-room')}" alt="">` : '<div class="cr-bg neon"><i class="ball"></i><i class="floor"></i></div>'}${spots}
-        <div class="club-timer">🎉 Soirée : <b>${mmss(left)}</b>${c.dj ? ' · 🎧 ton son passe' : ''}</div></div>
+        <div class="club-timer">${placing ? '🛠️ Fais glisser les zones (− / + pour la taille), puis Publier' : `🎉 Soirée : <b>${mmss(left)}</b>${c.dj ? ' · 🎧 ton son passe' : ''}`}</div></div>
+      ${placing ? '<div class="grid2" style="margin-top:8px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>' : ''}
       <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${p.icon}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
@@ -1726,7 +1740,9 @@
     },
     clubGo() { const r = G.clubEnter(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 24); toast('Tu es dans la place ! Touche les coins de la salle.'); refresh(); },
     clubVip() { const r = G.clubEnter(true); if (r.err) return toast(r.err, true); sfx.win(); toast('Quelques lingots, et le videur s\'écarte.'); refresh(); },
+    clubZone(el) { const p = D.CLUB.spots.find(x => x.id === clubSel); if (!p) return toast('Touche d\'abord une zone.'); const k = +el.dataset.k * 2; p.w = Math.max(8, p.w + k); p.h = Math.max(6, p.h + k * .6); saveClubZones(); setBody(clubBody()); },
     clubSpot(el) {
+      if (placing) return;
       const id = el.dataset.id; if (id === 'door') { closeModal(); return; }
       const r = G.clubDo(id); if (r.err) return toast(r.err, true);
       const msg = { dance: `Tu as mis le feu à la piste ! +${r.xp} XP`, dj: 'Le DJ passe ton son : la piste rapporte ×1,5.', bar: `Un cocktail au bar. +${r.xp} XP`,
