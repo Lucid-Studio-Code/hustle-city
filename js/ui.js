@@ -1144,7 +1144,7 @@
           <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>${on ? '<span class="rtag rE">Ton habitude</span>' : ''}</div>
           <p style="margin-top:6px"><b class="up">＋</b> ${h.bonus}</p><p><b class="down">－</b> ${h.malus}</p>
           <p class="hab-auto">${lock ? `Au niveau ${h.lvl}.` : on ? `Pour t'en défaire, ne remets pas les pieds au Club pendant ${D.QUIT_H} h. Il reste <b>${Math.ceil(left / 3600000)} h</b> : chaque soirée relance le compteur.`
-            : `Ça ne se choisit pas : sors ${h.auto.nights} soirs en ${h.auto.days} jours et ça devient ton habitude.${n < h.auto.nights ? ` Encore <b>${n} soirée${n > 1 ? 's' : ''}</b> et c'est fait.` : ''}`}</p></div>`;
+            : `<span class="hab-count"><span>Tes sorties ces ${h.auto.days} derniers jours</span><span class="hc-pips">${Array.from({ length: h.auto.nights }, (_, i) => `<i class="${i < h.auto.nights - n ? 'on' : ''}"></i>`).join('')}<b>${h.auto.nights - n} / ${h.auto.nights}</b></span></span>À ${h.auto.nights} sorties en ${h.auto.days} jours, ça devient ton habitude.`}</p></div>`;
         }
         return `<div class="card habit-card ${lock ? 'locked' : ''}">
           <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>

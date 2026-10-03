@@ -2503,3 +2503,9 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-busy .bz-gain { display: flex; flex-wrap: wrap; gap: 0 8px; margin-top: 2px; font-style: normal; } #app .ag-busy .bz-gain span { font: 800 11px var(--text); }
 #app .ag-busy .bz-gain .g-up { color: #1f9d55; } #app .ag-busy .bz-gain .g-down { color: #c0392b; }
 #app .ag-busy .bz-rush { white-space: nowrap; } #app .ag-busy .bz-rush .ic { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; }
+#app .club-door + .hint-line, #app .club-door ~ .hint-line { margin: 12px 4px 4px; text-align: center; }
+#app .habit-card .hab-count { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; font: 900 12.5px var(--text); color: #2a1a10; }
+#app .habit-card .hc-pips { display: flex; align-items: center; gap: 4px; }
+#app .habit-card .hc-pips i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #7b2cbf; background: #fff; }
+#app .habit-card .hc-pips i.on { background: #9b5de5; box-shadow: 0 0 6px #9b5de5; }
+#app .habit-card .hc-pips b { margin-left: 4px; font: 400 15px var(--title); color: #7b2cbf; }
