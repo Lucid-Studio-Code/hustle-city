@@ -2574,3 +2574,12 @@ h3.sec { margin: 18px 6px 10px; }
 @keyframes efUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 #app .ev-frame-only { display: grid; place-items: center; width: 84px; height: 84px; margin: 0 auto; } #app .ev-frame-only img { width: 100%; height: 100%; object-fit: contain; }
 #app .sx-pts-note { margin-top: 12px; }
+/* photo de profil « supporter » : ton perso + l'écusson de ton équipe en pin's */
+#hud .avatar #avatar-img { overflow: visible; }
+#app .av-pin { position: absolute; right: -6px; bottom: -6px; width: 46%; height: 46%; z-index: 4; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+#app .av-pin > * { width: 100% !important; height: 100% !important; }
+#app .ev-avpin { position: relative; display: block; width: 84px; height: 84px; margin: 0 auto; border-radius: 50%; border: 4px solid #2a1a10; background: #ffe9f6; }
+#app .ev-avpin > .pic, #app .ev-avpin > img { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: block; }
+#app .ev-avpin .av-pin { right: -10px; bottom: -8px; }
+#hud .avatar .av-pin { right: -10px; top: -6px; bottom: auto; width: 50%; height: 50%; }
+#app .av-pin img { transform: none !important; object-fit: contain !important; object-position: center !important; }

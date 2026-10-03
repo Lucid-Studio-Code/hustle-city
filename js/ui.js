@@ -179,8 +179,8 @@
     const avKey = (s.avatar || s.skin) + '|' + (s.frame || '');
     if ($('#avatar-img').dataset.k !== avKey) {
       $('#avatar-img').dataset.k = avKey;
-      $('#avatar-img').innerHTML = av ? teamCrest('rugby', av.team) : s.skin ? skinPic(s.skin, true) : '';
-      $('#avatar-img').classList.toggle('crest-av', !!av);
+      $('#avatar-img').innerHTML = (s.skin ? skinPic(s.skin, true) : '') + (av ? `<span class="av-pin">${teamCrest('rugby', av.team)}</span>` : '');
+      $('#avatar-img').classList.remove('crest-av');
       const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr && !frameImg(fr) ? fr.emo : ''; a.classList.toggle('framed-img', !!frameImg(fr)); a.querySelector('.av-frame-img')?.remove(); if (frameImg(fr)) a.insertAdjacentHTML('beforeend', `<img class="av-frame-img" src="${src(frameImg(fr))}" alt="">`);
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
@@ -1337,7 +1337,7 @@
     if (sixTab === 'shop') {
       const closed = ph === 'over', price = x => x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
       const can = x => x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
-      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? (frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}<em>${x.emo}</em></span>`) : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
+      const art = x => x.kind === 'avatar' ? `<span class="ev-avpin">${skinPic(s.skin, true)}<span class="av-pin">${teamCrest('rugby', x.team)}</span></span>` : x.kind === 'frame' ? (frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}<em>${x.emo}</em></span>`) : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
       const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id);
         const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="evUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
           : closed ? '<button class="btn xs" disabled>Fermé</button>' : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="evBuy" data-id="${x.id}" ${can(x) ? '' : 'disabled'}>${price(x)}</button>`;
@@ -1400,6 +1400,8 @@
   // ------------------------------------------------------------ Le Comptoir (objets de collection)
   let shopTab = 'card';
   let justBought = null;
+  // « Achetée » seulement si on vient de l'acheter dans cet arrivage ; une carte qu'on a depuis longtemps est « Possédée »
+  const boughtNow = id => { const a = st().owned[id] || [], e = a[a.length - 1]; return !!e && e.paid > 0 && e.t >= Date.now() - (30 * 60000 - G.stockLeft()); };
   function openShop(tab) {
     if (tab) shopTab = tab;
     const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
@@ -1430,7 +1432,7 @@
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       // en rayon, une carte achetée reste visible mais grisée avec un tampon « Achetée » (elle se revend plus bas, dans « Tes cartes »)
       if (onShelf && mine) return `<div class="card item-card bought ${justBought && justBought.id === it.id && Date.now() - justBought.t < 900 ? 'just' : ''}"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
-        <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} Achetée</span></div></div>`;
+        <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} ${boughtNow(it.id) ? 'Achetée' : 'Possédée'}</span></div></div>`;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
         <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
