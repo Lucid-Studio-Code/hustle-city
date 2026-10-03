@@ -2727,3 +2727,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .pf-prev .av-pin { z-index: 5; }
 #app .pf-tr-emo { font-size: 40px; line-height: 1; }
 #app .pf-tr .pf-a-bar { margin-top: 4px; }
+/* cartes : l'illustration du joueur (art-k-…) remplace l'écusson quand elle existe */
+.tcg .tcg-sub.ill-art { position: absolute; inset: 0; overflow: hidden; }
+.tcg .tcg-sub.ill-art img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+.tcg.full .fa-ill img { object-position: center 30%; }

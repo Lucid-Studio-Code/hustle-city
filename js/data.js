@@ -179,15 +179,23 @@
     foot: [
       ['FC Bitume', 82, '#1d1d1f', '#ffd23f'], ['AS Béton', 74, '#8d99a6', '#ff8a3d'], ['Racing Kebab', 68, '#e63946', '#ffffff'], ['Olympique Périph', 86, '#1f6fd1', '#ffffff'],
       ['Stade Tacos', 63, '#ff8a3d', '#3a9d4a'], ['US Trottinette', 58, '#22c3d6', '#ff6fb5'], ['Sporting Bled', 71, '#2e8b3e', '#f2c230'], ['Real Banlieue', 89, '#6a3fb5', '#f2c230'],
-      ['Inter Quartier', 79, '#1b2a5c', '#c9d1db'], ['Dynamo Chicha', 66, '#139c8c', '#ffffff'], ['Atlético Tram', 61, '#c62828', '#9aa3ad'], ['FC Pigeons', 55, '#b9c3cc', '#2a5db0']
+      ['Inter Quartier', 79, '#1b2a5c', '#c9d1db'], ['Dynamo Chicha', 66, '#139c8c', '#ffffff'], ['Atlético Tram', 61, '#c62828', '#9aa3ad'], ['FC Pigeons', 55, '#b9c3cc', '#2a5db0'],
+      // lot des équipes du 04/10 (crest-f13 à f24, illustrations art-k-f13 à f24)
+      ['FC Laverie', 64, '#5bb8f0', '#ffffff'], ['AS Scooter', 70, '#ff8a1a', '#1d1d1f'], ['Olympique Merguez', 76, '#d62828', '#ffd23f'], ['Racing Ascenseur', 59, '#8d99a6', '#a4e34a'],
+      ['Stade Croissant', 67, '#e8d3a8', '#7a4a22'], ['Union Graffiti', 81, '#7b3fc4', '#2ad1c9'], ['FC Pitbull', 84, '#1d1d1f', '#e63946'], ['Sporting Snack', 62, '#f2c230', '#1f5e2e'],
+      ['AC Parking', 57, '#ff7a1a', '#1b2a5c'], ['Dynamo Karaoké', 73, '#ff3cac', '#1d1d1f'], ['Inter Taxi', 78, '#ffd23f', '#1d1d1f'], ['Real Barbecue', 87, '#8b1a1a', '#f2c230']
     ],
     basket: [
       ['Street Ballers', 80, '#ff7a1a', '#1d1d1f'], ['Les Dunkers', 74, '#1f6fd1', '#ffffff'], ['Cité Hoops', 69, '#3a9d4a', '#8d99a6'], ['Downtown Kings', 85, '#6a3fb5', '#f2c230'],
-      ['Asphalt Five', 63, '#3b3f46', '#e63946'], ['Les Paniers Percés', 57, '#f2c230', '#7a4a22']
+      ['Asphalt Five', 63, '#3b3f46', '#e63946'], ['Les Paniers Percés', 57, '#f2c230', '#7a4a22'],
+      ['Rooftop Flyers', 82, '#5bb8f0', '#ff8a1a'], ['Night Hoopers', 77, '#1b2a5c', '#c9d1db'], ['Les Crossovers', 72, '#e63946', '#ffffff'],
+      ['Metro Jumpers', 66, '#2e8b3e', '#f2c230'], ['Concrete Lions', 87, '#8d99a6', '#d4a017'], ['Block Party', 60, '#ff3cac', '#22c3d6']
     ],
     tennis: [
       ['K. Moreau', 84, '#ffffff', '#1f6fd1'], ['S. Diallo', 78, '#8a4dd4', '#ffffff'], ['L. Petit', 71, '#1b2a5c', '#ff7a1a'], ['Y. Benali', 66, '#3a9d4a', '#ffffff'],
-      ['T. Garnier', 60, '#1d1d1f', '#c9d1db'], ['M. Rossi', 74, '#e63946', '#ffffff']
+      ['T. Garnier', 60, '#1d1d1f', '#c9d1db'], ['M. Rossi', 74, '#e63946', '#ffffff'],
+      ['N. Laurent', 76, '#2ad1c9', '#ff6fb5'], ['A. Traoré', 85, '#1f6fd1', '#ff8a1a'], ['J. Costa', 70, '#ff8a1a', '#1b2a5c'],
+      ['E. Nguyen', 80, '#139c8c', '#ff3cac'], ['R. Haddad', 64, '#1f6fd1', '#ffd23f'], ['C. Dubois', 68, '#9b5de5', '#2ad1c9']
     ]
   };
   const SPORTS = {
