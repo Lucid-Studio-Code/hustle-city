@@ -123,16 +123,16 @@
     ],
     dilEvery: [40, 90],   // une créatrice t'écrit pour te demander de choisir, toutes les 40 à 90 min
     crew: [
-      { id: 'lola',  name: 'Lola Squat',   niche: 'Fitness',    cha: 3, reg: 4, drama: 2, subs: 1200, desc: 'Coach sportive, toujours motivée.' },
-      { id: 'mila',  name: 'Mila Neko', niche: 'Cosplay',    cha: 4, reg: 3, drama: 3, subs: 1800, desc: 'Costumes faits main, fans très fidèles.' },
-      { id: 'ines',  name: 'Inès Caviar',    niche: 'Mode & luxe', cha: 5, reg: 2, drama: 4, subs: 3000, desc: 'Sacs, palaces et caprices.' },
-      { id: 'jade',  name: 'Jade Respawn',   niche: 'Gaming',     cha: 3, reg: 5, drama: 1, subs: 1500, desc: 'En live tous les soirs, sans faute.' },
-      { id: 'sasha', name: 'Sasha Tropic', niche: 'Voyage',     cha: 4, reg: 3, drama: 2, subs: 2200, desc: 'Une plage différente chaque semaine.' },
-      { id: 'nora',  name: 'Nora Gloss',    niche: 'Beauté',     cha: 3, reg: 4, drama: 2, subs: 1400, desc: 'Tutos make-up et routines skincare.' },
-      { id: 'kim',   name: 'Kim Groove',    niche: 'Danse',      cha: 4, reg: 4, drama: 3, subs: 2500, desc: 'Ses chorés font le tour des réseaux.' },
-      { id: 'leila', name: 'Leïla Lotus',    niche: 'Bien-être',  cha: 3, reg: 5, drama: 1, subs: 1300, desc: 'Yoga au lever du soleil.' },
-      { id: 'rose',  name: 'Rose Riff',    niche: 'Musique',    cha: 4, reg: 2, drama: 5, subs: 2800, desc: 'Guitare, tatouages et coups de gueule.' },
-      { id: 'eva',   name: 'Eva Caramel', niche: 'Cuisine',   cha: 2, reg: 5, drama: 1, subs: 900,  desc: 'Recettes glamour, toujours de bonne humeur.' }
+      { id: 'lola',  name: 'lola_lavande',   niche: 'Fitness',    cha: 3, reg: 4, drama: 2, subs: 1200, desc: 'Coach sportive, toujours motivée.' },
+      { id: 'mila',  name: 'mila.mochi', niche: 'Cosplay',    cha: 4, reg: 3, drama: 3, subs: 1800, desc: 'Costumes faits main, fans très fidèles.' },
+      { id: 'ines',  name: 'Inès Delacroix',    niche: 'Mode & luxe', cha: 5, reg: 2, drama: 4, subs: 3000, desc: 'Sacs, palaces et caprices.' },
+      { id: 'jade',  name: 'jadey404',   niche: 'Gaming',     cha: 3, reg: 5, drama: 1, subs: 1500, desc: 'En live tous les soirs, sans faute.' },
+      { id: 'sasha', name: 'Sasha Soleil', niche: 'Voyage',     cha: 4, reg: 3, drama: 2, subs: 2200, desc: 'Une plage différente chaque semaine.' },
+      { id: 'nora',  name: 'noranoir',    niche: 'Beauté',     cha: 3, reg: 4, drama: 2, subs: 1400, desc: 'Tutos make-up et routines skincare.' },
+      { id: 'kim',   name: 'Kimmy K',    niche: 'Danse',      cha: 4, reg: 4, drama: 3, subs: 2500, desc: 'Ses chorés font le tour des réseaux.' },
+      { id: 'leila', name: 'leila.moon',    niche: 'Bien-être',  cha: 3, reg: 5, drama: 1, subs: 1300, desc: 'Yoga au lever du soleil.' },
+      { id: 'rose',  name: 'Rosie Vandal',    niche: 'Musique',    cha: 4, reg: 2, drama: 5, subs: 2800, desc: 'Guitare, tatouages et coups de gueule.' },
+      { id: 'eva',   name: 'Eva Bonbon', niche: 'Cuisine',   cha: 2, reg: 5, drama: 1, subs: 900,  desc: 'Recettes glamour, toujours de bonne humeur.' }
     ]
   };
   // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
