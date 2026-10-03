@@ -37,8 +37,10 @@
     st().matches.filter(m => m.state === 'live').forEach(m => {
       const sc = liveScore(m), prev = seen[m.id];
       seen[m.id] = { a: sc.a, b: sc.b };
-      if (!prev || m.sport !== 'foot' || sc.a + sc.b <= prev.a + prev.b) return;
+      if (!prev || sc.a + sc.b <= prev.a + prev.b) return;
+      // tout point marqué (foot, basket, tennis) envoie le ballon dans le bon camp
       flash[m.id] = Date.now(); flashSide[m.id] = sc.a > prev.a ? 'r' : 'l';
+      if (m.sport !== 'foot') return;
       const who = sc.a > prev.a ? m.home : m.away;
       if (mine.has(m.id)) { U.sfx.goal(); U.toast(`⚽ BUT pour ${who} ! ${m.home} ${sc.a} - ${sc.b} ${m.away}`, false, 'mybets'); }
     });
@@ -64,7 +66,7 @@
   function matchCard(m) {
     const sp = D.SPORTS[m.sport], sc = liveScore(m), soon = m.state === 'soon', live = m.state === 'live', done = m.state === 'done';
     const sel = slip.find(l => l.m === m.id), boost = G.evOn('boost');
-    const goal = flash[m.id] && Date.now() - flash[m.id] < 2500;
+    const goal = m.sport === 'foot' && flash[m.id] && Date.now() - flash[m.id] < 2500;   // le « BUT ! » n'existe qu'au foot
     const win = done ? m.res : null;
     const oddBtns = soon ? `<div class="odds n${m.odds.length}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" data-act="bPick" data-m="${m.id}" data-p="${i}">
         ${labels(m)[i] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[i] === '2', 'mini')}

@@ -256,6 +256,15 @@
       if (goal) s.cash >= goal.p ? add(30, '🛍️', `Tu peux t'offrir ${goal.n}`, 'Va voir en boutique : elle trouvera sa place dans ta ville.', goal.go)
         : add(30, '💰', `Encore ${short(goal.p - s.cash)} pour ${goal.n}`, 'Récolte ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', goal.go);
     }
+    // toujours au moins une idée faisable tout de suite avec ce qu'on a en poche (pas que des choses verrouillées ou trop chères)
+    const doable = [
+      () => { const c = D.ITEMS.filter(i => i.cat === 'card' && G.inStock(i.id) && !(s.owned[i.id] || []).length && G.buyPrice(i.id) <= s.cash).sort((a, b) => G.buyPrice(a.id) - G.buyPrice(b.id))[0];
+        return c && [45, '🃏', `${c.name} est au Comptoir pour ${short(G.buyPrice(c.id))}`, 'Une carte de plus pour ta collection : sa cote peut grimper.', () => questGo('shop')]; },
+      () => { const t = D.SCRATCH.filter(x => (x.lvl || 1) <= s.lvl && x.price <= s.cash).sort((a, b) => a.price - b.price)[0];
+        return t && [44, '🎟️', `Gratte un ${t.name} à ${short(t.price)}`, `Jusqu'à ${short(Math.max(...t.prizes.map(p => p[0])))} à gagner au Royal.`, () => questGo('scratch')]; },
+      () => s.lvl >= 2 && s.cash >= 1 && [43, '🎰', 'Un tour de machine à sous', 'Dès 1 de mise au Lucky Palace : aligne 3 symboles.', () => questGo('casino')]
+    ].map(f => f()).filter(Boolean)[0];
+    if (doable) add(...doable);
     add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
     return L.sort((a, b) => b.p - a.p);
   }
