@@ -2460,3 +2460,6 @@ h3.sec { margin: 18px 6px 10px; }
 #app .bld.flip > .pic img, #app .bld.flip > img, #app .bld.flip .bld-img img, #app .ev-deco.flip .pic img, #app .ev-deco.flip > i { transform: scaleX(-1); }
 /* plus d'ombre recopiée sous les décos de la ville */
 #app .ev-deco .pic img { filter: none !important; }
+#app .ag-act .ag-gain { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-top: 3px; font: 800 10.5px/1.15 var(--text); font-style: normal; }
+#app .ag-act .ag-gain .g-up { color: #1f9d55; } #app .ag-act .ag-gain .g-down { color: #c0392b; }
+#app .ag-act .ag-gain span { display: block; font: 800 10px/1.2 var(--text) !important; width: auto !important; height: auto !important; white-space: nowrap; }

@@ -32,3 +32,6 @@
 
 ## Mini lot à refaire n°3 (tools/lot-redo-3.js)
 - gear-spa : la 1re version faisait « soirée romantique » (bougies, lingerie, champagne). Nouveau prompt : peignoir blanc, serviettes, galets, eucalyptus, tons vert menthe.
+
+## Mini lot à refaire n°4 (tools/lot-redo-4.js)
+- act-collab : la 1re version montrait deux poings d'hommes. Nouveau : deux jeunes femmes sexy en selfie joue contre joue.
