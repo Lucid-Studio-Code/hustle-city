@@ -2847,3 +2847,12 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 .tcg.rE .tcg-holo { opacity: .78; }
 .tcg.rL .tcg-holo { opacity: .8; }
 #app .item-card.bought { min-height: 250px; } #app .item-card.bought .ib-art { min-height: 190px; }
+/* PrivéFans : renvoyer une créatrice, choisir sa partenaire de collab */
+#app .ag-fire { margin-top: 6px; align-self: flex-start; font: 800 11px var(--text); color: #b02a2a; background: none; border: 0; text-decoration: underline; padding: 2px 0; cursor: pointer; }
+#app .ag-partners { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+#app .ag-pt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+#app .ag-pt .grow { display: flex; flex-direction: column; min-width: 0; }
+#app .ag-pt b { font: 900 13px var(--text); color: #2a1a10; }
+#app .ag-pt small { font: 700 11px var(--text); color: #7a5a3a; }
+#app .ag-pt .pt-free { color: #1f9d55; font-weight: 900; } #app .ag-pt .pt-fee { color: #b8750f; font-weight: 900; }
+#app .ag-pt .cr-face { width: 46px; height: 46px; flex: none; }

@@ -68,9 +68,26 @@
     if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">${m.id === 'me' ? 'énergie' : 'moral'} ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
     return `<em class="ag-gain">${L.join('')}</em>`;
   }
+  // partenaires de collab pour ta page : des créatrices dont la taille tourne autour de la tienne (renouvelées chaque jour)
+  function partners() {
+    const me = ag().crew.find(x => x.id === 'me'), base = Math.max(100, me ? me.subs : 250), day = Math.floor(now() / 86400000);
+    const K = [.6, .85, 1.05, 1.6, 2.6, 4.5], seeded = n => { const x = Math.sin(n) * 10000; return x - Math.floor(x); };
+    return A.crew.map((c, i) => ({ c, r: seeded(day * 31 + i * 7) })).sort((u, v) => u.r - v.r).slice(0, 5)
+      .map(({ c }, i) => ({ ...c, subs: Math.round(base * K[(i + day) % K.length] * (0.9 + seeded(day + i) * .2)) })).sort((u, v) => u.subs - v.subs);
+  }
+  function partnerFee(c, me) { const r = c.subs / Math.max(1, me.subs); return r <= 1.25 ? 0 : Math.round((r - 1.25) * (80 + st().lvl * 20)); }
+  function pickPartner() {
+    const m = ag().crew.find(x => x.id === 'me'), x = A.acts.find(o => o.id === 'collab');
+    U.openModal({ title: 'Collab avec qui ?', icon: 'star', center: true, body: `<p class="hint-line center">Une créatrice de ta taille accepte <b>gratuitement</b>. Une plus grosse se fait payer, mais t'apporte plus d'abonnés.</p>
+      <div class="ag-partners">${partners().map(c => { const fee = partnerFee(c, m), tot = fee + x.cost;
+        return `<div class="card ag-pt">${face(c)}<div class="grow"><b>${c.name}</b><small>${c.niche} · <strong>${fmtSubs(c.subs)}</strong> abonnés</small>${fee ? `<small class="pt-fee">Elle demande ${U.short(fee)}</small>` : '<small class="pt-free">Gratuit : même taille que toi</small>'}</div>
+          <button class="btn xs ${fee ? 'gold' : 'green'}" data-act="agCollab" data-id="${c.id}" ${st().cash >= tot ? '' : 'disabled'}>${U.short(tot)}</button></div>`; }).join('')}</div>
+      <p class="hint-line center">Le prix inclut les ${U.short(x.cost)} de la collab.</p><button class="btn wide" data-act="agBack">Retour</button>` });
+  }
   function finishAct(m) {
     const x = A.acts.find(o => o.id === m.act.k), p = prof(m.id), duo = m.act.with && ag().crew.find(o => o.id === m.act.with);
-    const gain = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
+    // collab sur ta page : une partie de son public la suit chez toi (plus elle est grosse, plus tu gagnes)
+    const gain = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs')) + (m.act.pSubs ? m.act.pSubs * .05 : 0);
     m.subs += gain; m.mood = Math.max(0, Math.min(100, m.mood + x.mood));
     let tips = 0; if (x.cash) { tips = Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)); m.pend = (m.pend || 0) + tips; }
     if (duo) { duo.subs += duo.subs * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
@@ -190,12 +207,28 @@
       const a = ag(), m = a.crew.find(x => x.id === el.dataset.id), x = A.acts.find(o => o.id === el.dataset.k);
       if (m.act) return U.toast('Elle est déjà occupée.', true);
       if (x.lvl && st().lvl < x.lvl) return U.toast(`Niveau ${x.lvl} requis.`, true);
+      if (x.duo && m.id === 'me') return pickPartner();
       let duo = null;
       if (x.duo && m.id !== 'me') { duo = a.crew.find(o => o.id !== m.id && !o.act); if (!duo) return U.toast('Il faut une autre créatrice libre dans ton agence.', true); }
       if (x.cost && !G.pay(x.cost)) return U.toast('Pas assez de cash.', true);
       m.act = { k: x.id, start: now(), dur: x.min * 60000, with: duo && duo.id }; if (duo) duo.act = { k: x.id, start: now(), dur: x.min * 60000, with: m.id, guest: true };
       U.sfx.tap(); U.toast(m.id === 'me' ? `C'est parti : ${x.name.toLowerCase()} !` : `${prof(m.id).name} : ${x.name}${duo ? ` avec ${prof(duo.id).name}` : ''}.`); refresh();
     },
+    // renvoyer une créatrice : on confirme, elle part avec ses abonnés, ses gains en attente te sont versés
+    agFireAsk(el) { const m = ag().crew.find(x => x.id === el.dataset.id); if (!m) return; const p = prof(m.id), pend = Math.floor(m.pend || 0);
+      U.openModal({ title: 'Renvoyer ' + p.name, icon: 'star', center: true, body: `<div class="center">${face(p, 'big')}</div><p class="center">${p.name} quitte ton agence et repart avec ses <b>${fmtSubs(m.subs)} abonnés</b>. La place se libère pour recruter quelqu'un d'autre.</p>
+        ${pend >= 1 ? `<div class="card center"><small>Ses gains en attente te sont versés</small><b>+${U.eur(pend)}</b></div>` : ''}
+        <div class="grid2"><button class="btn" data-act="agBack">Annuler</button><button class="btn red" data-act="agFire" data-id="${m.id}">Renvoyer</button></div>` }); },
+    agFire(el) { const a = ag(), m = a.crew.find(x => x.id === el.dataset.id); if (!m || m.id === 'me') return;
+      const pend = Math.floor(m.pend || 0); if (pend >= 1) G.addCash(pend);
+      a.crew = a.crew.filter(x => x.id !== m.id); a.crew.forEach(x => { if (x.act && x.act.with === m.id) x.act = null; }); if (a.offer && a.offer.id === m.id) a.offer = null;
+      G.save(); U.toast(`${prof(m.id).name} a quitté ton agence.${pend >= 1 ? ` +${U.short(pend)} encaissés.` : ''}`); open(); },
+    agBack() { open(); },
+    // collab sur ta page (joueuse) : tu choisis avec qui ; même taille que toi = gratuit, plus grosse = elle se fait payer
+    agCollab(el) { const a = ag(), m = a.crew.find(x => x.id === 'me'), x = A.acts.find(o => o.id === 'collab'), c = partners().find(o => o.id === el.dataset.id); if (!m || !c || m.act) return;
+      const fee = partnerFee(c, m); if (!G.pay(fee + x.cost)) return U.toast('Pas assez de cash.', true);
+      m.act = { k: 'collab', start: now(), dur: x.min * 60000, with: c.id, pSubs: c.subs };
+      U.sfx.tap(); U.toast(`Collab avec ${c.name} : c'est parti !`); open(); },
     agGift(el) { const m = ag().crew.find(x => x.id === el.dataset.id), c = 50 + st().lvl * 10; if (!G.pay(c)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 20); U.toast(`Un petit cadeau à ${prof(m.id).name} : +20 de moral.`); refresh(); },
     agKeep(el) {
       const a = ag(), o = a.offer, m = o && a.crew.find(x => x.id === o.id); if (!m) { a.offer = null; return refresh(); }
@@ -228,7 +261,7 @@
       const p = prof(m.id), x = m.act && A.acts.find(o => o.id === m.act.k), left = m.act ? m.act.start + m.act.dur - now() : 0;
       return `<div class="card ag-cr"><div class="ag-top">${face(p)}<div class="grow"><b>${p.name}</b><small>${p.niche} · <strong>${fmtSubs(m.subs)}</strong> abonnés</small>
           <div class="ag-mood"><span>${p.me ? 'Énergie' : 'Moral'}</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div>
-          ${p.me ? '' : `<button class="ag-gift" data-act="agGift" data-id="${m.id}" ${s.cash >= 50 + s.lvl * 10 && m.mood < 100 ? '' : 'disabled'}>${U.ic('gift')}<span>Lui offrir un cadeau <b>+20 de moral</b></span><em>${U.short(50 + s.lvl * 10)}</em></button>`}</div>
+          ${p.me ? '' : `<button class="ag-gift" data-act="agGift" data-id="${m.id}" ${s.cash >= 50 + s.lvl * 10 && m.mood < 100 ? '' : 'disabled'}>${U.ic('gift')}<span>Lui offrir un cadeau <b>+20 de moral</b></span><em>${U.short(50 + s.lvl * 10)}</em></button><button class="ag-fire" data-act="agFireAsk" data-id="${m.id}">Renvoyer</button>`}</div>
           <div class="ag-earn"><small>Pour toi</small><b>${U.short(perHour(m))}/h</b></div></div>
         ${p.me ? '' : `<div class="ag-share"><div class="sh-title">Ta part sur ses gains <small>plus tu prends, plus son moral baisse</small></div><div class="sh-opts">${A.shares.map(v => { const d = Math.round((v - .2) * 20);
           return `<button class="sh-opt ${m.pct === v ? 'on' : ''}" data-act="agShare" data-id="${m.id}" data-v="${v}"><b>${Math.round(v * 100)} %</b><span class="g-up">≈ ${U.short(perHour({ ...m, pct: v }))}/h pour toi</span><span class="${d ? 'g-down' : 'g-up'}">${d ? `moral −${d}/h` : 'moral stable'}</span></button>`; }).join('')}</div></div>`}
