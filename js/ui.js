@@ -832,7 +832,7 @@
         const lock = !G.coinUnlocked(k), hh = s.crypto.hist[k.id], p = s.crypto.prices[k.id], hv = G.holdValue(k.id);
         return `<button class="coin-card ${lock ? 'locked' : ''}" data-act="${lock ? 'noop' : 'coinSel'}" data-id="${k.id}">
           ${coinIco(k)}<div class="cc-mid"><b>${k.name}</b>${lock ? `<small>${ic('lock')}Niveau ${k.lvl}</small>` : riskTag(k)}
-          ${hv >= .01 ? `<small class="cc-own">Tu en as pour <b>${short(hv)}</b> ${trend(hv, s.crypto.cost[k.id])}</small>` : ''}</div>
+          ${hv >= .01 ? `<small class="cc-own">Tu en as pour <b>${short(hv)}</b> · ${(d => d >= 0 ? `<span class="up">+${short(d)} de gagné</span>` : `<span class="down">−${short(-d)} de perdu</span>`)(hv - s.crypto.cost[k.id])}</small>` : ''}</div>
           ${lock ? '' : `<div class="cc-right">${sparkSvg(hh.slice(-60), 64, 26)}<small>${trend(p, hh[Math.max(0, hh.length - 60)])}<em>5 min</em></small></div>`}</button>`;
       }).join('');
       return `${weather}${tipBox}
