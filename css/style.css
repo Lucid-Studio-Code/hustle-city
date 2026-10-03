@@ -2725,3 +2725,5 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .pf-prev { width: 96px; height: 96px; }
 #app .pf-prev .pf-fr { position: absolute; inset: -16%; width: 132% !important; height: 132% !important; border-radius: 0 !important; object-fit: contain; z-index: 3; pointer-events: none; }
 #app .pf-prev .av-pin { z-index: 5; }
+#app .pf-tr-emo { font-size: 40px; line-height: 1; }
+#app .pf-tr .pf-a-bar { margin-top: 4px; }

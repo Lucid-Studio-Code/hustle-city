@@ -1850,6 +1850,7 @@
     const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
     const best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat !== 'trophy').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => b.v - a.v).slice(0, 3);
     const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
+    const achs = D.ACHIEVEMENTS.map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
         <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span>
@@ -1864,11 +1865,10 @@
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
       ${photoLooks()}
-      <h3 class="sec">Tes trophées</h3>
-      <div class="pf-trophies">${trophies.map(x => `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>`).join('')}</div>
-      <h3 class="sec">Tes succès <small>· ${Object.keys(s.ach || {}).length} / ${D.ACHIEVEMENTS.length}</small></h3>
-      <div class="pf-ach">${D.ACHIEVEMENTS.map(a => { const done = s.ach && s.ach[a.id], v = Math.min(a.n, G.achValue(a));
-        return `<div class="pf-a ${done ? 'has' : 'no'}"><div class="pf-a-art">${has('ach-' + a.id) ? pic('ach-' + a.id) : '<span>🏅</span>'}</div><b>${a.name}</b><small>${done ? `✓ +${a.lingots} lingots` : a.txt}</small>${done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(v / a.n * 100)}%"></i></i>`}</div>`; }).join('')}</div>`;
+      <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
+      <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
+        ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ Gagné, +${x.a.lingots} lingots` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
+        .sort((p, q) => q.done - p.done).map(x => x.html).join('')}</div>`;
   }
   // pin's et cadres achetés : on choisit ici lequel porter (ou aucun), même après la fin de l'événement
   function photoLooks() {
@@ -2282,10 +2282,10 @@
       <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
   }
   G.on('achievement', a => queue(() => { sfx.win(); rain('confetti', 40);
-    openModal({ title: 'Succès débloqué !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏅</span>`}</div>
+    openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏆</span>`}</div>
       <div class="lv-big stroke">${a.name}</div><p class="hint-line center">${a.txt}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
-  G.on('achBulk', L => queue(() => dialog('Succès', `Nouveau : les <b>succès</b> ! Tu en as déjà débloqué <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
+  G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveau : plein de <b>trophées</b> à gagner ! Tu en as déjà débloqué <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
   G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {
