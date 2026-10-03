@@ -181,9 +181,11 @@
   // on attend un moment calme (en ville, aucune fenêtre ouverte) pour présenter le lieu suivant
   let calm = 0;
   // les nouveautés déjà débloquées avant l'arrivée de leurs tutos : on ne les rejoue pas à la chaîne
-  setTimeout(() => { const s = st(); if (!s || s.featTutoFix) return; s.featTutoFix = 1;
-    Object.keys(FEAT_LVL).forEach(k => { if (k !== 'parking' && s.lvl >= FEAT_LVL[k]()) seen()[k] = true; }); if (G.parkedCount() > 0) seen().parking = true; G.save(); }, 0);
+  // (fait au premier passage de la boucle ci-dessous, une fois la partie chargée : jamais d'enregistrement avant le chargement)
+  function featFix() { const s = st(); if (!s || !s.skin || s.featTutoFix) return; s.featTutoFix = 1;
+    Object.keys(FEAT_LVL).forEach(k => { if (k !== 'parking' && s.lvl >= FEAT_LVL[k]()) seen()[k] = true; }); if (G.parkedCount() > 0) seen().parking = true; }
   setInterval(() => {
+    featFix();
     const s = st(); if (!s || !s.tutoDone || timer || !s.skin) { calm = 0; return; }
     const busy = modalOpen() || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
     calm = busy ? 0 : calm + 1;
