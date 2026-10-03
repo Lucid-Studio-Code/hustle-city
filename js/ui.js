@@ -1190,7 +1190,7 @@
     const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
     if (!G.clubIn() && !placing) {
       return `<div class="club-door">${has('club-door') ? `<img class="cd-bg" src="${src('club-door')}" alt="">` : '<div class="cd-bg neon"></div>'}
-          <div class="cd-say"><b>${ico('ic-club-door', '🚪')} Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
+          <div class="cd-say"><b>${ico('ic-videur', '🚪')} Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
           <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
           ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club} + ${short(e)}</span></button>` : ''}</div></div>
         <p class="hint-line">Une soirée dure ${C.nightMin} min : danse, bar, DJ, canapés, carré VIP… chaque coin une fois par soirée.</p>
