@@ -33,11 +33,11 @@
     return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
         <div class="reels">${shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('')}</div>
         <div class="center stroke" style="margin:10px 0 6px;font-size:20px;min-height:26px" id="slot-msg">${lastSpin ? (lastSpin.win ? `+${U.eur(lastSpin.win)} (×${lastSpin.mult})` : 'Perdu') : 'Aligne 3 symboles'}</div>
-        <div class="seg">${D.SLOT.bets.map(b => `<button class="btn xs ${b === bet ? 'green' : 'blue'}" data-act="slBet" data-v="${b}">${b}<i class="cur"></i></button>`).join('')}</div>
+        <div class="sm-betlbl">Ta mise</div><div class="seg sm-bets">${D.SLOT.bets.map(b => `<button class="sm-chip ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
         <button class="btn wide" style="margin-top:10px;min-height:60px;font-size:24px" data-act="slSpin" ${spinning || s.cash < bet ? 'disabled' : ''}>Lancer · ${U.eur(bet)}</button>
       </div>
-      <div class="card" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b>`).join('')}<span>${symHtml(S[0])}${symHtml(S[0])} + autre</span><b>×${S[0].pay2}</b></div>
-        <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
+      <div class="card sm-pay"><b>Gains <small>(× ta mise)</small></b><div class="paytable">${S.map(x => `<div class="pt-row"><span class="pt-s">${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b></div>`).join('')}<div class="pt-row"><span class="pt-s">${symHtml(S[0])}${symHtml(S[0])}<em>+ 1 autre</em></span><b>×${S[0].pay2}</b></div></div>
+        <p class="pt-rtp">La machine rend ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} % : sur 100<i class="cur"></i> joués, elle en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
   }
   // la vraie machine change de taille avec l'écran : chaque case de rouleau prend la hauteur réelle de la fenêtre
   function fitMachine() { const m = document.getElementById('modal'), r = m && m.querySelector('.real-slot'); if (!r || !m.classList.contains('slot-full')) return; r.style.width = Math.min(m.clientWidth - 8, (m.clientHeight - 16) * .524) + 'px'; }
@@ -78,7 +78,7 @@
         ${U.has('roulette-hub') ? `<img class="wheel-hub" src="${U.src('roulette-hub')}" alt="">` : ''}<div class="wheel-res" style="${lastRoll ? `background:${lastRoll.n === 0 ? '#1f9d55' : R.includes(lastRoll.n) ? '#d33a2c' : '#222'}` : ''}">${lastRoll && !rolling ? lastRoll.n : '?'}</div></div>
       <div class="rl-side"><div class="center stroke" style="font-size:18px;min-height:24px">${rolling ? 'Les jeux sont faits…' : lastRoll ? (lastRoll.win ? `Gagné : +${U.eur(lastRoll.win)}` : `Perdu (${U.eur(lastRoll.total)})`) : 'Pose tes jetons'}</div>
       <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}">${U.has('chip-' + c) ? `<img src="${U.src('chip-' + c)}" alt="">` : ''}<span>${c}</span></button>`).join('')}</div><small class="rl-rule">Numéro ×36 · douzaine ×3<br>rouge, noir, pair… ×2</small></div></div>
-      <div class="felt" ${U.has('roulette-felt') ? `style="background-image:url(${U.src('roulette-felt')})"` : ''}><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
+      <div class="felt"><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
         ${nums.map(n => `<button class="${R.includes(n) ? 'rd' : 'bk'}" data-act="rlBet" data-t="num" data-v="${n}">${n}${chipOn('num', n)}</button>`).join('')}</div>
       <div class="rl-outside">
         ${[['doz', 1, '1-12'], ['doz', 2, '13-24'], ['doz', 3, '25-36'], ['low', null, '1-18'], ['even', null, 'Pair'], ['red', null, 'Rouge'], ['black', null, 'Noir'], ['odd', null, 'Impair'], ['high', null, '19-36']]
