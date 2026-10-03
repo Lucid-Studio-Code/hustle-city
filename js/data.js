@@ -616,7 +616,27 @@
     {"id":"lvl10","name":"Gros bonnet","txt":"Atteins le niveau 10.","stat":"!lvl","n":10,"lingots":10,"art":"a golden badge shaped like a star"},
     {"id":"lvl20","name":"Légende de la cité","txt":"Atteins le niveau 20.","stat":"!lvl","n":20,"lingots":30,"art":"a legendary laurel crown"},
     {"id":"look2","name":"Nouveau visage","txt":"Change le look de ton quartier.","stat":"!looks","n":2,"lingots":5,"art":"a paint roller painting a building"},
-    {"id":"skin3","name":"Garde-robe","txt":"Possède 3 looks pour ton perso.","stat":"!skins","n":3,"lingots":5,"art":"a clothes rack with three outfits"}
+    {"id":"skin3","name":"Garde-robe","txt":"Possède 3 looks pour ton perso.","stat":"!skins","n":3,"lingots":5,"art":"a clothes rack with three outfits"},
+    {"id": "sneak5", "name": "Sneakerhead", "txt": "Possède 5 paires de sneakers.", "stat": "!sneaker", "n": 5, "lingots": 8, "art": "a single sneaker on a small pedestal"},
+    {"id": "watch3", "name": "Maître du temps", "txt": "Possède 3 montres.", "stat": "!watch", "n": 3, "lingots": 10, "art": "a luxury wristwatch"},
+    {"id": "gold5", "name": "Ruée vers l'or", "txt": "Possède 5 objets en or.", "stat": "!gold", "n": 5, "lingots": 12, "art": "a stack of gold bars"},
+    {"id": "cards30", "name": "Gros classeur", "txt": "Rassemble 30 cartes dans ton classeur.", "stat": "!cards", "n": 30, "lingots": 10, "art": "a thick trading card binder"},
+    {"id": "cards60", "name": "Classeur légendaire", "txt": "Rassemble 60 cartes dans ton classeur.", "stat": "!cards", "n": 60, "lingots": 25, "art": "a glowing holographic trading card"},
+    {"id": "streak7", "name": "Fidèle au poste", "txt": "Récupère ton cadeau 7 jours d'affilée.", "stat": "!streak", "n": 7, "lingots": 8, "art": "a calendar page with a gold star"},
+    {"id": "quests5", "name": "Missionnaire", "txt": "Réussis 5 missions.", "stat": "!quests", "n": 5, "lingots": 6, "art": "a clipboard with check marks"},
+    {"id": "dance30", "name": "Roi de la piste", "txt": "Profite de 30 coins du Club.", "stat": "clubSpots", "n": 30, "lingots": 8, "art": "a disco ball"},
+    {"id": "roul500", "name": "Croupier", "txt": "Lance la roulette 500 fois.", "stat": "roulette", "n": 500, "lingots": 12, "art": "a roulette wheel"},
+    {"id": "win500", "name": "Légende du Royal", "txt": "Gagne 500 paris.", "stat": "betsWon", "n": 500, "lingots": 30, "art": "a golden betting slip wearing a crown"},
+    {"id": "combi20", "name": "Roi du combiné", "txt": "Gagne 20 combinés.", "stat": "combiWon", "n": 20, "lingots": 15, "art": "several betting slips linked by a chain"},
+    {"id": "stock50", "name": "Trader en costard", "txt": "Achète 50 fois des actions.", "stat": "stockBuy", "n": 50, "lingots": 10, "art": "a charging bull statue"},
+    {"id": "deal50", "name": "Négociateur", "txt": "Conclus 50 bons plans.", "stat": "deals", "n": 50, "lingots": 15, "art": "two hands shaking"},
+    {"id": "decos5", "name": "Embellir le quartier", "txt": "Pose 5 décorations en ville.", "stat": "decos", "n": 5, "lingots": 8, "art": "a park bench with flower pots"},
+    {"id": "cool50", "name": "Ventilo pro", "txt": "Refroidis ta machine 50 fois.", "stat": "rigCool", "n": 50, "lingots": 6, "art": "a cooling fan with frost"},
+    {"id": "garage3", "name": "Garage de luxe", "txt": "Agrandis ton garage 3 fois.", "stat": "!garage", "n": 3, "lingots": 15, "art": "a garage door with a sports car peeking out"},
+    {"id": "slots4", "name": "Patron d'agence", "txt": "Agrandis ton agence au maximum.", "stat": "!agslots", "n": 3, "lingots": 20, "art": "a ring light and a camera"},
+    {"id": "boo300", "name": "Accro aux boosters", "txt": "Ouvre 300 boosters.", "stat": "boosters", "n": 300, "lingots": 20, "art": "a pile of trading card booster packs"},
+    {"id": "w10m", "name": "Multimillionnaire", "txt": "Atteins 10 M de patrimoine.", "stat": "worth", "n": 10000000, "lingots": 40, "art": "a golden skyscraper"},
+    {"id": "lvl21", "name": "Au sommet", "txt": "Atteins le niveau maximum.", "stat": "!lvl", "n": 21, "lingots": 30, "art": "a golden crown on a cushion"}
   ];
   const TIPS = [
     'Un tuyau du Kiosque, c\'est un avis, pas une prophétie. Même le journaliste parie mal.',

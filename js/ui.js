@@ -2306,7 +2306,7 @@
     openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏆</span>`}</div>
       <div class="lv-big stroke">${a.name}</div><p class="hint-line center">${a.txt}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
-  G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveau : plein de <b>trophées</b> à gagner ! Tu en as déjà débloqué <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
+  G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveaux <b>trophées</b> ! Tu viens d'en débloquer <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
   G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {

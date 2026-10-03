@@ -1204,14 +1204,20 @@
     switch (a.stat) {
       case '!rig': return st.rig.lvl; case '!props': return Object.keys(props()).length; case '!park': return parkedCount();
       case '!lvl': return st.lvl; case '!looks': return looksOwned().length; case '!skins': return (st.skinsOwned || [st.skin]).length;
+      case '!sneaker': case '!watch': case '!gold': { const c = a.stat.slice(1); return Object.keys(st.owned).filter(id => st.owned[id].length && item(id) && item(id).cat === c).length; }
+      case '!cards': return Object.keys(st.owned).filter(id => st.owned[id].length && item(id) && item(id).cat === 'card').length;
+      case '!streak': return st.daily && st.daily.streak || 0; case '!quests': return questsClaimed();
+      case '!garage': return st.garageLvl || 0; case '!agslots': return (st.agence && st.agence.slots) || 0;
       default: return st.stats[a.stat] || 0;
     }
   }
   function checkAch() {
     // première fois (partie d'avant les succès) : ceux déjà mérités sont donnés d'un coup, sans une pluie de fenêtres
     const first = !st.ach, got = st.ach = st.ach || {}, bulk = [];
-    D.ACHIEVEMENTS.forEach(a => { if (!got[a.id] && achValue(a) >= a.n) { got[a.id] = now(); addLingots(a.lingots); first ? bulk.push(a) : emit('achievement', a); } });
-    if (bulk.length) emit('achBulk', bulk);
+    const fresh = [];
+    D.ACHIEVEMENTS.forEach(a => { if (!got[a.id] && achValue(a) >= a.n) { got[a.id] = now(); addLingots(a.lingots); fresh.push(a); } });
+    // plus de 2 d'un coup (nouveaux trophées ajoutés au jeu) : une seule fenêtre récap au lieu d'une cascade
+    if (first || fresh.length > 2) { if (fresh.length) emit('achBulk', fresh); } else fresh.forEach(a => emit('achievement', a));
   }
   function worth() { return st.cash + cryptoValue() + itemsValue() + propsValue() + stocksValue(); }
 
