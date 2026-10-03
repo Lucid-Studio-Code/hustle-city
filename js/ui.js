@@ -417,14 +417,14 @@
     // enseigne : plaque de rue émaillée posée au-dessus du toit (ne recouvre jamais le bâtiment d'en dessous)
     inner.innerHTML = bg + D.BUILDINGS.map(b => {
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
-      if (b.spot) return `<button class="bld spot" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
+      if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
       const img = has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
-      return `<button class="bld ${locked ? 'locked' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
+      return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('') + D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
+    }).join('') + D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
   }
   // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
@@ -469,7 +469,7 @@
     Object.entries(sv.club || {}).forEach(([id, p]) => { const z = D.CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
-      <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button></span>
+      <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button><button class="btn xs yellow" id="pl-flip">⇋ Miroir</button></span>
       <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
@@ -480,10 +480,10 @@
       ds.forEach((d, i) => { const r = box(d); ds.slice(i + 1).forEach(e => { if (hit(r, box(e))) { bad.add(d); bad.add(e); } }); bs.forEach(b => { if (hit(r, box(b))) bad.add(d); }); });
       ds.forEach(d => d.classList.toggle('clash', bad.has(d))); return [...bad].map(name);
     };
-    const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w }])) });
+    const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])) });
     const save = () => { const o = data(); try { localStorage.setItem(ADM_KEY, JSON.stringify(o)); } catch (e) {} $('#placer-out').value = JSON.stringify(o); };
     let cur = null, sel = null;
-    const show = () => { if (!sel) return; const o = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id); $('#pl-cur').textContent = `${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w && sel.dataset.deco ? ' · taille ' + o.w : ''}`; $('.pl-size').classList.toggle('hidden', !sel.dataset.deco); };
+    const show = () => { if (!sel) return; const o = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id); $('#pl-cur').textContent = `${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w ? ' · taille ' + o.w : ''}${o.flip ? ' · miroir' : ''}`; $('.pl-size').classList.toggle('hidden', false); };
     $('#map-inner').addEventListener('pointerdown', e => {
       const el = e.target.closest('.bld, .ev-deco'); if (!el) return;
       const r = $('#map-inner').getBoundingClientRect(), o = el.dataset.deco ? decos.find(d => d.id === el.dataset.deco) : D.BUILDINGS.find(x => x.id === el.dataset.id);
@@ -496,8 +496,10 @@
       cur.el.style.left = cur.o.x + '%'; cur.el.style.top = cur.o.y + '%'; show(); clashes();
     });
     window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); clashes(); } });
-    const size = k => { if (!sel || !sel.dataset.deco) return; const d = decos.find(x => x.id === sel.dataset.deco); d.w = Math.max(3, Math.min(30, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
-    $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5);
+    const selObj = () => sel && (sel.dataset.deco ? decos.find(x => x.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id));
+    const size = k => { const d = selObj(); if (!d) return; d.w = Math.max(3, Math.min(sel.dataset.deco ? 30 : 60, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
+    const flip = () => { const d = selObj(); if (!d) return; d.flip = !d.flip; sel.classList.toggle('flip', d.flip); save(); };
+    $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5); $('#pl-flip').onclick = flip;
     $('#pl-room').onclick = () => setScene('appart');
     $('#pl-club').onclick = () => openClub();
     $('#pl-val').onclick = () => openValues();
@@ -615,7 +617,7 @@
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
-  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin') location.reload(); });
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || placing) location.reload(); });
   // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
   // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;

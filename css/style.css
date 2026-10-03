@@ -2456,3 +2456,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-stats .st-bar i { width: 12px; height: 8px; border-radius: 3px; background: #ead9c6; border: 1px solid #c9b29a; }
 #app .ag-stats .st-bar i.on { background: #ff4f8b; border-color: #c2185b; }
 #app .ag-stats .st-row small { font: 700 10.5px var(--text); color: #8a7560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* miroir réglé dans le back-office : seule l'image se retourne, jamais le nom */
+#app .bld.flip > .pic img, #app .bld.flip > img, #app .bld.flip .bld-img img, #app .ev-deco.flip .pic img, #app .ev-deco.flip > i { transform: scaleX(-1); }
+/* plus d'ombre recopiée sous les décos de la ville */
+#app .ev-deco .pic img { filter: none !important; }

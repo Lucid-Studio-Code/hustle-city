@@ -2,7 +2,9 @@
 (function () {
   'use strict';
   const D = window.DATA;
-  const SAVE_KEY = 'hustleCity.v1';
+  // le back-office (#admin) joue sur une COPIE de la partie : il ne doit jamais écraser la vraie sauvegarde du joueur
+  const ADMIN = /^#(admin|placer)/.test(location.hash);
+  const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
   const MAX_OFFLINE = 12 * 3600;
 
   const now = () => Date.now();
@@ -53,7 +55,7 @@
   function load() {
     claimTab();
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const raw = localStorage.getItem(SAVE_KEY) || (ADMIN ? localStorage.getItem(PLAYER_KEY) : null);
       if (raw) {
         const saved = JSON.parse(raw);
         const base = fresh();
