@@ -12,6 +12,9 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
+    # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
+    'cr-leila': 'all', 'cr-jade': 'all', 'cr-kim': 'all', 'cr-lola': 'all', 'cr-sasha': 'all', 'cr-nora': 'all',
+    'cr-mila': {'n': [0]}, 'cr-ines': 'all', 'cr-rose': 'all', 'cr-eva': 'all', 'gear-cam': 'all', 'gear-sport': {'n': [0, 1, 2, 3, 4, 5]},
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
     'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
     'skin-sportive': 'all', 'skin-boss': 'all', 'skin-survet': 'all',
