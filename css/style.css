@@ -2530,3 +2530,13 @@ h3.sec { margin: 18px 6px 10px; }
 #app .club-door .cd-say { top: 10px; bottom: auto; }
 #app #modal .sheet.th-club .club-door .cd-bg { object-position: 50% 62%; }
 #app .stock-chip img.ico, #app .shelf-chip img.ico, #app .sx-rumor img.ico { width: 22px; height: 22px; vertical-align: -6px; }
+/* Comptoir : carte achetée qui reste en rayon, grisée avec un tampon */
+#app .item-card.bought .ib-art { position: relative; display: grid; place-items: center; }
+#app .item-card.bought .ib-art > :not(.ib-stamp) { filter: grayscale(.85) brightness(.9); opacity: .6; }
+#app .item-card.bought h4 { opacity: .55; }
+#app .item-card.bought .ib-stamp { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); display: flex; align-items: center; gap: 4px; padding: 4px 12px; border: 3px solid #1f9d55; border-radius: 10px; background: rgba(255,255,255,.92); color: #1f9d55; font: 400 18px var(--title); white-space: nowrap; box-shadow: 0 3px 0 rgba(31,157,85,.35); }
+#app .item-card.bought .ib-stamp .ic { width: 18px; height: 18px; }
+#app .item-card.bought.just .ib-stamp { animation: stampIn .5s cubic-bezier(.2,1.8,.4,1) both; }
+#app .item-card.bought.just .ib-art > :not(.ib-stamp) { animation: greyIn .6s ease both; }
+@keyframes stampIn { from { transform: translate(-50%, -50%) rotate(-30deg) scale(2.4); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } }
+@keyframes greyIn { from { filter: none; opacity: 1; } to { filter: grayscale(.85) brightness(.9); opacity: .6; } }

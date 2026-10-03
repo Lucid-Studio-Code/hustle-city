@@ -1380,6 +1380,7 @@
 
   // ------------------------------------------------------------ Le Comptoir (objets de collection)
   let shopTab = 'card';
+  let justBought = null;
   function openShop(tab) {
     if (tab) shopTab = tab;
     const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
@@ -1406,8 +1407,11 @@
         }).join('') : '<p class="hint-line center">Pas de rumeur pour l\'instant. Repasse plus tard.</p>');
     }
     const items = D.ITEMS.filter(i => i.cat === shopTab && (G.inStock(i.id) || (s.owned[i.id] || []).length)), mt = G.tipBought('market'), sale = G.evOn('sale');
-    const card = it => {
+    const card = (it, onShelf) => {
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
+      // en rayon, une carte achetée reste visible mais grisée avec un tampon « Achetée » (elle se revend plus bas, dans « Tes cartes »)
+      if (onShelf && mine) return `<div class="card item-card bought ${justBought && justBought.id === it.id && Date.now() - justBought.t < 900 ? 'just' : ''}"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
+        <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} Achetée</span></div><h4>${it.name}</h4><small class="muted own-line">Dans ta collection : revends-la plus bas.</small></div>`;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
         <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
@@ -1416,10 +1420,10 @@
     };
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
-      ? (() => { const R = { C: 0, R: 1, E: 2, L: 3 }, shelf = items.filter(i => G.inStock(i.id) && !(s.owned[i.id] || []).length).sort((a, b) => R[a.r] - R[b.r]), mine = items.filter(i => (s.owned[i.id] || []).length);
-          return `<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.map(card).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
-            (mine.length ? `<h3 class="sec">Tes cartes <small>· à revendre</small></h3><div class="grid2">${mine.map(card).join('')}</div>` : ''); })()
-      : `<div class="grid2">${items.map(card).join('')}</div>`;
+      ? (() => { const R = { C: 0, R: 1, E: 2, L: 3 }, shelf = items.filter(i => G.inStock(i.id)).sort((a, b) => R[a.r] - R[b.r]), mine = items.filter(i => (s.owned[i.id] || []).length);
+          return `<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.map(i => card(i, true)).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
+            (mine.length ? `<h3 class="sec">Tes cartes <small>· à revendre</small></h3><div class="grid2">${mine.map(i => card(i)).join('')}</div>` : ''); })()
+      : `<div class="grid2">${items.map(i => card(i)).join('')}</div>`;
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
     const buyEx = sale ? 89 : 105;
     return `${mt ? `<div class="tip-banner">📰 <span><b>Ton tuyau du Kiosque</b>« ${esc(mt.txt)} »</span></div>` : ''}
@@ -1874,7 +1878,7 @@
     crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
-    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
+    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.coin(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),
     wallet: () => openWallet(),
