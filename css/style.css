@@ -2856,3 +2856,22 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .ag-pt small { font: 700 11px var(--text); color: #7a5a3a; }
 #app .ag-pt .pt-free { color: #1f9d55; font-weight: 900; } #app .ag-pt .pt-fee { color: #b8750f; font-weight: 900; }
 #app .ag-pt .cr-face { width: 46px; height: 46px; flex: none; }
+.tcg.full .fa-club { display: block; font: 900 4.4cqw var(--text); font-style: normal; color: #fff; text-shadow: 0 .4cqw 0 #2a1a10; margin: .6cqw 0 .2cqw; }
+/* holo moins fort : on garde les couleurs de l'illustration */
+.tcg.rR .tcg-holo { opacity: .28; }
+.tcg.rE .tcg-holo { opacity: .36; }
+.tcg.rL .tcg-holo { opacity: .45; }
+.tcg.rR .tcg-holo::after, .tcg.rE .tcg-holo::after { opacity: .7; }
+/* profil : photo compacte (aperçu à gauche, pin's et cadre en pastilles à droite) */
+#app .pf-photo-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 10px; }
+#app .pf-photo-row .pf-prev { width: 76px; height: 76px; flex: none; margin: 0 6px 0 4px; }
+#app .pf-pick { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+#app .pf-pick > b { font: 400 15px var(--title); color: #2a1a10; }
+#app .pf-line { display: flex; align-items: center; gap: 8px; }
+#app .pf-line > small { width: 38px; flex: none; font: 900 11px var(--text); color: #7a5a3a; }
+#app .pf-chips { display: flex; gap: 6px; overflow-x: auto; padding: 2px; }
+#app .pf-chip { width: 40px; height: 40px; flex: none; display: grid; place-items: center; padding: 3px; border: 2px solid #c9b48f; border-radius: 12px; background: #fffaf0; cursor: pointer; }
+#app .pf-chip.on { border-color: #2a1a10; background: #fff1b8; box-shadow: 0 0 0 2px #ffc933; }
+#app .pf-chip > *, #app .pf-chip img { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; }
+#app .pf-chip .ev-frame { width: 28px; height: 28px; border-width: 3px; }
+#app .pf-chip .pf-none { width: 26px; height: 26px; font-size: 14px; border-width: 2px; display: grid; place-items: center; }

@@ -56,3 +56,7 @@
 - lot-succes-1.js à lot-succes-4.js (10 chacun) : badges ach-<id> des 40 succès (D.ACHIEVEMENTS), même médaille or et violet, motif au centre. Branchés : 🏅 en attendant.
 - lot-niches.js (10) : icônes des 10 spécialités PrivéFans (niche-<slug>), branchées sur les boutons du choix de spécialité.
 - + ev-sale refait (dans lot-ville-hiver.js) : un ticket de réduction avec un %, au lieu du sac de courses.
+
+## À l'arrivée de lot-cartes-v2 (04/10)
+- NE PAS intégrer art-k-f7, art-k-f8, art-k-f9, art-k-f10, art-k-b1, art-k-b2, full-k-f8 : maillots aux mauvaises couleurs (prompt ≠ blason). Remplacés par lot-redo-6.
+- Écarter aussi les art-k-t* contradictoires (lot-tennis-fix).

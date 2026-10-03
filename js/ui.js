@@ -1717,11 +1717,11 @@
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
         return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
           <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b><small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${it.club}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
       d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${has('art-' + it.id) ? `<div class="tcg-sub ill-art"><img src="${src('art-' + it.id)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
-        stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub, no };
+        stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.club || (it.team && it.team[0] === 'tennis' ? 'Tennis' : se.sub), no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
       <div class="tcg-top"><b class="tcg-name ${d.name.length > 16 ? 'xl' : d.name.length > 11 ? 'l' : ''}">${d.name}</b>${d.stat ? `<span class="tcg-stat">${d.stat}</span>` : ''}</div>
@@ -1888,13 +1888,12 @@
     const s = st(), mine = k => D.SIX.shop.filter(x => x.kind === k && G.evOwned(x.id));
     const pins = mine('avatar'), frames = mine('frame'), curFr = s.frame && D.SIX.shop.find(x => x.id === s.frame);
     if (!pins.length && !frames.length) return `<h3 class="sec">Ta photo de profil</h3><p class="hint-line">Les <b>pin's</b> et les <b>cadres</b> s'achètent pendant les événements, au Panneau de la place. Ici, tu choisiras lequel porter.</p>`;
-    const none = (k, on) => `<button class="card pf-look ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id=""><span class="pf-look-art pf-none">∅</span><b>Aucun</b></button>`;
-    const one = (k, x, on, art) => `<button class="card pf-look ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id="${x.id}"><span class="pf-look-art">${art}</span><b>${esc(x.name.replace(/^Photo : /, '').replace(/[«»]/g, '').replace(/\s+/g, ' ').trim())}</b></button>`;
+    const chip = (k, id, on, art, name) => `<button class="pf-chip ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id="${id || ''}" title="${esc(name)}" aria-label="${esc(name)}">${art}</button>`;
+    const none = k => chip(k, '', !s[k], '<span class="pf-none">∅</span>', 'Aucun');
     const frArt = x => frameImg(x) ? `<img src="${src(frameImg(x))}" alt="">` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}"><em>${x.emo}</em></span>`;
-    return `<h3 class="sec">Ta photo de profil <small>· touche pour changer</small></h3>
-      <div class="pf-photo"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${teamCrest('rugby', (D.SIX.shop.find(x => x.id === s.avatar) || {}).team)}</span>` : ''}</span></div>
-      ${pins.length ? `<h4 class="pf-sub">Pin's</h4><div class="pf-looks">${none('avatar', !s.avatar)}${pins.map(x => one('avatar', x, s.avatar === x.id, teamCrest('rugby', x.team))).join('')}</div>` : ''}
-      ${frames.length ? `<h4 class="pf-sub">Cadres</h4><div class="pf-looks">${none('frame', !s.frame)}${frames.map(x => one('frame', x, s.frame === x.id, frArt(x))).join('')}</div>` : ''}`;
+    const line = (t, k, L, art) => L.length ? `<div class="pf-line"><small>${t}</small><div class="pf-chips">${none(k)}${L.map(x => chip(k, x.id, s[k] === x.id, art(x), x.name.replace(/^Photo : /, ''))).join('')}</div></div>` : '';
+    return `<div class="card pf-photo-row"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${teamCrest('rugby', (D.SIX.shop.find(x => x.id === s.avatar) || {}).team)}</span>` : ''}</span>
+      <div class="pf-pick"><b>Ta photo de profil</b>${line("Pin's", 'avatar', pins, x => teamCrest('rugby', x.team))}${line('Cadre', 'frame', frames, frArt)}</div></div>`;
   }
   function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
   // réglages façon jeu mobile : conseils qui défilent, son, affichage, notifications, compte et sauvegarde, aide

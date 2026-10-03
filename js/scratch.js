@@ -121,8 +121,11 @@
     const x = cv.getContext('2d'); x.scale(dpr, dpr);
     const g = x.createLinearGradient(0, 0, r.width, r.height); g.addColorStop(0, '#b9bec6'); g.addColorStop(.45, '#eef0f3'); g.addColorStop(.55, '#d9dde2'); g.addColorStop(1, '#a3a9b2');
     x.fillStyle = g; x.fillRect(0, 0, r.width, r.height);
-    x.fillStyle = 'rgba(120,128,140,.45)'; x.font = '900 11px Nunito'; x.textAlign = 'center';
-    for (let yy = 12; yy < r.height + 8; yy += 14) for (let xx = (yy / 14 % 2) * 9 + 6; xx < r.width + 8; xx += 18) x.fillText('★', xx, yy);
+    // motif d'étoiles en quinconce, centré dans la case (une ligne sur deux décalée d'une demi-étoile)
+    x.fillStyle = 'rgba(120,128,140,.45)'; x.font = '900 11px Nunito'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const SX = 18, SY = 14, rows = Math.max(1, Math.floor((r.height - 4) / SY)), cols = Math.max(1, Math.floor((r.width - 4) / SX));
+    const y0 = (r.height - (rows - 1) * SY) / 2, x0 = (r.width - (cols - 1) * SX) / 2;
+    for (let j = 0; j < rows; j++) { const odd = j % 2, n = odd ? cols - 1 : cols; for (let i = 0; i < n; i++) x.fillText('★', x0 + i * SX + (odd ? SX / 2 : 0), y0 + j * SY); }
     x.globalCompositeOperation = 'destination-out'; x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = Math.max(18, Math.min(r.width, r.height) * .45);
     cv._x = x; cv._n = 0;
   }
