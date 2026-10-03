@@ -730,7 +730,7 @@
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
         ${owned.length ? `<button class="obj-bubble shelf-b" data-act="collectionInfo" style="left:16%;top:22%"><span><small>Ta collection</small><b>${short(iv)}</b></span></button>` : ''}
-        <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)}">${pic(pcImg, EMO.pc)}</button>
+        <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
         ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${pic('ringlight', '💡')}</button>` : ''}

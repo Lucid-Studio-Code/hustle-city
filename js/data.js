@@ -422,6 +422,8 @@
   // Les 6 chambres (3 niveaux × garçon / fille) ont EXACTEMENT le même angle et le même bureau : une seule disposition pour toutes.
   // x, y = bas de l'objet en % de l'image (posé sur le plateau du bureau à 66,5 %) ; slots = places sur les 3 étagères. Réglable au back-office.
   const shelfRow = ys => ys.flatMap(y => [13, 24, 35, 46].map(x => [x, y]));
+  // PC : part de l'image SOUS la ligne des socles des écrans (le clavier dépasse devant) → on cale les socles sur le plateau
+  const PC_DROP = [.05, .2, .14];
   const ONE_ROOM = { pc: { x: 17.5, y: 66.5, w: 30 }, rig: { x: 40.5, y: 66.5, w: 14 }, light: { x: 61, y: 72, w: 12 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
   const ROOM_LAYOUT = [0, 1, 2].map(() => JSON.parse(JSON.stringify(ONE_ROOM)));
 
@@ -551,7 +553,7 @@
   });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
-    MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
+    PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
