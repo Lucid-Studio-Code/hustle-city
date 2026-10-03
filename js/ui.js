@@ -399,7 +399,15 @@
   function focusMap(yPct) { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -(cam.h * yPct / 100 - map.clientHeight * .55); clampCam(); applyCam(); }
   // enseigne d'un lieu : couleur et picto propres à chaque endroit (le style d'ensemble se règle en CSS via data-sign sur #app)
   const SIGN = { six: ['#e63946', 'star'], casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
-  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : ''}</span>`;
+  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
+  // compte à rebours de l'événement, sous le nom du Tournoi sur la carte
+  function sixTimer() {
+    const ph = G.sixPhase(), t = ph === 'before' ? G.sixKick(0) - Date.now() : G.sixEnd() - Date.now();
+    if (ph === 'over') return 'Terminé';
+    const m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
+    const left = d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min ${String(Math.floor(t / 1000) % 60).padStart(2, '0')}`;
+    return ph === 'before' ? `Commence dans ${left}` : `⏱ Encore ${left}`;
+  }
   function renderCity() {
     const s = st(), inner = $('#map-inner');
     const bg = has('bg-city') ? `<img class="bg" src="${src('bg-city')}" alt="" draggable="false">` : '<div class="bg-fallback"></div>';
@@ -2063,7 +2071,7 @@
   function loop() {
     G.simulate(false); dailyNotifs();
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
-    renderHud();
+    renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.textContent !== v) e.textContent = v; });
     if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();
     if (modalRefresh && !document.activeElement?.matches('input')) modalRefresh();
     if (Date.now() - lastSave > 5000) { G.save(); lastSave = Date.now(); }

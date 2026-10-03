@@ -821,6 +821,7 @@
     return m;
   }
   const sixMatches = () => D.SIX.matches.map((x, i) => sixMatch(i));
+  const sixEnd = () => sixKick(D.SIX.matches.length - 1) + sixLive();
   function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
   // les journées s'ouvrent une par une : la suivante quand la précédente est finie
   function sixDayOpen(d) { return d === 1 || D.SIX.matches.every((x, i) => x[0] !== d - 1 || sixMatch(i).state === 'done'); }
@@ -1160,7 +1161,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
