@@ -30,7 +30,7 @@
     { say: () => 'Cadeau : <b>un booster de cartes gratuit chaque jour</b>. Touche « Booster ».', target: '#btn-booster', done: () => !!$('[data-act=boosterOpen]:not([disabled])') || S('boosters') > 0 },
     { say: () => '<b>Ouvre-le</b> !', target: '[data-act=boosterOpen]:not([disabled])', done: () => !!$('#pack.on') || S('boosters') > 0 },
     { say: () => 'Touche les cartes pour les retourner. La dernière est une <b>carte de collection</b> : elle a une vraie cote, comme une vraie carte.', target: '#pack .pk-stack:not(.hidden), #pack .pk-done:not(.hidden)', done: () => S('boosters') > 0 && !$('#pack.on') },
-    { say: () => 'Voilà, t\'as les bases. Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le casino et le Comptoir ouvrent. Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l\'écran : je te dirai quoi faire pour avancer. À toi de jouer !', btn: 'C\'est parti', before: () => U.closeModal() }
+    { say: () => 'Bien joué ! Il reste deux ou trois coins du quartier à te montrer. Suis-moi.', btn: 'Allez', before: () => U.closeModal() }
   ];
 
   // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Royal sont vus dans le grand tuto.
@@ -78,9 +78,11 @@
       'Onglet <b>Bourse</b> : achète des actions des boîtes du quartier. Plus calme que la crypto, et la plupart versent des <b>dividendes</b> chaque jour.', '#modal .tabs'),
     parking: [{ say: () => 'Ta première caisse ! <b>Ton parking</b> vient d\'apparaître en ville : tes véhicules y sont garés.', target: '.bld[data-id=parking]', before: () => U.focusBld('parking'), btn: 'Trop bien' }]
   });
-  const FEAT_LVL = { roulette: () => D.ROULETTE.lvl, bijou: () => D.EXT_PLACES.find(b => b.id === 'bijou').lvl, agence: () => D.AGENCE.lvl, garage: () => D.EXT_PLACES.find(b => b.id === 'garage').lvl,
+  // le mot de la fin du tuto : seulement après la visite des lieux du début (Kiosque, arrêt de bus)
+  BLD.outro = [{ say: () => `Voilà, t'as les bases ! Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le Comptoir ouvre, au <b>niveau 3</b> le casino. Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l'écran : je te dirai quoi faire pour avancer. À toi de jouer !`, btn: 'C\'est parti' }];
+  const FEAT_LVL = { outro: () => 1, roulette: () => D.ROULETTE.lvl, bijou: () => D.EXT_PLACES.find(b => b.id === 'bijou').lvl, agence: () => D.AGENCE.lvl, garage: () => D.EXT_PLACES.find(b => b.id === 'garage').lvl,
     tour: () => D.EXT_PLACES.find(b => b.id === 'tour').lvl, bourse: () => D.BOURSE.lvl, parking: () => G.parkedCount() > 0 ? 0 : 99 };
-  const BLD_ORDER = ['kiosque', 'bus', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
+  const BLD_ORDER = ['kiosque', 'bus', 'outro', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
   const unlockLvl = k => FEAT_LVL[k] ? FEAT_LVL[k]() : D.BUILDINGS.find(b => b.id === k).lvl;
   const seen = () => (st().bldTuto = st().bldTuto || {});
 
@@ -183,6 +185,7 @@
   // les nouveautés déjà débloquées avant l'arrivée de leurs tutos : on ne les rejoue pas à la chaîne
   // (fait au premier passage de la boucle ci-dessous, une fois la partie chargée : jamais d'enregistrement avant le chargement)
   function featFix() { const s = st(); if (!s || !s.skin || s.featTutoFix) return; s.featTutoFix = 1;
+    if (!s.tutoDone) return;   // nouvelle partie : tous les tutos se joueront normalement
     Object.keys(FEAT_LVL).forEach(k => { if (k !== 'parking' && s.lvl >= FEAT_LVL[k]()) seen()[k] = true; }); if (G.parkedCount() > 0) seen().parking = true; }
   setInterval(() => {
     featFix();

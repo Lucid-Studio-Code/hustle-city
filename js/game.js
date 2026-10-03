@@ -8,7 +8,7 @@
   const TEST = /^#test/.test(location.hash);
   const NEUF = /^#neuf/.test(location.hash);   // nouvelle partie d'essai (tuto compris), sauvegarde à part
   const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = NEUF ? 'hustleCity.neuf' : TEST ? 'hustleCity.test' : ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
-  function testBoost() { if (!TEST) return; st.lvl = Math.max(st.lvl, D.MAX_LVL); st.xp = 0; if (st.cash < 5e6) st.cash = 1e7; if (st.lingots < 5e4) st.lingots = 1e5; st.tutoDone = true; st.name = st.name || 'Testeuse'; st.bldTuto = Object.assign(st.bldTuto || {}, Object.fromEntries(D.BUILDINGS.map(b => b.id).concat(['roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse']).map(k => [k, true]))); }
+  function testBoost() { if (!TEST) return; st.lvl = Math.max(st.lvl, D.MAX_LVL); st.xp = 0; if (st.cash < 5e6) st.cash = 1e7; if (st.lingots < 5e4) st.lingots = 1e5; st.tutoDone = true; st.name = st.name || 'Testeuse'; st.bldTuto = Object.assign(st.bldTuto || {}, Object.fromEntries(D.BUILDINGS.map(b => b.id).concat(['outro', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse']).map(k => [k, true]))); }
   const MAX_OFFLINE = 12 * 3600;
 
   const now = () => Date.now();

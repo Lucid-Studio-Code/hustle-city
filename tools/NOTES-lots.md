@@ -55,3 +55,4 @@
 ## Succès (03/10)
 - lot-succes-1.js à lot-succes-4.js (10 chacun) : badges ach-<id> des 40 succès (D.ACHIEVEMENTS), même médaille or et violet, motif au centre. Branchés : 🏅 en attendant.
 - lot-niches.js (10) : icônes des 10 spécialités PrivéFans (niche-<slug>), branchées sur les boutons du choix de spécialité.
+- + ev-sale refait (dans lot-ville-hiver.js) : un ticket de réduction avec un %, au lieu du sac de courses.
