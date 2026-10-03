@@ -29,9 +29,13 @@
     { id: 'club',    name: 'Le Club',             lvl: 4,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
     { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
-    { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' }
+    { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' },
+    // apparaît dans la ville dès qu'on possède une voiture ou une moto (Garage Prestige)
+    { id: 'parking', name: 'Mon parking',        lvl: 10, x: 88, y: 80, w: 20, needVehicle: true, tag: 'Tes voitures et motos' }
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
+  // les places dessinées sur l'image parking-bg (x = centre, y = bas de la voiture, w = largeur, en %), 7 places au maximum
+  const PARK_SLOTS = [[26, 34, 30], [70, 34, 30], [26, 56, 32], [70, 56, 32], [26, 80, 34], [70, 80, 34], [48, 98, 36]];
   // le parking du Garage Prestige (une voiture ou une moto par place)
   const GARAGES = [{ slots: 2, cost: 0, name: 'Box simple' }, { slots: 4, cost: 25000, name: 'Garage double' }, { slots: 7, cost: 90000, name: 'Parking privé' }];
   // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
@@ -608,7 +612,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

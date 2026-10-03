@@ -50,3 +50,4 @@
 
 ## Bijouterie / Garage / Tour (03/10)
 - lot-bijou.js (8) : or + raretés · lot-garage.js (7) : voitures + motos · lot-tour.js (10) : 4 biens immobiliers + 6 logos d'actions (item-st-*). Tout est branché : emoji en attendant.
+- lot-garage.js passe à 9 : véhicules vus de 3/4 et un peu d'en haut (même angle que le parking) + bld-parking (bâtiment « Mon parking », visible en ville dès qu'on a un véhicule) + parking-bg (fond du parking, 7 places ; positions dans D.PARK_SLOTS à recaler sur l'image).

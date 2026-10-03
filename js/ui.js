@@ -29,7 +29,7 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
   // ------------------------------------------------------------ images (repli emoji tant que le visuel n'existe pas)
-  const EMO = {
+  const EMO = { 'bld-parking': '🅿️',
     cash: '💵', lingot: '🪙', gear: '⚙️', wallet: '💼', chart: '📈', dice: '🎲', ticket: '🎟️', trophy: '🏆', home: '🏠', city: '🏙️', lock: '🔒', check: '✅', star: '⭐', gift: '🎁',
     'bld-appart': '🏢', 'bld-balto': '🍺', 'bld-casino': '🎰', 'bld-shop': '🛍️', 'bld-club': '🎉', 'bld-kiosque': '📰', 'bld-bijou': '💍', 'bld-garage': '🏎️', 'bld-tour': '🏙️',
     pc: '🖥️', trading: '📈', shop: '🛍️', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
@@ -430,6 +430,7 @@
     const cols = { appart: '#8ecae6', balto: '#2d6a4f', casino: '#9b5de5', shop: '#ffb703', bijou: '#e0aaff', garage: '#adb5bd', tour: '#90e0ef' };
     // enseigne : plaque de rue émaillée posée au-dessus du toit (ne recouvre jamais le bâtiment d'en dessous)
     inner.innerHTML = bg + D.BUILDINGS.map(b => {
+      if (b.needVehicle && !placing && !G.parkedCount()) return '';
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
@@ -484,6 +485,17 @@
       ${lock ? `<p class="hint-line center">${ic('lock')} La bourse ouvre au niveau ${D.BOURSE.lvl}.</p>` : ''}${D.STOCKS.map(row).join('')}`;
   }
   function openTower(tab) { if (tab) towerTab = tab; openModal({ title: 'La Tour', icon: 'bld-tour', full: true, tabs: [{ id: 'immo', label: 'Immobilier' }, { id: 'bourse', label: 'Bourse' }], tab: towerTab, body: towerBody(), refresh: () => setBody(towerBody()), onTab: id => { towerTab = id; setBody(towerBody()); } }); }
+  // ------------------------------------------------------------ Mon parking : tes voitures et motos garées sur leurs places
+  function parkingBody() {
+    const s = st(), cars = Object.keys(s.owned).filter(id => s.owned[id].length && G.placeOf(id) === 'park').map(G.item), n = G.garageSlots();
+    const slots = D.PARK_SLOTS.slice(0, n).map(([x, y, w], i) => { const it = cars[i];
+      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}<span class="pk-tagc">${esc(it.name)}</span></button>`
+        : `<span class="pk-free" style="left:${x}%;top:${y}%;width:${w}%">Place libre</span>`; }).join('');
+    return `<div class="park-scene ${has('parking-bg') ? 'img' : ''}">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
+      <p class="hint-line center">${cars.length} / ${n} places occupées · touche un véhicule pour le voir ou le revendre.</p>
+      <button class="btn green wide" data-act="goPlace" data-id="garage">Aller au Garage Prestige</button>`;
+  }
+  function openParking() { openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
   function openBus() {
     const s = st();
     openModal({ title: 'Arrêt de bus', icon: has('ic-bus') ? 'ic-bus' : 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +
@@ -734,6 +746,7 @@
     if (id === 'six') return openSix();
     if (id === 'kiosque') return openKiosk();
     if (id === 'bus') return openBus();
+    if (id === 'parking') return openParking();
     if (id === 'club' && st().lvl >= D.CLUB.lvl) return openClub();
     const b = D.BUILDINGS.find(x => x.id === id);
     if (st().lvl < b.lvl) return;   // la plaque du bâtiment affiche déjà le niveau
@@ -2207,8 +2220,11 @@
       if (G.boosterFree()) notify('boosters', 'Booster gratuit disponible', 'Ton booster du jour est prêt à être ouvert.');
     }
   }
+  let lastParked = null;
   function loop() {
     G.simulate(false); dailyNotifs();
+    // le parking apparaît / disparaît de la ville selon qu'on a un véhicule
+    { const pk = G.parkedCount() > 0; if (pk !== lastParked) { lastParked = pk; renderCity(); } }
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
     renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.textContent !== v) e.textContent = v; });
     if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();

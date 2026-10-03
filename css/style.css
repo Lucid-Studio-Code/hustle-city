@@ -2637,3 +2637,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app .st-px { text-align: right; } #app .st-px b { font: 400 18px var(--title); display: flex; align-items: center; justify-content: flex-end; }
 #app .st-card svg { width: 100%; height: 30px; margin: 4px 0; }
 #app .st-own { margin-top: 2px; }
+/* Mon parking */
+#app .park-scene { position: relative; width: 100%; aspect-ratio: 3 / 4; border: 3px solid #2a1a10; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 0 #2a1a10;
+  background: repeating-linear-gradient(90deg, transparent 0 48%, rgba(255,255,255,.55) 48% 49%, transparent 49% 100%) 0 0 / 100% 100%, linear-gradient(#5d6470, #3c424c); }
+#app .park-scene .pk-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#app .pk-car, #app .pk-free { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; }
+#app .pk-car .pic, #app .pk-car img { width: 100%; height: auto; filter: drop-shadow(0 4px 2px rgba(0,0,0,.45)); }
+#app .pk-car .pk-tagc { margin-top: -4px; padding: 1px 8px; border-radius: 999px; background: rgba(42,26,16,.85); color: #fff; font: 800 10px var(--text); white-space: nowrap; }
+#app .pk-free { aspect-ratio: 2 / 1; justify-content: center; border: 2px dashed rgba(255,255,255,.7); border-radius: 10px; color: #fff; font: 900 11px var(--text); opacity: .8; }
+#app .pk-car { background: none; border: 0; padding: 0; } #app .pk-car .emo, #app .pk-car .pic .emo { font-size: 44px; }
