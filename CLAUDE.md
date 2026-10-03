@@ -31,7 +31,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 125).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 128).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -104,6 +104,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 ## Images
 - Générées sur magnific.com en mode **illimité uniquement** (jamais de crédits), puis `tools/process.py` (détourage) et `tools/split.py` (planches).
 - Détourage : `process.py` ne vide plus les zones blanches enfermées (ça trouait le blanc des yeux, les bandes d'écussons). Un vrai vide (anse, cadre, entre bras et corps) se déclare dans `POCKETS` ; `python3 tools/process.py --poches <nom>` montre les poches numérotées. Après chaque lot, contrôler qu'aucune image n'a de trou anormal.
+- `process.py` ne détoure pas les décors : préfixes `bg`, `room`, `club`, `tkbg` (`NOCUT`). Une image de fond en CSS (variable `url(...)`) doit recevoir une adresse COMPLÈTE (`new URL(src, location.href)`), sinon elle est cherchée dans css/.
 - Les originaux 2K et les références ne sont pas dans le dépôt (seulement sur son Mac). Une session cloud ne peut pas générer d'images : signaler le besoin plutôt que d'en inventer.
 - **Sans crédits depuis le cloud** : elle lance un lot `tools/magnific-lot.js` dans la console de Chrome sur Magnific (illimité obligatoire, le script refuse sinon). Pour récupérer les images SANS elle : lire les liens avec le MCP Magnific (`creations_search`, gratuit), les écrire dans `tools/inbox/urls.txt` (« nom url ») et pousser sur main : l'action GitHub « Récupérer les images » les télécharge dans `tools/inbox/` (le cloud n'a pas accès à pikaso.cdnpk.net, GitHub oui). Puis `git pull`, copier dans `originals-2k/`, `split.py`, `process.py`, `manifest.py`, et retirer les PNG de `tools/inbox` du dépôt.
 - Mises à jour chez elle : `index.html` charge le CODE de la dernière version de main via jsDelivr (sa partie reste sur localhost) ; les IMAGES viennent de son dossier local (`src()` dans ui.js), et une image absente est reprise sur jsDelivr. La vraie page est `game.html`. Plus de zip à envoyer : pousser sur main suffit.

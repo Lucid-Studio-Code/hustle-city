@@ -455,12 +455,12 @@
   const CLUB = { lvl: 4, entryBase: 40, entryPer: 12, entry: lvl => CLUB.entryBase + lvl * CLUB.entryPer, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
     drinkBase: 15, drinkPer: 4, drink: lvl => CLUB.drinkBase + lvl * CLUB.drinkPer, djTip: 10, vipLingots: 2,
     spots: [
-      { id: 'dance', name: 'La piste',        icon: '🕺', x: 50, y: 62, w: 44, h: 18, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
-      { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 50, y: 33, w: 30, h: 14, desc: 'Demander ton son : la piste rapporte ×1,5.' },
-      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 15, y: 50, w: 26, h: 20, desc: 'Un cocktail, et ton habitude « sortir ».' },
-      { id: 'lounge', name: 'Les canapés',    icon: '🛋️', x: 82, y: 52, w: 30, h: 18, desc: 'Discuter : on y rencontre des gens qui ont des plans.' },
-      { id: 'vip',   name: 'Le carré VIP',    icon: '🍾', x: 82, y: 28, w: 30, h: 16, desc: 'Pour les lingots : un contact assuré et des lingots possibles.' },
-      { id: 'door',  name: 'Le videur',       icon: '🚪', x: 14, y: 82, w: 22, h: 16, desc: 'Sortir du Club.' }
+      { id: 'dance', name: 'La piste',        icon: '🕺', x: 62, y: 81, w: 58, h: 20, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
+      { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 38, y: 21, w: 40, h: 16, desc: 'Demander ton son : la piste rapporte ×1,5.' },
+      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 22, y: 53, w: 40, h: 20, desc: 'Un cocktail, et ton habitude « sortir ».' },
+      { id: 'lounge', name: 'Les canapés',    icon: '🛋️', x: 80, y: 57, w: 38, h: 17, desc: 'Discuter : on y rencontre des gens qui ont des plans.' },
+      { id: 'vip',   name: 'Le carré VIP',    icon: '🍾', x: 80, y: 23, w: 36, h: 20, desc: 'Pour les lingots : un contact assuré et des lingots possibles.' },
+      { id: 'door',  name: 'Le videur',       icon: '🚪', x: 21, y: 85, w: 30, h: 20, desc: 'Sortir du Club.' }
     ] };
   const QUIT_H = 48;                 // durée du sevrage
   // Santé : chaque point sous 100 rend tout 0,5 % plus cher (pharmacie, fatigue, mauvaises décisions)

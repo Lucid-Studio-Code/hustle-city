@@ -2369,3 +2369,6 @@ h3.sec { margin: 18px 6px 10px; }
 #app .room-stage .bubble-at .obj-bubble small { font: 900 10.5px/1.2 var(--text); }
 #app .room-stage .bubble-at .obj-bubble .ring { width: 30px; height: 30px; flex-basis: 30px; }
 #app .room-stage .bubble-at .obj-bubble > span { display: flex; flex-direction: column; justify-content: center; }
+#app .club-door, #app .club-room { aspect-ratio: 1080 / 1935; }
+#app .club-door { aspect-ratio: 4 / 5; } #app .club-door .cd-bg { object-position: 50% 30%; }
+#app .tk.has-bg, #app .tk-mini.has-bg { background-image: linear-gradient(rgba(20,10,30,.45), rgba(20,10,30,.6)), var(--tkbg); }

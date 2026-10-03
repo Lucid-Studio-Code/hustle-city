@@ -85,7 +85,7 @@
   }
   function ticketHtml() {
     const { t } = ticket, top = t.prizes[t.prizes.length - 1][0];
-    return `<div class="tk tk-${t.id} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${U.src('tkbg-' + t.id)})` : ''}">
+    return `<div class="tk tk-${t.id} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${new URL(U.src('tkbg-' + t.id), location.href).href})` : ''}">
       <div class="tk-top">${U.pic(t.emblem, '🎟️', 'tk-emb')}<div class="tk-title"><b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span></div><span class="tk-price">${money(t.price)}</span></div>
       <div class="tk-game g-${t.game}">${gameHtml()}</div>
       <p class="tk-rule">${t.rule}</p>
@@ -108,7 +108,7 @@
       <div class="rack">${D.SCRATCH.map(t => {
         const lock = s.lvl < t.lvl, top = t.prizes[t.prizes.length - 1][0], free = t.id === 'flash' && s.freeTickets, poor = !lock && !free && s.cash < t.price;
         const odds = Math.round(1 / t.prizes.reduce((a, [, p]) => a + p, 0));
-        return `<button class="tk-mini ${lock || poor ? 'locked' : ''} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" data-act="${lock ? 'scrLocked' : 'scrBuy'}" ${poor ? 'disabled' : ''} data-id="${t.id}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${U.src('tkbg-' + t.id)})` : ''}">
+        return `<button class="tk-mini ${lock || poor ? 'locked' : ''} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" data-act="${lock ? 'scrLocked' : 'scrBuy'}" ${poor ? 'disabled' : ''} data-id="${t.id}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${new URL(U.src('tkbg-' + t.id), location.href).href})` : ''}">
           ${U.pic(t.emblem, '🎟️', 'tk-emb')}<b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span><small>1 ticket gagnant sur ${odds}</small>
           <span class="tk-buy">${lock ? `🔒 Niveau ${t.lvl}` : free ? 'Offert' : poor ? `À sec · ${money(t.price)}` : money(t.price)}</span></button>`;
       }).join('')}</div>${statsHtml()}`;
