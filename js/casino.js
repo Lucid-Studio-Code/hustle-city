@@ -3,7 +3,7 @@
   'use strict';
   const D = window.DATA, G = window.GAME, U = window.UI;
   const st = () => G.st;
-  let tab = 'slot', bet = 1, spinning = false, lastSpin = null;
+  let showPays = false, tab = 'slot', bet = 1, spinning = false, lastSpin = null;
   let chip = 5, board = [], wheelTurn = 0, lastRoll = null, rolling = false;
 
   // ------------------------------------------------------------ machine à sous
@@ -19,12 +19,16 @@
     if (U.has('casino-machine')) {
       const L = D.SLOT.ui, z = r => `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
       return `<div class="real-slot"><img class="rs-img" src="${U.src('casino-machine')}" alt="">
+          <button class="rs-top rs-close" data-act="closeModal" aria-label="Fermer">×</button>
+          <button class="rs-top rs-tab" data-act="csTab" data-t="roulette">🎡 Roulette</button>
+          <button class="rs-top rs-info" data-act="slPays">${showPays ? '✕ Fermer' : 'ℹ️ Gains'}</button>
+          ${showPays ? `<div class="rs-pays">${pays}</div>` : ''}
           <div class="rs-screen reels" data-zone="screen" style="${z(L.screen)}">${reels}</div>
           <div class="rs-led stroke" id="slot-msg" data-zone="led" style="${z(L.led)}">${msg}</div>
           <div class="rs-bets" data-zone="bets" style="${z(L.bets)}">${D.SLOT.bets.map(b => `<button class="rs-bet ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
           <button class="rs-spin" data-act="slSpin" data-zone="spin" style="${z(L.spin)}" ${spinning || s.cash < bet ? 'disabled' : ''}><span>LANCER</span><small>${U.eur(bet)}</small></button>
           <button class="rs-lever ${spinning ? 'pulled' : ''}" data-act="slSpin" data-zone="lever" style="${z(L.lever)}" aria-label="Tirer le levier" ${spinning || s.cash < bet ? 'disabled' : ''}></button>
-        </div>${pays}`;
+        </div>`;
     }
     return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
         <div class="reels">${shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('')}</div>
@@ -36,7 +40,8 @@
         <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
   }
   // la vraie machine change de taille avec l'écran : chaque case de rouleau prend la hauteur réelle de la fenêtre
-  function sizeReels() { document.querySelectorAll('#modal .rs-screen .reel').forEach(r => { const h = r.clientHeight; r.querySelectorAll('.sym').forEach(x => { x.style.height = h + 'px'; }); }); }
+  function fitMachine() { const m = document.getElementById('modal'), r = m && m.querySelector('.real-slot'); if (!r || !m.classList.contains('slot-full')) return; r.style.width = Math.min(m.clientWidth - 8, (m.clientHeight - 16) * .524) + 'px'; }
+  function sizeReels() { fitMachine(); document.querySelectorAll('#modal .rs-screen .reel').forEach(r => { const h = r.clientHeight; r.querySelectorAll('.sym').forEach(x => { x.style.height = h + 'px'; }); }); }
   function spinAnim(res) {
     const S = D.SLOT.symbols;
     res.reels.forEach((sym, i) => {
@@ -99,16 +104,20 @@
 
   // ------------------------------------------------------------ fenêtre
   function body() { return tab === 'slot' ? slotBody() : rouletteBody(); }
+  // machine à sous avec son image : la fenêtre entière EST la machine (pas de cadre, pas de ruban, pas d'onglets)
+  function frame() { const m = document.getElementById('modal'); if (m) m.classList.toggle('slot-full', tab === 'slot' && U.has('casino-machine')); }
   function open(t) {
     if (t) tab = t;
     if (tab === 'roulette' && st().lvl < D.ROULETTE.lvl) tab = 'slot';
     U.openModal({ title: 'Lucky Palace', icon: 'dice', full: true, theme: 'casino',
       tabs: [{ id: 'slot', label: 'Machine à sous' }, { id: 'roulette', label: st().lvl < D.ROULETTE.lvl ? `Roulette · niv. ${D.ROULETTE.lvl}` : 'Roulette', locked: st().lvl < D.ROULETTE.lvl }], tab,
-      body: body(), onTab: id => { tab = id; U.setBody(body()); sizeReels(); } });
-    setTimeout(sizeReels, 30);
+      body: body(), onTab: id => { tab = id; U.setBody(body()); frame(); sizeReels(); } });
+    frame(); setTimeout(sizeReels, 30);
   }
 
   U.register({
+    slPays() { showPays = !showPays; U.setBody(slotBody()); sizeReels(); },
+    csTab(el) { const t = el.dataset.t; if (t === 'roulette' && st().lvl < D.ROULETTE.lvl) return U.toast(`La roulette ouvre au niveau ${D.ROULETTE.lvl}.`); tab = t; document.querySelectorAll('#modal .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); U.setBody(body()); frame(); sizeReels(); },
     slBet(el) { bet = +el.dataset.v; U.setBody(slotBody()); sizeReels(); },
     slSpin() {
       if (spinning) return;

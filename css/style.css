@@ -2261,3 +2261,15 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .real-slot .rs-bet { font-size: 10px; }
 #modal .th-casino .real-slot .rs-screen .reel { border-color: #1a0a04; background: linear-gradient(#fff, #f3e6c8 50%, #fff); }
 #modal .th-casino .real-slot { max-width: min(330px, calc((100dvh - 200px) * .52)); }
+/* ===== la fenêtre machine à sous : la machine prend tout l'écran, plus de cadre ===== */
+#modal.slot-full { background: radial-gradient(ellipse at 50% 30%, rgba(122,16,32,.85), rgba(20,2,6,.95)); }
+#modal.slot-full .sheet { background: transparent !important; border: 0 !important; border-image: none !important; box-shadow: none !important; padding: 0; max-height: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+#modal.slot-full .sheet-head, #modal.slot-full .tabs { display: none; }
+#modal.slot-full .sheet-body { background: none !important; padding: 0; overflow: hidden; flex: 1; display: grid; place-items: center; }
+#modal.slot-full .real-slot { width: min(100%, calc((100dvh - 24px) * .524)); max-width: none; }
+#modal .th-casino .rs-top { position: absolute; z-index: 5; top: 1.5%; padding: 4px 10px; border: 2px solid #2a1a10; border-radius: 999px; background: #fff8ec; color: #2a1a10; font: 900 11px var(--text); box-shadow: 0 2px 0 #2a1a10; }
+#modal .th-casino .rs-close { right: 0; width: 34px; height: 34px; padding: 0; border-radius: 50%; background: #e63946; color: #fff; font: 900 20px/1 var(--text); }
+#modal .th-casino .rs-tab { left: 0; }
+#modal .th-casino .rs-info { left: 0; top: 7.5%; }
+#modal .th-casino .rs-pays { position: absolute; z-index: 6; left: 6%; right: 6%; top: 13%; }
+#modal .th-casino .rs-pays .card { margin: 0 !important; box-shadow: 0 6px 20px rgba(0,0,0,.6); }
