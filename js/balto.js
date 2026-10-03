@@ -73,7 +73,7 @@
     const goal = m.sport === 'foot' && flash[m.id] && Date.now() - flash[m.id] < 2500;   // le « BUT ! » n'existe qu'au foot
     const win = done ? m.res : null;
     const mine = soon && G.betOn(m.id), myLeg = mine && st().bets.find(b => b.state === 'open' && b.legs.some(l => l.m === m.id)).legs.find(l => l.m === m.id);
-    const oddBtns = mine ? `<div class="bet-placed">${U.ic('check')} Tu as parié : <b>${pickName(m, myLeg.pick)}</b> · un seul pari par match</div>` : soon ? `<div class="odds n${m.odds.length}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" data-act="bPick" data-m="${m.id}" data-p="${i}">
+    const oddBtns = mine ? `<div class="bet-placed">${U.ic('check')} Tu as parié : <b>${pickName(m, myLeg.pick)}</b></div>` : soon ? `<div class="odds n${m.odds.length}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" data-act="bPick" data-m="${m.id}" data-p="${i}">
         ${labels(m)[i] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[i] === '2', 'mini')}
         <span class="ob-txt"><small>${labels(m)[i] === 'N' ? 'Match nul' : shortName(labels(m)[i] === '1' ? m.home : m.away)}</small><b>${boost ? `<s>${fmtOdd(o)}</s>` : ''}${fmtOdd(G.legOdd(m, i))}</b></span></button>`).join('')}</div>` : '';
     return `<div class="mcard ${m.state} sp-${m.sport} ${goal ? 'goal' : ''} ${done && justEnded(m) ? 'ended' : ''} ${sel ? 'picked' : ''}">
