@@ -35,3 +35,4 @@
 
 ## Mini lot à refaire n°4 (tools/lot-redo-4.js)
 - act-collab : la 1re version montrait deux poings d'hommes. Nouveau : deux jeunes femmes sexy en selfie joue contre joue.
+- + ic-truck (arrivage du Comptoir), ic-shelf (place chez toi), ic-rumor (rumeurs du tournoi) : branchés dans le code, emoji en attendant.

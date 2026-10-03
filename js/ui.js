@@ -1345,7 +1345,7 @@
         <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<span><b>${T[m.h][0]}</b>${form(m.h)}</span></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><span><b>${T[m.a][0]}</b>${form(m.a)}</span>${teamCrest('rugby', m.a, 'mini')}</span></div>
         <div class="sx-odds"><i style="width:${o[0] * 100}%"></i><i style="width:${o[1] * 100}%"></i><i style="width:${o[2] * 100}%"></i></div>
         <div class="sx-odds-l"><span>${Math.round(o[0] * 100)} %</span><span>Chances d'après les bookmakers</span><span>${Math.round(o[2] * 100)} %</span></div>
-        ${ru ? `<p class="sx-rumor ${m.state === 'done' ? (ru.real ? 'true' : 'false') : ''}">🗞️ <b>Rumeur :</b> ${ru.txt} <em>${m.state === 'done' ? (ru.real ? '✓ C\'était vrai' : '✗ C\'était faux') : 'Vrai ou faux ?'}</em></p>` : ''}
+        ${ru ? `<p class="sx-rumor ${m.state === 'done' ? (ru.real ? 'true' : 'false') : ''}">${ico('ic-rumor', '🗞️')} <b>Rumeur :</b> ${ru.txt} <em>${m.state === 'done' ? (ru.real ? '✓ C\'était vrai' : '✗ C\'était faux') : 'Vrai ou faux ?'}</em></p>` : ''}
         <div class="sx-picks">${btn(0, shortTeam(T[m.h][0]))}${btn(1, 'Nul')}${btn(2, shortTeam(T[m.a][0]))}</div></div>`;
     };
     const cur = G.sixCurDay();
@@ -1429,8 +1429,8 @@
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}Le Comptoir garde une petite part à l'achat et à la revente : il faut que le prix monte pour être gagnant.</small></div>
-      <div class="stock-chip">🚚 Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
-      <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">🏠 Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
+      <div class="stock-chip">${ico('ic-truck', '🚚')} Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
+      <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
       ${grid}`;
   }

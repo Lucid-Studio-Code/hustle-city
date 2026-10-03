@@ -2529,3 +2529,4 @@ h3.sec { margin: 18px 6px 10px; }
 /* essai : la carte du videur en haut de l image, le videur bien visible dessous */
 #app .club-door .cd-say { top: 10px; bottom: auto; }
 #app #modal .sheet.th-club .club-door .cd-bg { object-position: 50% 62%; }
+#app .stock-chip img.ico, #app .shelf-chip img.ico, #app .sx-rumor img.ico { width: 22px; height: 22px; vertical-align: -6px; }
