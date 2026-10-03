@@ -1867,7 +1867,21 @@
       <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
-        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>`;
+        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
+      ${photoLooks()}`;
+  }
+  // pin's et cadres achetés : on choisit ici lequel porter (ou aucun), même après la fin de l'événement
+  function photoLooks() {
+    const s = st(), mine = k => D.SIX.shop.filter(x => x.kind === k && G.evOwned(x.id));
+    const pins = mine('avatar'), frames = mine('frame'), curFr = s.frame && D.SIX.shop.find(x => x.id === s.frame);
+    if (!pins.length && !frames.length) return `<h3 class="sec">Ta photo de profil</h3><p class="hint-line">Les <b>pin's</b> et les <b>cadres</b> s'achètent pendant les événements, au Panneau de la place. Ici, tu choisiras lequel porter.</p>`;
+    const none = (k, on) => `<button class="card pf-look ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id=""><span class="pf-look-art pf-none">∅</span><b>Aucun</b></button>`;
+    const one = (k, x, on, art) => `<button class="card pf-look ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id="${x.id}"><span class="pf-look-art">${art}</span><b>${esc(x.name.replace(/^Photo : /, '').replace(/[«»]/g, '').replace(/\s+/g, ' ').trim())}</b></button>`;
+    const frArt = x => frameImg(x) ? `<img src="${src(frameImg(x))}" alt="">` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}"><em>${x.emo}</em></span>`;
+    return `<h3 class="sec">Ta photo de profil <small>· touche pour changer</small></h3>
+      <div class="pf-photo"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${teamCrest('rugby', (D.SIX.shop.find(x => x.id === s.avatar) || {}).team)}</span>` : ''}</span></div>
+      ${pins.length ? `<h4 class="pf-sub">Pin's</h4><div class="pf-looks">${none('avatar', !s.avatar)}${pins.map(x => one('avatar', x, s.avatar === x.id, teamCrest('rugby', x.team))).join('')}</div>` : ''}
+      ${frames.length ? `<h4 class="pf-sub">Cadres</h4><div class="pf-looks">${none('frame', !s.frame)}${frames.map(x => one('frame', x, s.frame === x.id, frArt(x))).join('')}</div>` : ''}`;
   }
   function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
   // réglages façon jeu mobile : conseils qui défilent, son, affichage, notifications, compte et sauvegarde, aide
@@ -2107,6 +2121,11 @@
       }
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); sfx.coin(); toast(`Nouveau look : ${k.name} !`); }
       st().skin = k.id; G.save(); setBody(profileBody()); renderHud(); },
+    pfLook(el) {
+      const k = el.dataset.k, id = el.dataset.id || null; if (k !== 'avatar' && k !== 'frame') return;
+      if (id && !G.evOwned(id)) return;
+      st()[k] = id; G.save(); sfx.tap(); setBody(profileBody()); renderHud();
+    },
     skinSwitch(el) {
       const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); }

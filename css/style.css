@@ -2707,3 +2707,21 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app #start.acc .st-hero::after { content: ''; position: absolute; bottom: 8px; left: 50%; width: 46%; max-width: 190px; height: 22px; transform: translateX(-50%);
   background: radial-gradient(closest-side, rgba(20,10,30,.55), transparent); z-index: -1; }
 #app #start.acc .st-hero .pic { filter: drop-shadow(0 0 18px rgba(255,230,180,.25)); }
+
+/* ---------- profil : choisir son pin's et son cadre ---------- */
+#app .pf-photo { display: flex; justify-content: center; margin: 4px 0 6px; }
+#app .pf-sub { margin: 10px 0 6px; font: 400 15px var(--title); color: #3b2412; }
+#app .pf-looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
+#app .pf-look { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; font: inherit; cursor: pointer; }
+#app .pf-look b { font: 800 11px/1.15 var(--text); color: #3b2412; text-align: center; }
+#app .pf-look.on { border-color: #2a1a10; background: #fff1b8; box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ffc933 inset; }
+#app .pf-look-art { width: 52px; height: 52px; display: grid; place-items: center; }
+#app .pf-look-art > *, #app .pf-look-art img { max-width: 100%; max-height: 100%; }
+#app .pf-look-art .ev-frame { width: 44px; height: 44px; }
+#app .pf-none { border-radius: 50%; border: 3px dashed #b39b7a; color: #b39b7a; font: 900 22px var(--text); width: 44px; height: 44px; }
+#app .pf-look-art { overflow: hidden; }
+#app .pf-look-art > .pic, #app .pf-look-art > span:not(.ev-frame) { width: 48px !important; height: 48px !important; }
+#app .pf-look-art img { width: 100%; height: 100%; object-fit: contain; }
+#app .pf-prev { width: 96px; height: 96px; }
+#app .pf-prev .pf-fr { position: absolute; inset: -16%; width: 132% !important; height: 132% !important; border-radius: 0 !important; object-fit: contain; z-index: 3; pointer-events: none; }
+#app .pf-prev .av-pin { z-index: 5; }
