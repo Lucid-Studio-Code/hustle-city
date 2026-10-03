@@ -659,7 +659,7 @@
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
   function cardStock() {
     const ed = stockEd(); if (cardStock.ed === ed) return cardStock.ids;
-    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event && !i.noBuy), shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event) /* les cartes des boosters se trouvent aussi d'occasion */, shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     cardStock.ed = ed; cardStock.ids = new Set([...shuf(cards.filter(i => i.r === 'C')).slice(0, 3), ...shuf(cards.filter(i => i.r !== 'C')).slice(0, 1)]);
     return cardStock.ids;
   }

@@ -2846,3 +2846,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 .tcg.rR .tcg-holo { opacity: .6; }
 .tcg.rE .tcg-holo { opacity: .78; }
 .tcg.rL .tcg-holo { opacity: .8; }
+#app .item-card.bought { min-height: 250px; } #app .item-card.bought .ib-art { min-height: 190px; }
