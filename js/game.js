@@ -65,8 +65,16 @@
         if (saved.mine === undefined) st.mine = starterMine(st.rig.lvl || 0, now());
         D.COINS.forEach(c => { if (st.crypto.prices[c.id] == null) { st.crypto.prices[c.id] = c.p0; st.crypto.hist[c.id] = [c.p0]; st.crypto.hold[c.id] = 0; st.crypto.cost[c.id] = 0; } });
         D.ITEMS.forEach(i => { if (st.market.prices[i.id] == null) { st.market.prices[i.id] = i.p0; st.market.fair[i.id] = i.p0; st.market.hist[i.id] = [i.p0]; } });
+        // sorties au Club d'avant l'habitude automatique : elles ne comptaient pas, et l'habitude sautait à tort.
+        // On reprend la dernière soirée connue, et on rend l'habitude à qui l'avait et y est allé il y a moins de 48 h.
+        if (!saved.clubFix && st.club && st.club.start) {
+          st.clubLog = [...new Set([...(st.clubLog || []), st.club.start])];
+          if (!st.habits.club && (st.stats.habits || 0) > 0 && now() - st.club.start < D.QUIT_H * 3600000) st.habits.club = { since: st.club.start };
+        }
+        st.clubFix = 1;
       }
     } catch (e) { console.warn('save illisible', e); st = fresh(); }
+    st.clubFix = 1;   // une partie neuve n'a rien à rattraper
     const away = Math.min(MAX_OFFLINE, (now() - st.last) / 1000);
     const report = catchUp(away);
     return report;
@@ -699,7 +707,7 @@
     if (x) { delete x.quitUntil; return; }   // déjà sortie : la soirée relance juste le compteur des 48 h
     if (st.clubLog.length >= a.nights) { st.habits.club = { since: now() }; stat('habits'); emit('habitAuto', h); }
   }
-  const clubLast = () => Math.max(...(st.clubLog || [0]), (st.habits.club && st.habits.club.since) || 0);
+  const clubLast = () => Math.max(...(st.clubLog || [0]), (st.club && st.club.start) || 0, (st.habits.club && st.habits.club.since) || 0);
   const clubQuitLeft = () => Math.max(0, clubLast() + D.QUIT_H * 3600000 - now());
   const clubNightsLeft = () => Math.max(0, habit('club').auto.nights - (st.clubLog || []).filter(t => now() - t < habit('club').auto.days * 86400000).length);
   function clubDo(id) {
