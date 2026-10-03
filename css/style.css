@@ -2646,3 +2646,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .pk-car .pk-tagc { margin-top: -4px; padding: 1px 8px; border-radius: 999px; background: rgba(42,26,16,.85); color: #fff; font: 800 10px var(--text); white-space: nowrap; }
 #app .pk-free { aspect-ratio: 2 / 1; justify-content: center; border: 2px dashed rgba(255,255,255,.7); border-radius: 10px; color: #fff; font: 900 11px var(--text); opacity: .8; }
 #app .pk-car { background: none; border: 0; padding: 0; } #app .pk-car .emo, #app .pk-car .pic .emo { font-size: 44px; }
+/* « Possédé » / abonnement : centré dans la même zone que le bouton d'achat des autres cartes */
+#app .ag-g { justify-content: flex-start; } #app .ag-g .gfx { flex: 0 0 auto; }
+#app .ag-g > .gown, #app .ag-g > .btn:last-child { margin-top: auto; }
+#app .ag-g > .gown { min-height: 42px; display: flex; align-items: center; justify-content: center; }

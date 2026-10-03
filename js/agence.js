@@ -58,7 +58,7 @@
   function actGain(m, x) {
     const p = prof(m.id), subs = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
     const tips = x.cash ? Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)) : 0, L = [];
-    if (subs >= 1) L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo) L.push('<span class="g-up">pour les deux</span>');
+    if (subs >= 1) L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo && m.id !== 'me') L.push('<span class="g-up">pour les deux</span>');
     if (tips) L.push(`<span class="g-up">+${U.short(tips)} pourboires</span>`);
     if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">moral ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
     return `<em class="ag-gain">${L.join('')}</em>`;
