@@ -2129,6 +2129,7 @@
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
     cleanChats(); purgeOld();
+    { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);

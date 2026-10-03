@@ -41,3 +41,4 @@
 - + ticket-flash : ticket à gratter (remplace le ticket de cinéma « ADMIT ONE »), déjà branché partout.
 - + ev-boost : fusée simple (l'ancienne portait un ticket, trop chargée).
 - + coin-slr (Nova) : refaite bien de face, sans épaisseur visible, comme les autres pièces.
+- + bed-laptop-f / bed-laptop-m refaits : ordi de face (écran face à nous), sans accessoires, écran = pêche + banane qui font un clin d'œil. + ic-promo : cadeau avec étiquette promo (remplace le 💎 du bouton Promo).
