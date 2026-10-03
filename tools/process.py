@@ -9,7 +9,7 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # Poches de fond enfermées à vider (vrais trous : anses, cadres, structures). Par défaut on n'en vide AUCUNE :
 # le blanc d'un œil, d'une bande ou d'une basket ressemble à du fond et se faisait trouer.
 # 'all' = toutes les poches ; liste de (x, y) en fractions de l'original = seulement les poches qui contiennent ces points.
-# (x, y) = centre de la poche, tel que l'affiche --poches.
+# (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
@@ -18,7 +18,7 @@ POCKETS = {
     # objets à anses ou à structure ajourée
     'item-t-collect': 'all', 'item-t-first': 'all', 'item-t-jackpot': 'all', 'item-t-hodl': 'all',
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
-    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [],   # écrans blancs / emblèmes blancs : aucun vide à retirer
+    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
 MAX = {'bg': 1080, 'room': 1080, 'bld': 640, 'skin': 560, 'default': 420}
 
@@ -71,7 +71,7 @@ def cutout(im, keep=None, debug=None):
         ys, xs = zip(*comp)
         if debug is not None: debug.append((k, sum(xs) / len(xs) / w, sum(ys) / len(ys) / h, len(comp), comp))
         cx, cy = sum(xs) / len(xs) / w, sum(ys) / len(ys) / h
-        hit = keep == 'all' or bool(keep and any(abs(fx - cx) < .015 and abs(fy - cy) < .015 for fx, fy in keep))
+        hit = keep == 'all' or (isinstance(keep, dict) and k in keep.get('n', [])) or bool(isinstance(keep, list) and any(abs(fx - cx) < .015 and abs(fy - cy) < .015 for fx, fy in keep))
         if hit: bgmask[list(ys), list(xs)] = True
     alpha = Image.fromarray(np.where(bgmask, 0, 255).astype('uint8'))
     alpha = alpha.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.GaussianBlur(0.8))

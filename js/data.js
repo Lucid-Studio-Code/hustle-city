@@ -419,11 +419,11 @@
     [52, 34.4], [58, 34.4], [64, 34.4], [70, 34.4],
     [51, 39.2], [63, 39.2], [69, 39.2], [74.5, 39.2]
   ];
-  const ROOM_LAYOUT = [   // positions réglées par la propriétaire (#placer-appart)
-    { pc: { x: 63, y: 62, w: 32 },   rig: { x: 17, y: 79.5, w: 24 }, shelf: { w: 6, h: 4.6 } },
-    { pc: { x: 61, y: 63, w: 38 },   rig: { x: 15.5, y: 82, w: 27 }, shelf: { w: 6, h: 4.6 } },
-    { pc: { x: 59, y: 63.5, w: 40 }, rig: { x: 15, y: 82, w: 29 },   shelf: { w: 6, h: 4.6 } }
-  ];
+  // Les 6 chambres (3 niveaux × garçon / fille) ont EXACTEMENT le même angle et le même bureau : une seule disposition pour toutes.
+  // x, y = bas de l'objet en % de l'image (posé sur le plateau du bureau à 66,5 %) ; slots = places sur les 3 étagères. Réglable au back-office.
+  const shelfRow = ys => ys.flatMap(y => [13, 24, 35, 46].map(x => [x, y]));
+  const ONE_ROOM = { pc: { x: 20, y: 66.5, w: 34 }, rig: { x: 47.5, y: 66.5, w: 16 }, light: { x: 61, y: 72, w: 12 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
+  const ROOM_LAYOUT = [0, 1, 2].map(() => JSON.parse(JSON.stringify(ONE_ROOM)));
 
   // ---------------------------------------------------------------- filet de sécurité (réaliste)
   // Payer en lingots : 1 lingot vaut 20 billets quand on complète un achat ; quelques raccourcis payables en lingots
