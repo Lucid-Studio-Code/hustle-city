@@ -1071,6 +1071,9 @@
   }
   setInterval(purgeOld, 60000);
   const chatUnread = () => Object.values(chats()).reduce((a, c) => a + c.unread, 0);
+  // dans un message, un gain (+35 % d'abonnés) ou une perte (−18 de moral) passe à la ligne, en vert ou en rouge
+  const GAIN_RX = /(^|\s)([+−]\s?\d[\d,.]*(?:\s\d{3})*(?:\s?%|\s?k)?(?:\s?<i class="cur"><\/i>)?(?:\s(?:d['’]abonnés|abonnés|de moral|lingots?|d['’]XP|XP|de pourboires|fans))?)/g;
+  const gainLines = t => t.replace(GAIN_RX, (_, sp, g) => `<br><b class="${g[0] === '+' ? 'msg-up' : 'msg-down'}">${g.trim()}</b> `);
   function bubbleHtml(c, m, i) {
     if (m.from === 'me') return `<div class="bub out">${m.txt}</div>`;
     let extra = '';
@@ -1086,7 +1089,7 @@
     }
     // les anciens messages (avant la v22) ne disaient pas « la carte » : on corrige à l'affichage
     const it = m.item && G.item(m.item), txt = it ? m.txt.replace(`« ${it.name} »`, G.what(it)) : m.txt;
-    return `<div class="bub in">${txt}</div>${extra}${acts}`;
+    return `<div class="bub in">${gainLines(txt)}</div>${extra}${acts}`;
   }
   let phoneApp = 'home';
   const phoneOpen = () => !!$('#phone-layer.on');
@@ -1204,8 +1207,7 @@
           <div class="cd-say"><b>${ico('ic-videur', '🚪')} Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
           <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
           ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club} + ${short(e)}</span></button>` : ''}</div></div>
-        <p class="hint-line">Une soirée dure ${C.nightMin} min : danse, bar, DJ, canapés, carré VIP… chaque coin une fois par soirée.</p>
-        <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
+        ${habitsBody('club')}`;
     }
     const c = G.clubIn() ? s.club : { end: Date.now() + 1, done: {}, dj: false }, left = c.end - Date.now();
     const spots = C.spots.map(p => { const done = c.done[p.id];
