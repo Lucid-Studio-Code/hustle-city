@@ -10,6 +10,7 @@
   const NICHES = [...new Set(A.crew.map(c => c.niche))];
   const prof = id => id === 'me' ? { id: 'me', name: st().name || 'Toi', niche: (st().agence || {}).meNiche || 'Lifestyle', cha: 3, reg: 3, drama: 2, me: true } : A.crew.find(c => c.id === id);
   const fmtSubs = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + ' k' : String(Math.round(n));
+  const actIc = o => U.has('act-' + o.id) ? `<img class="act-ic" src="${U.src('act-' + o.id)}" alt="">` : o.icon;
   const face = (c, cls = '') => c.me ? `<span class="cr-face ${cls}">${U.pic(st().skin ? `skin-${st().skin}-bust` : 'guide', '🙂')}</span>` : U.has('cr-' + c.id) ? `<span class="pic cr-face ${cls}"><img src="${U.src('cr-' + c.id)}" alt=""></span>` : `<span class="cr-face emo ${cls}">${c.name[0]}</span>`;
 
   function ag() {
@@ -205,7 +206,7 @@
           <div class="ag-mood"><span>${p.me ? 'Énergie' : 'Moral'}</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div></div>
           <div class="ag-earn"><small>Pour toi</small><b>${U.short(perHour(m))}/h</b></div></div>
         ${(() => { const n = A.gear.filter(g => hasG(m, g)).length, open = gearOpen.has(m.id);
-          return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">🛍️ ${p.me ? 'Tes affaires' : 'Ses affaires'} · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
+          return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">${U.ic('shop')} ${p.me ? 'Tes affaires' : 'Ses affaires'} · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
           ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
             const fx = [g.rev ? `<span class="gx rev">💰 +${Math.round(g.rev * k * 100)} % de revenus<small>≈ +${U.short(Math.max(1, Math.round(perHour(m) / (1 + gearK(m, 'rev')) * g.rev * k)))}/h pour toi</small></span>` : '',
               g.subs ? `<span class="gx subs">👥 +${Math.round(g.subs * k * 100)} % d'abonnés<small>ils montent plus vite</small></span>` : '',
@@ -214,9 +215,10 @@
               <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
               : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
-        ${p.me ? '' : `<div class="ag-share"><span>Ta part</span>${A.shares.map(v => `<button class="btn xs ${m.pct === v ? 'yellow' : 'blue'}" data-act="agShare" data-id="${m.id}" data-v="${v}">${Math.round(v * 100)} %</button>`).join('')}<button class="btn xs purple" data-act="agGift" data-id="${m.id}">🎁 ${U.short(50 + s.lvl * 10)}</button></div>`}
-        ${m.act ? `<div class="ag-busy">${x.icon} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
-          : `<div class="ag-acts">${A.acts.map(o => `<button class="ag-act" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${o.lvl && s.lvl < o.lvl ? 'disabled' : ''}><span>${o.icon}</span><b>${o.name}</b><small>${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}</small></button>`).join('')}</div>`}
+        ${p.me ? '' : `<div class="ag-share"><span>Ta part</span>${A.shares.map(v => `<button class="btn xs ${m.pct === v ? 'yellow' : 'blue'}" data-act="agShare" data-id="${m.id}" data-v="${v}">${Math.round(v * 100)} %</button>`).join('')}<button class="btn xs purple" data-act="agGift" data-id="${m.id}">${U.ic('gift')} ${U.short(50 + s.lvl * 10)}</button></div>`}
+        ${m.act ? `<div class="ag-busy">${actIc(x)} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
+          : `<div class="ag-acts">${A.acts.map(o => { const noDuo = o.duo && !p.me && !ag().crew.some(c => c.id !== m.id && !c.act);
+            return `<button class="ag-act ${noDuo ? 'need' : ''}" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${(o.lvl && s.lvl < o.lvl) || noDuo ? 'disabled' : ''}><span>${actIc(o)}</span><b>${o.name}</b><small>${noDuo ? '2 créatrices libres' : `${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}`}</small></button>`; }).join('')}</div>`}
       </div>`;
     }).join('');
     const cand = a.crew.length < slotsN() ? `<h3 class="sec">Elles cherchent une agence</h3><div class="ag-cands">${candidates().map(c => `<div class="card ag-cand">${face(c, 'big')}<b>${c.name}</b><small>${c.niche} · ${fmtSubs(c.subs)} abonnés</small><p>${c.desc}</p>

@@ -29,3 +29,6 @@
 
 ## À refaire après le lot icônes
 - act-live : le téléphone avait l'écran ET les objectifs sur la même face (+ texte REC). Nouveau prompt : vu de dos, seulement les objectifs et un point rouge → tools/lot-redo-2.js (y ajouter les autres ratés du lot icônes avant de le lancer).
+
+## Mini lot à refaire n°3 (tools/lot-redo-3.js)
+- gear-spa : la 1re version faisait « soirée romantique » (bougies, lingerie, champagne). Nouveau prompt : peignoir blanc, serviettes, galets, eucalyptus, tons vert menthe.
