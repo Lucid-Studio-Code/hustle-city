@@ -156,7 +156,8 @@
       }
     };
     zone.onpointerdown = e => { down = true; zone.setPointerCapture(e.pointerId); scratchAt(e); };
-    zone.onpointermove = e => { if (down) scratchAt(e); };
+    let lastSnd = 0;
+    zone.onpointermove = e => { if (down) { scratchAt(e); if (Date.now() - lastSnd > 90) { lastSnd = Date.now(); U.sfx.scratch(); } } };
     zone.onpointerup = zone.onpointercancel = () => { down = false; last = null; };
   }
   function buy(id) {

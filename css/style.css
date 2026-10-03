@@ -2674,3 +2674,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .set-sw { flex: 0 0 auto; width: 44px; height: 26px; border-radius: 999px; background: #cfc3b3; position: relative; transition: background .2s; } #app .set-sw > i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left .2s; }
 #app .set-sw.on { background: #1f9d55; } #app .set-sw.on > i { left: 21px; }
 body.calm #app *, body.calm #app *::before { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
+#app .ag-niches { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+#app .ag-niche { display: flex; align-items: center; gap: 8px; padding: 6px 10px; min-height: 52px; border: 3px solid #2a1a10; border-radius: 14px; background: linear-gradient(#fff, #f3e8ff); box-shadow: 0 3px 0 #2a1a10; text-align: left; }
+#app .ag-niche img { width: 40px; height: 40px; object-fit: contain; } #app .ag-niche b { font: 400 15px var(--title); color: #2a1a10; }
+#app .ag-niches + .hint-line { margin-top: 4px; }

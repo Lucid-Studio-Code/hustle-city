@@ -8,6 +8,7 @@
   // personnage féminin : pas d'agence, c'est TA page (id « me »), la plateforme garde 20 %
   const solo = () => ((D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g === 'f');
   const NICHES = [...new Set(A.crew.map(c => c.niche))];
+  const nslug = n => n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '').replace('modeluxe', 'mode');
   const prof = id => id === 'me' ? { id: 'me', name: st().name || 'Toi', niche: (st().agence || {}).meNiche || 'Lifestyle', cha: 3, reg: 3, drama: 2, me: true } : A.crew.find(c => c.id === id);
   const fmtSubs = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + ' k' : String(Math.round(n));
   const actIc = o => U.has('act-' + o.id) ? `<img class="act-ic" src="${U.src('act-' + o.id)}" alt="">` : o.icon;
@@ -64,7 +65,7 @@
     const tips = x.cash ? Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)) : 0, L = [];
     if (subs >= 1) L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo && m.id !== 'me') L.push('<span class="g-up">pour les deux</span>');
     if (tips) L.push(`<span class="g-up">+${U.short(tips)} pourboires</span>`);
-    if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">moral ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
+    if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">${m.id === 'me' ? 'énergie' : 'moral'} ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
     return `<em class="ag-gain">${L.join('')}</em>`;
   }
   function finishAct(m) {
@@ -214,7 +215,7 @@
     if (!unlocked()) return `<div class="ag-lock">${'📸'}<b>PrivéFans</b><p>Deviens manager de créatrices de contenu : tu les recrutes, tu organises leur semaine, et tu touches ta part de leurs abonnements.</p><div class="explain center">🔒 Débloqué au niveau ${A.lvl}</div></div>`;
     sim();
     if (solo() && !ag().crew.length) return `<div class="ag-lock">📸<b>Ta page PrivéFans</b><p>Lance ta page de créatrice : tes fans s'abonnent, tu postes du contenu, et tu gardes tout… sauf les 20 % de la plateforme.</p></div>
-      <h3 class="sec">Choisis ta spécialité</h3><div class="ag-niches">${NICHES.map(n => `<button class="btn blue" data-act="agStart" data-n="${n}">${n}</button>`).join('')}</div>
+      <h3 class="sec">Choisis ta spécialité</h3><div class="ag-niches">${NICHES.map(n => `<button class="ag-niche" data-act="agStart" data-n="${n}">${U.has('niche-' + nslug(n)) ? `<img src="${U.src('niche-' + nslug(n))}" alt="">` : ''}<b>${n}</b></button>`).join('')}</div>
       <p class="hint-line">Ta spécialité compte : certaines tenues et certains objets rapportent deux fois plus quand ils collent à ta niche.</p>`;
     const a = ag(), pend = a.crew.reduce((x, m) => x + (m.pend || 0), 0), hourly = a.crew.reduce((x, m) => x + perHour(m), 0);
     const offer = a.offer && prof(a.offer.id);
@@ -236,7 +237,7 @@
           ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
             const fx = [g.rev ? `<span class="gx rev">💰 +${Math.round(g.rev * k * 100)} % de revenus<small>≈ +${U.short(Math.max(1, Math.round(perHour(m) / (1 + gearK(m, 'rev')) * g.rev * k)))}/h pour toi</small></span>` : '',
               g.subs ? `<span class="gx subs">👥 +${Math.round(g.subs * k * 100)} % d'abonnés<small>ils montent plus vite</small></span>` : '',
-              g.mood ? `<span class="gx mood">😊 +${g.mood * k} de moral<small>chaque heure, toute seule</small></span>` : ''].join('');
+              g.mood ? `<span class="gx mood">😊 +${g.mood * k} ${p.me ? 'd\'énergie' : 'de moral'}<small>chaque heure, toute seule</small></span>` : ''].join('');
             return `<div class="ag-g ${own ? 'own' : ''} ${fit ? 'fit' : ''}">${fit ? `<span class="gfit">${p.me ? 'Ta' : 'Sa'} spécialité : effet ×2</span>` : ''}<span class="gpic">${U.has('gear-' + g.id) ? `<img src="${U.src('gear-' + g.id)}" alt="">` : g.icon}</span>
               <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)

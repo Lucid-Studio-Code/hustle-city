@@ -44,6 +44,7 @@
   function fitMachine() { const m = document.getElementById('modal'), r = m && m.querySelector('.real-slot'); if (!r || !m.classList.contains('slot-full')) return; r.style.width = Math.min(m.clientWidth - 8, (m.clientHeight - 16) * .524) + 'px'; }
   function sizeReels() { fitMachine(); document.querySelectorAll('#modal .rs-screen .reel').forEach(r => { const h = r.clientHeight; r.querySelectorAll('.sym').forEach(x => { x.style.height = h + 'px'; }); }); }
   function spinAnim(res) {
+    U.sfx.spin();
     const S = D.SLOT.symbols;
     res.reels.forEach((sym, i) => {
       const reel = document.getElementById('reel-' + i); if (!reel) return;
@@ -57,7 +58,7 @@
       strip.style.transform = `translateY(-${n * rh}px)`;
     });
     setTimeout(() => {
-      spinning = false; lastSpin = res;
+      spinning = false; lastSpin = res; if (res.win) U.sfx.win();
       if (res.mult >= 20) U.rain('bill', 36); else if (res.win) U.rain('confetti', 12);
       if (res.win) U.floatTxt(`+${U.eur(res.win)}`);
       if (tab === 'slot') { U.setBody(slotBody()); sizeReels(); }
@@ -91,6 +92,7 @@
       <p class="muted center" style="margin-top:6px">Numéro plein ×36, douzaine ×3, rouge/noir, pair/impair, manque/passe ×2. Le zéro fait perdre toutes les chances simples : c'est l'avantage du casino (2,7 %).</p>`;
   }
   function rollAnim(res) {
+    U.sfx.roll();
     const o = D.ROULETTE.order, idx = o.indexOf(res.n), seg = 360 / o.length;
     const target = 360 - (idx + .5) * seg;
     const cur = ((wheelTurn % 360) + 360) % 360;
@@ -98,6 +100,7 @@
     const w = document.getElementById('wheel'); if (w) w.style.transform = `rotate(${wheelTurn}deg)`;
     setTimeout(() => {
       rolling = false; lastRoll = res;
+      if (res.win) U.sfx.win();
       if (res.win) { U.floatTxt(`+${U.eur(res.win)}`); U.rain(res.win >= res.total * 10 ? 'bill' : 'confetti', res.win >= res.total * 10 ? 30 : 12); }
       if (tab === 'roulette') U.setBody(rouletteBody());
       U.refresh();

@@ -86,14 +86,8 @@
       });
     } catch (e) {}
   }
-  const sfx = {
-    tap: () => beep([660], .05, 'triangle', .05),
-    coin: () => beep([988, 1319], .08, 'square', .035),
-    win: () => beep([523, 659, 784, 1047], .08, 'triangle', .07),
-    level: () => beep([523, 659, 784, 1047, 1319], .12, 'square', .04),
-    err: () => beep([200, 150], .1, 'sawtooth', .04),
-    goal: () => beep([784, 988, 1175, 1568], .09, 'square', .045)
-  };
+  // les sons viennent de js/audio.js (doux, fabriqués en direct) ; on garde les mêmes noms partout
+  const sfx = new Proxy({}, { get: (_, k) => () => { try { window.AUDIO && window.AUDIO.sfx[k] && window.AUDIO.sfx[k](); } catch (e) {} } });
 
   // ------------------------------------------------------------ message de Momo, effets
   // même carte que Mama Kana : la tête du perso + le texte, au-dessus de la barre du bas ; un appui mène à l'action liée
@@ -1097,7 +1091,7 @@
     const b = $('#phone-btn'); if (!b) return;
     const n = unseen(), bd = b.querySelector('.badge');
     bd.textContent = n > 9 ? '9+' : n; bd.classList.toggle('hidden', !n);
-    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); beep([1175, 1568], .07, 'sine', .05); }
+    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); sfx.notif(); }
   }
   // petite notification qui glisse en haut de l'écran, comme sur un vrai téléphone
   function banner(n) {
@@ -1800,6 +1794,7 @@
     el.querySelector('.pk-stack').addEventListener('click', e => {
       e.stopPropagation();
       if (busy || !el.classList.contains('dealt')) return;
+      sfx.flip();
       const c = cardsEl[k]; if (!c) return;
       busy = true; setTimeout(() => { busy = false; }, 350);
       if (!c.classList.contains('flip')) {
@@ -1871,7 +1866,7 @@
   function settingsBody() {
     const s = st();
     return `<div class="tip-carousel" data-act="tipNext"><div class="tc-txt" id="tc-txt">${D.TIPS[tipI % D.TIPS.length]}</div><div class="tc-dots">${D.TIPS.slice(0, 8).map((_, k) => `<i class="${k === tipI % 8 ? 'on' : ''}"></i>`).join('')}</div></div>
-      <h3 class="sec">Son</h3><div class="card set-card">${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
+      <h3 class="sec">Son</h3><div class="card set-card">${setRow('setToggle" data-k="music', 'Musique', s.music !== false, 'Une petite boucle lo-fi')}${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
       <h3 class="sec">Affichage</h3><div class="card set-card">${setRow('setToggle" data-k="calm', 'Animations réduites', !!s.calm, 'Moins de confettis et d\'effets')}<div class="set-row"><span><b>Langue</b></span><em>Français</em></div></div>
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
@@ -1986,7 +1981,7 @@
     hvSell(el) { const id = el.dataset.id, q = +el.dataset.q, h = st().crypto.hold[id] || 0; if (!(h > 0)) return toast('Plus rien à vendre.', true);
       const r = G.sellCrypto(id, Math.min(1, q / h)); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); el.disabled = true; el.innerHTML = `Vendu · +${short(r.net)}`; refresh(); },
     coinSelPc(el) { const id = el.dataset.id; closeModal(); setTimeout(() => openCrypto(id), 60); },
-    mineHarvest() { const r = G.mineHarvest(); if (r.err) return toast(r.err, true); closeModal(); setTimeout(() => { showHarvest(r); refresh(); }, 80); },
+    mineHarvest() { const r = G.mineHarvest(); if (r.err) return toast(r.err, true); sfx.harvest(); closeModal(); setTimeout(() => { showHarvest(r); refresh(); }, 80); },
     roomHelp: () => openRoomHelp(),
     wSellCoin(el) { cryptoSel = el.dataset.id; sellCoin(1); },
     collectionInfo: () => openWallet(),
@@ -2010,7 +2005,7 @@
     stockBuy(el) { const v = el.dataset.v === 'all' ? st().cash : +el.dataset.v; const r = G.stockBuy(el.dataset.id, v); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     stockSell(el) { const c = D.STOCKS.find(x => x.id === el.dataset.id), r = G.stockSell(el.dataset.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); toast(r.profit >= 0 ? `${c.name} vendue : <b>+${eur(r.profit)} de gagné</b>.` : `${c.name} vendue : ${eur(r.profit)} de perdu.`, r.profit < 0); refresh(); },
     lookBuy(el) { const r = G.lookBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast('Ta ville change de look !'); renderCity(); refresh(); },
-    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.coin(); flyTo(el, '#pill-cash', 4); refresh(); },
+    itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.buy(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),
     wallet: () => openWallet(),
@@ -2040,7 +2035,7 @@
     claimDaily(el) { const r = G.claimDaily(); if (r.err) return toast(r.err, true); sfx.win(); rain('bill', 24); flyTo(el, '#pill-cash', 8); toast(`Jour ${r.day} : +${eur(r.r.cash)} et ${r.r.lingots} lingots${r.r.boosters ? ` et ${r.r.boosters} booster${r.r.boosters > 1 ? 's' : ''}` : ''} !`); refresh(); },
     boosters: () => openBoosters('open'),
     collection: () => openBoosters('col'),
-    boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); packOpening(r.cards); renderHud(); },
+    boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); sfx.tear(); packOpening(r.cards); renderHud(); },
     boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     packDone() { const el = $('#pack'); el.className = ''; el.innerHTML = ''; refresh(); nextPending(); },
     goDefis: () => openRewards('defis'),
@@ -2058,7 +2053,7 @@
     eventGoRoyal() { closeModal(); questGo('balto'); },
     scratchGo() { questGo('scratch'); },
     soundToggle() { st().sound = !st().sound; G.save(); setBody(settingsBody()); },
-    setToggle(el) { const k = el.dataset.k, s = st(); if (k === 'vibrate') s.vibrate = s.vibrate === false; else s[k] = !s[k]; document.body.classList.toggle('calm', !!s.calm); G.save(); setBody(settingsBody()); },
+    setToggle(el) { const k = el.dataset.k, s = st(); if (k === 'vibrate' || k === 'music') s[k] = s[k] === false; else s[k] = !s[k]; if (k === 'music' && window.AUDIO) AUDIO.music(s.music !== false); document.body.classList.toggle('calm', !!s.calm); G.save(); setBody(settingsBody()); },
     tipNext() { nextTip(); },
     leaveTest() { location.replace(location.href.split('#')[0]); setTimeout(() => location.reload(), 50); },
     setName() { const n = prompt('Ton nouveau pseudo :', st().name || ''); if (n && n.trim()) { st().name = n.trim().slice(0, 16); G.save(); renderHud(); setBody(settingsBody()); toast('Pseudo changé !'); } },
