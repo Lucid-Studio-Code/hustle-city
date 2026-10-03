@@ -73,13 +73,20 @@
     crackle(t, BEAT * 4);   // grésillement de vinyle
   }
   function tick() {
-    if (!musicOn || !ctx) return;
+    if (st().music === false && musicOn) return music(false);
+    if (!musicOn || !ctx || !musicBus) return;
     while (nextBar < ctx.currentTime + 1.2) { playBar(nextBar, bar++); nextBar += BEAT * 4; }
   }
   function music(want) {
     musicOn = !!want && st().music !== false;
-    if (!musicOn) { clearInterval(sched); sched = null; if (musicBus) musicBus.gain.setTargetAtTime(0, ctx.currentTime, .3); return; }
+    if (!musicOn) {
+      // arrêt net : on débranche la sortie de la musique (les notes déjà programmées tombent dans le vide), une nouvelle sera créée au redémarrage
+      clearInterval(sched); sched = null;
+      if (musicBus) { const old = musicBus; old.gain.setTargetAtTime(0, ctx.currentTime, .05); setTimeout(() => { try { old.disconnect(); } catch (e) {} }, 300); musicBus = null; }
+      return;
+    }
     try { ac(); } catch (e) { return; }
+    if (!musicBus) { musicBus = ctx.createGain(); musicBus.gain.value = 0; const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; musicBus.connect(lp); lp.connect(master); nextBar = ctx.currentTime + .1; }
     musicBus.gain.setTargetAtTime(.18, ctx.currentTime, .5);
     nextBar = Math.max(nextBar, ctx.currentTime + .1);
     if (!sched) sched = setInterval(tick, 300);
