@@ -2694,3 +2694,9 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #start .name-tag { margin-top: -4px; text-align: center; font: 800 11px var(--text); color: #e6dcff; }
 #app .pf-tag { margin-left: 6px; font: 800 13px var(--text); color: #8a7560; }
 #app #start:not(.welcome) #st-go { width: 100%; padding-left: 10px; padding-right: 10px; animation: none; }
+/* bâtiment verrouillé : « 🔒 Niveau 5 » dans une étiquette sombre bien lisible, sous le nom, centrée */
+#app .bld.locked .plaque { flex-wrap: wrap !important; justify-content: center; }
+#app .bld.locked .plaque small { flex: 0 0 auto; position: static !important; transform: none !important; display: inline-flex !important; align-items: center; justify-content: center; gap: 3px;
+  margin: 2px auto 0 !important; padding: 2px 8px 2px 5px; border-radius: 8px; background: rgba(42,26,16,.82); color: #ffe066 !important; -webkit-text-stroke: 0 !important; font: 900 10.5px/1.2 var(--text); white-space: nowrap; }
+#app .bld.locked .plaque small .ic { width: 13px; height: 13px; }
+#app .bld.locked .plaque > b { flex: 0 0 100%; text-align: center; }

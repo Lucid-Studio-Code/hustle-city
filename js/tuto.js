@@ -128,7 +128,8 @@
   }
   function place() {
     const step = STEPS[idx]; if (!step) return;
-    const app = $('#app').getBoundingClientRect();
+    // repère = l'intérieur de #app (sans sa bordure de 5 px, sinon tous les cadres étaient décalés)
+    const A = $('#app'), ar0 = A.getBoundingClientRect(), app = { left: ar0.left + A.clientLeft, top: ar0.top + A.clientTop, width: A.clientWidth, height: A.clientHeight, right: ar0.left + A.clientLeft + A.clientWidth, bottom: ar0.top + A.clientTop + A.clientHeight };
     const t = step.target && [...document.querySelectorAll(step.target)].find(e => e.offsetParent !== null);
     if (!t) { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; el.say.classList.remove('low'); return; }
     // la cible est dans une fenêtre qui défile : on l'amène à l'écran une fois par étape

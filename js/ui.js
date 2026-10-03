@@ -102,11 +102,13 @@
     t.classList.remove('on'); void t.offsetWidth; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3600);
   }
   function floatTxt(txt, x, y, neg) {
-    const r = $('#app').getBoundingClientRect(), el = document.createElement('div');
+    const r = appBox(), el = document.createElement('div');
     el.className = 'float' + (neg ? ' neg' : ''); el.innerHTML = txt;
     el.style.left = ((x ?? r.left + r.width / 2) - r.left) + 'px'; el.style.top = ((y ?? r.top + r.height * .45) - r.top) + 'px';
     $('#fx').appendChild(el); setTimeout(() => el.remove(), 1400);
   }
+  // l'intérieur de #app (sans sa bordure) : le repère des éléments posés en absolu dedans
+  const appBox = () => { const A = $('#app'), r = A.getBoundingClientRect(); return { left: r.left + A.clientLeft, top: r.top + A.clientTop, width: A.clientWidth, height: A.clientHeight, right: r.left + A.clientLeft + A.clientWidth, bottom: r.top + A.clientTop + A.clientHeight }; };
   function rain(kind = 'bill', n = 26) {
     if (st().calm) n = Math.min(n, 6); if (st().vibrate !== false && n > 10 && navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
     const fx = $('#fx'), cols = ['#ffd23f', '#3ddc84', '#ff3cac', '#4fb3f0', '#9b5de5'];
@@ -122,7 +124,7 @@
   // billets qui s'envolent vers la pilule de cash
   function flyTo(fromEl, toSel, n = 6, icon = 'cash') {
     const to = $(toSel); if (!fromEl || !to) return;
-    const r = $('#app').getBoundingClientRect(), a = fromEl.getBoundingClientRect(), b = to.getBoundingClientRect();
+    const r = appBox(), a = fromEl.getBoundingClientRect(), b = to.getBoundingClientRect();
     for (let i = 0; i < n; i++) {
       const el = document.createElement('div'); el.className = 'flybill'; el.innerHTML = ic(icon);
       const x0 = a.left + a.width * (.3 + Math.random() * .4) - r.left - 18, y0 = a.top + a.height * (.3 + Math.random() * .4) - r.top - 18;
@@ -2276,13 +2278,13 @@
     if (modalRefresh && !document.activeElement?.matches('input')) modalRefresh();
     if (Date.now() - lastSave > 5000) { G.save(); lastSave = Date.now(); }
   }
-  function hudBottom() { const h = $('#hud'); if (h) $('#app').style.setProperty('--hud-b', (h.getBoundingClientRect().bottom - $('#app').getBoundingClientRect().top) + 'px'); }
+  function hudBottom() { const h = $('#hud'); if (h) $('#app').style.setProperty('--hud-b', (h.getBoundingClientRect().bottom - appBox().top) + 'px'); }
   window.addEventListener('resize', hudBottom);
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
     cleanChats(); purgeOld();
     document.body.classList.toggle('calm', !!st().calm);
-    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST <button data-act="leaveTest">Quitter</button></div>');
+    if (G.TEST || /^#neuf/.test(location.hash)) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
     { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
