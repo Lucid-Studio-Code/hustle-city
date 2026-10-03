@@ -40,3 +40,4 @@
 - + bonus-cash / lingots / xp / ticket / freebet / airdrop : illustrations pleine carte (4:3) des cartes Bonus des boosters, branchées (icône en attendant). Pas de détourage (NOCUT).
 - + ticket-flash : ticket à gratter (remplace le ticket de cinéma « ADMIT ONE »), déjà branché partout.
 - + ev-boost : fusée simple (l'ancienne portait un ticket, trop chargée).
+- + coin-slr (Nova) : refaite bien de face, sans épaisseur visible, comme les autres pièces.
