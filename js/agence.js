@@ -245,7 +245,7 @@
     // ta part et son moral : la phrase d'explication mise en image, petite part contre grosse part
     const how = `<div class="price-explain ag-how"><small class="pe-title">Ta part et son moral</small>
       <div class="ag-vs"><div class="vs-col"><b>Petite part</b><span class="g-down">▼ tu gagnes moins</span><span class="g-up">▲ son moral reste haut</span><span class="g-up">▲ elle gagne bien</span><span class="g-up">✓ elle reste chez toi</span></div>
-        <div class="vs-col"><b>Grosse part</b><span class="g-up">▲ tu gagnes plus</span><span class="g-down">▼ son moral baisse</span><span class="g-down">▼ elle gagne moins</span><span class="g-down">✗ une rivale peut te la piquer</span></div></div>
+        <div class="vs-col"><b>Grosse part</b><span class="g-up">▲ tu gagnes plus</span><span class="g-down">▼ son moral baisse</span><span class="g-down">▼ elle gagne moins</span><span class="g-down">✗ un rival peut te la piquer</span></div></div>
       <small class="pe-foot">Trouve le bon équilibre, et remonte son moral avec un cadeau ou du repos.</small></div>`;
     if (solo()) return head + crew + `<p class="hint-line">Plus tu bosses, plus ton <b>énergie</b> baisse : sans énergie, tu gagnes moins. Le repos, le spa et les bonnes nouvelles la font remonter.</p>`;
     return head + off + (a.crew.length ? crew : '<div class="explain center">Ton agence est vide : recrute ta première créatrice.</div>') + cand + grow + how;
