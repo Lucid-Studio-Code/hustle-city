@@ -222,9 +222,9 @@
       </div>`;
     }).join('');
     const cand = a.crew.length < slotsN() ? `<h3 class="sec">Elles cherchent une agence</h3><div class="ag-cands">${candidates().map(c => `<div class="card ag-cand">${face(c, 'big')}<b>${c.name}</b><small>${c.niche} · ${fmtSubs(c.subs)} abonnés</small><p>${c.desc}</p>
-        <div class="ag-stats"><span title="Charisme">✨${'●'.repeat(c.cha)}</span><span title="Régularité">📅${'●'.repeat(c.reg)}</span><span title="Drama">🎭${'●'.repeat(c.drama)}</span></div>
+        <div class="ag-stats">${[['Charme', c.cha, 'abonnés qui montent vite'], ['Sérieux', c.reg, 'revenu régulier'], ['Drama', c.drama, 'buzz et bad buzz']].map(([k, v, t]) => `<div class="st-row"><em>${k}</em><span class="st-bar">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</span><small>${t}</small></div>`).join('')}</div>
         <button class="btn green xs" data-act="agRecruit" data-id="${c.id}" ${s.cash >= recruitCost(c) ? '' : 'disabled'}>Recruter · ${U.short(recruitCost(c))}</button></div>`).join('')}</div>
-        <p class="hint-line">✨ Charisme : les abonnés montent plus vite. 📅 Régularité : revenu plus stable. 🎭 Drama : plus de bad buzz… et de buzz.</p>` : '';
+` : '';
     const nx = A.slots[a.slots + 1];
     const grow = nx ? `<div class="card ag-grow"><div class="grow"><b>Agrandir l'agence</b><small>Gérer ${nx.n} créatrices en même temps</small></div><button class="btn sm ${s.cash >= nx.cost ? 'green' : ''}" data-act="agSlots" ${s.cash >= nx.cost ? '' : 'disabled'}>${U.short(nx.cost)}</button></div>` : '';
     const how = `<p class="hint-line">Plus <b>ta part</b> est grosse, plus tu gagnes… mais plus leur <b>moral</b> baisse. Sans moral, elles gagnent moins, et une agence rivale peut te les piquer.</p>`;

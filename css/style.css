@@ -2449,3 +2449,10 @@ h3.sec { margin: 18px 6px 10px; }
 #tab-lock .tl-box { max-width: 340px; padding: 22px 20px; border: 3px solid #2a1a10; border-radius: 20px; background: #fff8ec; text-align: center; box-shadow: 0 6px 0 #2a1a10; }
 #tab-lock b { display: block; font: 400 22px var(--title); color: #2a1a10; margin-bottom: 8px; }
 #tab-lock p { font: 700 14px/1.4 var(--text); color: #5a4a3a; margin: 0 0 14px; }
+#app .ag-cand .ag-stats { display: grid; gap: 3px; margin: 6px 0 8px; color: #2a1a10; }
+#app .ag-stats .st-row { display: grid; grid-template-columns: 62px auto 1fr; align-items: center; gap: 6px; }
+#app .ag-stats .st-row em { font: 900 11.5px var(--text); font-style: normal; }
+#app .ag-stats .st-bar { display: flex; gap: 2px; }
+#app .ag-stats .st-bar i { width: 12px; height: 8px; border-radius: 3px; background: #ead9c6; border: 1px solid #c9b29a; }
+#app .ag-stats .st-bar i.on { background: #ff4f8b; border-color: #c2185b; }
+#app .ag-stats .st-row small { font: 700 10.5px var(--text); color: #8a7560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
