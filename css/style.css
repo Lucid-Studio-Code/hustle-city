@@ -2493,3 +2493,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-act .act-go { min-width: 64px; padding: 6px 10px; font-size: 13px; }
 #app .ag-act .act-lock { display: grid; place-items: center; width: 64px; } #app .ag-act .act-lock .ic { width: 22px; height: 22px; }
 #app .ag-act.need { opacity: 1; filter: none; background: #f4eee6; } #app .ag-act.need > span, #app .ag-act.need > b { opacity: .5; filter: grayscale(.8); }
+#app .ag-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0 4px; }
+#app .ag-vs .vs-col { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 2px solid #2a1a10; border-radius: 12px; background: #fff; text-align: left; }
+#app .ag-vs .vs-col b { font: 400 16px var(--title); color: #2a1a10; text-align: center; margin-bottom: 2px; }
+#app .ag-vs .vs-col span { font: 800 11.5px/1.25 var(--text); } #app .ag-vs .g-up { color: #1f9d55; } #app .ag-vs .g-down { color: #c0392b; }
