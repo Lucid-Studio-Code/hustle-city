@@ -1844,7 +1844,7 @@
   // profil : le perso, les chiffres qui comptent, tes plus belles pièces, tes trophées, et les styles (payants)
   const skinsOwned = () => { const s = st(); s.skinsOwned = s.skinsOwned || [s.skin]; if (s.skin && !s.skinsOwned.includes(s.skin)) s.skinsOwned.push(s.skin); return s.skinsOwned; };
   function profileBody() {
-    const s = st(), S = s.stats, xpPct = Math.min(100, Math.round(s.xp / G.xpNeed() * 100));
+    const s = st(), S = s.stats, xpPct = isFinite(G.xpNeed()) ? Math.min(100, Math.round(s.xp / G.xpNeed() * 100)) : 100;
     const tile = (ico, v, l) => `<div class="pf-tile">${ico}<b>${v}</b><small>${l}</small></div>`;
     const cards = D.ITEMS.filter(i => i.cat === 'card'), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
     const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
@@ -1854,8 +1854,9 @@
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
         <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span>
-          <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${s.xp} / ${G.xpNeed()} XP</small>
+          <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
+      ${photoLooks()}
       <h3 class="sec">Tes chiffres</h3>
       <div class="pf-tiles">${tile(ic('ticket'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(ico('tip-market', '🏷️'), S.itemProfit || 0, 'reventes gagnantes')}
         ${tile(ico('hab-club', '🪩'), S.clubNights || 0, 'soirées au Club')}${tile(ico('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('slot-seven', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
@@ -1864,7 +1865,6 @@
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
-      ${photoLooks()}
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
       <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ Gagné, +${x.a.lingots} lingots` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
