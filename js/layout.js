@@ -3,138 +3,49 @@ window.LAYOUT = {
  "buildings": {
   "casino": {
    "x": 59,
-   "y": 28,
-   "w": 30,
-   "flip": false
+   "y": 28
   },
   "appart": {
    "x": 23.5,
-   "y": 52,
-   "w": 27,
-   "flip": false
+   "y": 52
   },
   "shop": {
    "x": 45.5,
-   "y": 58.5,
-   "w": 23,
-   "flip": false
+   "y": 58.5
   },
   "balto": {
    "x": 77,
-   "y": 57.5,
-   "w": 28,
-   "flip": false
+   "y": 57.5
   },
   "club": {
    "x": 53,
-   "y": 46,
-   "w": 25,
-   "flip": false
+   "y": 46
   },
   "kiosque": {
    "x": 61,
-   "y": 66.5,
-   "w": 20,
-   "flip": false
+   "y": 66.5
   },
   "six": {
    "x": 21,
-   "y": 66.5,
-   "w": 16,
-   "flip": false
+   "y": 66.5
   },
   "bus": {
    "x": 68.5,
-   "y": 76,
-   "w": 22,
-   "flip": false
+   "y": 76
   }
  },
- "decos": {
-  "dc-posts": {
-   "x": 44,
-   "y": 35,
-   "w": 9,
-   "flip": false
-  },
-  "dc-flags": {
-   "x": 30,
-   "y": 72,
-   "w": 8,
-   "flip": false
-  },
-  "dc-ball": {
-   "x": 76,
-   "y": 24.5,
-   "w": 8,
-   "flip": false
-  },
-  "dc-trophy": {
-   "x": 71.5,
-   "y": 61.5,
-   "w": 8,
-   "flip": false
-  },
-  "dc-bench": {
-   "x": 72.5,
-   "y": 65.5,
-   "w": 7,
-   "flip": false
-  },
-  "dc-lamp": {
-   "x": 40.5,
-   "y": 46.5,
-   "w": 10.5,
-   "flip": false
-  },
-  "dc-palm": {
-   "x": 92,
-   "y": 48,
-   "w": 7,
-   "flip": false
-  },
-  "dc-kebab": {
-   "x": 86.5,
-   "y": 87,
-   "w": 18.5,
-   "flip": true
-  },
-  "dc-arcade": {
-   "x": 83,
-   "y": 63,
-   "w": 9,
-   "flip": false
-  },
-  "dc-fountain": {
-   "x": 60,
-   "y": 50.5,
-   "w": 10,
-   "flip": false
-  },
-  "dc-car": {
-   "x": 14,
-   "y": 73,
-   "w": 21.5,
-   "flip": true
-  },
-  "dc-statue": {
-   "x": 86,
-   "y": 76,
-   "w": 12,
-   "flip": false
-  }
- },
+ "decos": {},
  "rooms": [
   {
    "pc": {
-    "x": 17.5,
+    "x": 20,
     "y": 66.5,
     "w": 30
    },
    "rig": {
-    "x": 40.5,
+    "x": 45.5,
     "y": 66.5,
-    "w": 14
+    "w": 15.5
    },
    "light": {
     "x": 83,
