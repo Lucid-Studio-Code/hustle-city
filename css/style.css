@@ -2497,3 +2497,9 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-vs .vs-col { display: flex; flex-direction: column; gap: 3px; padding: 8px; border: 2px solid #2a1a10; border-radius: 12px; background: #fff; text-align: left; }
 #app .ag-vs .vs-col b { font: 400 16px var(--title); color: #2a1a10; text-align: center; margin-bottom: 2px; }
 #app .ag-vs .vs-col span { font: 800 11.5px/1.25 var(--text); } #app .ag-vs .g-up { color: #1f9d55; } #app .ag-vs .g-down { color: #c0392b; }
+#app .ag-busy { display: flex; align-items: center; gap: 10px; }
+#app .ag-busy .bz-ic .act-ic { width: 38px; height: 38px; }
+#app .ag-busy .bz-txt { flex: 1; min-width: 0; } #app .ag-busy .bz-txt b { display: block; font: 900 13px var(--text); } #app .ag-busy .bz-txt small { font: 700 11.5px var(--text); color: #6a5a4a; }
+#app .ag-busy .bz-gain { display: flex; flex-wrap: wrap; gap: 0 8px; margin-top: 2px; font-style: normal; } #app .ag-busy .bz-gain span { font: 800 11px var(--text); }
+#app .ag-busy .bz-gain .g-up { color: #1f9d55; } #app .ag-busy .bz-gain .g-down { color: #c0392b; }
+#app .ag-busy .bz-rush { white-space: nowrap; } #app .ag-busy .bz-rush .ic { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; }

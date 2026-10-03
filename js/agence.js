@@ -51,6 +51,8 @@
     if (a.crew.length && t >= a.nextDil && !(a.dil && t < a.dil.until)) { a.nextDil = t + rnd(...A.dilEvery) * 60000; dilemma(); }
   }
   // ce que rapporte une activité, affiché sous son bouton (abonnés, pourboires, moral)
+  // finir une activité tout de suite : 1 lingot par demi-heure restante
+  const rushCost = ms => Math.max(1, Math.ceil(ms / 1800000));
   // la collab demande 2 places dans l'agence : avant l'agrandissement, elle est verrouillée (et rangée en bas)
   const lockedDuo = (m, o) => o.duo && m.id !== 'me' && slotsN() < 2;
   function actGain(m, x) {
@@ -68,7 +70,7 @@
     let tips = 0; if (x.cash) { tips = Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)); m.pend = (m.pend || 0) + tips; }
     if (duo) { duo.subs += duo.subs * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
     m.act = null; G.stat('agActs');
-    U.notify('agence', p.me ? `${x.icon} Tu as fini : ${x.name}` : `${x.icon} ${p.name} a fini : ${x.name}`, `${gain >= 1 ? `+${fmtSubs(gain)} abonnés` : 'Elle a bien récupéré'}${tips ? ` et +${U.short(tips)} de pourboires pour toi` : ''}.`);
+    U.notify('agence', p.me ? `Tu as fini : ${x.name}` : `${p.name} a fini : ${x.name}`, `${gain >= 1 ? `+${fmtSubs(gain)} abonnés` : 'Elle a bien récupéré'}${tips ? ` et +${U.short(tips)} de pourboires pour toi` : ''}.`);
   }
   function randomEvent() {
     const a = ag(), m = pick(a.crew), p = prof(m.id), r = Math.random(), d = p.drama / 5;
@@ -172,6 +174,12 @@
       if (n < 1) return U.toast('Rien à encaisser pour l\'instant.', true);
       a.crew.forEach(m => { m.pend = 0; }); G.addCash(n); G.addXp(Math.min(40, 5 + n / 20)); U.sfx.coin(); U.floatTxt(`+${U.eur(n)}`); refresh();
     },
+    agRush(el) {
+      const a = ag(), m = a.crew.find(x => x.id === el.dataset.id); if (!m || !m.act) return;
+      const host = m.act.guest ? a.crew.find(x => x.id === m.act.with) || m : m, n = rushCost(host.act.start + host.act.dur - now());
+      if (G.st.lingots < n) return U.toast('Pas assez de lingots.', true);
+      G.addLingots(-n); finishAct(host); U.sfx.coin(); refresh();
+    },
     agShare(el) { const m = ag().crew.find(x => x.id === el.dataset.id); m.pct = +el.dataset.v; refresh(); },
     agAct(el) {
       const a = ag(), m = a.crew.find(x => x.id === el.dataset.id), x = A.acts.find(o => o.id === el.dataset.k);
@@ -181,7 +189,7 @@
       if (x.duo && m.id !== 'me') { duo = a.crew.find(o => o.id !== m.id && !o.act); if (!duo) return U.toast('Il faut une autre créatrice libre dans ton agence.', true); }
       if (x.cost && !G.pay(x.cost)) return U.toast('Pas assez de cash.', true);
       m.act = { k: x.id, start: now(), dur: x.min * 60000, with: duo && duo.id }; if (duo) duo.act = { k: x.id, start: now(), dur: x.min * 60000, with: m.id, guest: true };
-      U.sfx.tap(); U.toast(m.id === 'me' ? `${x.icon} C'est parti : ${x.name.toLowerCase()} !` : `${x.icon} ${prof(m.id).name} : ${x.name}${duo ? ` avec ${prof(duo.id).name}` : ''}.`); refresh();
+      U.sfx.tap(); U.toast(m.id === 'me' ? `C'est parti : ${x.name.toLowerCase()} !` : `${prof(m.id).name} : ${x.name}${duo ? ` avec ${prof(duo.id).name}` : ''}.`); refresh();
     },
     agGift(el) { const m = ag().crew.find(x => x.id === el.dataset.id), c = 50 + st().lvl * 10; if (!G.pay(c)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 20); U.toast(`Un petit cadeau à ${prof(m.id).name} : +20 de moral.`); refresh(); },
     agKeep(el) {
@@ -229,7 +237,8 @@
               <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
               : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
-        ${m.act ? `<div class="ag-busy">${actIc(x)} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
+        ${m.act ? `<div class="ag-busy"><span class="bz-ic">${actIc(x)}</span><div class="bz-txt"><b>${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''}</b><small>fini dans <strong>${U.mmss(left)}</strong></small>${actGain(m, x).replace('ag-gain', 'ag-gain bz-gain')}</div>
+            <button class="btn xs gold bz-rush" data-act="agRush" data-id="${m.id}" ${s.lingots >= rushCost(left) ? '' : 'disabled'}>Finir ${U.ic('lingot')}${rushCost(left)}</button></div>`
           : `<div class="ag-acts">${A.acts.slice().sort((a1, a2) => (lockedDuo(m, a1) ? 1 : 0) - (lockedDuo(m, a2) ? 1 : 0)).map(o => { const locked = lockedDuo(m, o), noDuo = !locked && o.duo && !p.me && !ag().crew.some(c => c.id !== m.id && !c.act), lvlLock = o.lvl && s.lvl < o.lvl;
             const dur = `${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}`;
             const btn = locked ? `<span class="act-lock">${U.ic('lock')}</span>` : `<button class="btn xs green act-go" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${lvlLock || noDuo || (o.cost && s.cash < o.cost) ? 'disabled' : ''}>Lancer</button>`;
