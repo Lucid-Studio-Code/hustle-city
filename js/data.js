@@ -335,6 +335,11 @@
     ITEMS.push({ id: `j-${key}`, cat: 'card', series: sp + 'j', noBuy: true, kind: 'player', f: WOMEN.has(key), name: STARS[key], club: t[0], r,
       p0: Math.round(CARD_P0[r] * (0.9 + (t[1] % 5) / 20)), vol: .06, img: `art-k-${key}`, art: `art-k-${key}`, needArt: `art-k-${key}`, team: [sp, i] });
   }));
+  // les coulisses du sport : coachs, arbitre, supporter, mascotte (cartes à illustration, visibles une fois l'image installée)
+  [['coachf', 'Coach Ramos', 'Coach de foot', 'R', 45, 'art-coach-foot'], ['coachb', 'Coach Big Mike', 'Coach de basket', 'R', 45, 'art-coach-basket'],
+   ['coacht', 'Coach Ben', 'Coach de tennis', 'R', 40, 'art-coach-tennis'], ['ref', 'Mme Carton', 'Arbitre', 'R', 40, 'art-ref-foot'],
+   ['fan', 'Le Capo', 'Supporter ultra', 'E', 140, 'art-fan-ultra'], ['mascot', 'Roucoul', 'Mascotte', 'E', 160, 'art-mascot']]
+    .forEach(([k, name, role, r, p0, art]) => ITEMS.push({ id: 'st-' + k, cat: 'card', series: 'staff', noBuy: true, kind: 'staff', role, name, r, p0, vol: .05, art, needArt: art }));
   ['c-rookie', 'c-dragon', 'c-holo', 'c-signed', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
   // Séries du classeur : compléter une série = grosse récompense
   const SERIES = [
@@ -342,6 +347,7 @@
     { id: 'footj',    name: 'Stars du Bitume',       sub: 'Joueur',  reward: { cash: 800, lingots: 12 } },
     { id: 'basket',   name: 'Street League',         sub: 'Équipe',  reward: { cash: 500, lingots: 8 } },
     { id: 'basketj',  name: 'Stars de la Street League', sub: 'Joueur', reward: { cash: 600, lingots: 10 } },
+    { id: 'staff',    name: 'Les coulisses',         sub: 'Coulisses', reward: { cash: 700, lingots: 10 } },
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
     { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
     { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } }

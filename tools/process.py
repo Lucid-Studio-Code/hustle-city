@@ -23,6 +23,7 @@ POCKETS = {
     'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
     'skin-sportive': 'all', 'skin-boss': 'all', 'skin-survet': 'all',
     # objets à anses ou à structure ajourée
+    'graded-slab': 'all',   # boîtier de carte gradée : fenêtre et étiquette vides (la carte s'affiche dessous)
     'item-t-collect': 'all', 'item-t-first': 'all', 'item-t-jackpot': 'all', 'item-t-hodl': 'all',
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer

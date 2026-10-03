@@ -1720,15 +1720,15 @@
       // cartes rares et plus : l'illustration remplit toute la carte, seuls le nom et la cote restent en bandeau
       if (it.r !== 'C' || it.series === 'classics') {
         const nm = it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase());
-        const art = !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
+        const art = it.art && has(it.art) && !it.img ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
         return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
           <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
-      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
-        stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
+      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
+        stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'staff' ? it.role : it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
       <div class="tcg-top"><b class="tcg-name ${d.name.length > 16 ? 'xl' : d.name.length > 11 ? 'l' : ''}">${d.name}</b>${d.stat ? `<span class="tcg-stat">${d.stat}</span>` : ''}</div>
