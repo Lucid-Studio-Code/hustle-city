@@ -1344,7 +1344,7 @@
         return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${art(x)}</div><b>${x.name.replace(/^Photo : /, '')}</b>${own ? `<small class="up">${used ? '✓ Utilisé' : 'À toi'}</small>` : x.desc ? `<small class="muted">${x.desc}</small>` : ''}${btn}</div>`; };
       const grp = (k, t, sub) => `<h3 class="sec">${t} <small>· ${sub}</small></h3><div class="grid2 ev-grid">${S.shop.filter(x => x.kind === k).map(item).join('')}</div>`;
       return head + `<p class="hint-line">Des objets <b>exclusifs</b> du tournoi : tu les gardes pour toujours, mais on ne peut les acheter que pendant l'événement.${closed ? ' <b>La boutique est fermée.</b>' : ''}</p>` +
-        grp('avatar', 'Photos de profil', 'le pin\'s de ton équipe sur ta photo') + grp('frame', 'Cadres', 'autour de ta photo') + grp('deco', 'Pour la ville', 'posés sur la carte');
+        grp('avatar', 'Pin\'s supporter', 'l\'écusson de ton équipe, accroché sur ta photo') + grp('frame', 'Cadres', 'autour de ta photo') + grp('deco', 'Pour la ville', 'posés sur la carte');
     }
     if (sixTab === 'cards') {
       const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
@@ -1774,17 +1774,32 @@
     };
     openModal({ title: 'Bon plan', icon: 'star', center: true, body: body(), refresh: () => setBody(body()) });
   }
-  function openProfile() {
-    const s = st();
-    openModal({ title: 'Profil', icon: 'star', full: true, body: `
-      <div class="card prof-hero"><div class="ph">${skinPic(s.skin)}</div>
-        <div><div class="big">${esc(s.name)}</div><p>Niveau ${s.lvl}</p><p>Patrimoine : <b>${eur(G.worth())}</b></p></div></div>
-      <h3 class="sec">Ton style</h3>
-      <div class="skin-grid">${D.SKINS.map(k => `<button class="card ${s.lvl < k.lvl ? 'locked' : ''} ${k.id === s.skin ? 'on' : ''}" data-act="${s.lvl < k.lvl ? 'noop' : 'setSkin'}" data-id="${k.id}">
-        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="muted">${s.lvl < k.lvl ? `Niveau ${k.lvl}` : k.id === s.skin ? 'Porté' : 'Choisir'}</small></button>`).join('')}</div>
-      <h3 class="sec">Tes stats</h3>
-      <div class="card" style="font-size:14px;line-height:1.8">Paris : <b>${s.stats.bets || 0}</b> (gagnés : ${s.stats.betsWon || 0})<br>Tours de machine : <b>${s.stats.spins || 0}</b><br>Tickets grattés : <b>${s.stats.scratch || 0}</b><br>Parties de roulette : <b>${s.stats.roulette || 0}</b></div>` });
+  // profil : le perso, les chiffres qui comptent, tes plus belles pièces, tes trophées, et les styles (payants)
+  const skinsOwned = () => { const s = st(); s.skinsOwned = s.skinsOwned || [s.skin]; if (s.skin && !s.skinsOwned.includes(s.skin)) s.skinsOwned.push(s.skin); return s.skinsOwned; };
+  function profileBody() {
+    const s = st(), S = s.stats, xpPct = Math.min(100, Math.round(s.xp / G.xpNeed() * 100));
+    const tile = (ico, v, l) => `<div class="pf-tile">${ico}<b>${v}</b><small>${l}</small></div>`;
+    const cards = D.ITEMS.filter(i => i.cat === 'card'), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
+    const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
+    const best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat !== 'trophy').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => b.v - a.v).slice(0, 3);
+    const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
+    const own = skinsOwned();
+    return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
+        <div class="pf-id"><div class="big">${esc(s.name)}</div><span class="pf-lvl">Niveau ${s.lvl}</span>
+          <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${s.xp} / ${G.xpNeed()} XP</small>
+          <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
+      <h3 class="sec">Tes chiffres</h3>
+      <div class="pf-tiles">${tile(ic('ticket'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(ic('cash'), short(S.itemProfit || 0), 'reventes gagnantes')}
+        ${tile(ico('ic-club-dance', '🎉'), S.clubNights || 0, 'soirées au Club')}${tile(ico('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('slot-seven', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
+      ${best.length ? `<h3 class="sec">Tes plus belles pièces</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
+      <h3 class="sec">Tes trophées</h3>
+      <div class="pf-trophies">${trophies.map(x => `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>`).join('')}</div>
+      <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
+      <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
+        return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
+        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>`;
   }
+  function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
   function openSettings() {
     openModal({ title: 'Réglages', icon: 'hdr-settings', center: true, body: `
       <div class="explain">${D.TIPS[Math.floor(Math.random() * D.TIPS.length)]}</div>
@@ -1967,7 +1982,9 @@
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
-    setSkin(el) { st().skin = el.dataset.id; G.save(); openProfile(); renderHud(); },
+    setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k) return;
+      if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); sfx.coin(); toast(`Nouveau look : ${k.name} !`); }
+      st().skin = k.id; G.save(); setBody(profileBody()); renderHud(); },
     settings: () => openSettings(),
     howto: () => openHowto(),
     tutoAgain() { closeModal(); setScene('city'); st().tutoStep = 0; window.TUTO.start(0); },

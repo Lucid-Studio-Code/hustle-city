@@ -7,12 +7,12 @@
 
   // Skins : le joueur, c'est lui. Visage sans traits, comme les persos de Mama Kana.
   const SKINS = [
-    { id: 'survet',   name: 'Le Survêt',    g: 'm', lvl: 1,  desc: 'Survêt noir, banane, baskets blanches.' },
-    { id: 'doudoune', name: 'La Doudoune',  g: 'f', lvl: 1,  desc: 'Doudoune courte, jogging, créoles.' },
-    { id: 'hoodie',   name: 'Le Hoodie',    g: 'm', lvl: 1,  desc: 'Sweat oversize, casquette, sacoche.' },
-    { id: 'sportive', name: 'La Sportive',  g: 'f', lvl: 1,  desc: 'Ensemble de sport, queue de cheval, air max.' },
-    { id: 'flambeur', name: 'Le Flambeur',  g: 'm', lvl: 6,  desc: 'Chemise ouverte, chaîne en or, lunettes noires.' },
-    { id: 'boss',     name: 'La Boss',      g: 'f', lvl: 10, desc: 'Tailleur, lunettes, sac de luxe.' }
+    { id: 'survet',   name: 'Le Survêt',    g: 'm', lvl: 1,  cost: 500,  desc: 'Survêt noir, banane, baskets blanches.' },
+    { id: 'doudoune', name: 'La Doudoune',  g: 'f', lvl: 1,  cost: 500,  desc: 'Doudoune courte, jogging, créoles.' },
+    { id: 'hoodie',   name: 'Le Hoodie',    g: 'm', lvl: 1,  cost: 500,  desc: 'Sweat oversize, casquette, sacoche.' },
+    { id: 'sportive', name: 'La Sportive',  g: 'f', lvl: 1,  cost: 500,  desc: 'Ensemble de sport, queue de cheval, air max.' },
+    { id: 'flambeur', name: 'Le Flambeur',  g: 'm', lvl: 6,  cost: 2500,  desc: 'Chemise ouverte, chaîne en or, lunettes noires.' },
+    { id: 'boss',     name: 'La Boss',      g: 'f', lvl: 10, cost: 6000, desc: 'Tailleur, lunettes, sac de luxe.' }
   ];
 
   // XP pour passer au niveau suivant (index = niveau actuel)
