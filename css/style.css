@@ -2273,3 +2273,7 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .rs-info { left: 0; top: 7.5%; }
 #modal .th-casino .rs-pays { position: absolute; z-index: 6; left: 6%; right: 6%; top: 13%; }
 #modal .th-casino .rs-pays .card { margin: 0 !important; box-shadow: 0 6px 20px rgba(0,0,0,.6); }
+/* cadre de fenêtre « machine à sous » (image en 9 parties : les coins et les bords gardent leur taille, le centre s'étire) */
+#modal .sheet.th-casino.has-frame { border: 0 solid transparent !important; border-width: 38px 30px !important; border-image: var(--csframe) 16% 13% fill / 38px 30px stretch !important; background: none !important; box-shadow: 0 10px 30px rgba(0,0,0,.6) !important; }
+#modal .sheet.th-casino.has-frame .sheet-body { background: none; }
+#modal .sheet.th-casino.has-header .sheet-head { background: var(--cshead) center / 100% 100% no-repeat; border: 0; box-shadow: none; min-height: 64px; color: #ffe066; text-shadow: 0 0 8px #ffb300, 0 2px 0 #2a1a10; }

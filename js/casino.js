@@ -16,7 +16,7 @@
     const pays = `<div class="card sm-pay" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b>`).join('')}</div>
         <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
     // la vraie machine : image casino-machine, et les zones (écran, panneau, bouton, levier) en % de l'image (D.SLOT.ui, réglable)
-    if (U.has('casino-machine')) {
+    if (D.SLOT.machineImage && U.has('casino-machine')) {
       const L = D.SLOT.ui, z = r => `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
       return `<div class="real-slot"><img class="rs-img" src="${U.src('casino-machine')}" alt="">
           <button class="rs-top rs-close" data-act="closeModal" aria-label="Fermer">×</button>
@@ -105,14 +105,18 @@
   // ------------------------------------------------------------ fenêtre
   function body() { return tab === 'slot' ? slotBody() : rouletteBody(); }
   // machine à sous avec son image : la fenêtre entière EST la machine (pas de cadre, pas de ruban, pas d'onglets)
-  function frame() { const m = document.getElementById('modal'); if (m) m.classList.toggle('slot-full', tab === 'slot' && U.has('casino-machine')); }
+  // cadre « machine à sous » (images ui-casino-frame et ui-casino-header) dès qu'elles existent
+  function skin() { const sh = document.querySelector('#modal .sheet.th-casino'); if (!sh) return;
+    if (U.has('ui-casino-frame')) { sh.classList.add('has-frame'); sh.style.setProperty('--csframe', `url(${U.src('ui-casino-frame')})`); }
+    if (U.has('ui-casino-header')) { sh.classList.add('has-header'); sh.style.setProperty('--cshead', `url(${U.src('ui-casino-header')})`); } }
+  function frame() { const m = document.getElementById('modal'); if (m) m.classList.toggle('slot-full', tab === 'slot' && !!D.SLOT.machineImage && U.has('casino-machine')); }
   function open(t) {
     if (t) tab = t;
     if (tab === 'roulette' && st().lvl < D.ROULETTE.lvl) tab = 'slot';
     U.openModal({ title: 'Lucky Palace', icon: 'dice', full: true, theme: 'casino',
       tabs: [{ id: 'slot', label: 'Machine à sous' }, { id: 'roulette', label: st().lvl < D.ROULETTE.lvl ? `Roulette · niv. ${D.ROULETTE.lvl}` : 'Roulette', locked: st().lvl < D.ROULETTE.lvl }], tab,
       body: body(), onTab: id => { tab = id; U.setBody(body()); frame(); sizeReels(); } });
-    frame(); setTimeout(sizeReels, 30);
+    frame(); skin(); setTimeout(sizeReels, 30);
   }
 
   U.register({
