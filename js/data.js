@@ -324,14 +324,24 @@
     b7: 'P. Girard', b8: 'Y. Khoury', b9: 'O. Mbaye', b10: 'L. Berger', b11: 'K. Tupou', b12: 'R. Delmas' };
   [['foot', 'f'], ['basket', 'b'], ['tennis', 't']].forEach(([sp, k]) => TEAMS[sp].forEach((t, i) => {
     const r = sp === 'tennis' ? (t[1] >= 84 ? 'L' : CARD_RAR(t[1] + 4)) : CARD_RAR(t[1]);
-    ITEMS.push({ id: `k-${k}${i + 1}`, cat: 'card', series: sp, noBuy: true, name: STARS[k + (i + 1)] || t[0], club: sp === 'tennis' ? null : t[0], r, p0: Math.round(CARD_P0[r] * (0.85 + (t[1] % 7) / 20)), vol: .06,
+    // carte d'équipe (écusson) pour le foot et le basket ; carte joueur pour le tennis
+    ITEMS.push({ id: `k-${k}${i + 1}`, cat: 'card', series: sp, noBuy: true, kind: sp === 'tennis' ? 'player' : 'team', art: sp === 'tennis' ? `art-k-t${i + 1}` : null, name: t[0], r, p0: Math.round(CARD_P0[r] * (0.85 + (t[1] % 7) / 20)), vol: .06,
       img: (sp === 'tennis' ? 'player-t' : sp === 'foot' ? 'crest-f' : 'crest-b') + (i + 1), team: [sp, i] });
+  }));
+  // cartes joueur : la star de chaque club, dessinée en action (art-k-…). Elles n'apparaissent qu'une fois leur image arrivée (needArt)
+  const WOMEN = new Set(['f3', 'f5', 'f7', 'f10', 'f12', 'f16', 'f18', 'f21', 'f24', 'b2', 'b4', 'b8', 'b10']);
+  [['foot', 'f'], ['basket', 'b']].forEach(([sp, k]) => TEAMS[sp].forEach((t, i) => {
+    const key = k + (i + 1), r = CARD_RAR(t[1] + 3);
+    ITEMS.push({ id: `j-${key}`, cat: 'card', series: sp + 'j', noBuy: true, kind: 'player', f: WOMEN.has(key), name: STARS[key], club: t[0], r,
+      p0: Math.round(CARD_P0[r] * (0.9 + (t[1] % 5) / 20)), vol: .06, img: `art-k-${key}`, art: `art-k-${key}`, needArt: `art-k-${key}`, team: [sp, i] });
   }));
   ['c-rookie', 'c-dragon', 'c-holo', 'c-signed', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
   // Séries du classeur : compléter une série = grosse récompense
   const SERIES = [
-    { id: 'foot',     name: 'Ligue du Bitume',       sub: 'Écusson',  reward: { cash: 600, lingots: 10 } },
-    { id: 'basket',   name: 'Street League',         sub: 'Écusson',  reward: { cash: 500, lingots: 8 } },
+    { id: 'foot',     name: 'Ligue du Bitume',       sub: 'Équipe',  reward: { cash: 600, lingots: 10 } },
+    { id: 'footj',    name: 'Stars du Bitume',       sub: 'Joueur',  reward: { cash: 800, lingots: 12 } },
+    { id: 'basket',   name: 'Street League',         sub: 'Équipe',  reward: { cash: 500, lingots: 8 } },
+    { id: 'basketj',  name: 'Stars de la Street League', sub: 'Joueur', reward: { cash: 600, lingots: 10 } },
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
     { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
     { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } }

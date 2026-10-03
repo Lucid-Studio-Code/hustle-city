@@ -583,7 +583,7 @@
   function what(it, cap) {
     const up = t => t.replace(/^./, ch => ch.toUpperCase()), q = t => t.includes('«') ? t : `« ${t} »`;
     let t;
-    if (it.cat === 'card') t = (it.series === 'tennis' ? 'la carte du joueur ' : it.series === 'foot' || it.series === 'basket' ? 'la carte de l\'équipe ' : 'la carte ') + q(up(it.name.replace(/^Carte /, '')));
+    if (it.cat === 'card') t = (it.kind === 'player' ? (it.f ? 'la carte de la joueuse ' : 'la carte du joueur ') : it.kind === 'team' ? 'la carte de l\'équipe ' : 'la carte ') + q(up(it.name.replace(/^Carte /, '')));
     else if (it.cat === 'sneaker') t = 'la paire de baskets ' + q(it.name.replace(/^Baskets /, ''));
     else t = q(it.name);
     return cap ? up(t) : t;
@@ -657,12 +657,16 @@
   const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000));
   const stockLeft = () => (stockEd() + 1) * STOCK_MIN * 60000 - now();
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
+  // une carte joueur n'existe dans le jeu qu'une fois son illustration installée
+  const cardOk = i => !i.needArt || !window.ASSETS || window.ASSETS.includes(i.needArt);
   function cardStock() {
     const ed = stockEd(); if (cardStock.ed === ed) return cardStock.ids;
-    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event) /* les cartes des boosters se trouvent aussi d'occasion */, shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event && cardOk(i)) /* les cartes des boosters se trouvent aussi d'occasion */, shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     cardStock.ed = ed; cardStock.ids = new Set([...shuf(cards.filter(i => i.r === 'C')).slice(0, 3), ...shuf(cards.filter(i => i.r !== 'C')).slice(0, 1)]);
     return cardStock.ids;
   }
+  // la liste des cartes visibles (classeur, comptes) : pareil, sans les cartes joueur encore sans image
+  const cardsLive = () => D.ITEMS.filter(i => i.cat === 'card' && cardOk(i));
   function inStock(id) {
     const it = item(id); if (it.cat === 'card') return cardStock().has(id);
     const g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
@@ -1061,7 +1065,7 @@
     const rar = pickW(D.BOOSTER.colWeights);
     // pendant le tournoi, une partie des boosters donne une carte en édition limitée
     const ev = sixCardsOn() && Math.random() < D.SIX.cardChance;
-    const all = D.ITEMS.filter(i => i.series && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
+    const all = D.ITEMS.filter(i => i.series && cardOk(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
@@ -1076,9 +1080,9 @@
     const cards = [rewardCard(), rewardCard(), rewardCard(), collectionCard()];
     stat('boosters'); addXp(8 + st.lvl * 2); emit('change'); return { cards };
   }
-  const seriesCards = id => D.ITEMS.filter(i => i.series === id);
+  const seriesCards = id => D.ITEMS.filter(i => i.series === id && cardOk(i));
   const seriesHave = id => seriesCards(id).filter(c => st.owned[c.id] && st.owned[c.id].length).length;
-  const seriesDone = id => seriesHave(id) === seriesCards(id).length;
+  const seriesDone = id => seriesCards(id).length > 0 && seriesHave(id) === seriesCards(id).length;
   function claimSeries(id) {
     const se = D.SERIES.find(x => x.id === id);
     if (!se || !seriesDone(id) || st.colClaimed[id]) return { err: 'Série incomplète.' };
@@ -1337,7 +1341,7 @@
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
-    inStock, stockLeft, contactFor,
+    inStock, stockLeft, contactFor, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,

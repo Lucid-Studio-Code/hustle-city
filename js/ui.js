@@ -56,9 +56,16 @@
     if (it.cat === 'card' && it.team) return `<span class="card-mini">${miniCard(it)}</span>`;
     return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon);
   }
+  // « Joueuse de l'Union Graffiti », « Joueur du FC Bitume », « Joueur des Night Hoopers »
+  function playerOf(it) {
+    const c = it.club, who = it.f ? 'Joueuse' : 'Joueur';
+    if (/^Les /.test(c)) return `${who} des ${c.slice(4)}`;
+    if (it.team && it.team[0] === 'basket') return `${who} des ${c}`;
+    return /^[AEIOUÉÈÂ]/i.test(c) ? `${who} de l'${c}` : `${who} du ${c}`;
+  }
   function miniCard(it) {
     const sp = it.team[0], bg = has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
-    const art = sp === 'tennis' && has(it.img) ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
+    const art = it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : sp === 'tennis' && has(it.img) ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
     const nm = it.name.replace(/^Carte /, '');
     return `<span class="tcg full mini r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span>${bg}${art}<span class="fa-rar">${RSYM[it.r]}</span>
       <span class="fa-plate"><b class="${nm.length > 14 ? 'xl' : ''}">${nm}</b></span><i class="tcg-holo"></i></span></span>`;
@@ -1697,7 +1704,7 @@
   let boosterTab = 'open';
   const RAR = { C: 'Commune', R: 'Rare', E: 'Épique', L: 'Légendaire' }, RSYM = { C: '●', R: '◆', E: '★', L: '✦' };
   function packArt(mini) { return mini ? `<i class="bst-mini">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}</i>` : `<div class="bst-pack">${pic('booster-pack', '🃏')}<i class="bst-gloss"></i></div>`; }
-  const CARD_ALL = D.ITEMS.filter(i => i.series);
+  const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
   // carte façon jeu de cartes : une carte de collection (it) ou une carte récompense (c.kind)
   function tcgCard(c, extra = '') {
     let d;
@@ -1713,15 +1720,15 @@
       // cartes rares et plus : l'illustration remplit toute la carte, seuls le nom et la cote restent en bandeau
       if (it.r !== 'C' || it.series === 'classics') {
         const nm = it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase());
-        const art = !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : has('art-' + it.id) ? `<span class="fa-img fa-ill"><img src="${src('art-' + it.id)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
+        const art = !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
         return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
           <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${it.club}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
-      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${has('art-' + it.id) ? `<div class="tcg-sub ill-art"><img src="${src('art-' + it.id)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
-        stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.club || (it.team && it.team[0] === 'tennis' ? 'Tennis' : se.sub), no };
+      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
+        stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
       <div class="tcg-top"><b class="tcg-name ${d.name.length > 16 ? 'xl' : d.name.length > 11 ? 'l' : ''}">${d.name}</b>${d.stat ? `<span class="tcg-stat">${d.stat}</span>` : ''}</div>
@@ -1750,6 +1757,7 @@
       <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>`;
     for (const se of D.SERIES) {
       const cards = G.seriesCards(se.id), have = G.seriesHave(se.id), done = G.seriesDone(se.id), claimed = s.colClaimed[se.id];
+      if (!cards.length) continue;
       body += `<div class="col-set"><div class="col-head"><b>${se.name}</b><small>${have}/${cards.length}</small></div>
         <div class="col-grid tcg-grid">${cards.map(c => { const n = (s.owned[c.id] || []).length; return n
           ? `<div class="col-slot" data-act="cardZoom" data-id="${c.id}">${tcgCard({ id: c.id }, 'mini')}${n > 1 ? `<i class="col-n">×${n}</i>` : ''}</div>`
@@ -1859,11 +1867,12 @@
   function profileBody() {
     const s = st(), S = s.stats, xpPct = isFinite(G.xpNeed()) ? Math.min(100, Math.round(s.xp / G.xpNeed() * 100)) : 100;
     const tile = (ico, v, l) => `<div class="pf-tile">${ico}<b>${v}</b><small>${l}</small></div>`;
-    const cards = D.ITEMS.filter(i => i.cat === 'card'), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
+    const cards = G.cardsLive(), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
     const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
     const best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat !== 'trophy').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => b.v - a.v).slice(0, 3);
     const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
-    const achs = D.ACHIEVEMENTS.map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
+    // seuls les trophées qui ont leur image sont exposés (les autres arrivent avec les lots succès)
+    const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
         <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span>
