@@ -42,3 +42,4 @@
 - + ev-boost : fusée simple (l'ancienne portait un ticket, trop chargée).
 - + coin-slr (Nova) : refaite bien de face, sans épaisseur visible, comme les autres pièces.
 - + bed-laptop-f / bed-laptop-m refaits : ordi de face (écran face à nous), sans accessoires, écran = pêche + banane qui font un clin d'œil. + ic-promo : cadeau avec étiquette promo (remplace le 💎 du bouton Promo).
+- Le mini lot 4 est découpé en deux : lot-redo-4a.js (icônes) et lot-redo-4b.js (cartes bonus, ordis, promo). Règle : 10 images max par lot.
