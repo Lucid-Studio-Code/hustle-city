@@ -12,6 +12,8 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
+    # revue du 03/10 : fonds restés coincés dans des formes fermées
+    'slot-bell': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
     'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
@@ -28,7 +30,10 @@ POCKETS = {
 MAX = {'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg')   # décors : pas de détourage
 
-def cutout(im, keep=None, debug=None):
+# fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
+TOL = {'cr-leila': 140}
+
+def cutout(im, keep=None, debug=None, tol=60):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches
     et parfaitement unies, d'une certaine taille ; 3) on grignote le liseré clair autour du trait."""
@@ -39,7 +44,7 @@ def cutout(im, keep=None, debug=None):
     border = np.concatenate([a[0], a[-1], a[:, 0], a[:, -1]])
     bgc = np.median(border, axis=0)
     dist = np.abs(a - bgc).sum(axis=2)
-    near = dist < 60
+    near = dist < tol
     bgmask = np.zeros((h, w), bool)
     q = deque()
     for x in range(w):
@@ -93,7 +98,7 @@ def run(name):
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
         im.thumbnail((900, 900)) if max(im.size) > 900 else None
-        im = cutout(im, POCKETS.get(name))
+        im = cutout(im, POCKETS.get(name), tol=TOL.get(name, 60))
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in NOCUT:
