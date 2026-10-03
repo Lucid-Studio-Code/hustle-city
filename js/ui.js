@@ -137,7 +137,12 @@
   // fenêtres en file d'attente (niveau, événements…) : une à la fois
   const pending = [];
   function queue(fn) { pending.push(fn); if (!modalOpen() && pending.length === 1) nextPending(); }
-  function nextPending() { const f = pending.shift(); if (f) f(); }
+  // pendant une visite de Momo, les fenêtres en attente (succès, niveau…) patientent : sinon elles s'ouvrent par-dessus la visite
+  let pendWait = null;
+  function nextPending() {
+    if (window.TUTO && window.TUTO.active) { if (!pendWait) pendWait = setTimeout(() => { pendWait = null; if (!modalOpen()) nextPending(); }, 800); return; }
+    const f = pending.shift(); if (f) f();
+  }
 
   // ------------------------------------------------------------ fenêtres
   let modalClose = null, modalRefresh = null, tabHandler = null;
@@ -2313,7 +2318,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; } };
+  window.UI = { de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

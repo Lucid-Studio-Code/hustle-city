@@ -75,11 +75,17 @@
     tour: goPlace('tour', 'La Tour', 'Le bus va maintenant jusqu\'à <b>la Tour</b> ! Va à l\'arrêt.',
       'L\'<b>immobilier</b> : un bien te rapporte un loyer chaque jour, même quand tu ne joues pas. Passe l\'encaisser au moins tous les 3 jours.', '#modal .tabs'),
     bourse: goPlace('tour', 'La Tour', 'Nouveau à la Tour : <b>la bourse</b> ! Va à l\'arrêt.',
-      'Onglet <b>Bourse</b> : achète des actions des boîtes du quartier. Plus calme que la crypto, et la plupart versent des <b>dividendes</b> chaque jour.', '#modal .tabs'),
+      'Onglet <b>Bourse</b> : achète des actions des boîtes du quartier. Plus calme que la crypto, et la plupart versent des <b>dividendes</b> chaque jour.', '#modal .tab[data-tab=bourse]'),
     parking: [{ say: () => 'Ta première caisse ! <b>Ton parking</b> vient d\'apparaître en ville : tes véhicules y sont garés.', target: '.bld[data-id=parking]', before: () => U.focusBld('parking'), btn: 'Trop bien' }]
   });
   // le mot de la fin du tuto : seulement après la visite des lieux du début (Kiosque, arrêt de bus)
-  BLD.outro = [{ say: () => `Voilà, t'as les bases ! Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. Au <b>niveau 2</b>, le Comptoir ouvre, au <b>niveau 3</b> le casino. Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l'écran : je te dirai quoi faire pour avancer. À toi de jouer !`, btn: 'C\'est parti' }];
+  BLD.outro = [{ say: () => `Voilà, t'as les bases ! Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. ${nextOpen()}Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l'écran : je te dirai quoi faire pour avancer. À toi de jouer !`, btn: 'C\'est parti' }];
+  // les prochains lieux à ouvrir, d'après le niveau réel (on peut déjà être niveau 2 à la fin du tuto)
+  function nextOpen() {
+    const lv = Math.min(...D.BUILDINGS.filter(b => b.lvl > st().lvl).map(b => b.lvl)); if (!isFinite(lv)) return '';
+    const nm = D.BUILDINGS.filter(b => b.lvl === lv).map(b => ({ casino: 'le casino', six: 'le Panneau des événements' })[b.id] || b.name.replace(/^Le /, 'le '));
+    return `Au <b>niveau ${lv}</b>, ${nm.join(' et ')} ${nm.length > 1 ? 'ouvrent' : 'ouvre'}. `;
+  }
   const FEAT_LVL = { outro: () => 1, roulette: () => D.ROULETTE.lvl, bijou: () => D.EXT_PLACES.find(b => b.id === 'bijou').lvl, agence: () => D.AGENCE.lvl, garage: () => D.EXT_PLACES.find(b => b.id === 'garage').lvl,
     tour: () => D.EXT_PLACES.find(b => b.id === 'tour').lvl, bourse: () => D.BOURSE.lvl, parking: () => G.parkedCount() > 0 ? 0 : 99 };
   const BLD_ORDER = ['kiosque', 'bus', 'outro', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
@@ -190,12 +196,12 @@
   setInterval(() => {
     featFix();
     const s = st(); if (!s || !s.tutoDone || timer || !s.skin) { calm = 0; return; }
-    const busy = modalOpen() || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
+    const busy = modalOpen() || U.pending > 0 || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
     calm = busy ? 0 : calm + 1;
     if (calm < 3) return;
     const id = BLD_ORDER.find(k => !seen()[k] && s.lvl >= unlockLvl(k));
     if (id) { calm = 0; startBld(id); }
   }, 1000);
 
-  window.TUTO = { start, skip, startBld, get active() { return !!timer; } };
+  window.TUTO = { start, skip, startBld, get active() { return !!timer; }, get step() { const x = STEPS[idx]; return x && { target: x.target, btn: !!x.btn, bld, idx }; } };   // step : pour les tests automatiques
 })();
