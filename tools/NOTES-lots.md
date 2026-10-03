@@ -26,3 +26,6 @@
 
 ## lot-pc.js
 - pcv-0 (vieux PC bureautique), pcv-1 (tour sous le bureau + écran), pcv-2 (version or gamer). Image modèle = PC 1. Remesurer PC_DROP. Lever la pause PC_UPGRADES si elle valide.
+
+## À refaire après le lot icônes
+- act-live : le téléphone avait l'écran ET les objectifs sur la même face (+ texte REC). Nouveau prompt : vu de dos, seulement les objectifs et un point rouge → tools/lot-redo-2.js (y ajouter les autres ratés du lot icônes avant de le lancer).
