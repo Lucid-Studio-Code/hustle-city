@@ -79,7 +79,10 @@
   function xpNeed() { return D.XP_TABLE[st.lvl] || Infinity; }
   // équilibrage (02/10) : une toute petite mise ne rapporte presque pas d'XP et ne compte pas pour les défis
   // (sinon on monte de niveau en misant 1 billet en boucle). Les plafonds d'XP grandissent avec le niveau.
-  const serious = v => v >= Math.max(5, betMax() / 20);
+  const seriousMin = () => Math.ceil(Math.max(5, betMax() / 20));
+  // les missions comptent dès une petite mise (l'XP, elle, reste réservée aux vraies mises)
+  const missionMin = () => Math.ceil(Math.max(5, betMax() / 100));
+  const serious = v => v >= seriousMin();
   const xpCap = c => Math.round(c * (1 + st.lvl / 10));
   function addXp(n) {
     if (n <= 0) return;
@@ -466,7 +469,8 @@
     else if (reels[0].id === 'cherry' && reels[1].id === 'cherry') mult = reels[0].pay2;
     const win = Math.round(bet * mult * 100) / 100;
     if (win) addCash(win);
-    if (serious(bet)) { stat('spins'); addXp(1 + Math.min(xpCap(20), bet / 5)); }
+    if (bet >= missionMin()) stat('spins');
+    if (serious(bet)) addXp(1 + Math.min(xpCap(20), bet / 5));
     if (mult >= 100 && bet >= 10) stat('bigWin');
     tiltCheck(bet - win);
     emit('change'); return { reels, mult, win };
@@ -501,7 +505,8 @@
     const n = Math.floor(Math.random() * 37);
     const win = bets.reduce((s, b) => s + b.amt * rouletteWins(b, n), 0);
     if (win) addCash(win);
-    if (serious(total)) { stat('roulette'); addXp(2 + Math.min(xpCap(30), total / 5)); }
+    if (total >= missionMin()) stat('roulette');
+    if (serious(total)) addXp(2 + Math.min(xpCap(30), total / 5));
     tiltCheck(total - win);
     emit('change'); return { n, win, total };
   }
@@ -1143,7 +1148,7 @@
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
-    scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
+    missionMin, scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
