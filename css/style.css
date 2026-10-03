@@ -2510,3 +2510,8 @@ h3.sec { margin: 18px 6px 10px; }
 #app .habit-card .hc-pips i.on { background: #9b5de5; box-shadow: 0 0 6px #9b5de5; }
 #app .habit-card .hc-pips b { margin-left: 4px; font: 400 15px var(--title); color: #7b2cbf; }
 #app .cd-say b img.ico { width: 34px; height: 34px; vertical-align: -10px; margin-right: 4px; }
+/* le contenu qui défile ne doit jamais passer sur le cadre en bois du bas */
+#app #modal .sheet:not(.th-casino) { padding-bottom: calc(env(safe-area-inset-bottom) + 26px); }
+#app #modal .sheet:not(.th-casino) > .sheet-body { border-radius: 0 0 14px 14px; }
+/* le Club : pas de vide entre le titre et l'image */
+#app #modal .sheet.th-club .sheet-body { padding-top: 14px; }

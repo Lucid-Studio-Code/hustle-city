@@ -1205,7 +1205,7 @@
       <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${ico('ic-club-' + p.id, p.icon)}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
-  function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, body: clubBody(), refresh: () => setBody(clubBody()) }); }
+  function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => setBody(clubBody()) }); }
 
   // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
   let bqTab = 'deco';
