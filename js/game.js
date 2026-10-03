@@ -965,10 +965,13 @@
       if (m.state === 'done' && m.pick != null && !S.paid[m.i]) { S.paid[m.i] = true; if (m.ok) addLingots(D.SIX.lingotPerGood); emit('sixResult', m); }
     });
     if (sixPhase() === 'over' && !S.final) { const rank = sixRank(); S.final = { rank, claimed: false }; emit('sixEnd', S.final); }
+    // récompense jamais récupérée 7 jours après la fin : versée d'office (le Panneau redevient un panneau normal, sans rien à réclamer)
+    if (S.final && !S.final.claimed && now() - sixEnd() > 7 * 86400000) claimSix();
     // après le tournoi, les cartes en édition limitée deviennent introuvables : leur cote grimpe
     if (sixPhase() === 'over' && !sixTest() && !st.sixRaised) { st.sixRaised = true; D.ITEMS.filter(i => i.event === 'six').forEach(i => { st.market.fair[i.id] = i.p0 * 2.2; }); }
   }
-  const sixBadge = () => sixPhase() !== 'over' && st.sixSeen !== today() || !!(sixSt().final && !sixSt().final.claimed);
+  // pas d'événement en cours = aucune notif sur le Panneau
+  const sixBadge = () => !eventOff() && (sixPhase() !== 'over' && st.sixSeen !== today() || !!(sixSt().final && !sixSt().final.claimed));
   function sixSeenNow() { st.sixSeen = today(); }
   // la journée en cours : la première journée ouverte qui a encore un match à venir ou en direct
   function sixCurDay() { const m = sixMatches().find(x => x.state !== 'done' && sixDayOpen(x.day)); return m ? m.day : 0; }
