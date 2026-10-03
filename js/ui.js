@@ -1855,7 +1855,7 @@
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
-    claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); if (r.trophy) toast(`🏆 ${r.trophy.name} rejoint ton appart !`); refresh(); },
+    claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
     questGo(el) { questGo(D.QUESTS.find(q => q.id === el.dataset.id).go); },
     daily: () => openDaily(),
@@ -2018,7 +2018,15 @@
   G.on('sixRemind', m => notify('six', '🏉 Pense à ton prono', `${m.home} – ${m.away} commence bientôt. C'est gratuit !`));
   G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} Tu es ${G.sixRank()}e au classement.`));
   G.on('sixEnd', f => notify('six', '🏆 Tournoi terminé', `Tu finis ${f.rank}${f.rank === 1 ? 'er' : 'e'} ! Va récupérer ta récompense au Panneau, sur la place.`));
-  G.on('trophy', it => { if (it) setTimeout(() => toast(`🏆 Trophée gagné : ${it.name}`), 600); });
+  // trophée gagné : même fête que le passage de niveau (rayons, confettis), avec le trophée au centre
+  function showTrophy(it) {
+    sfx.level(); rain('confetti', 50);
+    openModal({ title: 'Trophée gagné !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${itemPic(it)}</div>
+      <div class="lv-big stroke">${it.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</div>
+      <p class="hint-line center">Il rejoint ta collection, dans ton appart. Celui-là, personne ne te le reprendra.</p>
+      <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
+  }
+  G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {
     const l = b.legs[0], what = b.legs.length > 1 ? `Combiné ×${b.legs.length}` : l.home ? `${l.home} – ${l.away}` : 'Ton pari';

@@ -2421,3 +2421,6 @@ h3.sec { margin: 18px 6px 10px; }
   #modal .th-casino .pt-row .pt-s img { width: 22px !important; height: 22px !important; }
   #modal .sheet.th-casino.has-frame .sm-pay { margin-top: 6px !important; padding: 6px 10px; }
 }
+#app .trophy-pop .rays .pic { width: 120px; height: 120px; animation: trophyIn .7s cubic-bezier(.2,1.6,.4,1) both; }
+#app .trophy-pop .lv-big { font-size: 26px; line-height: 1.1; margin: 10px 0 4px; }
+@keyframes trophyIn { from { transform: scale(.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
