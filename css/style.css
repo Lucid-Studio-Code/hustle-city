@@ -2360,3 +2360,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app #rplacer .btn.xs { min-width: 30px; min-height: 26px; padding: 0 6px 2px; }
 #app:has(#rplacer) #bottom { display: none; }
 #app:has(#rplacer) .room-head { display: none; }
+/* casino : la croix au même endroit que partout (bord de la fenêtre = bordure du cadre en plus) */
+#app #modal .sheet.th-casino > .sheet-close.cs-x { position: absolute; top: -68px; right: -19px; transform: none; z-index: 10; }
+#app #modal .sheet.th-casino:not(.has-frame) > .sheet-close.cs-x { top: -22px; right: 29px; }
+/* bulles de l'appart : toutes de la même taille */
+#app .room-stage .bubble-at .obj-bubble { min-height: 48px; padding: 5px 12px 6px; gap: 6px; box-sizing: border-box; }
+#app .room-stage .bubble-at .obj-bubble b { font: 400 16px/1.05 var(--title); }
+#app .room-stage .bubble-at .obj-bubble small { font: 900 10.5px/1.2 var(--text); }
+#app .room-stage .bubble-at .obj-bubble .ring { width: 30px; height: 30px; flex-basis: 30px; }
+#app .room-stage .bubble-at .obj-bubble > span { display: flex; flex-direction: column; justify-content: center; }

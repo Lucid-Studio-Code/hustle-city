@@ -726,6 +726,19 @@
         : ((Math.min(...row.map(r => r.left)) + Math.max(...row.map(r => r.right))) / 2 - R.left) / R.width * 100;
       b.style.left = cx + '%'; b.style.top = ((top - R.top) / R.height * 100 - BUBBLE_GAP) + '%';
     });
+    // règle prioritaire : jamais deux bulles collées. On les écarte (chacune de la moitié), en restant dans la pièce.
+    const MIN = 8, bs = [...stage.querySelectorAll('.bubble-at[data-for]')].filter(b => b.offsetWidth);
+    for (let pass = 0; pass < 4; pass++) {
+      const box = bs.map(b => { const r = b.getBoundingClientRect(); return { b, l: r.left, r: r.right, t: r.top, btm: r.bottom }; }).sort((x, y) => x.l - y.l);
+      let moved = false;
+      for (let i = 0; i < box.length; i++) for (let j = i + 1; j < box.length; j++) {
+        const A = box[i], B = box[j]; if (A.btm <= B.t || B.btm <= A.t) continue;   // pas à la même hauteur
+        const over = A.r + MIN - B.l; if (over <= 0) continue;
+        const shift = (b, d) => { const cur = parseFloat(b.style.left), w = b.offsetWidth / R.width * 100; b.style.left = Math.min(100 - w / 2 - 1, Math.max(w / 2 + 1, cur + d / R.width * 100)) + '%'; };
+        shift(A.b, -over / 2); shift(B.b, over / 2); moved = true;
+      }
+      if (!moved) break;
+    }
   }
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');

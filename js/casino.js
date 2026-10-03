@@ -108,6 +108,8 @@
   // cadre « machine à sous » (images ui-casino-frame et ui-casino-header) dès qu'elles existent
   function skin() { const sh = document.querySelector('#modal .sheet.th-casino'); if (!sh) return;
     if (U.has('ui-casino-frame')) { sh.classList.add('has-frame'); sh.style.setProperty('--csframe', `url("${new URL(U.src('ui-casino-frame'), location.href).href}")`); }
+    // le bouton fermer reste exactement où il est sur toutes les autres fenêtres (pas dans l'enseigne)
+    const x = sh.querySelector('.sheet-head .sheet-close'); if (x) { sh.appendChild(x); x.classList.add('cs-x'); }
     if (U.has('ui-casino-header')) { sh.classList.add('has-header'); sh.style.setProperty('--cshead', `url("${new URL(U.src('ui-casino-header'), location.href).href}")`); } }
   function frame() { const m = document.getElementById('modal'); if (m) m.classList.toggle('slot-full', tab === 'slot' && !!D.SLOT.machineImage && U.has('casino-machine')); }
   function open(t) {
