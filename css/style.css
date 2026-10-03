@@ -2526,3 +2526,6 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .sheet.th-casino .sheet-body > button.btn.wide[data-act="slSpin"], #modal .sheet.th-casino button.btn.wide[data-act="slSpin"] { border-image: none !important; border: 3px solid #2a1a10 !important; border-radius: 16px; }
 /* roulette : la roue ne touche plus la case du 0 */
 #modal .sheet.th-casino .rl-top { margin-bottom: 12px; }
+/* essai : la carte du videur en haut de l image, le videur bien visible dessous */
+#app .club-door .cd-say { top: 10px; bottom: auto; }
+#app #modal .sheet.th-club .club-door .cd-bg { object-position: 50% 62%; }
