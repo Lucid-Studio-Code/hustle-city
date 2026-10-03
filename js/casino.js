@@ -107,8 +107,8 @@
   // machine à sous avec son image : la fenêtre entière EST la machine (pas de cadre, pas de ruban, pas d'onglets)
   // cadre « machine à sous » (images ui-casino-frame et ui-casino-header) dès qu'elles existent
   function skin() { const sh = document.querySelector('#modal .sheet.th-casino'); if (!sh) return;
-    if (U.has('ui-casino-frame')) { sh.classList.add('has-frame'); sh.style.setProperty('--csframe', `url(${U.src('ui-casino-frame')})`); }
-    if (U.has('ui-casino-header')) { sh.classList.add('has-header'); sh.style.setProperty('--cshead', `url(${U.src('ui-casino-header')})`); } }
+    if (U.has('ui-casino-frame')) { sh.classList.add('has-frame'); sh.style.setProperty('--csframe', `url("${new URL(U.src('ui-casino-frame'), location.href).href}")`); }
+    if (U.has('ui-casino-header')) { sh.classList.add('has-header'); sh.style.setProperty('--cshead', `url("${new URL(U.src('ui-casino-header'), location.href).href}")`); } }
   function frame() { const m = document.getElementById('modal'); if (m) m.classList.toggle('slot-full', tab === 'slot' && !!D.SLOT.machineImage && U.has('casino-machine')); }
   function open(t) {
     if (t) tab = t;

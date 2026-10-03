@@ -20,7 +20,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'bg': 1080, 'room': 1080, 'bld': 640, 'skin': 560, 'default': 420}
+MAX = {'bg': 1080, 'room': 1080, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 
 def cutout(im, keep=None, debug=None):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;

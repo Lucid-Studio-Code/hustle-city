@@ -30,7 +30,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 108).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 110).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -73,7 +73,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `CLUB.spots` (data.js) = zones sur l'image `club-room` (néons dessinés en attendant), `club-door` pour l'entrée. Au back-office : bouton « Club », les zones se déplacent au doigt (− / + pour la taille) et partent avec « Publier ».
 
 ## Casino (Lucky Palace)
-- Même menu (machine à sous, roulette) mais un style à part : `theme: 'casino'` dans openModal → classe `th-casino` (velours rouge, or, ampoules, tapis vert, jetons, numéros autour de la roue). Machine à sous = la FENÊTRE elle-même est la machine (classe `slot-full` : plus de cadre, de ruban ni d'onglets ; boutons flottants ✕, 🎡 Roulette, ℹ️ Gains). Une vraie machine : image `casino-machine` (vue de face) avec les rouleaux dans son écran, LED, mises, bouton Lancer et levier posés dessus (`SLOT.ui` en %, à caler sur l'image). Symboles propres au jeu `slot-<id>` (pigeon, basket, chaîne, sac, montre, pièce d'Axion), roulette : `roulette-felt`, `roulette-hub`, `chip-<valeur>`. Lot : tools/lot-casino.js.
+- Même menu (machine à sous, roulette) mais un style à part : `theme: 'casino'` dans openModal → classe `th-casino` (velours rouge, or, ampoules, tapis vert, jetons, numéros autour de la roue). Casino = une fenêtre normale (place pour tout) dont le CADRE est une machine à sous : image `ui-casino-frame` en 9 parties (border-image, coins gardés, ampoules répétées) + enseigne `ui-casino-header` à la place du ruban (classes `has-frame` / `has-header`, posées par `skin()` dans casino.js). L'ancienne image étroite `casino-machine` est désactivée (`SLOT.machineImage: false`). Si on la réactive : image `casino-machine` (vue de face) avec les rouleaux dans son écran, LED, mises, bouton Lancer et levier posés dessus (`SLOT.ui` en %, à caler sur l'image). Symboles propres au jeu `slot-<id>` (pigeon, basket, chaîne, sac, montre, pièce d'Axion), roulette : `roulette-felt`, `roulette-hub`, `chip-<valeur>`. Lot : tools/lot-casino.js.
 - Chambres (03/10) : vue DE FACE, toutes faites à partir de la chambre B (même angle, bureau, étagères et lit au même endroit, seule la déco change) ; objets refaits de face. UNE seule disposition pour les 3 chambres (`ONE_ROOM` dans data.js). Pour une nouvelle chambre : la générer avec la chambre B en image modèle (4e case du lot).
 
 ## Boutique (bouton du bas, ex-Trading)

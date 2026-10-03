@@ -2277,3 +2277,32 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .sheet.th-casino.has-frame { border: 0 solid transparent !important; border-width: 38px 30px !important; border-image: var(--csframe) 16% 13% fill / 38px 30px stretch !important; background: none !important; box-shadow: 0 10px 30px rgba(0,0,0,.6) !important; }
 #modal .sheet.th-casino.has-frame .sheet-body { background: none; }
 #modal .sheet.th-casino.has-header .sheet-head { background: var(--cshead) center / 100% 100% no-repeat; border: 0; box-shadow: none; min-height: 64px; color: #ffe066; text-shadow: 0 0 8px #ffb300, 0 2px 0 #2a1a10; }
+/* cadre machine à sous : coins (éventails dorés) gardés entiers, bords d'ampoules répétés, centre en velours étiré */
+#modal .sheet.th-casino.has-frame { border-width: 46px 48px !important; border-image: var(--csframe) 16% 25% fill / 46px 48px round !important; padding: 0 !important; }
+#modal .sheet.th-casino.has-frame .sheet-body { padding: 4px 2px 6px; }
+#modal .sheet.th-casino.has-frame .tabs { margin: 0 2px 6px; }
+#modal .sheet.th-casino.has-header .sheet-head { position: relative; margin: -40px -30px 4px; min-height: 92px; padding-top: 18px; background-size: contain; display: flex; align-items: center; justify-content: center; }
+#modal .sheet.th-casino.has-header .sheet-head > .ic { display: none; }
+#modal .sheet.th-casino.has-header .sheet-head > span { font: 400 22px var(--title); color: #ffe066; -webkit-text-stroke: 0; text-shadow: 0 0 10px #ffb300, 0 2px 0 #2a1a10; }
+#modal .sheet.th-casino.has-header .sheet-close { position: absolute; top: 6px; right: 6px; }
+/* dans le cadre machine à sous : plus de panneau doré en double, le contenu est posé sur le velours */
+#modal .sheet.th-casino.has-frame .slot-machine { background: none; border: 0; box-shadow: none; padding: 0; }
+#modal .sheet.th-casino.has-frame .slot-machine::before { display: none; }
+#modal .sheet.th-casino.has-frame .sm-sign { display: none; }
+#modal .sheet.th-casino.has-frame .reels { padding: 10px; border: 4px solid #d4a24c; border-radius: 16px; box-shadow: inset 0 4px 14px #000, 0 0 0 3px #2a1a10; }
+#modal .sheet.th-casino.has-frame [data-act="slSpin"] { border-image-source: url(../assets/img/ui-btn-red.png); color: #fff; min-height: 64px; font-size: 26px; }
+#modal .sheet.th-casino.has-frame .sm-pay, #modal .sheet.th-casino.has-frame .card { background: rgba(20,2,6,.55); border-color: #d4a24c; }
+/* l'enseigne : plus grande, le titre au centre de la plaque */
+#modal .sheet.th-casino.has-header .sheet-head { margin: -26px auto 0; width: 78%; min-height: 0; aspect-ratio: 596 / 383; padding: 13% 0 0; background-size: 100% 100%; }
+#modal .sheet.th-casino.has-header .sheet-head > span { font-size: 24px; }
+#modal .sheet.th-casino.has-header .sheet-close { top: 18%; right: -18%; }
+#modal .sheet.th-casino.has-frame { margin-top: 30px; }
+#modal .sheet.th-casino.has-header { overflow: visible !important; } #modal .sheet.th-casino.has-header .sheet-head { z-index: 3; }
+#modal .sheet.th-casino.has-header .sheet-head { margin: -30px auto -6px; width: 64%; padding: 12% 0 0; }
+#modal .sheet.th-casino.has-header .sheet-head > span { font-size: 21px; }
+#modal .sheet.th-casino.has-frame { margin-top: 44px; }
+#modal .sheet.th-casino.has-header .sheet-head { margin: -14px auto 0; width: 60%; padding: 11% 0 0; }
+#modal .sheet.th-casino.has-header .sheet-head { padding: 20% 0 0; } #modal .sheet.th-casino.has-header .sheet-head > span { line-height: 1; }
+#modal .sheet.th-casino.has-header .sheet-head { padding: 0; } #modal .sheet.th-casino.has-header .sheet-head > span { position: absolute; left: 0; right: 0; top: 62%; transform: translateY(-50%); text-align: center; }
+#modal .sheet.th-casino.has-header .sheet-head { left: auto; transform: none; }
+#modal .sheet.th-casino.has-header .sheet-close { right: -34%; top: 20%; }
