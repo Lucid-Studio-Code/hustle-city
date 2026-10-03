@@ -77,13 +77,14 @@
   // heatMin = endurance : plus elle est haute, moins la machine chauffe.
   // MINE : ce qu'on peut miner. min = durée, mult = rendement, heat = chauffe, need = niveau de machine requis (0 = la première),
   // swing = imprévisible (la récolte peut valoir de ×(1-swing) à ×(1+swing)).
+  // équilibrage 03/10 : plus c'est long, moins ça rapporte par heure (jouer doit rapporter plus que laisser tourner la nuit)
   const MINE = [
     { id: 'btk', min: 15,  mult: 1.0,  heat: .5,  need: 0, swing: .1,  tag: 'Rapide et sûr' },
-    { id: 'eta', min: 45,  mult: 1.1,  heat: .8,  need: 0, swing: .15, tag: 'Le bon compromis' },
+    { id: 'eta', min: 45,  mult: .95, heat: .8,  need: 0, swing: .15, tag: 'Le bon compromis' },
     { id: 'dgk', min: 30,  mult: 1.05, heat: 1.1, need: 1, swing: .8,  tag: 'Tout ou rien' },
-    { id: 'slr', min: 120, mult: 1.25, heat: 1.0, need: 1, swing: .2,  tag: 'Long mais costaud' },
-    { id: 'ppc', min: 240, mult: 1.3,  heat: 1.5, need: 2, swing: 1.0, tag: 'Jackpot ou catastrophe' },
-    { id: 'lmn', min: 480, mult: 1.45, heat: .45, need: 3, swing: .15, tag: 'Pour la nuit' }
+    { id: 'slr', min: 120, mult: .8,  heat: 1.0, need: 1, swing: .2,  tag: 'Long mais costaud' },
+    { id: 'ppc', min: 240, mult: .75, heat: 1.5, need: 2, swing: 1.0, tag: 'Jackpot ou catastrophe' },
+    { id: 'lmn', min: 480, mult: .55, heat: .45, need: 1, swing: .15, tag: 'Pour la nuit' }   // équilibrage 03/10 : dès la 2e machine (sinon la machine dormait 20 h par jour)
   ];
   // PC plus vivant (02/10) : alertes flash, actus par crypto avec des sources plus ou moins fiables, ordres automatiques, défi du trader
   const PCX = {

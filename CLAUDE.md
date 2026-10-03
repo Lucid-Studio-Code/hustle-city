@@ -112,3 +112,4 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 
 ## Équilibrage
 - `node tools/sim.js [jours]` fait tourner le vrai moteur (data.js + game.js) en accéléré, sans navigateur : évolution des cours des objets et des cryptos. `require('./tools/sim.js')` donne G, D et tick(ms) pour d'autres mesures.
+- `node tools/bot.js [h actives/jour] [h hors-ligne] [jours]` : un joueur robot (mine, parie, machine à sous, missions, cadeau du jour, améliore sa machine, lance un long minage avant de partir). Repères du 03/10 (1 h/jour) : machine 2 au jour 2, machine 4 vers le jour 8, niveau 13-14 et 5 000 à 17 000 en poche au jour 14. Il ne joue pas encore à PrivéFans.

@@ -421,6 +421,8 @@
   // cote d'un pronostic au moment du pari (événement « Cotes boostées » : +15 %)
   function legOdd(m, pick) { return Math.round(m.odds[pick] * (evOn('boost') ? 1.05 : 1) * 100) / 100; }
   // free = utiliser un pari gratuit (gagné dans un booster) : la mise est offerte, on ne touche que le bénéfice
+  // un seul pari par match : un match déjà dans un pari en cours n'est plus jouable
+  const betOn = id => st.bets.some(b => b.state === 'open' && b.legs.some(l => l.m === id));
   function placeBet(legs, stake, free) {
     stake = Math.floor(stake);
     if (!legs.length) return { err: 'Choisis au moins un pronostic.' };
@@ -429,7 +431,7 @@
     if (stake < 1) return { err: 'Mise minimum : 1<i class="cur"></i>.' };
     if (!free && stake > betMax()) return { err: `Mise max : ${betMax()}<i class="cur"></i>.` };
     const ids = new Set();
-    for (const l of legs) { const m = match(l.m); if (!m || m.state !== 'soon') return { err: 'Ce match a déjà commencé.' }; if (ids.has(l.m)) return { err: 'Un seul prono par match.' }; ids.add(l.m); }
+    for (const l of legs) { const m = match(l.m); if (!m || m.state !== 'soon') return { err: 'Ce match a déjà commencé.' }; if (ids.has(l.m)) return { err: 'Un seul prono par match.' }; if (betOn(l.m)) return { err: 'Tu as déjà parié sur ce match.' }; ids.add(l.m); }
     if (free) st.freebets.shift(); else if (!pay(stake)) return { err: 'Pas assez de cash.' };
     const odds = Math.round(legs.reduce((o, l) => o * legOdd(match(l.m), l.pick), 1) * 100) / 100;
     st.bets.unshift({ id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
@@ -1188,7 +1190,7 @@
 
   window.GAME = {
     get st() { return st; }, get asleep() { return asleep; }, on, emit, load, save, reset, simulate,
-    addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
+    betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
