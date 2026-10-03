@@ -1604,9 +1604,9 @@
     if (c.kind && c.kind !== 'col') {
       const art = { cash: ic('cash'), lingots: ic('lingot'), xp: ic('star'), ticket: pic('ticket-flash', '🎟️'), freebet: ic('ticket'), airdrop: coinIco(D.COINS[0]) }[c.kind];
       const stat = c.kind === 'cash' || c.kind === 'freebet' || c.kind === 'airdrop' ? `${short(c.n, true)}<i class="cur"></i>` : c.kind === 'xp' ? `+${c.n}` : `×${c.n}`;
-      const txt = { cash: 'Direct dans ta poche.', lingots: 'De l\'or, direct dans ta réserve.', xp: 'Expérience gagnée tout de suite.', ticket: 'Deux Cash Flash offerts au Royal.',
+      const txt = { cash: 'Direct dans ta poche.', lingots: 'De l\'or, direct dans ta réserve.', xp: 'Expérience gagnée tout de suite.', ticket: `${c.n} tickets à gratter offerts au Royal.`,
         freebet: 'Une mise offerte au Royal : si tu gagnes, tu touches le bénéfice.', airdrop: 'Des Axion versés dans ton portefeuille crypto.' }[c.kind];
-      d = { type: 'item', name: c.name, art: `<div class="tcg-sub ico">${art}</div>`, stat, ability: 'Récompense', text: txt, flav: 'Trouvé dans un booster du Kiosque.', rarity: c.rarity, label: 'Bonus' };
+      d = { type: 'item', name: c.name, art: has('bonus-' + c.kind) ? `<div class="tcg-sub full"><img src="${src('bonus-' + c.kind)}" alt=""></div>` : `<div class="tcg-sub ico">${art}</div>`, stat, ability: 'Récompense', text: txt, flav: 'Trouvé dans un booster du Kiosque.', rarity: c.rarity, label: 'Bonus' };
     } else {
       const it = G.item(c.id), se = D.SERIES.find(x => x.id === it.series), no = CARD_ALL.indexOf(it) + 1;
       const t = it.team ? D.TEAMS[it.team[0]][it.team[1]] : null;

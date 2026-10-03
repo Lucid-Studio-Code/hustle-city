@@ -37,3 +37,4 @@
 - act-collab : la 1re version montrait deux poings d'hommes. Nouveau : deux jeunes femmes sexy en selfie joue contre joue.
 - + ic-truck (arrivage du Comptoir), ic-shelf (place chez toi), ic-rumor (rumeurs du tournoi) : branchés dans le code, emoji en attendant.
 - + tip-sport / tip-crypto / tip-market refaits en série assortie (médaillon or et violet, même niveau de détail : 2 éléments chacun) : paris sportifs, crypto, achat-revente (basket + étiquette seulement).
+- + bonus-cash / lingots / xp / ticket / freebet / airdrop : illustrations pleine carte (4:3) des cartes Bonus des boosters, branchées (icône en attendant). Pas de détourage (NOCUT).
