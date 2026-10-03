@@ -114,6 +114,7 @@
     $('#fx').appendChild(el); setTimeout(() => el.remove(), 1400);
   }
   function rain(kind = 'bill', n = 26) {
+    if (st().calm) n = Math.min(n, 6); if (st().vibrate !== false && n > 10 && navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
     const fx = $('#fx'), cols = ['#ffd23f', '#3ddc84', '#ff3cac', '#4fb3f0', '#9b5de5'];
     for (let i = 0; i < n; i++) {
       const el = document.createElement('div');
@@ -675,7 +676,7 @@
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
-  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || location.hash === '#test' || G.TEST || placing) location.reload(); });
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || location.hash === '#test' || location.hash === '#neuf' || G.TEST || placing) location.reload(); });
   // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
   // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
@@ -1100,6 +1101,7 @@
   }
   // petite notification qui glisse en haut de l'écran, comme sur un vrai téléphone
   function banner(n) {
+    if (st().quiet) return;
     let el = $('#ph-banner'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<button id="ph-banner" data-act="phoneNotif"></button>'); el = $('#ph-banner'); }
     const a = appOf(n.app);
     el.dataset.id = n.id;
@@ -1854,23 +1856,45 @@
       ${best.length ? `<h3 class="sec">Tes plus belles pièces</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
       <h3 class="sec">Tes trophées</h3>
       <div class="pf-trophies">${trophies.map(x => `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>`).join('')}</div>
+      <h3 class="sec">Tes succès <small>· ${Object.keys(s.ach || {}).length} / ${D.ACHIEVEMENTS.length}</small></h3>
+      <div class="pf-ach">${D.ACHIEVEMENTS.map(a => { const done = s.ach && s.ach[a.id], v = Math.min(a.n, G.achValue(a));
+        return `<div class="pf-a ${done ? 'has' : 'no'}"><div class="pf-a-art">${has('ach-' + a.id) ? pic('ach-' + a.id) : '<span>🏅</span>'}</div><b>${a.name}</b><small>${done ? `✓ +${a.lingots} lingots` : a.txt}</small>${done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(v / a.n * 100)}%"></i></i>`}</div>`; }).join('')}</div>
       <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>`;
   }
   function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
-  function openSettings() {
-    openModal({ title: 'Réglages', icon: 'hdr-settings', center: true, body: `
-      <div class="explain">${D.TIPS[Math.floor(Math.random() * D.TIPS.length)]}</div>
-      <button class="btn ${st().sound ? 'green' : ''} wide set-sound" data-act="soundToggle">${ic(st().sound ? 'icon-sound' : 'icon-mute')}Son : ${st().sound ? 'activé' : 'coupé'}</button>
-      <button class="btn blue wide" style="margin-top:8px" data-act="howto">Comment jouer</button>
-      <button class="btn purple wide" style="margin-top:8px" data-act="tutoAgain">Revoir le tuto</button>
-      ${admLocal ? '<button class="btn purple wide" style="margin-top:8px" data-act="adminOpen">Back-office (placer la ville et l\'appart)</button>' : ''}
-      <button class="btn purple wide" style="margin-top:8px" onclick="location.hash='#test'">Partie test (tout débloqué)</button>
-      <button class="btn red wide" style="margin-top:8px" data-act="resetAsk">Recommencer à zéro</button>
-      <p class="muted center" style="margin-top:10px">Hustle City est un jeu : l'argent du jeu est fictif : il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>` });
+  // réglages façon jeu mobile : conseils qui défilent, son, affichage, notifications, compte et sauvegarde, aide
+  let tipTimer = null, tipI = 0;
+  const setRow = (act, label, on, sub) => `<button class="set-row" data-act="${act}"><span><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</span><i class="set-sw ${on ? 'on' : ''}"><i></i></i></button>`;
+  function settingsBody() {
+    const s = st();
+    return `<div class="tip-carousel" data-act="tipNext"><div class="tc-txt" id="tc-txt">${D.TIPS[tipI % D.TIPS.length]}</div><div class="tc-dots">${D.TIPS.slice(0, 8).map((_, k) => `<i class="${k === tipI % 8 ? 'on' : ''}"></i>`).join('')}</div></div>
+      <h3 class="sec">Son</h3><div class="card set-card">${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
+      <h3 class="sec">Affichage</h3><div class="card set-card">${setRow('setToggle" data-k="calm', 'Animations réduites', !!s.calm, 'Moins de confettis et d\'effets')}<div class="set-row"><span><b>Langue</b></span><em>Français</em></div></div>
+      <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
+      <h3 class="sec">Compte</h3><div class="card set-card">
+        <div class="set-row"><span><b>Ton pseudo</b><small>${esc(s.name || '')}</small></span><button class="btn xs blue" data-act="setName">Changer</button></div>
+        <div class="set-row"><span><b>Se connecter</b><small>Apple, Google : avec la version App Store et Google Play</small></span><button class="btn xs" disabled>Bientôt</button></div>
+        <div class="set-row"><span><b>Sauvegarder ma partie</b><small>Un code à garder pour la retrouver sur un autre appareil</small></span><button class="btn xs green" data-act="saveExport">Copier</button></div>
+        <div class="set-row"><span><b>Récupérer une sauvegarde</b><small>Colle le code d'une partie</small></span><button class="btn xs yellow" data-act="saveImport">Coller</button></div></div>
+      <h3 class="sec">Aide</h3><div class="card set-card">
+        <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
+        <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
+        <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
+      ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
+        <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>
+        <button class="set-row" onclick="location.hash='#neuf'"><span><b>Nouvelle partie d'essai</b><small>Depuis le début, avec le tuto</small></span><em>›</em></button></div>` : ''}
+      <button class="btn red wide" style="margin-top:12px" data-act="resetAsk">Recommencer à zéro</button>
+      <p class="muted center" style="margin-top:10px">Hustle City v${((document.querySelector('script[src*="ui.js"]') || {}).src || '').match(/v=(\d+)/)?.[1] || ''} · un jeu : l'argent du jeu est fictif, il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>`;
   }
+  function openSettings() {
+    openModal({ title: 'Réglages', icon: 'hdr-settings', full: true, body: settingsBody(), onClose: () => clearInterval(tipTimer) });
+    clearInterval(tipTimer); tipTimer = setInterval(() => { if (!$('#tc-txt')) return clearInterval(tipTimer); nextTip(); }, 6000);
+  }
+  function nextTip() { tipI++; const t = $('#tc-txt'); if (!t) return; t.classList.remove('in'); void t.offsetWidth; t.innerHTML = D.TIPS[tipI % D.TIPS.length]; t.classList.add('in');
+    document.querySelectorAll('.tc-dots i').forEach((d, k) => d.classList.toggle('on', k === tipI % 8)); }
   function openHowto() {
     openModal({ title: 'Comment jouer', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55">
       <b>Le but</b> : faire grimper ton patrimoine (cash + crypto + objets).<br><br>
@@ -2033,7 +2057,17 @@
     freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Royal, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoRoyal">Au Royal</button>` }); },
     eventGoRoyal() { closeModal(); questGo('balto'); },
     scratchGo() { questGo('scratch'); },
-    soundToggle() { st().sound = !st().sound; G.save(); openSettings(); },
+    soundToggle() { st().sound = !st().sound; G.save(); setBody(settingsBody()); },
+    setToggle(el) { const k = el.dataset.k, s = st(); if (k === 'vibrate') s.vibrate = s.vibrate === false; else s[k] = !s[k]; document.body.classList.toggle('calm', !!s.calm); G.save(); setBody(settingsBody()); },
+    tipNext() { nextTip(); },
+    setName() { const n = prompt('Ton nouveau pseudo :', st().name || ''); if (n && n.trim()) { st().name = n.trim().slice(0, 16); G.save(); renderHud(); setBody(settingsBody()); toast('Pseudo changé !'); } },
+    saveExport() { G.save(); const code = 'HC1.' + btoa(unescape(encodeURIComponent(localStorage.getItem('hustleCity.v1') || JSON.stringify(st()))));
+      try { navigator.clipboard.writeText(code); toast('Code de sauvegarde copié : garde-le précieusement.'); } catch (e) { prompt('Copie ce code :', code); } },
+    saveImport() { const c = prompt('Colle ton code de sauvegarde :'); if (!c) return;
+      try { const j = JSON.parse(decodeURIComponent(escape(atob(c.trim().replace(/^HC1\./, ''))))); if (!j || typeof j.cash !== 'number' || !j.skin) throw 0;
+        if (!confirm(`Remplacer ta partie actuelle par celle-ci (niveau ${j.lvl}) ?`)) return; localStorage.setItem('hustleCity.v1', JSON.stringify(j)); location.reload(); }
+      catch (e) { toast('Ce code ne marche pas.', true); } },
+    legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55"><b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans Hustle City : ils ne s'échangent pas contre de l'argent réel.<br><br><b>Tes données</b> : ta partie est enregistrée sur ton appareil. Rien n'est envoyé ailleurs tant que tu ne te connectes pas (bientôt).<br><br><b>Jeux d'argent</b> : les paris, casinos et tickets du jeu sont fictifs. Les vrais sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13.</div>` }); },
     trading() { openCrypto(); },
     moodCoin(el) { closeModal(); setTimeout(() => openCrypto(el.dataset.id), 60); },
     flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
@@ -2202,6 +2236,11 @@
       <p class="hint-line center">Il rejoint ta collection, dans ton appart. Celui-là, personne ne te le reprendra.</p>
       <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
   }
+  G.on('achievement', a => queue(() => { sfx.win(); rain('confetti', 40);
+    openModal({ title: 'Succès débloqué !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏅</span>`}</div>
+      <div class="lv-big stroke">${a.name}</div><p class="hint-line center">${a.txt}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
+      <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
+  G.on('achBulk', L => queue(() => dialog('Succès', `Nouveau : les <b>succès</b> ! Tu en as déjà débloqué <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
   G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {
@@ -2244,6 +2283,7 @@
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
     cleanChats(); purgeOld();
+    document.body.classList.toggle('calm', !!st().calm);
     if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST <button onclick="history.replaceState(null,\'\',location.pathname);location.reload()">Quitter</button></div>');
     { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);

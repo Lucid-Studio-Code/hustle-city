@@ -6,7 +6,8 @@
   const ADMIN = /^#(admin|placer)/.test(location.hash);
   // partie de test (#test) : tout débloqué, cash et lingots illimités, sauvegarde à part (ne touche jamais la vraie partie)
   const TEST = /^#test/.test(location.hash);
-  const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = TEST ? 'hustleCity.test' : ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
+  const NEUF = /^#neuf/.test(location.hash);   // nouvelle partie d'essai (tuto compris), sauvegarde à part
+  const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = NEUF ? 'hustleCity.neuf' : TEST ? 'hustleCity.test' : ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
   function testBoost() { if (!TEST) return; st.lvl = Math.max(st.lvl, D.MAX_LVL); st.xp = 0; if (st.cash < 5e6) st.cash = 1e7; if (st.lingots < 5e4) st.lingots = 1e5; st.tutoDone = true; st.name = st.name || 'Testeuse'; st.bldTuto = Object.fromEntries(D.BUILDINGS.map(b => [b.id, true])); }
   const MAX_OFFLINE = 12 * 3600;
 
@@ -1172,6 +1173,20 @@
   function refuseDeal() { st.deal = null; st.nextDealAt = now() + rnd(...D.DEALS.every) * 500; emit('change'); }
 
   // ------------------------------------------------------------ patrimoine, missions, cadeau, filet
+  // ------------------------------------------------------------ succès
+  function achValue(a) {
+    switch (a.stat) {
+      case '!rig': return st.rig.lvl; case '!props': return Object.keys(props()).length; case '!park': return parkedCount();
+      case '!lvl': return st.lvl; case '!looks': return looksOwned().length; case '!skins': return (st.skinsOwned || [st.skin]).length;
+      default: return st.stats[a.stat] || 0;
+    }
+  }
+  function checkAch() {
+    // première fois (partie d'avant les succès) : ceux déjà mérités sont donnés d'un coup, sans une pluie de fenêtres
+    const first = !st.ach, got = st.ach = st.ach || {}, bulk = [];
+    D.ACHIEVEMENTS.forEach(a => { if (!got[a.id] && achValue(a) >= a.n) { got[a.id] = now(); addLingots(a.lingots); first ? bulk.push(a) : emit('achievement', a); } });
+    if (bulk.length) emit('achBulk', bulk);
+  }
   function worth() { return st.cash + cryptoValue() + itemsValue() + propsValue() + stocksValue(); }
 
   // ------------------------------------------------------------ La Tour : immobilier
@@ -1277,6 +1292,7 @@
     simFriendTip(offline); simCryptoTip(offline); simPc(offline); simBourse(offline);
     testBoost();
     stat('worth', Math.floor(worth()), true);
+    if (!offline && st.tutoDone && !TEST) checkAch();
     if (!offline) checkBailout();
   }
   function catchUp(away) {
@@ -1290,7 +1306,7 @@
   window.GAME = {
     get st() { return st; }, get asleep() { return asleep; }, TEST, on, emit, load, save, reset, simulate,
     placeOf, parkedCount, garageSlots, garageUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
-    looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
+    achValue, looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,

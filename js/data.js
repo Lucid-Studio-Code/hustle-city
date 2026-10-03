@@ -549,7 +549,64 @@
     { id: 'q16', txt: 'Atteins 50 000<i class="cur"></i> de patrimoine', stat: 'worth', n: 50000, cash: 0, lingots: 15, xp: 600, max: true, lvl: 6, go: 'wallet' }
   ];
 
+  // succès : badges débloqués une fois pour toutes (image ach-<id>) ; stat commençant par « ! » = valeur calculée par le jeu
+  const ACHIEVEMENTS = [
+    {"id":"first-bet","name":"Premier ticket","txt":"Place ton premier pari.","stat":"bets","n":1,"lingots":2,"art":"a betting slip with a gold star"},
+    {"id":"bets50","name":"Habitué du Royal","txt":"Place 50 paris.","stat":"bets","n":50,"lingots":5,"art":"a stack of betting slips and a bar stool"},
+    {"id":"bets500","name":"Parieur pro","txt":"Place 500 paris.","stat":"bets","n":500,"lingots":15,"art":"a golden betting slip with wings"},
+    {"id":"win10","name":"La baraka","txt":"Gagne 10 paris.","stat":"betsWon","n":10,"lingots":5,"art":"a four-leaf clover on a football"},
+    {"id":"win100","name":"Roi des pronos","txt":"Gagne 100 paris.","stat":"betsWon","n":100,"lingots":20,"art":"a crown resting on a football"},
+    {"id":"combi3","name":"Combiné de génie","txt":"Gagne 3 combinés.","stat":"combiWon","n":3,"lingots":10,"art":"three linked betting slips forming a chain"},
+    {"id":"spin100","name":"Bras de fer","txt":"Fais 100 tours de machine à sous.","stat":"spins","n":100,"lingots":3,"art":"a slot machine lever"},
+    {"id":"spin1000","name":"Accro aux rouleaux","txt":"Fais 1 000 tours de machine à sous.","stat":"spins","n":1000,"lingots":10,"art":"three slot machine reels showing cherries"},
+    {"id":"jackpot","name":"Jackpot !","txt":"Touche un gain ×100 à la machine.","stat":"bigWin","n":1,"lingots":15,"art":"a slot machine exploding with coins"},
+    {"id":"roul50","name":"Rien ne va plus","txt":"Joue 50 fois à la roulette.","stat":"roulette","n":50,"lingots":5,"art":"a roulette wheel with a white ball"},
+    {"id":"scr50","name":"Gratteur fou","txt":"Gratte 50 tickets.","stat":"scratch","n":50,"lingots":3,"art":"a scratch ticket and a coin"},
+    {"id":"scr500","name":"Ongles en or","txt":"Gratte 500 tickets.","stat":"scratch","n":500,"lingots":15,"art":"a golden fingernail scratching a ticket"},
+    {"id":"mine10","name":"Mineur du dimanche","txt":"Récolte 10 minages.","stat":"rigCollect","n":10,"lingots":3,"art":"a small pickaxe on a computer chip"},
+    {"id":"mine200","name":"Usine à pièces","txt":"Récolte 200 minages.","stat":"rigCollect","n":200,"lingots":15,"art":"a mining machine overflowing with coins"},
+    {"id":"rigmax","name":"Usine en or","txt":"Achète la meilleure machine.","stat":"!rig","n":4,"lingots":20,"art":"a golden mining machine"},
+    {"id":"cr10","name":"Premier pas en crypto","txt":"Achète de la crypto 10 fois.","stat":"cryptoBuy","n":10,"lingots":3,"art":"a digital coin with a footprint"},
+    {"id":"crp25","name":"Trader du quartier","txt":"Vends 25 fois de la crypto avec bénéfice.","stat":"cryptoProfit","n":25,"lingots":10,"art":"a rising green chart arrow with coins"},
+    {"id":"hodl","name":"Mains de diamant","txt":"Garde une crypto 30 min sans vendre.","stat":"hodl30","n":1,"lingots":3,"art":"two diamond hands holding a coin"},
+    {"id":"item10","name":"Chineur","txt":"Achète 10 objets.","stat":"itemBuy","n":10,"lingots":3,"art":"a magnifying glass over a price tag"},
+    {"id":"resell25","name":"Roi de la revente","txt":"Revends 25 objets avec bénéfice.","stat":"itemProfit","n":25,"lingots":10,"art":"a sneaker with a green up arrow price tag"},
+    {"id":"ser1","name":"Collectionneur","txt":"Complète une série de cartes.","stat":"series","n":1,"lingots":5,"art":"a card binder with a gold star"},
+    {"id":"ser5","name":"Classeur complet","txt":"Complète 5 séries de cartes.","stat":"series","n":5,"lingots":20,"art":"a thick golden card binder"},
+    {"id":"boo50","name":"Ouvreur de boosters","txt":"Ouvre 50 boosters.","stat":"boosters","n":50,"lingots":5,"art":"a torn open card booster pack with sparkles"},
+    {"id":"club10","name":"Noctambule","txt":"Sors 10 soirs au Club.","stat":"clubNights","n":10,"lingots":5,"art":"a disco ball with a moon"},
+    {"id":"deal10","name":"Bon plan","txt":"Saisis 10 bons plans.","stat":"deals","n":10,"lingots":5,"art":"a handshake with a price tag"},
+    {"id":"tip20","name":"Lecteur assidu","txt":"Achète 20 tuyaux au Kiosque.","stat":"tips","n":20,"lingots":5,"art":"a rolled newspaper with a lightbulb"},
+    {"id":"agr3","name":"Agent de stars","txt":"Recrute 3 créatrices.","stat":"agRecruit","n":3,"lingots":10,"art":"a golden star with a contract"},
+    {"id":"aga100","name":"Machine à contenu","txt":"Lance 100 activités PrivéFans.","stat":"agActs","n":100,"lingots":10,"art":"a camera with hearts flying out"},
+    {"id":"prop1","name":"Proprio","txt":"Achète ton premier bien.","stat":"props","n":1,"lingots":5,"art":"a house key on a keyring"},
+    {"id":"prop4","name":"Magnat de l'immo","txt":"Possède les 4 biens de la Tour.","stat":"!props","n":4,"lingots":25,"art":"a skyscraper with a golden crown"},
+    {"id":"stk10","name":"Golden boy","txt":"Vends 10 fois des actions avec bénéfice.","stat":"stockProfit","n":10,"lingots":10,"art":"a stock chart with a golden bull"},
+    {"id":"car1","name":"Première caisse","txt":"Achète ton premier véhicule.","stat":"!park","n":1,"lingots":5,"art":"a car key with a red keyring"},
+    {"id":"car7","name":"Collection de bolides","txt":"Remplis un parking de 7 places.","stat":"!park","n":7,"lingots":25,"art":"a row of shiny sports cars"},
+    {"id":"w10k","name":"Ça décolle","txt":"Atteins 10 000 de patrimoine.","stat":"worth","n":10000,"lingots":5,"art":"a small rocket made of banknotes"},
+    {"id":"w100k","name":"Riche","txt":"Atteins 100 000 de patrimoine.","stat":"worth","n":100000,"lingots":15,"art":"a big bag of money with a diamond"},
+    {"id":"w1m","name":"Millionnaire du quartier","txt":"Atteins 1 000 000 de patrimoine.","stat":"worth","n":1000000,"lingots":40,"art":"a golden top hat full of banknotes"},
+    {"id":"lvl10","name":"Gros bonnet","txt":"Atteins le niveau 10.","stat":"!lvl","n":10,"lingots":10,"art":"a golden badge shaped like a star"},
+    {"id":"lvl20","name":"Légende de la cité","txt":"Atteins le niveau 20.","stat":"!lvl","n":20,"lingots":30,"art":"a legendary laurel crown"},
+    {"id":"look2","name":"Nouveau visage","txt":"Change le look de ton quartier.","stat":"!looks","n":2,"lingots":5,"art":"a paint roller painting a building"},
+    {"id":"skin3","name":"Garde-robe","txt":"Possède 3 looks pour ton perso.","stat":"!skins","n":3,"lingots":5,"art":"a clothes rack with three outfits"}
+  ];
   const TIPS = [
+    'Un tuyau du Kiosque, c\'est un avis, pas une prophétie. Même le journaliste parie mal.',
+    'Momo dit qu\'il a déjà gagné un ×100 à la machine. Momo dit beaucoup de choses.',
+    'L\'or bouge peu : c\'est l\'endroit où dormir tranquille.',
+    'Encaisse tes loyers au moins tous les 3 jours, sinon ils s\'arrêtent de tomber.',
+    'Une créatrice à plat de moral gagne deux fois moins. Un petit cadeau, et ça repart.',
+    'Ta machine chauffe ? Refroidis-la avant 100 %, sinon adieu une partie de la récolte.',
+    'Les pigeons du quartier n\'ont jamais compris pourquoi une crypto porte leur nom.',
+    'Le videur du Club n\'a jamais souri. Une légende dit qu\'il l\'a fait en 2019.',
+    'Revendre au Comptoir coûte 10 %. Achète bas, sinon c\'est le Comptoir qui s\'enrichit.',
+    'Un combiné, c\'est une grosse cote… et une grosse chance que ça rate.',
+    'La KebabCoin n\'a jamais servi à acheter un kebab. Jamais.',
+    'Ton cadeau du jour grossit si tu reviens chaque jour. Ne casse pas la série !',
+    'Un parking plein, c\'est beau. Un parking plein de voitures qui ont pris de la valeur, c\'est mieux.',
+    'Au Lucky Palace, la seule stratégie gagnante, c\'est de s\'arrêter.',
     'Au casino, la maison gagne toujours à la fin. C\'est des maths.',
     'Une crypto qui a pris +300 % en une journée peut en perdre 90 % le lendemain.',
     'Les cotes du Royal reversent environ 93 % des mises. Le reste, c\'est pour le patron.',
@@ -613,7 +670,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

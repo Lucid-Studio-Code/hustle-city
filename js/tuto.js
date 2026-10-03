@@ -43,19 +43,48 @@
     kiosque: enter('kiosque', 'Le Kiosque', 'Là, c\'est <b>le Kiosque</b>, le journal du quartier. Entre.',
       'Toutes les 30 min, un nouveau journal sort avec des <b>tuyaux</b> : qui va gagner un match, si la crypto va monter… Ça coûte un peu, mais ça aide à mieux miser. L\'onglet <b>Boosters</b> vend des paquets de cartes.', '#modal .tabs'),
     bus: enter('bus', 'Arrêt de bus', 'Et ça, c\'est <b>l\'arrêt de bus</b>. Jette un œil.',
-      'Le bus mène aux autres quartiers : bijouterie, garage, la Tour… Ils sont encore fermés : ils ouvriront quand tu monteras en niveau.', '#modal .sheet-body'),
+      'Le bus mène aux autres quartiers : la Bijouterie, le Garage, la Tour… Chacun ouvre à son niveau, et je te préviendrai.', '#modal .sheet-body'),
     casino: enter('casino', 'Lucky Palace', 'Nouveau : le <b>Lucky Palace</b> est ouvert ! Machine à sous et roulette. Entre.',
       'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
-    shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes, des baskets et des montres de collection. Entre.',
+    shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes et des baskets de collection. Entre.',
       'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
     six: enter('six', 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
       'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
     club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Va voir le videur.',
       'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo]')
   };
-  const BLD_ORDER = ['kiosque', 'bus', 'six', 'shop', 'casino', 'club'];
+  // nouveautés qui ne sont pas un bâtiment : présentées dès qu'elles se débloquent
+  const goPlace = (id, name, intro, inside, target) => [
+    { say: () => intro, target: '.bld[data-id=bus]', before: () => U.focusBld('bus'), done: () => modalOpen() && title() === 'Arrêt de bus' },
+    { say: () => `Touche <b>${name}</b>.`, target: `[data-act=goPlace][data-id=${id}]`, done: () => modalOpen() && title() === name },
+    { say: () => inside, target, btn: 'Compris' }
+  ];
+  Object.assign(BLD, {
+    roulette: [
+      { say: () => 'Nouveau au <b>Lucky Palace</b> : la <b>roulette</b> ! Entre.', target: '.bld[data-id=casino]', before: () => U.focusBld('casino'), done: () => modalOpen() && title() === 'Lucky Palace' },
+      { say: () => 'Touche l\'onglet <b>Roulette</b>.', target: '#modal .tab[data-tab=roulette], [data-act=csTab][data-t=roulette]', done: () => !!$('[data-act=rlSpin]') },
+      { say: () => 'Choisis un jeton, pose-le sur un numéro ou sur Rouge, Pair… puis <b>lance</b>. Un numéro paie ×36, une couleur ×2.', target: '#modal .felt, #modal .rl-board', btn: 'Compris' }],
+    bijou: goPlace('bijou', 'Bijouterie Diamant', 'Le bus t\'emmène maintenant à la <b>Bijouterie Diamant</b> ! Va à l\'arrêt.',
+      'Ici : les <b>montres de luxe</b>, l\'<b>or</b> et les <b>raretés</b>. L\'or bouge peu et monte doucement : c\'est le placement tranquille.', '#modal .tabs'),
+    agence: [
+      { say: () => (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Nouveau : <b>ta page PrivéFans</b> ! Ouvre ton téléphone.' : 'Nouveau : <b>l\'agence PrivéFans</b> ! Ouvre ton téléphone.', target: '#phone-btn', done: () => !!$('[data-act=phoneApp][data-id=agence]') || (modalOpen() && /PrivéFans/.test(title())) },
+      { say: () => 'Touche l\'appli <b>PrivéFans</b>.', target: '[data-act=phoneApp][data-id=agence]', done: () => modalOpen() && /PrivéFans/.test(title()) },
+      { say: () => 'Choisis une spécialité, lance des activités et encaisse tes gains. Garde un œil sur l\'<b>énergie</b> et le <b>moral</b> : à plat, on gagne moins.', target: '#modal .sheet-body', btn: 'Compris' }],
+    garage: goPlace('garage', 'Garage Prestige', 'Le bus mène maintenant au <b>Garage Prestige</b> ! Va à l\'arrêt.',
+      'Voitures et motos de collection : chacune prend une place de parking. Ta première voiture fera apparaître <b>ton parking</b> en ville.', '#modal .tabs'),
+    tour: goPlace('tour', 'La Tour', 'Le bus va maintenant jusqu\'à <b>la Tour</b> ! Va à l\'arrêt.',
+      'L\'<b>immobilier</b> : un bien te rapporte un loyer chaque jour, même quand tu ne joues pas. Passe l\'encaisser au moins tous les 3 jours.', '#modal .tabs'),
+    bourse: goPlace('tour', 'La Tour', 'Nouveau à la Tour : <b>la bourse</b> ! Va à l\'arrêt.',
+      'Onglet <b>Bourse</b> : achète des actions des boîtes du quartier. Plus calme que la crypto, et la plupart versent des <b>dividendes</b> chaque jour.', '#modal .tabs'),
+    parking: [{ say: () => 'Ta première caisse ! <b>Ton parking</b> vient d\'apparaître en ville : tes véhicules y sont garés.', target: '.bld[data-id=parking]', before: () => U.focusBld('parking'), btn: 'Trop bien' }]
+  });
+  const FEAT_LVL = { roulette: () => D.ROULETTE.lvl, bijou: () => D.EXT_PLACES.find(b => b.id === 'bijou').lvl, agence: () => D.AGENCE.lvl, garage: () => D.EXT_PLACES.find(b => b.id === 'garage').lvl,
+    tour: () => D.EXT_PLACES.find(b => b.id === 'tour').lvl, bourse: () => D.BOURSE.lvl, parking: () => G.parkedCount() > 0 ? 0 : 99 };
+  const BLD_ORDER = ['kiosque', 'bus', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
+  const unlockLvl = k => FEAT_LVL[k] ? FEAT_LVL[k]() : D.BUILDINGS.find(b => b.id === k).lvl;
   const seen = () => (st().bldTuto = st().bldTuto || {});
 
+  let placedFor = '';
   let idx = 0, timer = null, el = {}, STEPS = MAIN, bld = null;
   function ensureDom() {
     if (el.spot) return;
@@ -80,7 +109,7 @@
     } catch (e) { return alphaBox[k] = null; }
   }
   function tightRect(t, app) {
-    const imgs = [...t.querySelectorAll('.pic img')], parts = [];
+    const imgs = t.classList.contains('bld') ? [...t.querySelectorAll('.pic img')] : [], parts = [];   // on serre au dessin seulement pour les bâtiments
     const zone = t.querySelector('.spot-zone');   // arrêt de bus : la zone à toucher couvre tout l'abri
     if (zone) parts.push(zone.getBoundingClientRect()); else if (!imgs.length) parts.push(t.getBoundingClientRect());
     imgs.forEach(img => {
@@ -102,6 +131,8 @@
     const app = $('#app').getBoundingClientRect();
     const t = step.target && [...document.querySelectorAll(step.target)].find(e => e.offsetParent !== null);
     if (!t) { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; el.say.classList.remove('low'); return; }
+    // la cible est dans une fenêtre qui défile : on l'amène à l'écran une fois par étape
+    if (placedFor !== idx + ':' + (bld || '')) { placedFor = idx + ':' + (bld || ''); const rr = t.getBoundingClientRect(); if (t.closest('#modal') && (rr.top < app.top + 60 || rr.bottom > app.bottom - 60)) { t.scrollIntoView({ block: 'center' }); return; } }
     const r = tightRect(t, app), pad = 6;
     Object.assign(el.spot.style, { display: 'block', left: (r.left - app.left - pad) + 'px', top: (r.top - app.top - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
     const above = r.top - app.top > 90;
@@ -153,7 +184,7 @@
     const busy = modalOpen() || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
     calm = busy ? 0 : calm + 1;
     if (calm < 3) return;
-    const id = BLD_ORDER.find(k => !seen()[k] && s.lvl >= D.BUILDINGS.find(b => b.id === k).lvl);
+    const id = BLD_ORDER.find(k => !seen()[k] && s.lvl >= unlockLvl(k));
     if (id) { calm = 0; startBld(id); }
   }, 1000);
 
