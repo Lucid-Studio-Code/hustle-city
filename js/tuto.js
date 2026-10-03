@@ -37,7 +37,7 @@
   const title = () => ([...document.querySelectorAll('#modal .sheet-head > span')].pop() || {}).textContent || '';
   const enter = (id, name, intro, inside, target) => [
     { say: () => intro, target: `.bld[data-id=${id}]`, before: () => U.focusBld(id), done: () => modalOpen() && title() === name },
-    { say: () => inside, target, btn: 'Compris' }
+    { say: () => typeof inside === 'function' ? inside() : inside, target, btn: 'Compris' }
   ];
   const BLD = {
     kiosque: enter('kiosque', 'Le Kiosque', 'Là, c\'est <b>le Kiosque</b>, le journal du quartier. Entre.',
@@ -49,9 +49,10 @@
     shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes et des baskets de collection. Entre.',
       'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
     six: enter('six', 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
-      'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
+      () => G.sixPhase() === 'over' ? 'Le dernier en date : le <b>Tournoi des 6 Quartiers</b>, du rugby. Il est terminé, mais <b>le prochain événement sera annoncé ici</b> : pronos gratuits, classement contre les autres joueurs et cartes en édition limitée. Repasse de temps en temps !'
+        : 'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
     club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Va voir le videur.',
-      'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo]')
+      'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo], #modal .sheet-body')
   };
   // nouveautés qui ne sont pas un bâtiment : présentées dès qu'elles se débloquent
   const goPlace = (id, name, intro, inside, target) => [

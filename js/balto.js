@@ -31,7 +31,7 @@
   const pickName = (m, p) => labels(m)[p] === 'N' ? 'Match nul' : labels(m)[p] === '1' ? m.home : m.away;
 
   // « BUT ! » : on retient le dernier score vu de chaque match
-  const seen = {}, flash = {}, flashSide = {}, ended = {}, wasLive = new Set();
+  const seen = {}, flash = {}, flashSide = {}, ended = {}, wasLive = new Set(); let goalSnd = 0;
   const justEnded = m => ended[m.id] && Date.now() - ended[m.id] < 8000;   // le coup de sifflet final reste affiché 8 s, à sa place
   function checkGoals() {
     st().matches.forEach(m => { if (m.state === 'live') wasLive.add(m.id); else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
@@ -46,7 +46,7 @@
       flash[m.id] = Date.now(); flashSide[m.id] = da > db ? 'r' : db > da ? 'l' : (flashSide[m.id] === 'r' ? 'l' : 'r');
       if (m.sport !== 'foot') return;
       const who = sc.a > prev.a ? m.home : m.away;
-      if (mine.has(m.id)) { U.sfx.goal(); U.toast(`⚽ BUT pour ${who} ! ${m.home} ${sc.a} - ${sc.b} ${m.away}`, false, 'mybets'); }
+      if (mine.has(m.id)) { if (Date.now() - goalSnd > 20000) { goalSnd = Date.now(); U.sfx.goal(); } U.toast(`⚽ BUT pour ${who} ! ${m.home} ${sc.a} - ${sc.b} ${m.away}`, false, 'mybets'); }
     });
   }
   setInterval(checkGoals, 1000);

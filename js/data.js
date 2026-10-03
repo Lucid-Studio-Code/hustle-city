@@ -40,12 +40,12 @@
   const GARAGES = [{ slots: 2, cost: 0, name: 'Box simple' }, { slots: 4, cost: 25000, name: 'Garage double' }, { slots: 7, cost: 90000, name: 'Parking privé' }];
   // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
   const PROPS = [
-    { id: 'p-park',   name: 'Place de parking',     price: 3000,   rent: 300,   lvl: 12, icon: '🅿️', desc: 'Petit loyer, zéro souci.' },
-    { id: 'p-studio', name: 'Studio étudiant',      price: 15000,  rent: 1400,  lvl: 12, icon: '🛏️', desc: 'Toujours loué, parfois en retard.' },
-    { id: 'p-flat',   name: 'Appart avec balcon',   price: 60000,  rent: 5000,  lvl: 14, icon: '🏢', desc: 'Le bon rapport, si tout va bien.' },
-    { id: 'p-office', name: 'Étage de bureaux',     price: 250000, rent: 19000, lvl: 16, icon: '🏙️', desc: 'Le gros lot : des entreprises qui paient cash.' }
+    { id: 'p-park',   name: 'Place de parking',     price: 3000,   rent: 120,   lvl: 12, icon: '🅿️', desc: 'Petit loyer, zéro souci.' },
+    { id: 'p-studio', name: 'Studio étudiant',      price: 15000,  rent: 600,  lvl: 12, icon: '🛏️', desc: 'Toujours loué, parfois en retard.' },
+    { id: 'p-flat',   name: 'Appart avec balcon',   price: 60000,  rent: 2400,  lvl: 14, icon: '🏢', desc: 'Le bon rapport, si tout va bien.' },
+    { id: 'p-office', name: 'Étage de bureaux',     price: 250000, rent: 9500, lvl: 16, icon: '🏙️', desc: 'Le gros lot : des entreprises qui paient cash.' }
   ];
-  const PROP = { maxDays: 3, sellFee: .08, growDay: .01, issue: .15 };   // pépin de proprio : 15 % de chance à l'encaissement
+  const PROP = { maxDays: 3, sellFee: .08, growDay: .004, issue: .15 };   // pépin de proprio : 15 % de chance à l'encaissement
   const STOCKS = [
     { id: 'kbc', name: 'KebabCorp',     sym: 'KBC', p0: 42,  vol: .0025, drift: .000004, div: .006, sector: 'Restauration rapide', color: '#e0662f' },
     { id: 'mtr', name: 'MétroLigne',    sym: 'MTR', p0: 88,  vol: .0015, drift: .000003, div: .010, sector: 'Transports',          color: '#1f6fd1' },
@@ -123,7 +123,7 @@
   // plus leur moral baisse. Activités = durée réelle. cha = charisme (fait grimper les abonnés), reg = régularité (revenu stable),
   // drama = risque de bad buzz et d'agence rivale. Tout est inventé.
   const AGENCE = {
-    lvl: 7, subPrice: .06, subsCap: 20000, payCapH: 12, candEvery: 120, eventEvery: [30, 60],
+    lvl: 7, subPrice: .035, subsCap: 20000, payCapH: 10, candEvery: 120, eventEvery: [30, 60],
     slots: [{ n: 1, cost: 0 }, { n: 2, cost: 3000 }, { n: 3, cost: 10000 }, { n: 4, cost: 30000 }],
     shares: [.2, .35, .5],
     acts: [
@@ -280,10 +280,10 @@
     { id: 'w-chrono',   cat: 'watch',   name: 'Chronographe or',         r: 'E', p0: 14000, vol: .03 },
     { id: 'w-grail',    cat: 'watch',   name: 'La montre « graal »',     r: 'L', p0: 85000, vol: .035 },
     // or : le placement sûr (bouge peu, monte doucement : drift = tendance par minute, revert 0 = ne revient pas vers le prix de départ)
-    { id: 'o-napo',     cat: 'gold',    name: 'Pièce d\'or de 20 francs',  r: 'C', p0: 450,    vol: .006, drift: .000012, revert: 0 },
-    { id: 'o-bar10',    cat: 'gold',    name: 'Petite barre d\'or 10 g',   r: 'R', p0: 900,    vol: .006, drift: .000012, revert: 0 },
-    { id: 'o-lion',     cat: 'gold',    name: 'Once d\'or « Lion »',       r: 'E', p0: 2600,   vol: .007, drift: .000012, revert: 0 },
-    { id: 'o-bar100',   cat: 'gold',    name: 'Barre d\'or 100 g',         r: 'L', p0: 9000,   vol: .006, drift: .000012, revert: 0 },
+    { id: 'o-napo',     cat: 'gold',    name: 'Pièce d\'or de 20 francs',  r: 'C', p0: 450,    vol: .006, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'o-bar10',    cat: 'gold',    name: 'Petite barre d\'or 10 g',   r: 'R', p0: 900,    vol: .006, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'o-lion',     cat: 'gold',    name: 'Once d\'or « Lion »',       r: 'E', p0: 2600,   vol: .007, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'o-bar100',   cat: 'gold',    name: 'Barre d\'or 100 g',         r: 'L', p0: 9000,   vol: .006, drift: .000004, revert: 0, cap: 1.6 },
     // raretés : bougent peu, sauf quand une rumeur tombe
     { id: 'g-roman',    cat: 'gem',     name: 'Pièce romaine antique',     r: 'R', p0: 1200,   vol: .015 },
     { id: 'g-ruby',     cat: 'gem',     name: 'Rubis certifié',            r: 'R', p0: 1800,   vol: .015 },

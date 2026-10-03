@@ -1090,15 +1090,18 @@
   function notify(app, title, txt, act, quiet, thread, img) {
     const n = { id: Date.now() + Math.random(), t: Date.now(), app, title, txt, act, thread, img: img || (thread && chats()[thread] && chats()[thread].img), seen: false, read: false };
     notifs().unshift(n); if (notifs().length > 40) notifs().length = 40;
-    renderPhoneBtn(true);
+    renderPhoneBtn(true, !quiet && !hush);
     if (!quiet && !phoneOpen()) banner(n);
   }
   const unseen = () => notifs().filter(n => !n.seen).length;
-  function renderPhoneBtn(ping) {
+  // son de notif : seulement quand une vraie notif s'affiche, jamais pour l'ambiance (météo, actus), et pas plus d'une fois toutes les 30 s
+  let hush = false, lastPing = 0;
+  const softNotify = (...a) => { hush = true; try { notify(...a); } finally { hush = false; } };
+  function renderPhoneBtn(ping, sound) {
     const b = $('#phone-btn'); if (!b) return;
     const n = unseen(), bd = b.querySelector('.badge');
     bd.textContent = n > 9 ? '9+' : n; bd.classList.toggle('hidden', !n);
-    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); sfx.notif(); }
+    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); if (sound && !st().quiet && !phoneOpen() && Date.now() - lastPing > 30000) { lastPing = Date.now(); sfx.notif(); } }
   }
   // petite notification qui glisse en haut de l'écran, comme sur un vrai téléphone
   function banner(n) {
@@ -2090,7 +2093,7 @@
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
-    setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k) return;
+    setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
       const cur = D.SKINS.find(x => x.id === st().skin) || {}, ag = st().agence;
       if (cur.g !== k.g && ag && ag.crew && ag.crew.length) return toast(cur.g === 'f' ? 'Tu as ta page PrivéFans : garde un look féminin.' : 'Tu gères une agence PrivéFans : garde un look masculin.', true);
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); sfx.coin(); toast(`Nouveau look : ${k.name} !`); }
@@ -2186,14 +2189,14 @@
   });
   G.on('levelup', e => { queue(() => showLevelUp(e)); renderCity(); });
   // mini-événement : annoncé par Momo en bas de l'écran (rien ne cache le haut du jeu), la pastille reste en haut
-  G.on('event', ev => { sfx.goal(); notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });
+  G.on('event', ev => { notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });
   G.on('deal', d => {
     chatPush(d.name, d.img, { from: 'them', kind: 'deal', txt: d.line, offer: { id: d.id, type: d.type, price: d.price }, acts: [{ label: d.type === 'sell' ? 'J\'achète' : 'Je vends', act: 'dealOk' }, { label: 'Non merci', act: 'dealNo' }] });
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
   G.on('mineBurnt', () => notify('rig', 'Ta machine a surchauffé', 'La récolte en prend un coup : la prochaine fois, refroidis-la avant 100 %.'));
-  G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) notify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
+  G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) softNotify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
   G.on('tipResult', r => {
     const score = `${r.m.home} ${r.m.sh} – ${r.m.sa} ${r.m.away}`;
     const txt = r.right ? (r.followed ? pick([`Tu vois, je te l'avais dit ! ${score} 😎`, `Qui c'est le boss des pronos ? ${score}, comme prévu 💸`, `Je t'avais dit de me faire confiance ! ${score}`])
@@ -2218,9 +2221,9 @@
   });
   G.on('flashSoon', f => notify('crypto', '🔔 Ton PC a repéré quelque chose', `${G.coin(f.id).name} va bouger d'un coup dans 1 min. Prépare-toi !`));
   G.on('flash', f => notify('crypto', `⚡ ${G.coin(f.id).name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !`, f.up ? 'Si tu en as, c\'est le moment de vendre : ça va sûrement retomber.' : 'Ça plonge : ça pourrait remonter dans quelques minutes.'));
-  G.on('coinNews', n => { if (st().crypto.hold[n.id] > 0) notify('crypto', `📰 ${n.src} (${n.rel.toLowerCase()})`, n.txt); });
+  G.on('coinNews', n => { if (st().crypto.hold[n.id] > 0) softNotify('crypto', `📰 ${n.src} (${n.rel.toLowerCase()})`, n.txt); });
   G.on('orderDone', ({ o, r }) => notify('crypto', '🤖 Ordre exécuté', r.err ? `Ton ordre sur ${G.coin(o.id).name} n'a pas pu passer : ${r.err}` : o.type === 'buy' ? `Ton PC a acheté du ${G.coin(o.id).name}.` : `Ton PC a tout vendu : ${r.profit >= 0 ? `+${short(r.profit)} de gagné` : `${short(r.profit)} de perdu`}.`));
-  G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; notify('crypto', `Météo du marché : ${w[0]} ${w[1]}`, w[2]); });
+  G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; softNotify('crypto', `Météo du marché : ${w[0]} ${w[1]}`, w[2]); });
   G.on('news', n => {
     if (n.smoke) {
       const t = n.txt.replace(/^🚬 Pause clope : un pote te glisse que /, '');
@@ -2228,7 +2231,7 @@
       chatPush(ct.name, ct.img, { from: 'them', txt: `Entre nous : ${t}`, item: n.item, acts: [{ label: n.up ? 'J\'y vais' : 'Je regarde', act: 'shop', id: n.item }, { label: 'Merci', act: 'no' }] });
       return notify('msg', ct.name, `Entre nous : ${t}`, null, false, ct.name);
     }
-    notify(n.txt.includes('effondre') ? 'crypto' : 'news', n.bad ? 'Ça baisse !' : 'Ça monte !', n.txt);
+    softNotify(n.txt.includes('effondre') ? 'crypto' : 'news', n.bad ? 'Ça baisse !' : 'Ça monte !', n.txt);
   });
   G.on('sixRemind', m => notify('six', '🏉 Pense à ton prono', `${m.home} – ${m.away} commence bientôt. C'est gratuit !`));
   G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} Tu es ${G.sixRank()}e au classement.`));
