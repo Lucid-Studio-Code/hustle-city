@@ -1842,7 +1842,7 @@
     const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
-        <div class="pf-id"><div class="big">${esc(s.name)}</div><span class="pf-lvl">Niveau ${s.lvl}</span>
+        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span>
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${s.xp} / ${G.xpNeed()} XP</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       <h3 class="sec">Tes chiffres</h3>
@@ -1903,19 +1903,21 @@
   function startScreen() {
     const el = $('#start'); el.className = has('splash') ? 'splash' : '';
     const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '<div class="t1">HUSTLE</div><div class="t2">CITY</div>';
-    let sel = 'survet';
+    let sel = 'survet'; if (!st().tag) st().tag = String(1000 + Math.floor(Math.random() * 9000));
     const draw = () => {
       el.innerHTML = `<div class="logo">${logo}<div class="tagline">Deviens riche. Facilement.*<small>*ou pas</small></div></div>
         <div class="form">
           <div class="skins">${D.SKINS.map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
           <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
+          <div class="name-tag">Ton blaze aura un numéro rien qu'à toi, ex. <b>#${st().tag || '????'}</b></div>
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
         </div>`;
       el.querySelectorAll('.skin').forEach(b => b.onclick = () => { sel = b.dataset.skin; const n = $('#st-name').value; draw(); $('#st-name').value = n; });
       $('#st-go').onclick = () => {
         const n = $('#st-name').value.trim();
         if (n.length < 3) return toast('Ton blaze : 3 lettres minimum.', true);
-        st().name = n; st().skin = sel; G.save(); el.remove(); boot2(true);
+        // deux joueurs peuvent choisir le même blaze : le numéro (#4821) les distingue. La vraie vérification viendra avec les comptes en ligne.
+        st().name = n; st().tag = st().tag || String(1000 + Math.floor(Math.random() * 9000)); st().skin = sel; G.save(); el.remove(); boot2(true);
       };
     };
     draw();

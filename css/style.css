@@ -2678,3 +2678,19 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .ag-niche { display: flex; align-items: center; gap: 8px; padding: 6px 10px; min-height: 52px; border: 3px solid #2a1a10; border-radius: 14px; background: linear-gradient(#fff, #f3e8ff); box-shadow: 0 3px 0 #2a1a10; text-align: left; }
 #app .ag-niche img { width: 40px; height: 40px; object-fit: contain; } #app .ag-niche b { font: 400 15px var(--title); color: #2a1a10; }
 #app .ag-niches + .hint-line { margin-top: 4px; }
+/* accueil (nouvelle partie) : tout tient sur un écran, perso choisi au même style que les autres */
+#start:not(.welcome):not(.loading) { justify-content: space-evenly; gap: 8px; overflow: hidden; padding: calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 12px); }
+#start:not(.welcome) .logo img { width: auto; max-width: min(86%, 340px); max-height: 22vh; }
+#start:not(.welcome) .tagline { margin-top: 2px; font-size: 16px; }
+#start .skin, #start .skin.sel { border-image: none !important; border: 2.5px solid #2a1a10; border-radius: 16px; padding: 6px 4px 5px; transform: none; }
+#start .skin.sel { background: #fff1b8; box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ffc933 inset; transform: translateY(-2px); }
+#start .skin.sel b { color: #3b2412; -webkit-text-stroke: 0; }
+#start .skin .pic { width: 100%; height: min(15vh, 130px) !important; aspect-ratio: auto; }
+#start .skin .pic img { object-fit: contain; }
+#start .skins { gap: 6px; }
+#start .form { gap: 8px; }
+#start input.name { padding: 7px; font-size: 18px; }
+#app #start #st-go { min-height: 52px !important; font-size: 24px !important; }
+#start .name-tag { margin-top: -4px; text-align: center; font: 800 11px var(--text); color: #e6dcff; }
+#app .pf-tag { margin-left: 6px; font: 800 13px var(--text); color: #8a7560; }
+#app #start:not(.welcome) #st-go { width: 100%; padding-left: 10px; padding-right: 10px; animation: none; }
