@@ -33,7 +33,7 @@
     return `<div class="slot-machine"><div class="sm-sign"><span>LUCKY</span><b>777</b><span>PALACE</span></div>
         <div class="reels">${shown.map((sym, i) => `<div class="reel ${lastSpin && lastSpin.mult ? 'win' : ''}" id="reel-${i}"><div class="strip"><div class="sym">${symHtml(sym)}</div></div></div>`).join('')}</div>
         <div class="center stroke" style="margin:10px 0 6px;font-size:20px;min-height:26px" id="slot-msg">${lastSpin ? (lastSpin.win ? `+${U.eur(lastSpin.win)} (×${lastSpin.mult})` : 'Perdu') : 'Aligne 3 symboles'}</div>
-        <div class="sm-betlbl">Ta mise <span>(missions dès ${G.missionMin()})</span></div><div class="seg sm-bets">${D.SLOT.bets.map(b => `<button class="sm-chip ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
+        <div class="sm-betlbl">Ta mise</div><div class="seg sm-bets">${D.SLOT.bets.map(b => `<button class="sm-chip ${b === bet ? 'on' : ''}" data-act="slBet" data-v="${b}">${b}</button>`).join('')}</div>
         <button class="btn wide" style="margin-top:10px;min-height:60px;font-size:24px" data-act="slSpin" ${spinning || s.cash < bet ? 'disabled' : ''}>Lancer · ${U.eur(bet)}</button>
 
       </div>
@@ -78,7 +78,7 @@
     return `<div class="rl-top"><div class="wheel-wrap"><div class="wheel-ptr"></div><div class="wheel" id="wheel" style="background:${wheelGradient()};transform:rotate(${wheelTurn}deg)">${D.ROULETTE.order.map((v, i) => `<i class="wn" style="transform:rotate(${((i + .5) * 360 / D.ROULETTE.order.length).toFixed(2)}deg)"><b>${v}</b></i>`).join('')}</div>
         ${U.has('roulette-hub') ? `<img class="wheel-hub" src="${U.src('roulette-hub')}" alt="">` : ''}<div class="wheel-res" style="${lastRoll ? `background:${lastRoll.n === 0 ? '#1f9d55' : R.includes(lastRoll.n) ? '#d33a2c' : '#222'}` : ''}">${lastRoll && !rolling ? lastRoll.n : '?'}</div></div>
       <div class="rl-side"><div class="center stroke" style="font-size:18px;min-height:24px">${rolling ? 'Les jeux sont faits…' : lastRoll ? (lastRoll.win ? `Gagné : +${U.eur(lastRoll.win)}` : `Perdu (${U.eur(lastRoll.total)})`) : 'Pose tes jetons'}</div>
-      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}">${U.has('chip-' + c) ? `<img src="${U.src('chip-' + c)}" alt="">` : ''}<span>${c}</span></button>`).join('')}</div><small class="rl-rule">Numéro ×36 · douzaine ×3<br>rouge, noir, pair… ×2<br><b>Missions : dès ${G.missionMin()} misés</b></small></div></div>
+      <div class="chips">${D.ROULETTE.chips.map((c, i) => `<button class="${c === chip ? 'sel' : ''}" style="--cc:${['#8d99ae', '#e63946', '#457b9d', '#2a9d8f', '#222', '#9b5de5'][i]}" data-act="rlChip" data-v="${c}">${U.has('chip-' + c) ? `<img src="${U.src('chip-' + c)}" alt="">` : ''}<span>${c}</span></button>`).join('')}</div><small class="rl-rule">Numéro ×36 · douzaine ×3<br>rouge, noir, pair… ×2</small></div></div>
       <div class="felt"><div class="rl-board"><button class="zr" data-act="rlBet" data-t="num" data-v="0">0${chipOn('num', 0)}</button>
         ${nums.map(n => `<button class="${R.includes(n) ? 'rd' : 'bk'}" data-act="rlBet" data-t="num" data-v="${n}">${n}${chipOn('num', n)}</button>`).join('')}</div>
       <div class="rl-outside">

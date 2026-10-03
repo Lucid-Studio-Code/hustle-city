@@ -80,8 +80,6 @@
   // équilibrage (02/10) : une toute petite mise ne rapporte presque pas d'XP et ne compte pas pour les défis
   // (sinon on monte de niveau en misant 1 billet en boucle). Les plafonds d'XP grandissent avec le niveau.
   const seriousMin = () => Math.ceil(Math.max(5, betMax() / 20));
-  // les missions comptent dès une petite mise (l'XP, elle, reste réservée aux vraies mises)
-  const missionMin = () => Math.ceil(Math.max(5, betMax() / 100));
   const serious = v => v >= seriousMin();
   const xpCap = c => Math.round(c * (1 + st.lvl / 10));
   function addXp(n) {
@@ -156,7 +154,7 @@
     if (!st.crypto.hold[id]) st.crypto.since[id] = now();
     st.crypto.hold[id] += qty; st.crypto.cost[id] += eur;
     if (st.crypto.flash && st.crypto.flash.applied && st.crypto.flash.id === id) st.crypto.flash.acted = true;   // l'alerte a servi
-    if (serious(eur)) { stat('cryptoBuy'); addXp(3 + Math.min(xpCap(40), eur / 25)); }
+    stat('cryptoBuy'); if (serious(eur)) addXp(3 + Math.min(xpCap(40), eur / 25));
     emit('change'); return { qty };
   }
   function sellCrypto(id, frac) {
@@ -413,7 +411,7 @@
     const odds = Math.round(legs.reduce((o, l) => o * legOdd(match(l.m), l.pick), 1) * 100) / 100;
     st.bets.unshift({ id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
     if (st.bets.length > 30) st.bets.length = 30;
-    if (serious(stake) || free) { stat('bets'); addXp(4 + Math.min(xpCap(40), stake / 4)); } else addXp(stake / 4);
+    stat('bets'); if (serious(stake) || free) addXp(4 + Math.min(xpCap(40), stake / 4)); else addXp(stake / 4);
     emit('change'); return { ok: true, odds };
   }
   function settle(m, offline) {
@@ -469,7 +467,7 @@
     else if (reels[0].id === 'cherry' && reels[1].id === 'cherry') mult = reels[0].pay2;
     const win = Math.round(bet * mult * 100) / 100;
     if (win) addCash(win);
-    if (bet >= missionMin()) stat('spins');
+    stat('spins'); // les missions comptent chaque tour, l'XP reste réservée aux vraies mises
     if (serious(bet)) addXp(1 + Math.min(xpCap(20), bet / 5));
     if (mult >= 100 && bet >= 10) stat('bigWin');
     tiltCheck(bet - win);
@@ -505,7 +503,7 @@
     const n = Math.floor(Math.random() * 37);
     const win = bets.reduce((s, b) => s + b.amt * rouletteWins(b, n), 0);
     if (win) addCash(win);
-    if (total >= missionMin()) stat('roulette');
+    stat('roulette');
     if (serious(total)) addXp(2 + Math.min(xpCap(30), total / 5));
     tiltCheck(total - win);
     emit('change'); return { n, win, total };
@@ -1148,7 +1146,7 @@
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
-    missionMin, scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
+    scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
