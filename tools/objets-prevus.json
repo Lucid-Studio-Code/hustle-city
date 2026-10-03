@@ -1,0 +1,282 @@
+[
+ {
+  "id": "s-skate",
+  "cat": "sneaker",
+  "name": "Skate usées",
+  "r": "C",
+  "p0": 90
+ },
+ {
+  "id": "s-basket",
+  "cat": "sneaker",
+  "name": "Montantes de playground",
+  "r": "C",
+  "p0": 180
+ },
+ {
+  "id": "s-retro",
+  "cat": "sneaker",
+  "name": "Runner rétro 90",
+  "r": "R",
+  "p0": 260
+ },
+ {
+  "id": "s-chunky",
+  "cat": "sneaker",
+  "name": "Chunky dad shoes",
+  "r": "R",
+  "p0": 380
+ },
+ {
+  "id": "s-neon",
+  "cat": "sneaker",
+  "name": "Neon Night",
+  "r": "R",
+  "p0": 520
+ },
+ {
+  "id": "s-camo",
+  "cat": "sneaker",
+  "name": "Camo Squad",
+  "r": "R",
+  "p0": 600
+ },
+ {
+  "id": "s-graff",
+  "cat": "sneaker",
+  "name": "Graffiti custom",
+  "r": "E",
+  "p0": 1600
+ },
+ {
+  "id": "s-lux",
+  "cat": "sneaker",
+  "name": "Sneaker de luxe cuir",
+  "r": "E",
+  "p0": 2400
+ },
+ {
+  "id": "s-moon",
+  "cat": "sneaker",
+  "name": "Moon Boost",
+  "r": "E",
+  "p0": 3200
+ },
+ {
+  "id": "s-proto",
+  "cat": "sneaker",
+  "name": "Prototype jamais sorti",
+  "r": "L",
+  "p0": 12000
+ },
+ {
+  "id": "w-digital",
+  "cat": "watch",
+  "name": "Montre digitale rétro",
+  "r": "C",
+  "p0": 60
+ },
+ {
+  "id": "w-field",
+  "cat": "watch",
+  "name": "Montre de terrain",
+  "r": "C",
+  "p0": 180
+ },
+ {
+  "id": "w-steel",
+  "cat": "watch",
+  "name": "Montre acier classique",
+  "r": "R",
+  "p0": 900
+ },
+ {
+  "id": "w-pilot",
+  "cat": "watch",
+  "name": "Montre d’aviateur",
+  "r": "R",
+  "p0": 1400
+ },
+ {
+  "id": "w-gmt",
+  "cat": "watch",
+  "name": "Montre deux fuseaux",
+  "r": "R",
+  "p0": 3800
+ },
+ {
+  "id": "w-sq",
+  "cat": "watch",
+  "name": "Squelette mécanique",
+  "r": "E",
+  "p0": 9000
+ },
+ {
+  "id": "w-iced",
+  "cat": "watch",
+  "name": "Montre glacée de diamants",
+  "r": "E",
+  "p0": 22000
+ },
+ {
+  "id": "w-tourb",
+  "cat": "watch",
+  "name": "Tourbillon",
+  "r": "E",
+  "p0": 38000
+ },
+ {
+  "id": "w-pocket",
+  "cat": "watch",
+  "name": "Montre à gousset ancienne",
+  "r": "R",
+  "p0": 1100
+ },
+ {
+  "id": "w-unique",
+  "cat": "watch",
+  "name": "Pièce unique d’horloger",
+  "r": "L",
+  "p0": 140000
+ },
+ {
+  "id": "o-chain",
+  "cat": "gold",
+  "name": "Chaîne en or",
+  "r": "R",
+  "p0": 1200
+ },
+ {
+  "id": "o-ring",
+  "cat": "gold",
+  "name": "Chevalière en or",
+  "r": "R",
+  "p0": 800
+ },
+ {
+  "id": "o-nugget",
+  "cat": "gold",
+  "name": "Pépite d’or",
+  "r": "E",
+  "p0": 3500
+ },
+ {
+  "id": "o-kilo",
+  "cat": "gold",
+  "name": "Lingot d’un kilo",
+  "r": "L",
+  "p0": 60000
+ },
+ {
+  "id": "g-emerald",
+  "cat": "gem",
+  "name": "Émeraude taillée",
+  "r": "E",
+  "p0": 7000
+ },
+ {
+  "id": "g-sapphire",
+  "cat": "gem",
+  "name": "Saphir bleu",
+  "r": "E",
+  "p0": 9000
+ },
+ {
+  "id": "g-pearl",
+  "cat": "gem",
+  "name": "Perle noire de Tahiti",
+  "r": "R",
+  "p0": 1500
+ },
+ {
+  "id": "g-earrings",
+  "cat": "gem",
+  "name": "Boucles d’oreilles diamant",
+  "r": "R",
+  "p0": 2600
+ },
+ {
+  "id": "g-egg",
+  "cat": "gem",
+  "name": "Œuf impérial",
+  "r": "L",
+  "p0": 250000
+ },
+ {
+  "id": "g-comic",
+  "cat": "gem",
+  "name": "Premier numéro de BD culte",
+  "r": "E",
+  "p0": 12000
+ },
+ {
+  "id": "v-van",
+  "cat": "car",
+  "name": "Van aménagé",
+  "r": "C",
+  "p0": 9000
+ },
+ {
+  "id": "v-pickup",
+  "cat": "car",
+  "name": "Pick-up rétro",
+  "r": "R",
+  "p0": 22000
+ },
+ {
+  "id": "v-electric",
+  "cat": "car",
+  "name": "Berline électrique",
+  "r": "R",
+  "p0": 48000
+ },
+ {
+  "id": "v-rally",
+  "cat": "car",
+  "name": "Voiture de rallye",
+  "r": "E",
+  "p0": 90000
+ },
+ {
+  "id": "v-hyper",
+  "cat": "car",
+  "name": "Hypercar",
+  "r": "L",
+  "p0": 900000
+ },
+ {
+  "id": "m-cafe",
+  "cat": "moto",
+  "name": "Café racer",
+  "r": "R",
+  "p0": 12000
+ },
+ {
+  "id": "m-cross",
+  "cat": "moto",
+  "name": "Moto de cross",
+  "r": "C",
+  "p0": 5000
+ },
+ {
+  "id": "m-sport",
+  "cat": "moto",
+  "name": "Sportive de piste",
+  "r": "E",
+  "p0": 30000
+ },
+ {
+  "id": "m-touring",
+  "cat": "moto",
+  "name": "Grosse routière",
+  "r": "R",
+  "p0": 25000
+ },
+ {
+  "id": "m-trike",
+  "cat": "moto",
+  "name": "Trike custom",
+  "r": "E",
+  "p0": 40000
+ }
+]
