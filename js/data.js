@@ -200,7 +200,7 @@
   // Machine à sous : 3 rouleaux, 1 ligne. Poids par rouleau et gains (× la mise).
   // RTP calculé ≈ 95 % (voir GAME.slotRtp()).
   const SLOT = {
-    ui: { screen: { x: 17, y: 30, w: 66, h: 17 }, led: { x: 20, y: 49, w: 60, h: 5 }, bets: { x: 14, y: 56, w: 72, h: 9 }, spin: { x: 37, y: 68, w: 26, h: 12 }, lever: { x: 86, y: 30, w: 12, h: 24 } },   // zones sur l'image casino-machine (en %), à caler quand l'image arrive
+    ui: { screen: { x: 18.5, y: 40.5, w: 56.5, h: 17.8 }, led: { x: 14, y: 25.5, w: 64, h: 6.5 }, bets: { x: 11, y: 62.3, w: 69, h: 5.8 }, spin: { x: 36.5, y: 73.8, w: 20.5, h: 10.8 }, lever: { x: 89, y: 38, w: 11, h: 29 } },   // zones sur l'image casino-machine (en %), réglables au back-office (bouton « Machine »)
     lvl: 2,
     bets: [1, 2, 5, 10, 25, 50, 100],
     symbols: [

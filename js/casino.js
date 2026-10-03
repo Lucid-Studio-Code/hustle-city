@@ -35,6 +35,8 @@
       <div class="card" style="margin-top:10px"><b>Gains (× la mise)</b><div class="paytable">${S.map(x => `<span>${symHtml(x)}${symHtml(x)}${symHtml(x)}</span><b>×${x.pay3}</b>`).join('')}<span>${symHtml(S[0])}${symHtml(S[0])} + autre</span><b>×${S[0].pay2}</b></div>
         <p class="muted" style="margin-top:6px">Taux de retour : ${(G.slotRtp() * 100).toFixed(1).replace('.', ',')} %. Sur 100<i class="cur"></i> joués, la machine en garde environ ${Math.round(100 - G.slotRtp() * 100)}.</p></div>`;
   }
+  // la vraie machine change de taille avec l'écran : chaque case de rouleau prend la hauteur réelle de la fenêtre
+  function sizeReels() { document.querySelectorAll('#modal .rs-screen .reel').forEach(r => { const h = r.clientHeight; r.querySelectorAll('.sym').forEach(x => { x.style.height = h + 'px'; }); }); }
   function spinAnim(res) {
     const S = D.SLOT.symbols;
     res.reels.forEach((sym, i) => {
@@ -42,7 +44,7 @@
       reel.classList.remove('win');
       const n = 14 + i * 5, strip = reel.querySelector('.strip'), rh = reel.clientHeight || 96;
       const syms = []; for (let k = 0; k < n; k++) syms.push(S[Math.floor(Math.random() * S.length)]); syms.push(sym);
-      strip.innerHTML = syms.map(x => `<div class="sym">${symHtml(x)}</div>`).join('');
+      strip.innerHTML = syms.map(x => `<div class="sym" style="height:${rh}px">${symHtml(x)}</div>`).join('');
       strip.style.transition = 'none'; strip.style.transform = 'translateY(0)';
       void strip.offsetHeight;
       strip.style.transition = `transform ${0.9 + i * .35}s cubic-bezier(.2,.8,.25,1)`;
@@ -52,7 +54,7 @@
       spinning = false; lastSpin = res;
       if (res.mult >= 20) U.rain('bill', 36); else if (res.win) U.rain('confetti', 12);
       if (res.win) U.floatTxt(`+${U.eur(res.win)}`);
-      if (tab === 'slot') U.setBody(slotBody());
+      if (tab === 'slot') { U.setBody(slotBody()); sizeReels(); }
       U.refresh();
     }, 900 + 2 * 350 + 150);
   }
@@ -102,11 +104,12 @@
     if (tab === 'roulette' && st().lvl < D.ROULETTE.lvl) tab = 'slot';
     U.openModal({ title: 'Lucky Palace', icon: 'dice', full: true, theme: 'casino',
       tabs: [{ id: 'slot', label: 'Machine à sous' }, { id: 'roulette', label: st().lvl < D.ROULETTE.lvl ? `Roulette · niv. ${D.ROULETTE.lvl}` : 'Roulette', locked: st().lvl < D.ROULETTE.lvl }], tab,
-      body: body(), onTab: id => { tab = id; U.setBody(body()); } });
+      body: body(), onTab: id => { tab = id; U.setBody(body()); sizeReels(); } });
+    setTimeout(sizeReels, 30);
   }
 
   U.register({
-    slBet(el) { bet = +el.dataset.v; U.setBody(slotBody()); },
+    slBet(el) { bet = +el.dataset.v; U.setBody(slotBody()); sizeReels(); },
     slSpin() {
       if (spinning) return;
       const r = G.spin(bet); if (r.err) return U.toast(r.err, true);
