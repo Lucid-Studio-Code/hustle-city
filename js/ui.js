@@ -486,7 +486,7 @@
   function openTower(tab) { if (tab) towerTab = tab; openModal({ title: 'La Tour', icon: 'bld-tour', full: true, tabs: [{ id: 'immo', label: 'Immobilier' }, { id: 'bourse', label: 'Bourse' }], tab: towerTab, body: towerBody(), refresh: () => setBody(towerBody()), onTab: id => { towerTab = id; setBody(towerBody()); } }); }
   function openBus() {
     const s = st();
-    openModal({ title: 'Arrêt de bus', icon: 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +
+    openModal({ title: 'Arrêt de bus', icon: has('ic-bus') ? 'ic-bus' : 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +
       D.EXT_PLACES.map(b => { const lock = s.lvl < b.lvl;
         return `<button class="row ${lock ? 'locked' : ''}" ${lock ? 'disabled' : `data-act="goPlace" data-id="${b.id}"`} style="width:100%;text-align:left"><div style="width:64px;height:64px;flex:0 0 64px">${pic('bld-' + b.id, '🏙️')}</div>
         <div class="grow"><h4>${b.name}</h4><p>${b.tag}</p></div>${lock ? `<span class="rw-tag">${ic('lock')}Niveau ${b.lvl}</span>` : '<span class="btn xs green">Y aller</span>'}</button>`; }).join('') });
