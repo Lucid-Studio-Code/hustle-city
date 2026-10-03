@@ -1344,7 +1344,7 @@
         return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${art(x)}</div><b>${x.name.replace(/^Photo : /, '')}</b>${own ? `<small class="up">${used ? '✓ Utilisé' : 'À toi'}</small>` : x.desc ? `<small class="muted">${x.desc}</small>` : ''}${btn}</div>`; };
       const grp = (k, t, sub) => `<h3 class="sec">${t} <small>· ${sub}</small></h3><div class="grid2 ev-grid">${S.shop.filter(x => x.kind === k).map(item).join('')}</div>`;
       return head + `<p class="hint-line">Des objets <b>exclusifs</b> du tournoi : tu les gardes pour toujours, mais on ne peut les acheter que pendant l'événement.${closed ? ' <b>La boutique est fermée.</b>' : ''}</p>` +
-        grp('avatar', 'Photos de profil', 'l\'écusson de ton équipe') + grp('frame', 'Cadres', 'autour de ta photo') + grp('deco', 'Pour la ville', 'posés sur la carte');
+        grp('avatar', 'Photos de profil', 'le pin\'s de ton équipe sur ta photo') + grp('frame', 'Cadres', 'autour de ta photo') + grp('deco', 'Pour la ville', 'posés sur la carte');
     }
     if (sixTab === 'cards') {
       const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
