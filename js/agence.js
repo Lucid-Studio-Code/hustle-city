@@ -242,13 +242,14 @@
 ` : '';
     const nx = A.slots[a.slots + 1];
     const grow = nx ? `<div class="card ag-grow"><div class="grow"><b>Agrandir l'agence</b><small>Gérer ${nx.n} créatrices en même temps</small></div><button class="btn sm ${s.cash >= nx.cost ? 'green' : ''}" data-act="agSlots" ${s.cash >= nx.cost ? '' : 'disabled'}>${U.short(nx.cost)}</button></div>` : '';
-    // le piège de « ta part », en 3 cases comme l'explication du Comptoir
-    const how = `<div class="price-explain ag-how"><small class="pe-title">Le piège de « ta part »</small>
-      <div class="pe-story"><div class="pe-box mid"><small>1. Tu prends 50 %</small><b>+ de cash</b></div><span class="pe-arr">→</span>
-        <div class="pe-box buy"><small>2. Son moral baisse</small><b>−6 / h</b></div><span class="pe-arr">→</span>
-        <div class="pe-box buy"><small>3. Elle gagne moins</small><b>ou elle part</b></div></div>
-      <div class="pe-win">Moral au vert : elle rapporte <b>2 fois plus</b></div>
-      <small class="pe-foot">Cadeau, repos, collab et ses affaires remontent son moral. Sous 15, une agence rivale vient te la piquer.</small></div>`;
+    // comment ça marche, en 3 cases comme au Comptoir : abonnés → ce qu'elle gagne → ta part
+    const exH = Math.round(1000 * A.subPrice), exMe = Math.round(exH * .35);
+    const how = `<div class="price-explain ag-how"><small class="pe-title">Comment ça marche ?</small>
+      <div class="pe-story"><div class="pe-box mid"><small>1. Ses abonnés</small><b>1 000</b></div><span class="pe-arr">→</span>
+        <div class="pe-box mid"><small>2. Elle gagne</small><b>${exH}<i class="cur"></i>/h</b></div><span class="pe-arr">→</span>
+        <div class="pe-box sell"><small>3. Ta part : 35 %</small><b>${exMe}<i class="cur"></i>/h</b></div></div>
+      <div class="pe-win">Pour toi : <b>+${exMe}<i class="cur"></i></b> par heure</div>
+      <small class="pe-foot">Plus elle a d'abonnés, plus elle gagne. Son <b>moral</b> compte aussi : de bonne humeur elle gagne plus, à plat deux fois moins. Et plus ta part est grosse, plus son moral baisse.</small></div>`;
     if (solo()) return head + crew + `<p class="hint-line">Plus tu bosses, plus ton <b>énergie</b> baisse : sans énergie, tu gagnes moins. Le repos, le spa et les bonnes nouvelles la font remonter.</p>`;
     return head + off + (a.crew.length ? crew : '<div class="explain center">Ton agence est vide : recrute ta première créatrice.</div>') + cand + grow + how;
   }
