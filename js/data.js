@@ -325,7 +325,7 @@
   [['foot', 'f'], ['basket', 'b'], ['tennis', 't']].forEach(([sp, k]) => TEAMS[sp].forEach((t, i) => {
     const r = sp === 'tennis' ? (t[1] >= 84 ? 'L' : CARD_RAR(t[1] + 4)) : CARD_RAR(t[1]);
     // carte d'équipe (écusson) pour le foot et le basket ; carte joueur pour le tennis
-    ITEMS.push({ id: `k-${k}${i + 1}`, cat: 'card', series: sp, noBuy: true, kind: sp === 'tennis' ? 'player' : 'team', art: sp === 'tennis' ? `art-k-t${i + 1}` : null, name: t[0], r, p0: Math.round(CARD_P0[r] * (0.85 + (t[1] % 7) / 20)), vol: .06,
+    ITEMS.push({ id: `k-${k}${i + 1}`, cat: 'card', series: sp, noBuy: true, kind: sp === 'tennis' ? 'player' : 'team', art: sp === 'tennis' ? `art-k-t${i + 1}` : null, f: sp === 'tennis' && [2, 3, 6, 7, 10, 12].includes(i + 1), name: t[0], r, p0: Math.round(CARD_P0[r] * (0.85 + (t[1] % 7) / 20)), vol: .06,
       img: (sp === 'tennis' ? 'player-t' : sp === 'foot' ? 'crest-f' : 'crest-b') + (i + 1), team: [sp, i] });
   }));
   // cartes joueur : la star de chaque club, dessinée en action (art-k-…). Elles n'apparaissent qu'une fois leur image arrivée (needArt)
