@@ -422,7 +422,7 @@
   // Les 6 chambres (3 niveaux × garçon / fille) ont EXACTEMENT le même angle et le même bureau : une seule disposition pour toutes.
   // x, y = bas de l'objet en % de l'image (posé sur le plateau du bureau à 66,5 %) ; slots = places sur les 3 étagères. Réglable au back-office.
   const shelfRow = ys => ys.flatMap(y => [13, 24, 35, 46].map(x => [x, y]));
-  const ONE_ROOM = { pc: { x: 20, y: 66.5, w: 34 }, rig: { x: 47.5, y: 66.5, w: 16 }, light: { x: 61, y: 72, w: 12 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
+  const ONE_ROOM = { pc: { x: 17.5, y: 66.5, w: 30 }, rig: { x: 40.5, y: 66.5, w: 14 }, light: { x: 61, y: 72, w: 12 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
   const ROOM_LAYOUT = [0, 1, 2].map(() => JSON.parse(JSON.stringify(ONE_ROOM)));
 
   // ---------------------------------------------------------------- filet de sécurité (réaliste)
