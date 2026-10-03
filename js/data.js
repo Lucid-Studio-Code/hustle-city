@@ -513,6 +513,13 @@
 
   // ---------------------------------------------------------------- Boutique (bouton du bas)
   // Décos pour la ville, achetées pour toujours. Chacune a SA place sur la carte (réglée dans le back-office, jamais deux au même endroit).
+  // looks du quartier : toute la ville (fond + bâtiments) change d'apparence. Images bg-city-<id> et bld-<bâtiment>-<id>.
+  const CITY_LOOKS = [
+    { id: 'base',  name: 'Quartier d\'origine', desc: 'Le bitume, le vrai.', cash: 0, lvl: 1 },
+    { id: 'renov', name: 'Quartier rénové',    desc: 'Façades repeintes, fleurs, fresques : ton quartier monte en gamme.', cash: 20000, lvl: 6 },
+    { id: 'neon',  name: 'Nuit néon',          desc: 'Spécial : la ville s\'allume en rose et cyan, comme dans un film.', lingots: 150, lvl: 8, special: true },
+    { id: 'hiver', name: 'Hiver enneigé',      desc: 'Spécial : neige sur les toits, guirlandes et vitrines chaudes.', lingots: 150, lvl: 8, special: true }
+  ];
   const CITY_SHOP = [
     { id: 'dc-bench',    kind: 'deco', name: 'Banc graffé',          emo: '🪑', desc: 'Le QG des discussions du quartier.', x: 36, y: 78, w: 7,  cash: 250,   lvl: 1 },
     { id: 'dc-lamp',     kind: 'deco', name: 'Lampadaire rétro',     emo: '🏮', desc: 'Pour éclairer tes nuits de hustle.', x: 14, y: 70, w: 5,  cash: 400,   lvl: 2 },
@@ -559,7 +566,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

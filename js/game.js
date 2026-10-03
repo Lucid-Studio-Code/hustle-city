@@ -421,6 +421,18 @@
   // cote d'un pronostic au moment du pari (événement « Cotes boostées » : +15 %)
   function legOdd(m, pick) { return Math.round(m.odds[pick] * (evOn('boost') ? 1.05 : 1) * 100) / 100; }
   // free = utiliser un pari gratuit (gagné dans un booster) : la mise est offerte, on ne touche que le bénéfice
+  // look du quartier : acheté une fois, on peut ensuite passer de l'un à l'autre gratuitement
+  const looksOwned = () => (st.cityLooks = st.cityLooks || ['base']);
+  function lookBuy(id) {
+    const L = D.CITY_LOOKS.find(x => x.id === id); if (!L) return { err: 'Introuvable.' };
+    if (st.lvl < L.lvl) return { err: `Au niveau ${L.lvl}.` };
+    if (!looksOwned().includes(id)) {
+      if (L.lingots) { if (st.lingots < L.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-L.lingots); }
+      else if (!pay(L.cash || 0)) return { err: 'Pas assez de cash.' };
+      looksOwned().push(id); addXp(50);
+    }
+    st.cityLook = id; emit('change'); return { ok: true };
+  }
   // un seul pari par match : un match déjà dans un pari en cours n'est plus jouable
   const betOn = id => st.bets.some(b => b.state === 'open' && b.legs.some(l => l.m === id));
   function placeBet(legs, stake, free) {
@@ -1197,7 +1209,7 @@
 
   window.GAME = {
     get st() { return st; }, get asleep() { return asleep; }, on, emit, load, save, reset, simulate,
-    betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
+    looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,

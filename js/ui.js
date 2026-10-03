@@ -425,14 +425,15 @@
   }
   function renderCity() {
     const s = st(), inner = $('#map-inner');
-    const bg = has('bg-city') ? `<img class="bg" src="${src('bg-city')}" alt="" draggable="false">` : '<div class="bg-fallback"></div>';
+    const look = st().cityLook || 'base', bgN = has('bg-city-' + look) ? 'bg-city-' + look : 'bg-city';
+    const bg = has(bgN) ? `<img class="bg" src="${src(bgN)}" alt="" draggable="false">` : '<div class="bg-fallback"></div>';
     const cols = { appart: '#8ecae6', balto: '#2d6a4f', casino: '#9b5de5', shop: '#ffb703', bijou: '#e0aaff', garage: '#adb5bd', tour: '#90e0ef' };
     // enseigne : plaque de rue émaillée posée au-dessus du toit (ne recouvre jamais le bâtiment d'en dessous)
     inner.innerHTML = bg + D.BUILDINGS.map(b => {
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
-      const img = has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
+      const img = has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
@@ -1269,7 +1270,15 @@
       const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${used ? 'Ranger' : 'Poser en ville'}</button>`
         : lock ? `<button class="btn xs" disabled>🔒 Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
       return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
-    return `<p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
+    // looks du quartier : en haut de l'onglet, avec un aperçu de la ville
+    const own = G.looksOwned(), cur = s.cityLook || 'base';
+    const look = L => { const ready = L.id === 'base' || has('bg-city-' + L.id), has_ = own.includes(L.id), on = cur === L.id, lock = s.lvl < L.lvl;
+      const price = L.lingots ? `${ic('lingot')}${L.lingots}` : short(L.cash), can = L.lingots ? s.lingots >= L.lingots : s.cash >= L.cash;
+      const btn = !ready ? '<button class="btn xs" disabled>Bientôt</button>' : on ? '<span class="lk-on">✓ Ta ville</span>' : has_ ? `<button class="btn xs blue" data-act="lookBuy" data-id="${L.id}">Mettre</button>`
+        : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${L.lvl}</button>` : `<button class="btn xs ${L.lingots ? 'gold' : 'green'}" data-act="lookBuy" data-id="${L.id}" ${can ? '' : 'disabled'}>${price}</button>`;
+      return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${L.special ? '<span class="lk-tag">Spécial</span>' : ''}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})"></div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
+    return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
+      <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
   }
   function openBoutique(tab) {
     if (tab) bqTab = tab;
@@ -1917,6 +1926,7 @@
     crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
+    lookBuy(el) { const r = G.lookBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast('Ta ville change de look !'); renderCity(); refresh(); },
     itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.coin(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),

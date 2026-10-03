@@ -2615,3 +2615,10 @@ h3.sec { margin: 18px 6px 10px; }
 #app .skin-grid small .ic { width: 14px !important; height: 14px !important; vertical-align: -2px; }
 #app .bet-placed { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 10px; border-radius: 12px; background: #e9f9df; border: 2px solid #1f9d55; font: 700 12.5px var(--text); color: #1f6b3a; } #app .bet-placed .ic { width: 18px; height: 18px; } #app .bet-placed b { color: #2a1a10; }
 #app .wl-k { display: inline-flex; align-items: center; gap: 6px; } #app .wl-k .ic, #app .wl-k img.ico { width: 26px !important; height: 26px !important; }
+/* looks du quartier */
+#app .lk-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; text-align: center; }
+#app .lk-card.on { box-shadow: 0 0 0 3px #1f9d55, 0 3px 0 #2a1a10; } #app .lk-card.special { background: linear-gradient(#f3e8ff, #fff); }
+#app .lk-prev { width: 100%; aspect-ratio: 4 / 3; border: 2px solid #2a1a10; border-radius: 10px; background: #ddd center 40% / cover; }
+#app .lk-card b { font: 400 15px var(--title); } #app .lk-card small { font: 700 10.5px/1.25 var(--text); color: #6a5a4a; min-height: 26px; }
+#app .lk-tag { position: absolute; top: -8px; right: 8px; padding: 1px 8px; border-radius: 999px; background: #7b2cbf; color: #fff; font: 900 10px var(--text); }
+#app .lk-on { font: 900 12px var(--text); color: #1f9d55; }
