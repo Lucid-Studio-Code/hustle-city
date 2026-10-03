@@ -1499,9 +1499,9 @@
     }).join('');
     return `<div class="card center"><div class="muted">Patrimoine total</div><div class="big" style="font-size:34px">${eur(w)}</div></div>
       <div class="card" style="margin-top:8px">
-        <div class="hstack" style="justify-content:space-between"><b>💵 Cash</b><b>${eur(s.cash)}</b></div>${bar(s.cash, '#3ddc84')}
-        <div class="hstack" style="justify-content:space-between;margin-top:8px"><b>🪙 Crypto</b><b>${eur(cv)}</b></div>${bar(cv, '#f7931a')}
-        <div class="hstack" style="justify-content:space-between;margin-top:8px"><b>🏆 Objets</b><b>${eur(iv)}</b></div>${bar(iv, '#9b5de5')}
+        <div class="hstack" style="justify-content:space-between"><b class="wl-k">${ic('cash')} Cash</b><b>${eur(s.cash)}</b></div>${bar(s.cash, '#3ddc84')}
+        <div class="hstack" style="justify-content:space-between;margin-top:8px"><b class="wl-k">${ico('coin-btk', '🪙')} Crypto</b><b>${eur(cv)}</b></div>${bar(cv, '#f7931a')}
+        <div class="hstack" style="justify-content:space-between;margin-top:8px"><b class="wl-k">${ico('cat-sneaker', '🏆')} Objets</b><b>${eur(iv)}</b></div>${bar(iv, '#9b5de5')}
       </div>
       <h3 class="sec">Crypto</h3>${coins || '<p class="hint-line center">Aucune crypto. Direction ton PC, dans ton appart.</p>'}
       <h3 class="sec">Collection <small>· prix de revente</small></h3>${items || '<p class="hint-line center">Aucun objet. Passe au Comptoir.</p>'}`;
