@@ -492,7 +492,7 @@
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
-    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); };
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
   }
   // ------------------------------------------------------------ textes modifiables (back-office, bouton ✏️ Textes)
@@ -593,7 +593,7 @@
     try {
       const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
       if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
-      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {}
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {}
       if (window.LAYOUT) { window.LAYOUT.texts = body.texts; window.LAYOUT.values = body.values; }
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
@@ -619,7 +619,7 @@
         <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔ Miroir</button><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
       <div class="rp-row"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><span class="rp-sep"></span><button class="btn xs red" id="rp-reset" title="Remettre toute la chambre">↺ Chambre</button><button class="btn xs" id="rp-move" title="Déplacer la barre">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <textarea id="rp-out" readonly></textarea></div>`);
-    const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} };
+    const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} };
     const cur = () => { const k = RP.sel; if (k === 'shelf') return { x: '–', y: '–', w: RP.L.shelf.w }; if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; return { x: p[0], y: p[1], w: RP.L.shelf.w }; } return RP.L[k]; };
     const out = () => {
       save(); const o = cur();
@@ -641,13 +641,13 @@
     const size = d => { if (RP.sel === 'shelf' || RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(3, Math.round((RP.L[RP.sel].w + d / 2) * 10) / 10); redraw(); };
     $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
     $('#rp-flip').onclick = () => { const o = RP.L[RP.sel]; if (o && !RP.sel.startsWith('slot')) { o.flip = !o.flip; redraw(); } };
-    $('#rp-one').onclick = () => { const all = roomSaved(); const base = (delete all[RP.room], localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)), roomLayout(RP.room));
+    $('#rp-one').onclick = () => { const all = roomSaved(); const base = (delete all[RP.room], localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)), roomLayout(RP.room));
       const k = RP.sel; if (k === 'shelf') { RP.L.slots = base.slots; RP.L.shelf = base.shelf; } else if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = base.slots[+k.slice(4)]; else RP.L[k] = base[k]; redraw(); };
-    $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
+    $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
     $('#rp-copy').onclick = () => publishLayout();
     $('#rp-move').onclick = () => { RP.top = !RP.top; $('#rplacer').classList.toggle('top', RP.top); };
     $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; RP.g = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); if (placing) setScene('city'); };
-    $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
+    $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
     if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
       if (!RP.on) return;
@@ -695,7 +695,7 @@
   }
   // ------------------------------------------------------------ appart : chaque objet affiche une bulle qui dit ce qu'il fait
   // disposition d'une chambre : celle du jeu, ou celle réglée à la main (mode #placer-appart, gardée dans ce navigateur)
-  const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer') || '{}'); } catch (e) { return {}; } };
+  const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer2') || '{}'); } catch (e) { return {}; } };
   function roomLayout(i) {
     const base = D.ROOM_LAYOUT[i], sv = roomSaved()[i] || {};
     return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), light: Object.assign({ x: 84, y: 58, w: 13 }, base.light, sv.light), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
