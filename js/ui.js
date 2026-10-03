@@ -1859,16 +1859,16 @@
       <div class="pf-tiles">${tile(ic('ticket'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(ico('tip-market', '🏷️'), S.itemProfit || 0, 'reventes gagnantes')}
         ${tile(ico('hab-club', '🪩'), S.clubNights || 0, 'soirées au Club')}${tile(ico('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('slot-seven', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
       ${best.length ? `<h3 class="sec">Tes plus belles pièces</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
-      <h3 class="sec">Tes trophées</h3>
-      <div class="pf-trophies">${trophies.map(x => `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>`).join('')}</div>
-      <h3 class="sec">Tes succès <small>· ${Object.keys(s.ach || {}).length} / ${D.ACHIEVEMENTS.length}</small></h3>
-      <div class="pf-ach">${D.ACHIEVEMENTS.map(a => { const done = s.ach && s.ach[a.id], v = Math.min(a.n, G.achValue(a));
-        return `<div class="pf-a ${done ? 'has' : 'no'}"><div class="pf-a-art">${has('ach-' + a.id) ? pic('ach-' + a.id) : '<span>🏅</span>'}</div><b>${a.name}</b><small>${done ? `✓ +${a.lingots} lingots` : a.txt}</small>${done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(v / a.n * 100)}%"></i></i>`}</div>`; }).join('')}</div>
       <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
-      ${photoLooks()}`;
+      ${photoLooks()}
+      <h3 class="sec">Tes trophées</h3>
+      <div class="pf-trophies">${trophies.map(x => `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>`).join('')}</div>
+      <h3 class="sec">Tes succès <small>· ${Object.keys(s.ach || {}).length} / ${D.ACHIEVEMENTS.length}</small></h3>
+      <div class="pf-ach">${D.ACHIEVEMENTS.map(a => { const done = s.ach && s.ach[a.id], v = Math.min(a.n, G.achValue(a));
+        return `<div class="pf-a ${done ? 'has' : 'no'}"><div class="pf-a-art">${has('ach-' + a.id) ? pic('ach-' + a.id) : '<span>🏅</span>'}</div><b>${a.name}</b><small>${done ? `✓ +${a.lingots} lingots` : a.txt}</small>${done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(v / a.n * 100)}%"></i></i>`}</div>`; }).join('')}</div>`;
   }
   // pin's et cadres achetés : on choisit ici lequel porter (ou aucun), même après la fin de l'événement
   function photoLooks() {
