@@ -9,8 +9,8 @@
       ctx = new (window.AudioContext || window.webkitAudioContext)();
       master = ctx.createGain(); master.gain.value = .8; master.connect(ctx.destination);
       fxBus = ctx.createGain(); fxBus.gain.value = .55; fxBus.connect(master);
-      musicBus = ctx.createGain(); musicBus.gain.value = .16;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; musicBus.connect(lp); lp.connect(master);
+      musicBus = ctx.createGain(); musicBus.gain.value = .18;
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; musicBus.connect(lp); lp.connect(master);
     }
     if (ctx.state === 'suspended') ctx.resume();
     return ctx;
@@ -50,20 +50,27 @@
     harvest: () => play(t => { [784, 988, 1175].forEach((f, i) => note(f, t + i * .06, .3, { vol: .07, harm: .4 })); })
   };
 
-  // ---------------------------------------------------------------- musique lo-fi (82 bpm, 4 accords en boucle)
-  const BPM = 82, BEAT = 60 / BPM;
-  const CHORDS = [[220, 261.6, 329.6, 392], [146.8, 174.6, 220, 261.6], [196, 246.9, 293.7, 349.2], [130.8, 164.8, 196, 246.9]];   // Am7 Dm7 G7 Cmaj7
-  const MEL = [[659, 0], [587, 1.5], [523, 2], [0, 0], [698, 0], [659, 1], [587, 2.5], [0, 0], [587, 0], [523, 1], [494, 2], [0, 0], [523, .5], [494, 1.5], [440, 2], [0, 0]];
+  // ---------------------------------------------------------------- musique lo-fi hip-hop (boom bap, 86 bpm, swing)
+  const BPM = 86, BEAT = 60 / BPM, SW = .58;   // swing : la 2e croche de chaque temps arrive un peu en retard
+  // Fm9 · Dbmaj7 · Bbm9 · C7(b9) : couleur jazzy un peu sombre, typique du boom bap
+  const CHORDS = [[174.6, 207.7, 261.6, 311.1, 392], [138.6, 174.6, 207.7, 261.6], [116.5, 138.6, 174.6, 207.7, 261.6], [130.8, 164.8, 196, 233.1, 277.2]];
+  const BASS = [[87.3, 0], [87.3, 1.75], [103.8, 2.5], [69.3, 0], [69.3, 1.5], [77.8, 3], [58.3, 0], [58.3, 1.75], [65.4, 2.5], [65.4, 0], [65.4, 1.5], [98, 3]];
+  const KICK = [0, 1.75, 2.5], SNARE = [1, 3];
+  const swing = x => Math.floor(x) + ((x % 1) >= .5 ? SW : (x % 1));
+  function kick(t) { note(120, t, .35, { vol: .32, slide: .32, bus: musicBus }); }
+  function snare(t) { noise(t, .22, { vol: .11, freq: 1700, q: .6, bus: musicBus }); note(190, t, .12, { vol: .06, slide: .7, bus: musicBus }); }
+  function hat(t, v) { noise(t, .04, { vol: v, freq: 8000, q: 1.2, type: 'highpass', bus: musicBus }); }
+  function crackle(t, len) { for (let k = 0; k < 6; k++) if (Math.random() < .7) noise(t + Math.random() * len, .012, { vol: .03 + Math.random() * .03, freq: 3000 + Math.random() * 4000, q: 2, bus: musicBus }); }
   function playBar(t, i) {
-    const ch = CHORDS[i % 4];
-    ch.forEach(f => note(f, t, BEAT * 3.8, { type: 'triangle', vol: .055, attack: .08, bus: musicBus }));     // nappe de piano doux
-    note(ch[0] / 2, t, BEAT * 1.6, { vol: .16, attack: .01, bus: musicBus }); note(ch[0] / 2, t + BEAT * 2.5, BEAT * 1.2, { vol: .12, bus: musicBus });   // basse
-    for (let b = 0; b < 4; b++) {
-      if (b % 2 === 0) note(110, t + b * BEAT, .25, { vol: .22, slide: .4, bus: musicBus });                  // grosse caisse feutrée
-      else noise(t + b * BEAT, .18, { vol: .05, freq: 1800, q: .7, bus: musicBus });                         // caisse claire légère
-      noise(t + b * BEAT + BEAT / 2, .05, { vol: .025, freq: 7000, q: 1, type: 'highpass', bus: musicBus });   // charley
-    }
-    MEL.slice((i % 4) * 4, (i % 4) * 4 + 4).forEach(([f, at]) => f && note(f, t + at * BEAT, BEAT * 1.2, { type: 'sine', vol: .045, attack: .02, bus: musicBus }));
+    const k = i % 4, ch = CHORDS[k];
+    // piano électrique un peu étouffé, plaqué légèrement en retard (feeling « drunk »)
+    ch.forEach((f, n) => note(f, t + .02 + n * .012, BEAT * 3.6, { type: 'triangle', vol: .045, attack: .03, harm: .25, bus: musicBus }));
+    ch.slice(2).forEach((f, n) => note(f * 2, t + BEAT * 2.5 + n * .015, BEAT * 1.2, { type: 'sine', vol: .025, attack: .01, bus: musicBus }));   // petite relance
+    BASS.slice(k * 3, k * 3 + 3).forEach(([f, at]) => note(f, t + swing(at) * BEAT, BEAT * 1.1, { type: 'sine', vol: .26, attack: .01, slide: .985, bus: musicBus }));   // basse ronde type 808
+    KICK.forEach(b => kick(t + swing(b) * BEAT)); SNARE.forEach(b => snare(t + b * BEAT));
+    for (let h = 0; h < 8; h++) hat(t + swing(h / 2) * BEAT, h % 2 ? .02 : .035);
+    if (k === 3) hat(t + swing(3.75) * BEAT, .03);
+    crackle(t, BEAT * 4);   // grésillement de vinyle
   }
   function tick() {
     if (!musicOn || !ctx) return;
@@ -73,13 +80,13 @@
     musicOn = !!want && st().music !== false;
     if (!musicOn) { clearInterval(sched); sched = null; if (musicBus) musicBus.gain.setTargetAtTime(0, ctx.currentTime, .3); return; }
     try { ac(); } catch (e) { return; }
-    musicBus.gain.setTargetAtTime(.16, ctx.currentTime, .5);
+    musicBus.gain.setTargetAtTime(.18, ctx.currentTime, .5);
     nextBar = Math.max(nextBar, ctx.currentTime + .1);
     if (!sched) sched = setInterval(tick, 300);
   }
   // les navigateurs n'autorisent le son qu'après un premier geste : on démarre la musique au premier appui
-  const kick = () => { document.removeEventListener('pointerdown', kick, true); if (st().music !== false) music(true); };
-  document.addEventListener('pointerdown', kick, true);
+  const unlock = () => { document.removeEventListener("pointerdown", unlock, true); if (st().music !== false) music(true); };
+  document.addEventListener("pointerdown", unlock, true);
   document.addEventListener('visibilitychange', () => { if (!ctx) return; document.hidden ? ctx.suspend() : (musicOn && ctx.resume()); });
 
   window.AUDIO = { sfx: SFX, music, get musicOn() { return musicOn; } };
