@@ -131,7 +131,9 @@
       let p = st.crypto.prices[c.id];
       const vol = c.vol * m.volx * Math.sqrt(stepMin);
       const nw = (st.crypto.news || []).find(n => n.id === c.id && n.until > now());
-      const drift = (c.drift + m.drift * (c.vol / .01) + (nw ? (nw.real ? 1 : -1) * D.PCX.newsDrift : 0)) * stepMin;
+      // rappel vers le prix de départ : sans lui, les cours s'effondraient à la longue (Nova ×0,11, KebabCoin ×0,02 en 7 jours de jeu)
+      const back = D.CRYPTO_REVERT * Math.log(c.p0 / p);
+      const drift = (c.drift + back + m.drift * (c.vol / .01) + (nw ? (nw.real ? 1 : -1) * D.PCX.newsDrift : 0)) * stepMin;
       p *= Math.exp(drift - vol * vol / 2 + vol * gauss());
       // rug pull : rare effondrement brutal des memecoins
       if (c.rug && Math.random() < c.rug * stepMin) { p *= rnd(.08, .25); emit('news', { txt: `${c.name} s'effondre : les créateurs ont vidé la caisse. −80 % !`, bad: true }); }
@@ -551,7 +553,9 @@
     D.ITEMS.forEach(i => {
       // la « vraie valeur » dérive lentement, le prix tourne autour (retour à la moyenne)
       const hv = i.vol / Math.sqrt(60) * Math.sqrt(stepMin);
-      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + .000005 * stepMin), i.p0 * .25, i.p0 * 8);
+      // la vraie valeur dérive mais revient doucement vers le prix de départ, dans une fourchette ×0,4 – ×3
+      // (avant : jusqu'à ×8, un objet pouvait rapporter 80 fois sa mise sans rien faire)
+      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + .000005 * stepMin + .0004 * stepMin * Math.log(i.p0 / mk.fair[i.id])), i.p0 * .4, i.p0 * 3);
       let p = mk.prices[i.id];
       p *= Math.exp(hv * gauss() + .08 * stepMin / 60 * Math.log(mk.fair[i.id] / p) * 6);
       mk.prices[i.id] = clamp(p, i.p0 * .15, i.p0 * 12);

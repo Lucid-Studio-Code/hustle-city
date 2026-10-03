@@ -49,6 +49,7 @@
     { id: 'ppc', sym: 'KBB', name: 'KebabCoin',   lvl: 6, p0: .0009, vol: .03,  drift: -.0001, color: '#e0662f', desc: 'Memecoin très spéculatif. Sauce blanche en option.', rug: .0006 },
     { id: 'lmn', sym: 'ZPH', name: 'Zéphyr',      lvl: 8, p0: 3.2,   vol: .025, drift: 0,      color: '#c77dff', desc: '« Stablecoin algorithmique ». Ça tient… jusqu\'au jour où.', rug: .0004 }
   ];
+  const CRYPTO_REVERT = .0015;   // force de rappel des cours vers leur prix de départ (par minute) : ça monte et ça baisse, mais ça ne s'écroule pas pour de bon
   const CRYPTO_FEE = .015;         // frais par achat/vente avec le vieux PC (comme une appli grand public)
   // Le PC : un meilleur PC donne accès à de meilleures plateformes, avec moins de frais à chaque achat et vente
   const PC_UPGRADES = false;   // en pause (03/10) : on ne peut plus acheter de meilleur PC, en attendant de bonnes images
@@ -137,12 +138,13 @@
   };
   // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
   const FINDS = { gold: .04, lingots: .10, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
+  // équilibrage du 03/10 : minage ×2,5 (la 1re machine se rentabilisait en ~20 jours de jeu, maintenant ~10 h de minage)
   const RIG = [
-    { name: 'Vieille tour bricolée', cost: 0,     btkH: .0004,  heatMin: 40, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
-    { name: 'Tour gamer',          cost: 900,   btkH: .0011,  heatMin: 75, desc: 'Une vraie machine, ça tourne plus vite.' },
-    { name: 'Borne à pièces',      cost: 3500,  btkH: .003,   heatMin: 120, desc: 'Elle sort des pièces comme une borne d\'arcade.' },
-    { name: 'Imprimante à crypto', cost: 12000, btkH: .0075,  heatMin: 180, desc: 'Le radiateur de tout l\'immeuble. Mais quel débit.' },
-    { name: 'Usine en or',         cost: 40000, btkH: .02,    heatMin: 240, desc: 'Ça déborde de pièces. Bruit garanti.' }
+    { name: 'Vieille tour bricolée', cost: 0,     btkH: .001,   heatMin: 40, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
+    { name: 'Tour gamer',          cost: 900,   btkH: .0026,  heatMin: 75, desc: 'Une vraie machine, ça tourne plus vite.' },
+    { name: 'Borne à pièces',      cost: 3500,  btkH: .0065,  heatMin: 120, desc: 'Elle sort des pièces comme une borne d\'arcade.' },
+    { name: 'Imprimante à crypto', cost: 12000, btkH: .016,   heatMin: 180, desc: 'Le radiateur de tout l\'immeuble. Mais quel débit.' },
+    { name: 'Usine en or',         cost: 40000, btkH: .04,    heatMin: 240, desc: 'Ça déborde de pièces. Bruit garanti.' }
   ];
 
   // ---------------------------------------------------------------- paris sportifs
@@ -556,7 +558,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();
