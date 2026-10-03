@@ -38,3 +38,4 @@
 - + ic-truck (arrivage du Comptoir), ic-shelf (place chez toi), ic-rumor (rumeurs du tournoi) : branchés dans le code, emoji en attendant.
 - + tip-sport / tip-crypto / tip-market refaits en série assortie (médaillon or et violet, même niveau de détail : 2 éléments chacun) : paris sportifs, crypto, achat-revente (basket + étiquette seulement).
 - + bonus-cash / lingots / xp / ticket / freebet / airdrop : illustrations pleine carte (4:3) des cartes Bonus des boosters, branchées (icône en attendant). Pas de détourage (NOCUT).
+- + ticket-flash : ticket à gratter (remplace le ticket de cinéma « ADMIT ONE »), déjà branché partout.
