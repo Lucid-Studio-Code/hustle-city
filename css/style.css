@@ -2540,3 +2540,4 @@ h3.sec { margin: 18px 6px 10px; }
 #app .item-card.bought.just .ib-art > :not(.ib-stamp) { animation: greyIn .6s ease both; }
 @keyframes stampIn { from { transform: translate(-50%, -50%) rotate(-30deg) scale(2.4); opacity: 0; } to { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } }
 @keyframes greyIn { from { filter: none; opacity: 1; } to { filter: grayscale(.85) brightness(.9); opacity: .6; } }
+#app .tip-card h4 img.ico { width: 40px !important; height: 40px !important; vertical-align: -12px; }
