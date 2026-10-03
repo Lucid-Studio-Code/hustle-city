@@ -2433,3 +2433,15 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-act .act-ic, #app .ag-busy .act-ic { width: 26px; height: 26px; object-fit: contain; vertical-align: middle; }
 #app .ag-act.need { opacity: .55; filter: grayscale(.8); } #app .ag-act.need small { color: #b0392b; font-weight: 900; }
 #app .ag-gear-btn .ic, #app .ag-share .ic { width: 16px; height: 16px; vertical-align: -3px; }
+/* icônes images à la place des emojis */
+#app img.ico { width: 1.35em; height: 1.35em; object-fit: contain; vertical-align: -0.3em; }
+#app .habit-card h4 img.ico { width: 30px; height: 30px; vertical-align: -8px; }
+#app .tip-card h4 img.ico { width: 30px; height: 30px; vertical-align: -8px; }
+#app .club-legend span img.ico { width: 30px; height: 30px; }
+#app .cs-tag img.ico { width: 20px; height: 20px; vertical-align: -5px; }
+#modal .tabs .tab img.ico { width: 22px; height: 22px; vertical-align: -6px; margin-right: 3px; }
+#hud .avatar.framed-img .avatar-img { box-shadow: none; }
+#hud .avatar .av-frame-img { position: absolute; z-index: 3; inset: -14%; width: 128%; height: 128%; object-fit: contain; pointer-events: none; }
+#app .ev-frame.img { overflow: visible; border: 0; box-shadow: none; }
+#app .ev-frame.img > .pic img, #app .ev-frame.img > img:not(.fr-over) { border-radius: 50%; }
+#app .ev-frame .fr-over { position: absolute; inset: -14%; width: 128% !important; height: 128% !important; transform: none !important; object-fit: contain !important; }

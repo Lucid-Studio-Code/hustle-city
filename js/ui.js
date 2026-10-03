@@ -43,6 +43,8 @@
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
   function pic(name, emo, cls = '') { return `<span class="pic ${cls}">${has(name) ? `<img src="${src(name)}" alt="" draggable="false">` : `<span class="emo">${emo || EMO[name] || '❔'}</span>`}</span>`; }
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
+  const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
+  const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
   function hydrateIcons(root = document) { root.querySelectorAll('i.ic[data-icon]').forEach(el => { el.outerHTML = ic(el.dataset.icon); }); }
   function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼'][D.SKINS.indexOf(sk)]); }
   // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
@@ -175,7 +177,7 @@
       $('#avatar-img').dataset.k = avKey;
       $('#avatar-img').innerHTML = av ? teamCrest('rugby', av.team) : s.skin ? skinPic(s.skin, true) : '';
       $('#avatar-img').classList.toggle('crest-av', !!av);
-      const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr ? fr.emo : '';
+      const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr && !frameImg(fr) ? fr.emo : ''; a.classList.toggle('framed-img', !!frameImg(fr)); a.querySelector('.av-frame-img')?.remove(); if (frameImg(fr)) a.insertAdjacentHTML('beforeend', `<img class="av-frame-img" src="${src(frameImg(fr))}" alt="">`);
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
     const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
@@ -330,7 +332,7 @@
   // pastilles des effets en cours : mini-événement, paris gratuits, tickets offerts
   function renderBuffs() {
     const s = st(), ev = G.eventNow(), chips = [];
-    if (ev) chips.push(`<div class="buff ev-chip" data-act="eventInfo">${ic(ev.icon)}<span>${ev.short}<b>${mmss(G.eventLeft())}</b></span></div>`);
+    if (ev) chips.push(`<div class="buff ev-chip" data-act="eventInfo">${has('ev-' + ev.id) ? ic('ev-' + ev.id) : ic(ev.icon)}<span>${ev.short}<b>${mmss(G.eventLeft())}</b></span></div>`);
     if (s.freebets.length) chips.push(`<div class="buff" data-act="freebetInfo">${ic('ticket')}<span>Pari gratuit<b>${s.freebets.length > 1 ? `${s.freebets.length} × ` : ''}${s.freebets[0]}<i class="cur"></i></b></span></div>`);
     if (s.freeTickets) chips.push(`<div class="buff" data-act="scratchGo">${pic('ticket-flash', '🎟️', 'bpic')}<span>Grattage<b>${s.freeTickets} offert${s.freeTickets > 1 ? 's' : ''}</b></span></div>`);
     const html = chips.join(''), el = $('#buffs');
@@ -1137,13 +1139,13 @@
         if (h.auto) {
           const on = state !== 'off', left = G.clubQuitLeft(), n = G.clubNightsLeft();
           return `<div class="card habit-card ${lock ? 'locked' : ''}">
-          <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${h.icon} ${h.name}</h4>${on ? '<span class="rtag rE">Ton habitude</span>' : ''}</div>
+          <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>${on ? '<span class="rtag rE">Ton habitude</span>' : ''}</div>
           <p style="margin-top:6px"><b class="up">＋</b> ${h.bonus}</p><p><b class="down">－</b> ${h.malus}</p>
           <p class="hab-auto">${lock ? `Au niveau ${h.lvl}.` : on ? `Pour t'en défaire, ne remets pas les pieds au Club pendant ${D.QUIT_H} h. Il reste <b>${Math.ceil(left / 3600000)} h</b> : chaque soirée relance le compteur.`
             : `Ça ne se choisit pas : sors ${h.auto.nights} soirs en ${h.auto.days} jours et ça devient ton habitude.${n < h.auto.nights ? ` Encore <b>${n} soirée${n > 1 ? 's' : ''}</b> et c'est fait.` : ''}`}</p></div>`;
         }
         return `<div class="card habit-card ${lock ? 'locked' : ''}">
-          <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${h.icon} ${h.name}</h4>
+          <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>
           ${state === 'on' ? '<span class="rtag rE">Ton habitude</span>' : state === 'quitting' ? `<span class="rtag lose">Sevrage ${mmss(x.quitUntil - Date.now())}</span>` : ''}</div>
           <p style="margin-top:6px"><b class="up">＋</b> ${h.bonus}</p><p><b class="down">－</b> ${h.malus}</p>
           <div style="margin-top:10px">${lock ? `<button class="btn sm wide" disabled>Niveau ${h.lvl}</button>`
@@ -1186,7 +1188,7 @@
     const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
     if (!G.clubIn() && !placing) {
       return `<div class="club-door">${has('club-door') ? `<img class="cd-bg" src="${src('club-door')}" alt="">` : '<div class="cd-bg neon"></div>'}
-          <div class="cd-say"><b>🚪 Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
+          <div class="cd-say"><b>${ico('ic-club-door', '🚪')} Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
           <button class="btn green wide" data-act="clubGo" ${wait || s.cash < e ? 'disabled' : ''}>${wait ? `Reviens dans ${mmss(wait)}` : `Entrer · ${short(e)}`}</button>
           ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club} + ${short(e)}</span></button>` : ''}</div></div>
         <p class="hint-line">Une soirée dure ${C.nightMin} min : danse, bar, DJ, canapés, carré VIP… chaque coin une fois par soirée.</p>
@@ -1194,11 +1196,11 @@
     }
     const c = G.clubIn() ? s.club : { end: Date.now() + 1, done: {}, dj: false }, left = c.end - Date.now();
     const spots = C.spots.map(p => { const done = c.done[p.id];
-      return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${p.icon} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
+      return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico('ic-club-' + p.id, p.icon)} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
     return `<div class="club-room">${has('club-room') ? `<img class="cr-bg" src="${src('club-room')}" alt="">` : '<div class="cr-bg neon"><i class="ball"></i><i class="floor"></i></div>'}${spots}
         <div class="club-timer">${placing ? '🛠️ Fais glisser les zones (− / + pour la taille), puis Publier' : `🎉 Soirée : <b>${mmss(left)}</b>${c.dj ? ' · 🎧 ton son passe' : ''}`}</div></div>
       ${placing ? '<div class="grid2" style="margin-top:8px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>' : ''}
-      <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${p.icon}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
+      <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${ico('ic-club-' + p.id, p.icon)}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
   function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, body: clubBody(), refresh: () => setBody(clubBody()) }); }
@@ -1255,7 +1257,7 @@
         <small class="pe-foot">Juste un peu plus souvent que le hasard : ne mise jamais tout.</small></div>` +
       D.KIOSK.tips.map(t => {
         const b = G.tipBought(t.id), lock = s.lvl < (t.lvl || 1);
-        return `<div class="card tip-card ${lock ? 'locked' : ''}"><div class="tc-head"><h4>${t.icon} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
+        return `<div class="card tip-card ${lock ? 'locked' : ''}"><div class="tc-head"><h4>${ico('tip-' + t.id, t.icon)} ${t.name}</h4>${b ? '<span class="rtag win">Lu</span>' : ''}</div>
           <p>${b ? `<b>« ${esc(b.txt)} »</b>` : t.desc}</p>
           ${b ? '' : lock ? `<button class="btn xs wide" disabled>Niveau ${t.lvl}</button>`
             : `<div class="tc-acts"><button class="btn xs" data-act="kTip" data-id="${t.id}" ${s.cash < G.tipPrice(t) ? 'disabled' : ''}>Acheter · ${short(G.tipPrice(t))}</button>
@@ -1292,7 +1294,7 @@
     if (sixTab === 'shop') {
       const closed = ph === 'over', price = x => x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
       const can = x => x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
-      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}<em>${x.emo}</em></span>` : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
+      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? `<span class="ev-frame ${frameImg(x) ? 'img' : ''}" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}${frameImg(x) ? `<img class="fr-over" src="${src(frameImg(x))}" alt="">` : `<em>${x.emo}</em>`}</span>` : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
       const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id);
         const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="evUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
           : closed ? '<button class="btn xs" disabled>Fermé</button>' : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="evBuy" data-id="${x.id}" ${can(x) ? '' : 'disabled'}>${price(x)}</button>`;
@@ -1356,7 +1358,7 @@
   let shopTab = 'card';
   function openShop(tab) {
     if (tab) shopTab = tab;
-    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy).map(([k, c]) => ({ id: k, label: c.name, locked: !G.catUnlocked(k) }));
+    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
     tabs.push({ id: 'news', label: 'Actus' });
     if (tabs.find(t => t.id === shopTab)?.locked) shopTab = 'card';
     openModal({ title: 'Le Comptoir', icon: 'trophy', full: true, tabs, tab: shopTab, body: shopBody(), refresh: () => setBody(shopBody()), onTab: id => { shopTab = id; setBody(shopBody()); } });
@@ -1890,7 +1892,7 @@
     deal: () => openPhone('msg'),
     dealOk() { const r = G.acceptDeal(); if (r.err) return toast(r.err, true); sfx.win(); if (phoneOpen()) drawPhone(); else closeModal(); refresh(); },
     dealNo() { G.refuseDeal(); if (phoneOpen()) drawPhone(); else closeModal(); renderHud(); },
-    eventInfo() { const ev = G.eventNow(); if (!ev) return; openModal({ title: ev.name, icon: ev.icon, center: true, body: `<p class="center">${ev.desc}</p><p class="center muted">Encore ${mmss(G.eventLeft())}.</p><button class="btn green wide" data-act="eventGo">J'y vais</button>` }); },
+    eventInfo() { const ev = G.eventNow(); if (!ev) return; openModal({ title: ev.name, icon: has('ev-' + ev.id) ? 'ev-' + ev.id : ev.icon, center: true, body: `<p class="center">${ev.desc}</p><p class="center muted">Encore ${mmss(G.eventLeft())}.</p><button class="btn green wide" data-act="eventGo">J'y vais</button>` }); },
     eventGo() { const ev = G.eventNow(); closeModal(); if (!ev) return; questGo({ xp: 'balto', boost: 'balto', rig: 'rig', sale: 'shop' }[ev.id]); },
     freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Royal, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoRoyal">Au Royal</button>` }); },
     eventGoRoyal() { closeModal(); questGo('balto'); },
@@ -2050,8 +2052,8 @@
     else notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline);
   });
   G.on('money', () => bump('#pill-cash'));
-  G.on('quit', h => (() => dialog(h.auto ? 'Fini les nuits blanches' : 'Sevrage terminé', h.auto ? `${D.QUIT_H} h sans mettre les pieds au Club : ${h.icon} ${h.name} n'est plus ton habitude. Plus de frais chaque jour, ta machine refroidit normalement.` : `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'))());
-  G.on('habitAuto', h => (() => dialog('Nouvelle habitude', `${h.icon} <b>${h.name}</b> : ${h.auto.nights} soirées en ${h.auto.days} jours, tu ne peux plus t'en passer.<br><br><b class="up">＋</b> ${h.bonus}<br><b class="down">－</b> ${h.malus}<br><br>Pour t'en défaire : ${D.QUIT_H} h sans mettre les pieds au Club.`, 'Compris'))());
+  G.on('quit', h => (() => dialog(h.auto ? 'Fini les nuits blanches' : 'Sevrage terminé', h.auto ? `${D.QUIT_H} h sans mettre les pieds au Club : ${ico('hab-' + h.id, h.icon)} ${h.name} n'est plus ton habitude. Plus de frais chaque jour, ta machine refroidit normalement.` : `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'))());
+  G.on('habitAuto', h => (() => dialog('Nouvelle habitude', `${ico('hab-' + h.id, h.icon)} <b>${h.name}</b> : ${h.auto.nights} soirées en ${h.auto.days} jours, tu ne peux plus t'en passer.<br><br><b class="up">＋</b> ${h.bonus}<br><b class="down">－</b> ${h.malus}<br><br>Pour t'en défaire : ${D.QUIT_H} h sans mettre les pieds au Club.`, 'Compris'))());
 
   // ------------------------------------------------------------ démarrage
   let lastSave = 0;
