@@ -36,4 +36,4 @@
 ## Mini lot à refaire n°4 (tools/lot-redo-4.js)
 - act-collab : la 1re version montrait deux poings d'hommes. Nouveau : deux jeunes femmes sexy en selfie joue contre joue.
 - + ic-truck (arrivage du Comptoir), ic-shelf (place chez toi), ic-rumor (rumeurs du tournoi) : branchés dans le code, emoji en attendant.
-- + tip-sport / tip-crypto / tip-market refaits en série assortie (médaillon or et violet) : paris sportifs, crypto, achat-revente.
+- + tip-sport / tip-crypto / tip-market refaits en série assortie (médaillon or et violet, même niveau de détail : 2 éléments chacun) : paris sportifs, crypto, achat-revente (basket + étiquette seulement).
