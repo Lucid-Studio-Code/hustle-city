@@ -81,7 +81,7 @@
       </div>
       ${live ? pitch(m, sc) : ''}
       ${soon ? chances(m) + oddBtns : ''}
-      ${done ? `<p class="mc-res">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire de ${m.res === 0 ? m.home : m.away}`}</p>` : ''}
+      ${done ? `<p class="mc-res">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire ${U.de(m.res === 0 ? m.home : m.away)}`}</p>` : ''}
       ${sportTip() && sportTip().m === m.id ? `<div class="mc-tip">📰 <b>Ton tuyau du Kiosque :</b> « ${U.esc(sportTip().txt)} »</div>` : ''}
       ${goal ? '<div class="goal-flash stroke">BUT !</div>' : ''}
     </div>`;

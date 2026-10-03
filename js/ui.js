@@ -42,6 +42,10 @@
   function src(name) { return `${IMG_LOCAL}assets/img/${name}.png?v=${window.ASSET_V || 1}`; }
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
   function pic(name, emo, cls = '') { return `<span class="pic ${cls}">${has(name) ? `<img src="${src(name)}" alt="" draggable="false">` : `<span class="emo">${emo || EMO[name] || '❔'}</span>`}</span>`; }
+  // « de » + un nom propre, à la française : de Les Paniers → des Paniers, de Le Royal → du Royal, de Axion → d'Axion
+  function de(n) { n = String(n); const m = n.match(/^(Les|Le|La|L') ?(.*)$/);
+    if (m) return { Les: 'des ', Le: 'du ', La: 'de la ', "L'": "de l'" }[m[1]] + m[2];
+    return /^[aeiouyhàâäéèêëîïôöûüAEIOUYHÀÂÉÈÊÎÔÛ]/.test(n) ? "d'" + n : 'de ' + n; }
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
@@ -931,7 +935,7 @@
   }
   function coinNewsHtml(c) {
     const L = (st().crypto.news || []).filter(n => n.id === c.id).slice(0, 3);
-    return `<h3 class="sec">Les actus de ${c.name}</h3>${L.length ? L.map(n => `<div class="card cn-item ${n.until > Date.now() ? 'live' : 'old'}"><div class="cn-src"><b>${n.src}</b><span class="cn-rel r-${n.rel === 'Sérieux' ? 1 : n.rel === 'Moyen' ? 2 : 3}">${n.rel}</span><small>${ago(n.t)}</small></div><p>${n.said ? '📈' : '📉'} ${esc(n.txt)}</p>
+    return `<h3 class="sec">Les actus ${de(c.name)}</h3>${L.length ? L.map(n => `<div class="card cn-item ${n.until > Date.now() ? 'live' : 'old'}"><div class="cn-src"><b>${n.src}</b><span class="cn-rel r-${n.rel === 'Sérieux' ? 1 : n.rel === 'Moyen' ? 2 : 3}">${n.rel}</span><small>${ago(n.t)}</small></div><p>${n.said ? '📈' : '📉'} ${esc(n.txt)}</p>
         ${n.until > Date.now() ? '' : `<small class="cn-verdict ${n.said === n.real ? 'up' : 'down'}">${n.said === n.real ? '✓ C\'était vrai' : '✗ C\'était faux'}</small>`}</div>`).join('') : '<p class="hint-line">Pas d\'actu pour l\'instant. Elles tombent toutes les 10 min environ.</p>'}`;
   }
   function ordersHtml(c, hold) {
@@ -2069,7 +2073,7 @@
   G.on('cryptoTip', f => {
     const c = D.COINS.find(x => x.id === f.coin); if (!c) return;
     const txt = f.up ? pick([`Mon cousin bosse dans la crypto : ${c.name} va grimper d'ici ${f.min} min. Achète avant les autres.`, `Ça chuchote fort sur ${c.name} : ça va monter dans ${f.min} min. Moi j'en prends.`])
-      : pick([`Sors de ${c.name} si t'en as : ça va chuter d'ici ${f.min} min, crois-moi.`, `Info de mon cousin : ${c.name} va dégringoler dans ${f.min} min. Vends avant.`]);
+      : pick([`Sors ${de(c.name)} si t'en as : ça va chuter d'ici ${f.min} min, crois-moi.`, `Info de mon cousin : ${c.name} va dégringoler dans ${f.min} min. Vends avant.`]);
     chatPush(f.name, f.img, { from: 'them', txt, acts: [{ label: f.up ? 'J\'achète' : 'Je regarde', act: 'crypto', id: f.coin }, { label: 'Pas confiance', act: 'no' }] });
     notify('msg', f.name, txt, null, false, f.name);
   });
@@ -2165,7 +2169,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; } };
+  window.UI = { de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();
