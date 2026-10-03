@@ -245,9 +245,14 @@
     const nu = nextUnlock();
     if (nu) add(40, '🔓', `Niveau ${nu.lvl} : ${nu.what.slice(0, 2).join(' et ')}`, `Encore ${Math.max(0, G.xpNeed() - s.xp)} XP. Missions, paris, soirées : tout en rapporte.`, () => openRewards());
     if (!up) {
-      const nx = G.rigNext(), np = G.pcNext && G.pcNext();
-      const goal = [nx && { n: 'la prochaine machine', p: nx.price }, np && { n: 'un meilleur PC', p: np.price }].filter(Boolean).sort((a, b) => a.p - b.p)[0];
-      if (goal) add(30, '💰', `Encore ${short(Math.max(0, goal.p - s.cash))} pour ${goal.n}`, 'Récolte ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', () => openUpgrades());
+      // toujours l'objectif le plus proche : machine, appart, PC ou déco de la ville encore à acheter
+      const nx = G.rigNext(), np = G.pcNext && G.pcNext(), nr = D.ROOMS[s.room + 1];
+      const goal = [nx && { n: 'améliorer ta machine', p: nx.price, go: () => openUpgrades() }, np && { n: 'un meilleur PC', p: np.price, go: () => openUpgrades() },
+        nr && { n: 'déménager', p: G.cost(nr.cost), go: () => openUpgrades() },
+        ...D.CITY_SHOP.filter(x => x.cash && (x.lvl || 1) <= s.lvl && !G.evOwned(x.id)).map(x => ({ n: `la déco « ${x.name} »`, p: x.cash, go: () => openBoutique('deco') }))]
+        .filter(Boolean).sort((a, b) => a.p - b.p)[0];
+      if (goal) s.cash >= goal.p ? add(30, '🛍️', `Tu peux t'offrir ${goal.n}`, 'Va voir en boutique : elle trouvera sa place dans ta ville.', goal.go)
+        : add(30, '💰', `Encore ${short(goal.p - s.cash)} pour ${goal.n}`, 'Récolte ta machine, place un pari malin ou revends un objet qui a pris de la valeur.', goal.go);
     }
     add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
     return L.sort((a, b) => b.p - a.p);
