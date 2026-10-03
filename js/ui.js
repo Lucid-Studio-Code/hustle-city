@@ -469,6 +469,8 @@
   function placerMode() {
     if (location.hash !== '#placer' && location.hash !== '#admin') return;
     placing = true;
+    // une seule fois : on oublie les vieux brouillons de placement (ils ont remis les décos à zéro le 03/10)
+    try { if (!localStorage.getItem('hustleCity.admFix2')) { localStorage.removeItem(ADM_KEY); localStorage.setItem('hustleCity.admFix2', '1'); } } catch (e) {}
     const sv = admSaved(), old = (() => { try { return JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) { return {}; } })();
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
     const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
@@ -613,7 +615,10 @@
     const bad = clashes ? clashes() : [];
     if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
-    const body = { buildings: sv.buildings || Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y }])), decos: sv.decos || {}, rooms, values: allVals(), slot: sv.slot || D.SLOT.ui, club: sv.club || Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
+    // on publie TOUJOURS l'état complet (ce qui est affiché), jamais seulement ce que ce navigateur a retenu :
+    // sinon une publication faite depuis la chambre envoyait « aucune déco » et tout revenait à sa place d'origine
+    const decoAll = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
+    const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
@@ -1421,7 +1426,7 @@
       const h = s.market.hist[it.id], p = s.market.prices[it.id], mine = (s.owned[it.id] || []).length;
       // en rayon, une carte achetée reste visible mais grisée avec un tampon « Achetée » (elle se revend plus bas, dans « Tes cartes »)
       if (onShelf && mine) return `<div class="card item-card bought ${justBought && justBought.id === it.id && Date.now() - justBought.t < 900 ? 'just' : ''}"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
-        <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} Achetée</span></div><h4>${it.name}</h4><small class="muted own-line">Dans ta collection : revends-la plus bas.</small></div>`;
+        <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} Achetée</span></div></div>`;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
         <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>

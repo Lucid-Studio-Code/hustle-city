@@ -52,76 +52,76 @@ window.LAYOUT = {
  },
  "decos": {
   "dc-posts": {
+   "flip": false,
    "x": 44,
-   "y": 34,
-   "w": 9,
-   "flip": false
+   "y": 35,
+   "w": 9
   },
   "dc-flags": {
+   "flip": false,
    "x": 30,
    "y": 72,
-   "w": 8,
-   "flip": false
+   "w": 8
   },
   "dc-ball": {
-   "x": 88,
-   "y": 66,
-   "w": 8,
-   "flip": false
+   "flip": false,
+   "x": 76,
+   "y": 24.5,
+   "w": 8
   },
   "dc-trophy": {
-   "x": 9,
-   "y": 54,
-   "w": 8,
-   "flip": false
+   "flip": false,
+   "x": 71.5,
+   "y": 61.5,
+   "w": 8
   },
   "dc-bench": {
-   "x": 36,
-   "y": 78,
-   "w": 7,
-   "flip": false
+   "flip": false,
+   "x": 72.5,
+   "y": 65.5,
+   "w": 7
   },
   "dc-lamp": {
-   "x": 14,
-   "y": 70,
-   "w": 5,
-   "flip": false
+   "flip": false,
+   "x": 40.5,
+   "y": 46.5,
+   "w": 10.5
   },
   "dc-palm": {
+   "flip": false,
    "x": 92,
    "y": 48,
-   "w": 7,
-   "flip": false
+   "w": 7
   },
   "dc-kebab": {
-   "x": 84,
-   "y": 84,
-   "w": 12,
-   "flip": false
+   "flip": true,
+   "x": 86.5,
+   "y": 87,
+   "w": 18.5
   },
   "dc-arcade": {
-   "x": 6,
-   "y": 84,
-   "w": 6,
-   "flip": false
+   "flip": false,
+   "x": 83,
+   "y": 63,
+   "w": 9
   },
   "dc-fountain": {
-   "x": 50,
-   "y": 88,
-   "w": 10,
-   "flip": false
+   "flip": false,
+   "x": 60,
+   "y": 50.5,
+   "w": 10
   },
   "dc-car": {
-   "x": 30,
-   "y": 62,
-   "w": 14,
-   "flip": false
+   "flip": true,
+   "x": 14,
+   "y": 73,
+   "w": 21.5
   },
   "dc-statue": {
-   "x": 66,
-   "y": 50,
-   "w": 8,
-   "flip": false
+   "flip": false,
+   "x": 86,
+   "y": 76,
+   "w": 12
   }
  },
  "rooms": [
