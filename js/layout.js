@@ -94,10 +94,10 @@ window.LAYOUT = {
    "flip": false
   },
   "dc-kebab": {
-   "x": 44,
-   "y": 79,
+   "x": 86.5,
+   "y": 87,
    "w": 18.5,
-   "flip": false
+   "flip": true
   },
   "dc-arcade": {
    "x": 83,
