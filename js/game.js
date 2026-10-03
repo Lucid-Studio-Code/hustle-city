@@ -574,7 +574,7 @@
       const hv = i.vol / Math.sqrt(60) * Math.sqrt(stepMin);
       // la vraie valeur dérive mais revient doucement vers le prix de départ, dans une fourchette ×0,4 – ×3
       // (avant : jusqu'à ×8, un objet pouvait rapporter 80 fois sa mise sans rien faire)
-      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + .000005 * stepMin + .0004 * stepMin * Math.log(i.p0 / mk.fair[i.id])), i.p0 * .4, i.p0 * 3);
+      mk.fair[i.id] = clamp(mk.fair[i.id] * Math.exp(hv * .5 * gauss() + (i.drift ?? .000005) * stepMin + (i.revert ?? .0004) * stepMin * Math.log(i.p0 / mk.fair[i.id])), i.p0 * .4, i.p0 * 3);
       let p = mk.prices[i.id];
       p *= Math.exp(hv * gauss() + .08 * stepMin / 60 * Math.log(mk.fair[i.id] / p) * 6);
       mk.prices[i.id] = clamp(p, i.p0 * .15, i.p0 * 12);
@@ -614,11 +614,16 @@
   function sellPrice(id) { return Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)); }
   // les cartes vont dans le classeur : elles ne prennent pas de place sur les étagères
   // les cartes vont toutes dans le classeur : elles ne prennent jamais de place chez toi (une seule de chaque)
-  const onShelf = id => item(id).cat !== 'card';
+  // où un objet se range : étagère de l'appart (compte dans les places), classeur, coffre (sans limite) ou parking du garage
+  const placeOf = id => (D.ITEM_CATS[item(id).cat] || {}).place || 'shelf';
+  const onShelf = id => placeOf(id) === 'shelf';
+  const parkedCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'park' ? a.length : 0), 0);
+  const garageSlots = () => D.GARAGES[st.garageLvl || 0].slots;
+  function garageUp() { const nx = D.GARAGES[(st.garageLvl || 0) + 1]; if (!nx) return { err: 'Déjà au max.' }; if (!pay(nx.cost)) return { err: 'Pas assez de cash.' }; st.garageLvl = (st.garageLvl || 0) + 1; addXp(60); emit('change'); return { ok: true }; }
   function ownedCount() { return Object.entries(st.owned).reduce((s, [id, a]) => s + (onShelf(id) ? a.length : 0), 0); }
   function roomSlots() { return D.ROOMS[st.room].slots; }
   // le Comptoir renouvelle ses rayons toutes les 30 min : seule une partie des objets est en vente à la fois
-  const STOCK_MIN = 30, STOCK_N = { classics: 3, sneaker: 2, watch: 2, foot: 4, basket: 3, tennis: 3, rugby: 2 };
+  const STOCK_MIN = 30, STOCK_N = { classics: 3, sneaker: 2, watch: 2, gold: 4, gem: 2, car: 2, moto: 2, foot: 4, basket: 3, tennis: 3, rugby: 2 };
   const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000));
   const stockLeft = () => (stockEd() + 1) * STOCK_MIN * 60000 - now();
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
@@ -645,6 +650,7 @@
     if (st.owned[id] && st.owned[id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
     if (!inStock(id)) return { err: 'Plus en rayon : reviens au prochain arrivage.' };
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
+    if (placeOf(id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein : agrandis-le ou vends un véhicule.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
     if (it.series) st.lastUp = 'card';
@@ -1145,7 +1151,57 @@
   function refuseDeal() { st.deal = null; st.nextDealAt = now() + rnd(...D.DEALS.every) * 500; emit('change'); }
 
   // ------------------------------------------------------------ patrimoine, missions, cadeau, filet
-  function worth() { return st.cash + cryptoValue() + itemsValue(); }
+  function worth() { return st.cash + cryptoValue() + itemsValue() + propsValue() + stocksValue(); }
+
+  // ------------------------------------------------------------ La Tour : immobilier
+  const props = () => (st.props = st.props || {});
+  const prop = id => D.PROPS.find(p => p.id === id);
+  function propValue(id) { const o = props()[id]; return o ? Math.round(prop(id).price * Math.pow(1 + D.PROP.growDay, (now() - o.t) / 86400000)) : 0; }
+  function propsValue() { return Object.keys(props()).reduce((s, id) => s + propValue(id) * (1 - D.PROP.sellFee), 0); }
+  function propPending(id) { const o = props()[id]; if (!o) return 0; const days = Math.min(D.PROP.maxDays, (now() - o.last) / 86400000); return Math.floor(prop(id).rent * days); }
+  function propBuy(id) {
+    const p = prop(id); if (!p) return { err: 'Introuvable.' }; if (st.lvl < p.lvl) return { err: `Au niveau ${p.lvl}.` };
+    if (props()[id]) return { err: 'Tu l\'as déjà.' }; if (!pay(p.price)) return { err: 'Pas assez de cash.' };
+    props()[id] = { t: now(), last: now(), paid: p.price }; stat('props'); addXp(40 + p.price / 500); emit('change'); return { ok: true };
+  }
+  // encaisser les loyers ; parfois un pépin de proprio coûte une partie du montant
+  function propCollect(id) {
+    const n = propPending(id); if (n < 1) return { err: 'Rien à encaisser pour l\'instant.' };
+    let issue = null, got = n;
+    if (Math.random() < D.PROP.issue) { const I = pick([['Fuite d\'eau chez le locataire', .5], ['Le locataire paie en retard', .3], ['La chaudière a lâché', .6], ['Petits travaux dans la cage d\'escalier', .25]]); const c = Math.round(n * I[1]); got -= c; issue = { txt: I[0], cost: c }; }
+    props()[id].last = now(); addCash(got); addXp(3 + Math.min(xpCap(30), got / 200)); emit('change'); return { got, issue };
+  }
+  function propSell(id) { const o = props()[id]; if (!o) return { err: 'Tu ne l\'as pas.' }; const pend = propPending(id), v = Math.round(propValue(id) * (1 - D.PROP.sellFee)); addCash(v + pend); delete props()[id]; emit('change'); return { v, pend, profit: v - o.paid }; }
+
+  // ------------------------------------------------------------ La Tour : bourse
+  const bourse = () => { const b = st.bourse = st.bourse || { hold: {}, cost: {}, prices: {}, hist: {}, last: now(), divs: 0, news: [] };
+    D.STOCKS.forEach(c => { if (b.prices[c.id] == null) { b.prices[c.id] = c.p0; b.hist[c.id] = [c.p0]; b.hold[c.id] = 0; b.cost[c.id] = 0; } }); return b; };
+  function simBourse(offline) {
+    const b = bourse(); let mins = Math.min(1440, Math.floor((now() - b.last) / 60000)); if (mins <= 0) return;
+    for (let k = 0; k < mins; k++) D.STOCKS.forEach(c => {
+      let p = b.prices[c.id];
+      p *= Math.exp(c.drift + .0008 * Math.log(c.p0 / p) - c.vol * c.vol / 2 + c.vol * gauss());
+      if (Math.random() < 1 / D.BOURSE.newsEvery) { const up = Math.random() < .55, k2 = up ? rnd(1.05, 1.15) : rnd(.86, .95); p *= k2;
+        if (!offline) { b.news.unshift({ id: c.id, up, pct: Math.round((k2 - 1) * 100), t: now() }); b.news.length = Math.min(b.news.length, 8); emit('stockNews', { c, up, pct: Math.round((k2 - 1) * 100) }); } }
+      b.prices[c.id] = clamp(p, c.p0 * .25, c.p0 * 6);
+      // dividendes versés au fil de l'eau
+      if (b.hold[c.id] > 0 && c.div) { const d = b.hold[c.id] * b.prices[c.id] * c.div / 1440; st.cash += d; b.divs += d; }
+    });
+    b.last = now();
+    D.STOCKS.forEach(c => { const h = b.hist[c.id]; h.push(b.prices[c.id]); if (h.length > 120) h.splice(0, h.length - 120); });
+  }
+  function stocksValue() { const b = bourse(); return D.STOCKS.reduce((s, c) => s + b.hold[c.id] * b.prices[c.id] * (1 - D.BOURSE.fee), 0); }
+  function stockBuy(id, eur) {
+    const b = bourse(), c = D.STOCKS.find(x => x.id === id); if (!c) return { err: 'Introuvable.' }; if (st.lvl < D.BOURSE.lvl) return { err: `Bourse au niveau ${D.BOURSE.lvl}.` };
+    eur = Math.floor(eur); if (eur < 1) return { err: 'Montant trop petit.' }; if (!pay(eur)) return { err: 'Pas assez de cash.' };
+    b.hold[id] += eur * (1 - D.BOURSE.fee) / b.prices[id]; b.cost[id] += eur; stat('stockBuy'); addXp(3 + Math.min(xpCap(30), eur / 50)); emit('change'); return { ok: true };
+  }
+  function stockSell(id, frac = 1) {
+    const b = bourse(); if (!(b.hold[id] > 0)) return { err: 'Tu n\'en as pas.' };
+    const q = b.hold[id] * frac, net = q * b.prices[id] * (1 - D.BOURSE.fee), cost = b.cost[id] * frac;
+    b.hold[id] -= q; b.cost[id] -= cost; if (b.hold[id] < 1e-9) { b.hold[id] = 0; b.cost[id] = 0; }
+    addCash(net); if (net > cost) stat('stockProfit'); emit('change'); return { net, profit: net - cost };
+  }
   function score() { return Math.round(worth() + st.lvl * 500); }
   function questState(q) { const v = st.stats[q.stat] || 0; return { v: Math.min(v, q.n), done: v >= q.n, claimed: !!st.quests[q.id], open: st.lvl >= (q.lvl || 1) }; }
   function claimQuest(id) {
@@ -1195,7 +1251,7 @@
     simEvent(offline);
     simDeal(offline);
     simSix(offline);
-    simFriendTip(offline); simCryptoTip(offline); simPc(offline);
+    simFriendTip(offline); simCryptoTip(offline); simPc(offline); simBourse(offline);
     stat('worth', Math.floor(worth()), true);
     if (!offline) checkBailout();
   }
@@ -1209,6 +1265,7 @@
 
   window.GAME = {
     get st() { return st; }, get asleep() { return asleep; }, on, emit, load, save, reset, simulate,
+    placeOf, parkedCount, garageSlots, garageUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
     looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,

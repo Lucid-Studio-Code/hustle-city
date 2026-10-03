@@ -47,3 +47,6 @@
 
 ## Looks du quartier (03/10)
 - lot-ville-renov.js, lot-ville-neon.js, lot-ville-hiver.js : 8 images chacun (bg-city-<look> + bld-<bâtiment>-<look> pour casino, appart, shop, balto, club, kiosque, six). Image modèle = l'image actuelle en ligne (github.io), pour garder exactement la même ville. Le jeu les affiche dès qu'elles existent (Boutique > Ma ville > Le look du quartier) ; sinon « Bientôt ».
+
+## Bijouterie / Garage / Tour (03/10)
+- lot-bijou.js (8) : or + raretés · lot-garage.js (7) : voitures + motos · lot-tour.js (10) : 4 biens immobiliers + 6 logos d'actions (item-st-*). Tout est branché : emoji en attendant.

@@ -32,9 +32,28 @@
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' }
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
+  // le parking du Garage Prestige (une voiture ou une moto par place)
+  const GARAGES = [{ slots: 2, cost: 0, name: 'Box simple' }, { slots: 4, cost: 25000, name: 'Garage double' }, { slots: 7, cost: 90000, name: 'Parking privé' }];
+  // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
+  const PROPS = [
+    { id: 'p-park',   name: 'Place de parking',     price: 3000,   rent: 300,   lvl: 12, icon: '🅿️', desc: 'Petit loyer, zéro souci.' },
+    { id: 'p-studio', name: 'Studio étudiant',      price: 15000,  rent: 1400,  lvl: 12, icon: '🛏️', desc: 'Toujours loué, parfois en retard.' },
+    { id: 'p-flat',   name: 'Appart avec balcon',   price: 60000,  rent: 5000,  lvl: 14, icon: '🏢', desc: 'Le bon rapport, si tout va bien.' },
+    { id: 'p-office', name: 'Étage de bureaux',     price: 250000, rent: 19000, lvl: 16, icon: '🏙️', desc: 'Le gros lot : des entreprises qui paient cash.' }
+  ];
+  const PROP = { maxDays: 3, sellFee: .08, growDay: .01, issue: .15 };   // pépin de proprio : 15 % de chance à l'encaissement
+  const STOCKS = [
+    { id: 'kbc', name: 'KebabCorp',     sym: 'KBC', p0: 42,  vol: .0025, drift: .000004, div: .006, sector: 'Restauration rapide', color: '#e0662f' },
+    { id: 'mtr', name: 'MétroLigne',    sym: 'MTR', p0: 88,  vol: .0015, drift: .000003, div: .010, sector: 'Transports',          color: '#1f6fd1' },
+    { id: 'nbk', name: 'NéoBanque',     sym: 'NBK', p0: 130, vol: .0020, drift: .000004, div: .008, sector: 'Banque',              color: '#1f9d55' },
+    { id: 'stw', name: 'StreetWear SA', sym: 'STW', p0: 26,  vol: .0040, drift: .000006, div: .002, sector: 'Mode',                color: '#9b5de5' },
+    { id: 'pxl', name: 'Pixel Studio',  sym: 'PXL', p0: 15,  vol: .0060, drift: .000008, div: 0,    sector: 'Jeux vidéo',          color: '#ff3cac' },
+    { id: 'sol', name: 'SolarCité',     sym: 'SOL', p0: 54,  vol: .0035, drift: .000005, div: .004, sector: 'Énergie',             color: '#f2b01e' }
+  ];
+  const BOURSE = { fee: .005, lvl: 12, newsEvery: 600 };   // div = part du prix versée chaque jour ; une grosse nouvelle (±) toutes les ~10 h par action
   const EXT_PLACES = [
-    { id: 'bijou',  name: 'Bijouterie Diamant', lvl: 8,  tag: 'Montres de luxe et or' },
-    { id: 'garage', name: 'Garage Prestige',    lvl: 10, tag: 'Voitures de collection' },
+    { id: 'bijou',  name: 'Bijouterie Diamant', lvl: 4,  tag: 'Montres de luxe, or et raretés' },
+    { id: 'garage', name: 'Garage Prestige',    lvl: 10, tag: 'Voitures et motos de collection' },
     { id: 'tour',   name: 'La Tour',            lvl: 12, tag: 'Bourse et immobilier' }
   ];
 
@@ -230,9 +249,14 @@
   // p0 = prix de départ ; vol = volatilité par heure ; les prix bougent toutes les minutes.
   // Achat au prix affiché +5 %, revente au prix −10 % (commission du dépôt-vente).
   const ITEM_CATS = {
-    card:    { name: 'Cartes',    lvl: 2, icon: '🃏' },
-    sneaker: { name: 'Sneakers',  lvl: 3, icon: '👟' },
-    watch:   { name: 'Montres',   lvl: 4, icon: '⌚' },
+    // shop : où ça s'achète (comptoir, bijou = Bijouterie Diamant, garage = Garage Prestige) ; place : étagère de l'appart, coffre (aucune place) ou parking du garage
+    card:    { name: 'Cartes',    lvl: 2, icon: '🃏', shop: 'comptoir', place: 'binder' },
+    sneaker: { name: 'Sneakers',  lvl: 3, icon: '👟', shop: 'comptoir', place: 'shelf' },
+    watch:   { name: 'Montres',   lvl: 4, icon: '⌚', shop: 'bijou', place: 'shelf' },
+    gold:    { name: 'Or',        lvl: 4, icon: '🪙', shop: 'bijou', place: 'safe' },
+    gem:     { name: 'Raretés',   lvl: 5, icon: '💎', shop: 'bijou', place: 'safe' },
+    car:     { name: 'Voitures',  lvl: 10, icon: '🚗', shop: 'garage', place: 'park' },
+    moto:    { name: 'Motos',     lvl: 10, icon: '🏍️', shop: 'garage', place: 'park' },
     trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true }
   };
   const ITEMS = [
@@ -250,6 +274,24 @@
     { id: 'w-diver',    cat: 'watch',   name: 'Montre de plongée',       r: 'R', p0: 2800,  vol: .025 },
     { id: 'w-chrono',   cat: 'watch',   name: 'Chronographe or',         r: 'E', p0: 14000, vol: .03 },
     { id: 'w-grail',    cat: 'watch',   name: 'La montre « graal »',     r: 'L', p0: 85000, vol: .035 },
+    // or : le placement sûr (bouge peu, monte doucement : drift = tendance par minute, revert 0 = ne revient pas vers le prix de départ)
+    { id: 'o-napo',     cat: 'gold',    name: 'Pièce d\'or de 20 francs',  r: 'C', p0: 450,    vol: .006, drift: .000012, revert: 0 },
+    { id: 'o-bar10',    cat: 'gold',    name: 'Petite barre d\'or 10 g',   r: 'R', p0: 900,    vol: .006, drift: .000012, revert: 0 },
+    { id: 'o-lion',     cat: 'gold',    name: 'Once d\'or « Lion »',       r: 'E', p0: 2600,   vol: .007, drift: .000012, revert: 0 },
+    { id: 'o-bar100',   cat: 'gold',    name: 'Barre d\'or 100 g',         r: 'L', p0: 9000,   vol: .006, drift: .000012, revert: 0 },
+    // raretés : bougent peu, sauf quand une rumeur tombe
+    { id: 'g-roman',    cat: 'gem',     name: 'Pièce romaine antique',     r: 'R', p0: 1200,   vol: .015 },
+    { id: 'g-ruby',     cat: 'gem',     name: 'Rubis certifié',            r: 'R', p0: 1800,   vol: .015 },
+    { id: 'g-stamp',    cat: 'gem',     name: 'Timbre rare « Bleu inversé »', r: 'E', p0: 5000, vol: .02 },
+    { id: 'g-diam',     cat: 'gem',     name: 'Diamant certifié 2 carats', r: 'L', p0: 30000,  vol: .02 },
+    // garage : chaque véhicule prend une place de parking
+    { id: 'v-city',     cat: 'car',     name: 'Citadine tunée',            r: 'C', p0: 4000,   vol: .03 },
+    { id: 'v-gti',      cat: 'car',     name: 'Compacte sportive rétro',   r: 'R', p0: 12000,  vol: .035 },
+    { id: 'v-muscle',   cat: 'car',     name: 'Muscle car américaine',     r: 'E', p0: 45000,  vol: .04 },
+    { id: 'v-super',    cat: 'car',     name: 'Supercar italienne',        r: 'L', p0: 180000, vol: .045 },
+    { id: 'm-scoot',    cat: 'moto',    name: 'Scooter vintage',           r: 'C', p0: 1500,   vol: .03 },
+    { id: 'm-road',     cat: 'moto',    name: 'Roadster sportif',          r: 'R', p0: 8000,   vol: .035 },
+    { id: 'm-chopper',  cat: 'moto',    name: 'Chopper chromé',            r: 'E', p0: 25000,  vol: .04 },
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
     { id: 't-combi',    cat: 'trophy',  name: 'Trophée « Combiné de fou »',     r: 'R', p0: 400, vol: .04 },
@@ -566,7 +608,7 @@
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

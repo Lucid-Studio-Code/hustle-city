@@ -458,11 +458,38 @@
     map.addEventListener('click', e => { if (moved > 8) { e.stopPropagation(); e.preventDefault(); } }, true);
     window.addEventListener('resize', () => { layoutMap(); });
   }
+  // ------------------------------------------------------------ La Tour : immobilier (loyers) + bourse (actions et dividendes)
+  let towerTab = 'immo';
+  function towerBody() {
+    const s = st();
+    if (towerTab === 'immo') {
+      const card = p => { const o = G.props()[p.id], lock = s.lvl < p.lvl, pend = G.propPending(p.id), days = Math.round(p.price / p.rent);
+        const art = has('item-' + p.id) ? pic('item-' + p.id) : `<span class="tw-emo">${p.icon}</span>`;
+        if (o) { const v = Math.round(G.propValue(p.id) * (1 - D.PROP.sellFee)), d = v - o.paid;
+          return `<div class="card tw-card own"><div class="tw-art">${art}</div><div class="grow"><b>${p.name}</b><small>Loyer : <b class="up">+${short(p.rent)}/jour</b></small><small>Vaut ${short(v)} à la revente · <span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${short(Math.abs(d))}</span></small>
+            <div class="tw-acts"><button class="btn xs green" data-act="propCollect" data-id="${p.id}" ${pend >= 1 ? '' : 'disabled'}>Encaisser ${short(pend)}</button><button class="btn xs red" data-act="propSell" data-id="${p.id}">Vendre</button></div></div></div>`; }
+        return `<div class="card tw-card ${lock ? 'locked' : ''}"><div class="tw-art">${art}</div><div class="grow"><b>${p.name}</b><small>${p.desc}</small><small>Loyer <b class="up">+${short(p.rent)}/jour</b> · remboursé en ~${days} jours</small>
+          <div class="tw-acts">${lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${p.lvl}</button>` : `<button class="btn xs green" data-act="propBuy" data-id="${p.id}" ${s.cash >= p.price ? '' : 'disabled'}>Acheter ${short(p.price)}</button>`}</div></div></div>`; };
+      return `<div class="price-explain"><small class="pe-title">L'immobilier, comment ça marche ?</small><div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>un bien</b></div><span class="pe-arr">→</span><div class="pe-box mid"><small>2. Chaque jour</small><b>un loyer</b></div><span class="pe-arr">→</span><div class="pe-box sell"><small>3. Tu encaisses</small><b>même absent</b></div></div>
+        <small class="pe-foot">Les loyers s'accumulent jusqu'à ${D.PROP.maxDays} jours : passe les encaisser. Un bien prend un peu de valeur chaque jour, mais gare aux pépins de proprio.</small></div>${D.PROPS.map(card).join('')}`;
+    }
+    const b = G.bourse(), lock = s.lvl < D.BOURSE.lvl;
+    const row = c => { const p = b.prices[c.id], h = b.hist[c.id], v = b.hold[c.id] * p * (1 - D.BOURSE.fee), g = v - b.cost[c.id];
+      return `<div class="card st-card"><div class="st-top"><span class="st-sym" style="background:${c.color}">${has('item-st-' + c.id) ? pic('item-st-' + c.id) : c.sym}</span><div class="grow"><b>${c.name}</b><small>${c.sector}${c.div ? ` · dividende ${(c.div * 100).toFixed(1).replace('.', ',')} %/jour` : ' · pas de dividende'}</small></div>
+        <div class="st-px"><b>${p < 100 ? p.toFixed(2).replace('.', ',') : Math.round(p)}<i class="cur"></i></b>${pct(p, h[0])}</div></div>${sparkSvg(h.slice(-60), 300, 30, p >= h[0] ? '#1f9d55' : '#d33')}
+        ${v >= .5 ? `<small class="st-own">Tu en as pour <b>${short(v)}</b> · <span class="${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '+' : '−'}${short(Math.abs(g))} ${g >= 0 ? 'de gagné' : 'de perdu'}</span></small>` : ''}
+        <div class="st-acts">${[100, 500, 2000].map(x => `<button class="btn xs green" data-act="stockBuy" data-id="${c.id}" data-v="${x}" ${!lock && s.cash >= x ? '' : 'disabled'}>+${short(x)}</button>`).join('')}${v >= .5 ? `<button class="btn xs red" data-act="stockSell" data-id="${c.id}">Tout vendre</button>` : ''}</div></div>`; };
+    return `<div class="price-explain"><small class="pe-title">La bourse, comment ça marche ?</small><div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>des actions</b></div><span class="pe-arr">→</span><div class="pe-box mid"><small>2. Chaque jour</small><b>dividendes</b></div><span class="pe-arr">→</span><div class="pe-box sell"><small>3. Tu revends</small><b>si ça a monté</b></div></div>
+      <small class="pe-foot">Plus calme que la crypto. Les dividendes tombent tout seuls dans ton cash${b.divs >= 1 ? ` (déjà <b>+${short(b.divs)}</b> touchés)` : ''}. Frais : ${D.BOURSE.fee * 100} % à l'achat et à la vente.</small></div>
+      ${lock ? `<p class="hint-line center">${ic('lock')} La bourse ouvre au niveau ${D.BOURSE.lvl}.</p>` : ''}${D.STOCKS.map(row).join('')}`;
+  }
+  function openTower(tab) { if (tab) towerTab = tab; openModal({ title: 'La Tour', icon: 'bld-tour', full: true, tabs: [{ id: 'immo', label: 'Immobilier' }, { id: 'bourse', label: 'Bourse' }], tab: towerTab, body: towerBody(), refresh: () => setBody(towerBody()), onTab: id => { towerTab = id; setBody(towerBody()); } }); }
   function openBus() {
     const s = st();
     openModal({ title: 'Arrêt de bus', icon: 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +
-      D.EXT_PLACES.map(b => `<div class="row locked"><div style="width:64px;height:64px;flex:0 0 64px">${pic('bld-' + b.id, '🏙️')}</div>
-        <div class="grow"><h4>${b.name}</h4><p>${b.tag}</p></div><span class="rw-tag">${ic('lock')}${s.lvl < b.lvl ? `Niveau ${b.lvl}` : 'Bientôt'}</span></div>`).join('') });
+      D.EXT_PLACES.map(b => { const lock = s.lvl < b.lvl;
+        return `<button class="row ${lock ? 'locked' : ''}" ${lock ? 'disabled' : `data-act="goPlace" data-id="${b.id}"`} style="width:100%;text-align:left"><div style="width:64px;height:64px;flex:0 0 64px">${pic('bld-' + b.id, '🏙️')}</div>
+        <div class="grow"><h4>${b.name}</h4><p>${b.tag}</p></div>${lock ? `<span class="rw-tag">${ic('lock')}Niveau ${b.lvl}</span>` : '<span class="btn xs green">Y aller</span>'}</button>`; }).join('') });
   }
   // ------------------------------------------------------------ back-office (adresse du jeu + #admin, ou l'ancien #placer)
   // On fait glisser les bâtiments et TOUS les objets de la ville (même ceux qu'on n'a pas achetés), on règle leur taille,
@@ -779,7 +806,7 @@
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
-    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (it.cat !== 'card') a.forEach(() => owned.push(it)); });
+    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (G.placeOf(id) === 'shelf') a.forEach(() => owned.push(it)); });
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
@@ -1411,12 +1438,16 @@
   let justBought = null;
   // « Achetée » seulement si on vient de l'acheter dans cet arrivage ; une carte qu'on a depuis longtemps est « Possédée »
   const boughtNow = id => { const a = st().owned[id] || [], e = a[a.length - 1]; return !!e && e.paid > 0 && e.t >= Date.now() - (30 * 60000 - G.stockLeft()); };
-  function openShop(tab) {
+  let shopPlace = 'comptoir';
+  const SHOP_PLACES = { comptoir: { title: 'Le Comptoir', icon: 'trophy', who: 'le Comptoir' }, bijou: { title: 'Bijouterie Diamant', icon: 'bld-bijou', who: 'la Bijouterie' }, garage: { title: 'Garage Prestige', icon: 'bld-garage', who: 'le Garage' } };
+  function openShop(tab, place) {
+    if (place) shopPlace = place; else if (!tab || (D.ITEM_CATS[tab] && D.ITEM_CATS[tab].shop !== shopPlace)) shopPlace = tab && D.ITEM_CATS[tab] ? D.ITEM_CATS[tab].shop : 'comptoir';
     if (tab) shopTab = tab;
-    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
-    tabs.push({ id: 'news', label: 'Actus' });
-    if (tabs.find(t => t.id === shopTab)?.locked) shopTab = 'card';
-    openModal({ title: 'Le Comptoir', icon: 'trophy', full: true, tabs, tab: shopTab, body: shopBody(), refresh: () => setBody(shopBody()), onTab: id => { shopTab = id; setBody(shopBody()); } });
+    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy && c.shop === shopPlace).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
+    if (shopPlace === 'comptoir') tabs.push({ id: 'news', label: 'Actus' });
+    if (!tabs.find(t => t.id === shopTab) || tabs.find(t => t.id === shopTab).locked) shopTab = (tabs.find(t => !t.locked) || tabs[0]).id;
+    const P = SHOP_PLACES[shopPlace];
+    openModal({ title: P.title, icon: P.icon, full: true, tabs, tab: shopTab, body: shopBody(), refresh: () => setBody(shopBody()), onTab: id => { shopTab = id; setBody(shopBody()); } });
   }
   function shopBody() {
     const s = st();
@@ -1462,9 +1493,12 @@
           <div class="pe-box mid"><small>2. Son prix monte</small><b>130<i class="cur"></i></b></div><span class="pe-arr">→</span>
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
-        <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : le Comptoir te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
+        <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : ${SHOP_PLACES[shopPlace].who} te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
       <div class="stock-chip">${ico('ic-truck', '🚚')} Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
-      <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
+      ${(pl => pl === 'safe' ? `<div class="shelf-chip">${ico('ic-shelf', '🔐')} Ça va dans ton <b>coffre</b> : aucune limite de place.</div>`
+        : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
+        : pl === 'binder' ? `<div class="shelf-chip">${ico('ic-shelf', '🏠')} Les cartes vont dans ton classeur : aucune limite.</div>`
+        : `<div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}</div>`)((D.ITEM_CATS[shopTab] || {}).place)}
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
       ${grid}`;
   }
@@ -1926,6 +1960,13 @@
     crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
+    goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
+    garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
+    propBuy(el) { const r = G.propBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast(`${G.prop(el.dataset.id).name} : c'est à toi ! Les loyers tombent chaque jour.`); refresh(); },
+    propCollect(el) { const r = G.propCollect(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); flyTo(el, '#pill-cash'); toast(r.issue ? `${r.issue.txt} : −${eur(r.issue.cost)}. Tu encaisses quand même ${eur(r.got)}.` : `Loyers encaissés : +${eur(r.got)}.`, !!r.issue); refresh(); },
+    propSell(el) { if (!confirm('Vendre ce bien ?')) return; const r = G.propSell(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Vendu ${eur(r.v)} : ${r.profit >= 0 ? `+${eur(r.profit)} de gagné` : `${eur(r.profit)} de perdu`}.`, r.profit < 0); refresh(); },
+    stockBuy(el) { const v = el.dataset.v === 'all' ? st().cash : +el.dataset.v; const r = G.stockBuy(el.dataset.id, v); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
+    stockSell(el) { const c = D.STOCKS.find(x => x.id === el.dataset.id), r = G.stockSell(el.dataset.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); toast(r.profit >= 0 ? `${c.name} vendue : <b>+${eur(r.profit)} de gagné</b>.` : `${c.name} vendue : ${eur(r.profit)} de perdu.`, r.profit < 0); refresh(); },
     lookBuy(el) { const r = G.lookBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast('Ta ville change de look !'); renderCity(); refresh(); },
     itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.coin(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
@@ -2092,6 +2133,7 @@
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
+  G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) notify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
   G.on('tipResult', r => {
     const score = `${r.m.home} ${r.m.sh} – ${r.m.sa} ${r.m.away}`;
     const txt = r.right ? (r.followed ? pick([`Tu vois, je te l'avais dit ! ${score} 😎`, `Qui c'est le boss des pronos ? ${score}, comme prévu 💸`, `Je t'avais dit de me faire confiance ! ${score}`])

@@ -2622,3 +2622,18 @@ h3.sec { margin: 18px 6px 10px; }
 #app .lk-card b { font: 400 15px var(--title); } #app .lk-card small { font: 700 10.5px/1.25 var(--text); color: #6a5a4a; min-height: 26px; }
 #app .lk-tag { position: absolute; top: -8px; right: 8px; padding: 1px 8px; border-radius: 999px; background: #7b2cbf; color: #fff; font: 900 10px var(--text); }
 #app .lk-on { font: 900 12px var(--text); color: #1f9d55; }
+/* La Tour */
+#app .tw-card { display: flex; gap: 10px; align-items: center; padding: 10px; }
+#app .tw-card.own { background: linear-gradient(135deg, #e9f9df, #fff); }
+#app .tw-art { width: 74px; height: 74px; flex: 0 0 74px; display: grid; place-items: center; border-radius: 12px; background: #f3e8ff; }
+#app .tw-art .pic, #app .tw-art img { width: 100%; height: 100%; object-fit: contain; } #app .tw-emo { font-size: 40px; }
+#app .tw-card b { font: 400 16px var(--title); color: #2a1a10; } #app .tw-card small { display: block; font: 700 11.5px/1.35 var(--text); color: #6a5a4a; }
+#app .tw-card .up, #app .st-card .up { color: #1f9d55; } #app .tw-card .down, #app .st-card .down { color: #c0392b; }
+#app .tw-acts, #app .st-acts { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+#app .st-card { padding: 10px; } #app .st-top { display: flex; align-items: center; gap: 8px; }
+#app .st-sym { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; border: 2px solid #2a1a10; color: #fff; font: 400 12px var(--title); overflow: hidden; }
+#app .st-sym .pic, #app .st-sym img { width: 100%; height: 100%; object-fit: cover; }
+#app .st-card b { font: 400 15px var(--title); } #app .st-card small { display: block; font: 700 11px var(--text); color: #6a5a4a; }
+#app .st-px { text-align: right; } #app .st-px b { font: 400 18px var(--title); display: flex; align-items: center; justify-content: flex-end; }
+#app .st-card svg { width: 100%; height: 30px; margin: 4px 0; }
+#app .st-own { margin-top: 2px; }
