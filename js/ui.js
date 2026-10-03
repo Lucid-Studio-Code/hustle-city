@@ -741,7 +741,7 @@
         <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
-        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${has('bed-laptop') ? pic('bed-laptop') : '<span class="bed-emo">💻<i>💗</i></span>'}</button>
+        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${(n => has(n) ? pic(n) : null)('bed-laptop-' + gg) || `<span class="bed-emo">💻<i>${gg === 'f' ? '💗' : '❤️'}</i></span>`}</button>
         <div class="bubble-at ag-b" style="left:${L.light.x - 10}%;top:${L.light.y - L.light.w * .9}%">${agBubble()}</div>` : ''}
         <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
