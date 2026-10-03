@@ -43,3 +43,4 @@
 - + coin-slr (Nova) : refaite bien de face, sans épaisseur visible, comme les autres pièces.
 - + bed-laptop-f / bed-laptop-m refaits : ordi de face (écran face à nous), sans accessoires, écran = pêche + banane qui font un clin d'œil. + ic-promo : cadeau avec étiquette promo (remplace le 💎 du bouton Promo).
 - Le mini lot 4 est découpé en deux : lot-redo-4a.js (icônes) et lot-redo-4b.js (cartes bonus, ordis, promo). Règle : 10 images max par lot.
+- lot-tennis-fix.js (6) : les cartes de tennis art-k-t1..t6 du lot cartes v2 avaient deux descriptions contradictoires (ex. « vieil homme barbu » + « femme rousse ») ; refaites d'après les vrais portraits player-t1..t6. Les 6 du lot v2 sont à jeter.
