@@ -2542,3 +2542,12 @@ h3.sec { margin: 18px 6px 10px; }
 @keyframes greyIn { from { filter: none; opacity: 1; } to { filter: grayscale(.85) brightness(.9); opacity: .6; } }
 #app .tip-card h4 img.ico { width: 40px !important; height: 40px !important; vertical-align: -12px; }
 #app .tcg-sub.full { padding: 0; overflow: hidden; } #app .tcg-sub.full img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* prix des tickets : une vraie étiquette dorée accrochée, montant + billet sur une ligne */
+#app .tk-price { flex: 0 0 auto; width: auto; height: auto; clip-path: none; position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; padding: 5px 10px 6px 18px;
+  background: linear-gradient(160deg, #fff3b0, #ffd23f 45%, #e0a100); border: 3px solid #2a1a10; border-radius: 6px 14px 14px 6px; box-shadow: 0 3px 0 #2a1a10, inset 0 2px 0 rgba(255,255,255,.6);
+  color: #2a1a10; -webkit-text-stroke: 0; transform: rotate(7deg); transform-origin: 0 50%; }
+#app .tk-price::before { content: ''; position: absolute; left: 6px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #fffdf3; box-shadow: inset 0 0 0 2px #2a1a10; }
+#app .tk-price small { font: 900 9px var(--text); letter-spacing: 1px; text-transform: uppercase; color: #7a4d00; }
+#app .tk-price b { display: flex; align-items: center; gap: 3px; font: 400 20px/1 var(--title); color: #2a1a10; white-space: nowrap; }
+#app .tk-price b .cur { width: 22px; height: 18px; }
+#app .tk-price { padding-left: 22px; } #app .tk-price::before { left: 5px; }

@@ -86,7 +86,7 @@
   function ticketHtml() {
     const { t } = ticket, top = t.prizes[t.prizes.length - 1][0];
     return `<div class="tk tk-${t.id} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${new URL(U.src('tkbg-' + t.id), location.href).href})` : ''}">
-      <div class="tk-top">${U.pic(t.emblem, '🎟️', 'tk-emb')}<div class="tk-title"><b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span></div><span class="tk-price">${money(t.price)}</span></div>
+      <div class="tk-top">${U.pic(t.emblem, '🎟️', 'tk-emb')}<div class="tk-title"><b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span></div><span class="tk-price"><small>Prix</small><b>${money(t.price)}</b></span></div>
       <div class="tk-game g-${t.game}">${gameHtml()}</div>
       <p class="tk-rule">${t.rule}</p>
       <div class="tk-foot"><i class="barcode"></i><small>N° ${ticket.no} · Jeu fictif Hustle City · aucun gain réel · interdit aux mineurs</small></div>
@@ -122,7 +122,7 @@
     const g = x.createLinearGradient(0, 0, r.width, r.height); g.addColorStop(0, '#b9bec6'); g.addColorStop(.45, '#eef0f3'); g.addColorStop(.55, '#d9dde2'); g.addColorStop(1, '#a3a9b2');
     x.fillStyle = g; x.fillRect(0, 0, r.width, r.height);
     x.fillStyle = 'rgba(120,128,140,.45)'; x.font = '900 11px Nunito'; x.textAlign = 'center';
-    for (let yy = 12; yy < r.height + 8; yy += 14) for (let xx = (yy / 14 % 2) * 9 + 6; xx < r.width + 8; xx += 18) x.fillText('$', xx, yy);
+    for (let yy = 12; yy < r.height + 8; yy += 14) for (let xx = (yy / 14 % 2) * 9 + 6; xx < r.width + 8; xx += 18) x.fillText('★', xx, yy);
     x.globalCompositeOperation = 'destination-out'; x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = Math.max(18, Math.min(r.width, r.height) * .45);
     cv._x = x; cv._n = 0;
   }
