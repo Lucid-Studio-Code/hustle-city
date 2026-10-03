@@ -1218,7 +1218,16 @@
       <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${ico('ic-club-' + p.id, p.icon)}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
   }
-  function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => setBody(clubBody()) }); }
+  // porte du Club : la carte du videur est en haut, on cale l'image pour que sa tête apparaisse juste en dessous
+  function fitClubDoor() {
+    const d = document.querySelector('#modal .club-door'), img = d && d.querySelector('img.cd-bg'), say = d && d.querySelector('.cd-say');
+    if (!img || !say || !img.naturalWidth) return;
+    const W = d.clientWidth, H = d.clientHeight, k = Math.max(W / img.naturalWidth, H / img.naturalHeight), ih = img.naturalHeight * k;
+    const want = say.offsetTop + say.offsetHeight + 8 - .345 * ih;   // le haut de la tête du videur est à ~35 % de l'image
+    img.style.objectPosition = `50% ${Math.round(Math.min(0, Math.max(H - ih, want)))}px`;
+  }
+  window.addEventListener('resize', fitClubDoor);
+  function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => { setBody(clubBody()); fitClubDoor(); } }); const im = document.querySelector('#modal .club-door img.cd-bg'); if (im) im.complete ? fitClubDoor() : im.addEventListener('load', fitClubDoor); }
 
   // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
   let bqTab = 'deco';
