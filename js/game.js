@@ -440,6 +440,11 @@
     emit('change'); return { ok: true, odds };
   }
   function settle(m, offline) {
+    // le pote qui avait donné un prono sur ce match revient : « je te l'avais dit » ou « désolé », si on a parié dessus
+    const tip = (st.tipsSent || []).find(x => x.m === m.id);
+    if (tip) { st.tipsSent = st.tipsSent.filter(x => x !== tip);
+      const bet = st.bets.find(b => b.legs.some(l => l.m === m.id));
+      if (bet) { const leg = bet.legs.find(l => l.m === m.id); emit('tipResult', { name: tip.name, img: tip.img, right: m.res === tip.pick, followed: leg.pick === tip.pick, m }); } }
     // on garde le score final dans le ticket : il reste lisible quand le match est archivé
     st.bets.forEach(b => b.legs.forEach(l => { if (l.m === m.id) Object.assign(l, { sport: m.sport, home: m.home, away: m.away, sh: m.sh, sa: m.sa, res: m.res }); }));
     st.bets.forEach(b => {
@@ -1072,6 +1077,8 @@
     const pickIdx = tipPick(m, D.KIOSK.friendEdge);
     const ct = pick(D.DEALS.contacts.filter(c => !c.img.includes(st.skin + '-')));
     emit('friendTip', { name: ct.name, img: ct.img, m: m.id, pick: pickIdx });
+    // on retient le prono pour que le pote revienne en parler à la fin du match
+    (st.tipsSent = (st.tipsSent || []).filter(x => match(x.m))).push({ m: m.id, pick: pickIdx, name: ct.name, img: ct.img });
   }
   // un pote parle crypto : « Nova va grimper ». Il se base sur la prochaine météo du marché, mais se trompe 4 fois sur 10.
   function simCryptoTip(offline) {

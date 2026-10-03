@@ -2082,6 +2082,14 @@
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
+  G.on('tipResult', r => {
+    const score = `${r.m.home} ${r.m.sh} – ${r.m.sa} ${r.m.away}`;
+    const txt = r.right ? (r.followed ? pick([`Tu vois, je te l'avais dit ! ${score} 😎`, `Qui c'est le boss des pronos ? ${score}, comme prévu 💸`, `Je t'avais dit de me faire confiance ! ${score}`])
+        : pick([`Je t'avais dit pourtant… ${score}. La prochaine fois tu m'écoutes 😏`, `${score}. T'aurais dû me suivre, frérot.`]))
+      : (r.followed ? pick([`Désolé… je me suis complètement planté. ${score} 😬`, `Aïe, ${score}. Je te dois un café, désolé.`, `Pardon, mes sources m'ont trahi. ${score}…`])
+        : pick([`Bon… ${score}, t'as bien fait de pas m'écouter 😅`, `${score}. Ok, cette fois t'avais mieux vu que moi.`]));
+    chatPush(r.name, r.img, { from: 'them', txt }); notify('msg', r.name, txt, null, false, r.name);
+  });
   G.on('friendTip', f => {
     const m = G.match(f.m); if (!m) return;
     const who = m.sport === 'foot' && f.pick === 1 ? 'un match nul' : `${f.pick === 0 ? m.home : m.away} gagne`;
