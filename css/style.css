@@ -2463,3 +2463,14 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-act .ag-gain { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-top: 3px; font: 800 10.5px/1.15 var(--text); font-style: normal; }
 #app .ag-act .ag-gain .g-up { color: #1f9d55; } #app .ag-act .ag-gain .g-down { color: #c0392b; }
 #app .ag-act .ag-gain span { display: block; font: 800 10px/1.2 var(--text) !important; width: auto !important; height: auto !important; white-space: nowrap; }
+/* PrivéFans : ta part + cadeau */
+#app .ag-gift { display: flex; align-items: center; gap: 6px; width: 100%; margin-top: 6px; padding: 4px 8px; border: 2px solid #2a1a10; border-radius: 10px; background: #f3e8ff; font: 700 11.5px var(--text); color: #2a1a10; text-align: left; box-shadow: 0 2px 0 #2a1a10; }
+#app .ag-gift .ic { width: 22px; height: 22px; } #app .ag-gift span { flex: 1; } #app .ag-gift b { color: #1f9d55; }
+#app .ag-gift em { font: 400 13px var(--title); font-style: normal; color: #7b2cbf; } #app .ag-gift:disabled { opacity: .5; }
+#app .ag-share { display: block; margin: 8px 0 0; }
+#app .ag-share .sh-title { font: 900 13px var(--text); color: #2a1a10; margin-bottom: 4px; } #app .ag-share .sh-title small { display: block; font: 700 11px var(--text); color: #8a7560; }
+#app .ag-share .sh-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#app .ag-share .sh-opt { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 4px; border: 2px solid #2a1a10; border-radius: 12px; background: #fff; box-shadow: 0 2px 0 #2a1a10; }
+#app .ag-share .sh-opt b { font: 400 18px var(--title); color: #2a1a10; } #app .ag-share .sh-opt span { font: 800 10.5px var(--text); }
+#app .ag-share .sh-opt.on { background: #fff3c4; border-color: #e0a100; box-shadow: 0 2px 0 #e0a100, 0 0 0 2px #ffd23f; }
+#app .ag-share .g-up { color: #1f9d55; } #app .ag-share .g-down { color: #c0392b; }

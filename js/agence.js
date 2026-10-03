@@ -212,8 +212,11 @@
     const crew = a.crew.map(m => {
       const p = prof(m.id), x = m.act && A.acts.find(o => o.id === m.act.k), left = m.act ? m.act.start + m.act.dur - now() : 0;
       return `<div class="card ag-cr"><div class="ag-top">${face(p)}<div class="grow"><b>${p.name}</b><small>${p.niche} · <strong>${fmtSubs(m.subs)}</strong> abonnés</small>
-          <div class="ag-mood"><span>${p.me ? 'Énergie' : 'Moral'}</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div></div>
+          <div class="ag-mood"><span>${p.me ? 'Énergie' : 'Moral'}</span><div class="kh-bar"><i style="width:${Math.round(m.mood)}%;background:${m.mood < 30 ? '#e63946' : m.mood < 60 ? '#f2b01e' : '#3ddc84'}"></i></div></div>
+          ${p.me ? '' : `<button class="ag-gift" data-act="agGift" data-id="${m.id}" ${s.cash >= 50 + s.lvl * 10 && m.mood < 100 ? '' : 'disabled'}>${U.ic('gift')}<span>Lui offrir un cadeau <b>+20 de moral</b></span><em>${U.short(50 + s.lvl * 10)}</em></button>`}</div>
           <div class="ag-earn"><small>Pour toi</small><b>${U.short(perHour(m))}/h</b></div></div>
+        ${p.me ? '' : `<div class="ag-share"><div class="sh-title">Ta part sur ses gains <small>plus tu prends, plus son moral baisse</small></div><div class="sh-opts">${A.shares.map(v => { const d = Math.round((v - .2) * 20);
+          return `<button class="sh-opt ${m.pct === v ? 'on' : ''}" data-act="agShare" data-id="${m.id}" data-v="${v}"><b>${Math.round(v * 100)} %</b><span class="g-up">≈ ${U.short(perHour({ ...m, pct: v }))}/h pour toi</span><span class="${d ? 'g-down' : 'g-up'}">${d ? `moral −${d}/h` : 'moral stable'}</span></button>`; }).join('')}</div></div>`}
         ${(() => { const n = A.gear.filter(g => hasG(m, g)).length, open = gearOpen.has(m.id);
           return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">${U.ic('shop')} ${p.me ? 'Tes affaires' : 'Ses affaires'} · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
           ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
@@ -224,7 +227,6 @@
               <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
               : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
-        ${p.me ? '' : `<div class="ag-share"><span>Ta part</span>${A.shares.map(v => `<button class="btn xs ${m.pct === v ? 'yellow' : 'blue'}" data-act="agShare" data-id="${m.id}" data-v="${v}">${Math.round(v * 100)} %</button>`).join('')}<button class="btn xs purple" data-act="agGift" data-id="${m.id}">${U.ic('gift')} ${U.short(50 + s.lvl * 10)}</button></div>`}
         ${m.act ? `<div class="ag-busy">${actIc(x)} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
           : `<div class="ag-acts">${A.acts.map(o => { const noDuo = o.duo && !p.me && !ag().crew.some(c => c.id !== m.id && !c.act);
             return `<button class="ag-act ${noDuo ? 'need' : ''}" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${(o.lvl && s.lvl < o.lvl) || noDuo ? 'disabled' : ''}><span>${actIc(o)}</span><b>${o.name}</b><small>${noDuo ? '2 créatrices libres' : `${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}`}</small>${noDuo ? '' : actGain(m, o)}</button>`; }).join('')}</div>`}
