@@ -2306,3 +2306,5 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .sheet.th-casino.has-header .sheet-head { padding: 0; } #modal .sheet.th-casino.has-header .sheet-head > span { position: absolute; left: 0; right: 0; top: 62%; transform: translateY(-50%); text-align: center; }
 #modal .sheet.th-casino.has-header .sheet-head { left: auto; transform: none; }
 #modal .sheet.th-casino.has-header .sheet-close { right: -34%; top: 20%; }
+#app .room-obj .bed-emo { position: relative; display: block; font-size: clamp(30px, 9vw, 52px); line-height: 1; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }
+#app .room-obj .bed-emo i { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: .42em; font-style: normal; }

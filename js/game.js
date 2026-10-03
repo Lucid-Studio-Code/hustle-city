@@ -318,7 +318,7 @@
   // une amélioration de l'appart (machine ou déménagement) que le joueur peut se payer maintenant
   const pcLvl = () => Math.min(st.pc || 0, D.PCS.length - 1);
   function fee() { return D.PCS[pcLvl()].fee; }
-  function pcNext() { const nx = D.PCS[pcLvl() + 1]; return nx ? { nx, price: cost(nx.cost) } : null; }
+  function pcNext() { if (!D.PC_UPGRADES) return null; const nx = D.PCS[pcLvl() + 1]; return nx ? { nx, price: cost(nx.cost) } : null; }
   function pcUpgrade(mix) {
     const n = pcNext(); if (!n) return { err: 'Déjà au max.' };
     if (!(mix ? payMix(n.price) : pay(n.price))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };

@@ -51,6 +51,7 @@
   ];
   const CRYPTO_FEE = .015;         // frais par achat/vente avec le vieux PC (comme une appli grand public)
   // Le PC : un meilleur PC donne accès à de meilleures plateformes, avec moins de frais à chaque achat et vente
+  const PC_UPGRADES = false;   // en pause (03/10) : on ne peut plus acheter de meilleur PC, en attendant de bonnes images
   const PCS = [
     { name: 'Vieux PC',            cost: 0,    fee: .015, desc: 'Il rame, mais il marche.' },
     { name: 'PC gamer',            cost: 600,  fee: .008, desc: 'Écran rapide, clavier lumineux.' },
@@ -88,7 +89,8 @@
     flashEvery: [10, 20], flashK: [1.08, 1.2], flashBack: .85, flashMin: 3,   // une crypto bondit (ou plonge) d'un coup puis revient à 85 %
     newsEvery: [6, 12], newsMin: 15, newsDrift: .003,                        // une actu fait bouger UNE crypto pendant 15 min (~±5 %)
     sources: [{ name: 'Finance Hebdo', rel: .8, label: 'Sérieux' }, { name: 'CryptoBuzz', rel: .6, label: 'Moyen' }, { name: 'Le Bavard du Web', rel: .45, label: 'Pas fiable' }],
-    ordersPc: 1, preAlertPc: 2,                                              // PC gamer : ordres automatiques ; station : alerte 1 min avant
+    ordersPc: 0, preAlertPc: 0,   // PC en pause (03/10) : ordres et pré-alerte pour tout le monde
+                                                 // PC gamer : ordres automatiques ; station : alerte 1 min avant
     trader: { base: 20, perLvl: 15, lingots: 3 }                             // défi du trader : faire X de bénéfice en crypto dans la journée
   };
   // ---------------------------------------------------------------- l'agence « PrivéFans » (parodie : jamais le vrai nom ; glamour, jamais explicite)
@@ -424,7 +426,7 @@
   const shelfRow = ys => ys.flatMap(y => [13, 24, 35, 46].map(x => [x, y]));
   // PC : part de l'image SOUS la ligne des socles des écrans (le clavier dépasse devant) → on cale les socles sur le plateau
   const PC_DROP = [0, 0, 0];
-  const ONE_ROOM = { pc: { x: 17.5, y: 66.5, w: 30 }, rig: { x: 40.5, y: 66.5, w: 14 }, light: { x: 61, y: 72, w: 12 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
+  const ONE_ROOM = { pc: { x: 17.5, y: 66.5, w: 30 }, rig: { x: 40.5, y: 66.5, w: 14 }, light: { x: 83, y: 80, w: 15 }, shelf: { w: 6, h: 4.6 }, slots: shelfRow([39.8, 46.6, 53.4]) };
   const ROOM_LAYOUT = [0, 1, 2].map(() => JSON.parse(JSON.stringify(ONE_ROOM)));
 
   // ---------------------------------------------------------------- filet de sécurité (réaliste)
@@ -553,7 +555,7 @@
   });
   window.DATA = {
     START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
-    PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
+    PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };

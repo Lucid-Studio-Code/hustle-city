@@ -298,7 +298,7 @@
     const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(has('pcv-' + (G.pcLvl() + 1)) ? 'pcv-' + (G.pcLvl() + 1) : 'pc-0', EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
         <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
         <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
-      : `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>`;
+      : D.PC_UPGRADES ? `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>` : '';
     return `<p class="hint-line">Ton matos. En vert : tu as de quoi te le payer. Sinon tu peux compléter avec des lingots, ou payer avec ton patrimoine (on revend tes cryptos, puis tes objets).</p>${rig}${pcCard}${flat}`;
   }
   function openUpgrades() { openModal({ title: 'Mon setup', icon: 'btn-setup', full: true, body: upgradesBody(), refresh: () => setBody(upgradesBody()) }); }
@@ -604,7 +604,7 @@
   // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
   // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
-  const RP_NAME = k => k === 'pc' ? '🖥️ PC' : k === 'rig' ? '⛏️ Machine' : k === 'light' ? '💡 Ring light' : k === 'shelf' ? '📚 Toutes les étagères' : `📦 Place ${+k.slice(4) + 1}`;
+  const RP_NAME = k => k === 'pc' ? '🖥️ PC' : k === 'rig' ? '⛏️ Machine' : k === 'light' ? '💻 Ordi PrivéFans (lit)' : k === 'shelf' ? '📚 Toutes les étagères' : `📦 Place ${+k.slice(4) + 1}`;
   function roomPlacer(force) {
     if (!force && location.hash !== '#placer-appart') return;
     if (RP.on || !st().skin) return;
@@ -701,6 +701,14 @@
     return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), light: Object.assign({ x: 84, y: 58, w: 13 }, base.light, sv.light), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
   }
   const RP = { on: false, room: 0, sel: 'pc', drag: null };
+  // bulle de l'objet PrivéFans (ordi portable sur le lit) : ce qu'il y a à encaisser, ou une alerte
+  function agBubble() {
+    const A_ = window.AGENCE; if (!A_ || !A_.unlocked()) return '';
+    if (A_.offer()) return `<button class="obj-bubble hot" data-act="agence"><span><b>📩 Elle hésite à partir</b><small>Touche vite</small></span></button>`;
+    const p = A_.pending(), me = (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g === 'f';
+    if (!st().agence || !st().agence.crew.length) return `<button class="obj-bubble" data-act="agence"><span><small>PrivéFans</small><b>${me ? 'Lance ta page' : 'Ouvre ton agence'}</b></span></button>`;
+    return `<button class="obj-bubble ${p >= 1 ? 'up' : ''}" data-act="agence"><span><small>PrivéFans</small><b>${p >= 1 ? `+${short(p)} à encaisser` : 'Ouvrir'}</b></span></button>`;
+  }
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
@@ -733,7 +741,8 @@
         <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
-        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${pic('ringlight', '💡')}</button>` : ''}
+        ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${has('bed-laptop') ? pic('bed-laptop') : '<span class="bed-emo">💻<i>💗</i></span>'}</button>
+        <div class="bubble-at ag-b" style="left:${L.light.x - 10}%;top:${L.light.y - L.light.w * .9}%">${agBubble()}</div>` : ''}
         <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
       </div>
