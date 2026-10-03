@@ -22,13 +22,13 @@
   // ---------------------------------------------------------------- la ville
   // Positions en % de la carte (x = centre, y = pied du bâtiment), w = largeur en % de la carte
   const BUILDINGS = [
-    { id: 'casino',  name: 'Lucky Palace',        lvl: 2,  x: 59, y: 28, w: 30, tag: 'Machine à sous · roulette' },
+    { id: 'casino',  name: 'Lucky Palace',        lvl: 3,  x: 59, y: 28, w: 30, tag: 'Machine à sous · roulette' },
     { id: 'appart',  name: 'Mon appart',          lvl: 1,  x: 23.5, y: 52, w: 27, tag: 'Crypto · minage · collection' },
-    { id: 'shop',    name: 'Le Comptoir',         lvl: 2,  x: 44, y: 57.5, w: 23, tag: 'Cartes · sneakers · montres' },
+    { id: 'shop',    name: 'Le Comptoir',         lvl: 2,  x: 44, y: 57.5, w: 23, tag: 'Cartes · sneakers' },
     { id: 'balto',   name: 'Le Royal',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
-    { id: 'club',    name: 'Le Club',             lvl: 4,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
+    { id: 'club',    name: 'Le Club',             lvl: 5,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
-    { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 1,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
+    { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 3,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' },
     // apparaît dans la ville dès qu'on possède une voiture ou une moto (Garage Prestige)
     { id: 'parking', name: 'Mon parking',        lvl: 10, x: 88, y: 80, w: 20, needVehicle: true, tag: 'Tes voitures et motos' }
@@ -54,11 +54,11 @@
     { id: 'pxl', name: 'Pixel Studio',  sym: 'PXL', p0: 15,  vol: .0060, drift: .000008, div: 0,    sector: 'Jeux vidéo',          color: '#ff3cac' },
     { id: 'sol', name: 'SolarCité',     sym: 'SOL', p0: 54,  vol: .0035, drift: .000005, div: .004, sector: 'Énergie',             color: '#f2b01e' }
   ];
-  const BOURSE = { fee: .005, lvl: 12, newsEvery: 600 };   // div = part du prix versée chaque jour ; une grosse nouvelle (±) toutes les ~10 h par action
+  const BOURSE = { fee: .005, lvl: 14, newsEvery: 600 };   // div = part du prix versée chaque jour ; une grosse nouvelle (±) toutes les ~10 h par action
   const EXT_PLACES = [
-    { id: 'bijou',  name: 'Bijouterie Diamant', lvl: 4,  tag: 'Montres de luxe, or et raretés' },
+    { id: 'bijou',  name: 'Bijouterie Diamant', lvl: 6,  tag: 'Montres de luxe, or et raretés' },
     { id: 'garage', name: 'Garage Prestige',    lvl: 10, tag: 'Voitures et motos de collection' },
-    { id: 'tour',   name: 'La Tour',            lvl: 12, tag: 'Bourse et immobilier' }
+    { id: 'tour',   name: 'La Tour',            lvl: 12, tag: 'Immobilier, puis la bourse au niveau 14' }
   ];
 
   // ---------------------------------------------------------------- crypto
@@ -72,7 +72,7 @@
     { id: 'ppc', sym: 'KBB', name: 'KebabCoin',   lvl: 6, p0: .0009, vol: .03,  drift: -.0001, color: '#e0662f', desc: 'Memecoin très spéculatif. Sauce blanche en option.', rug: .0006 },
     { id: 'lmn', sym: 'ZPH', name: 'Zéphyr',      lvl: 8, p0: 3.2,   vol: .025, drift: 0,      color: '#c77dff', desc: '« Stablecoin algorithmique ». Ça tient… jusqu\'au jour où.', rug: .0004 }
   ];
-  const CRYPTO_REVERT = .0015;   // force de rappel des cours vers leur prix de départ (par minute) : ça monte et ça baisse, mais ça ne s'écroule pas pour de bon
+  const CRYPTO_REVERT = .0004;   // force de rappel des cours vers leur prix de départ (par minute) : ça monte et ça baisse, mais ça ne s'écroule pas pour de bon
   const CRYPTO_FEE = .015;         // frais par achat/vente avec le vieux PC (comme une appli grand public)
   // Le PC : un meilleur PC donne accès à de meilleures plateformes, avec moins de frais à chaque achat et vente
   const PC_UPGRADES = false;   // en pause (03/10) : on ne peut plus acheter de meilleur PC, en attendant de bonnes images
@@ -123,7 +123,7 @@
   // plus leur moral baisse. Activités = durée réelle. cha = charisme (fait grimper les abonnés), reg = régularité (revenu stable),
   // drama = risque de bad buzz et d'agence rivale. Tout est inventé.
   const AGENCE = {
-    lvl: 6, subPrice: .06, payCapH: 12, candEvery: 120, eventEvery: [30, 60],
+    lvl: 7, subPrice: .06, subsCap: 20000, payCapH: 12, candEvery: 120, eventEvery: [30, 60],
     slots: [{ n: 1, cost: 0 }, { n: 2, cost: 3000 }, { n: 3, cost: 10000 }, { n: 4, cost: 30000 }],
     shares: [.2, .35, .5],
     acts: [
@@ -231,7 +231,7 @@
   const SLOT = {
     machineImage: false,   // l'image casino-machine (machine étroite) est mise de côté : la fenêtre a un CADRE de machine à sous (ui-casino-frame)
     ui: { screen: { x: 18.5, y: 40.5, w: 56.5, h: 17.8 }, led: { x: 14, y: 25.5, w: 64, h: 6.5 }, bets: { x: 11, y: 62.3, w: 69, h: 5.8 }, spin: { x: 36.5, y: 73.8, w: 20.5, h: 10.8 }, lever: { x: 89, y: 38, w: 11, h: 29 } },   // zones sur l'image casino-machine (en %), réglables au back-office (bouton « Machine »)
-    lvl: 2,
+    lvl: 3,
     bets: [1, 2, 5, 10, 25, 50, 100],
     symbols: [
       { id: 'cherry', w: 6, pay3: 8,   pay2: 2, icon: '🍒' },
@@ -244,7 +244,7 @@
   };
   // Roulette européenne : 37 cases (0 à 36), gains officiels
   const ROULETTE = {
-    lvl: 3,
+    lvl: 5,
     reds: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
     order: [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26],
     chips: [1, 5, 10, 25, 100, 500]
@@ -257,9 +257,9 @@
     // shop : où ça s'achète (comptoir, bijou = Bijouterie Diamant, garage = Garage Prestige) ; place : étagère de l'appart, coffre (aucune place) ou parking du garage
     card:    { name: 'Cartes',    lvl: 2, icon: '🃏', shop: 'comptoir', place: 'binder' },
     sneaker: { name: 'Sneakers',  lvl: 3, icon: '👟', shop: 'comptoir', place: 'shelf' },
-    watch:   { name: 'Montres',   lvl: 4, icon: '⌚', shop: 'bijou', place: 'shelf' },
-    gold:    { name: 'Or',        lvl: 4, icon: '🪙', shop: 'bijou', place: 'safe' },
-    gem:     { name: 'Raretés',   lvl: 5, icon: '💎', shop: 'bijou', place: 'safe' },
+    watch:   { name: 'Montres',   lvl: 6, icon: '⌚', shop: 'bijou', place: 'shelf' },
+    gold:    { name: 'Or',        lvl: 6, icon: '🪙', shop: 'bijou', place: 'safe' },
+    gem:     { name: 'Raretés',   lvl: 7, icon: '💎', shop: 'bijou', place: 'safe' },
     car:     { name: 'Voitures',  lvl: 10, icon: '🚗', shop: 'garage', place: 'park' },
     moto:    { name: 'Motos',     lvl: 10, icon: '🏍️', shop: 'garage', place: 'park' },
     trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true }
@@ -421,9 +421,9 @@
     { k: 'betsWon',     t: 'Gagne {n} paris',                   g: [1, 3] },
     { k: 'tips',        t: 'Achète {n} tuyau au Kiosque',       g: [1, 2] },
     { k: 'boosters',    t: 'Ouvre {n} booster',                 g: [1, 1] },
-    { k: 'spins',       t: 'Fais {n} tours de machine à sous',  g: [10, 40], lvl: 2 },
+    { k: 'spins',       t: 'Fais {n} tours de machine à sous',  g: [10, 40], lvl: 3 },
     { k: 'itemBuy',     t: 'Achète {n} objet au Comptoir',      g: [1, 3], lvl: 2 },
-    { k: 'roulette',    t: 'Joue {n} fois à la roulette',       g: [3, 10], lvl: 3 },
+    { k: 'roulette',    t: 'Joue {n} fois à la roulette',       g: [3, 10], lvl: 5 },
     { k: 'cryptoProfit', t: 'Vends {n} fois une crypto en bénéfice', g: [1, 2] }
   ];
   const CHAL_CASH = lvl => 40 + lvl * 15;
@@ -432,9 +432,9 @@
   const EVENTS = { lvl: 2, first: 240, every: [600, 1200], time: 180,
     list: [
       { id: 'xp',    name: 'Happy hour',        short: 'XP ×2',       icon: 'star',   desc: 'Toute l\'XP gagnée compte double.' },
-      { id: 'boost', name: 'Cotes boostées',    short: 'Cotes +15 %', icon: 'ticket', desc: 'Le Royal booste toutes ses cotes de 15 % sur les paris posés maintenant.' },
+      { id: 'boost', name: 'Cotes boostées',    short: 'Cotes +5 %', icon: 'ticket', desc: 'Le Royal booste toutes ses cotes de 5 % sur les paris posés maintenant.' },
       { id: 'rig',   name: 'Heures creuses',    short: 'Minage ×2',   icon: 'bolt',   desc: 'L\'électricité ne coûte rien : les minages lancés maintenant vont deux fois plus vite et rapportent ×1,5.' },
-      { id: 'sale',  name: 'Déstockage',        short: 'Comptoir −15 %', icon: 'trophy', desc: 'Le Comptoir vide sa réserve : tout est 15 % moins cher à l\'achat.' }
+      { id: 'sale',  name: 'Déstockage',        short: 'Comptoir −10 %', icon: 'trophy', desc: 'Le Comptoir vide sa réserve : tout est 10 % moins cher à l\'achat.' }
     ] };
 
   // ---------------------------------------------------------------- bons plans (les commandes spéciales de Mama, version quartier)
@@ -494,7 +494,7 @@
     { id: 'drink', name: 'Boire', icon: '🍺', lvl: 3, perDay: 30, betBoost: .3, where: 'balto',
       bonus: 'Plus de culot : mise max au Royal +30 %.',
       malus: 'Les tournées au bar : −30<i class="cur"></i> chaque jour, que tu joues ou non.' },
-    { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 4, perDay: 25, xpBoost: .2, where: 'club', auto: { nights: 3, days: 7 },   // pas un choix : elle vient toute seule à force de sortir, et part après QUIT_H sans y mettre les pieds
+    { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 5, perDay: 25, xpBoost: .2, where: 'club', auto: { nights: 3, days: 7 },   // pas un choix : elle vient toute seule à force de sortir, et part après QUIT_H sans y mettre les pieds
       bonus: 'Réseau et rencontres : +20 % d\'XP sur tout.',
       malus: '−25<i class="cur"></i> par jour, et ta machine à crypto surchauffe 25 % plus vite (tu rentres tard).' }
   ];
@@ -502,7 +502,7 @@
   // Le Club = une vraie pièce : on paie l'entrée au videur, puis la soirée dure nightMin minutes et on touche les coins de la salle
   // (chacun une fois par soirée). Ensuite le videur te reconnaît pendant cooldownMin (sauf avec des lingots).
   // spots : zones à toucher sur l'image de la salle (x, y = centre, w, h en %), réglables plus tard au back-office.
-  const CLUB = { lvl: 4, entryBase: 40, entryPer: 12, entry: lvl => CLUB.entryBase + lvl * CLUB.entryPer, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
+  const CLUB = { lvl: 5, entryBase: 40, entryPer: 12, entry: lvl => CLUB.entryBase + lvl * CLUB.entryPer, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
     drinkBase: 15, drinkPer: 4, drink: lvl => CLUB.drinkBase + lvl * CLUB.drinkPer, djTip: 10, vipLingots: 2,
     spots: [
       { id: 'dance', name: 'La piste',        icon: '🕺', x: 62, y: 81, w: 58, h: 20, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
@@ -534,16 +534,16 @@
     { id: 'q4',  txt: 'Gratte 3 tickets',                   stat: 'scratch',    n: 3,  cash: 30,  xp: 25, go: 'scratch' },
     { id: 'q5',  txt: 'Gagne un pari',                      stat: 'betsWon',    n: 1,  cash: 60,  xp: 40, trophy: 't-first', go: 'balto' },
     { id: 'q18', txt: 'Achète 3 tuyaux au Kiosque',         stat: 'tips',       n: 3,  cash: 80,  xp: 60, go: 'kiosque' },
-    { id: 'q6',  txt: 'Fais 20 tours de machine à sous',    stat: 'spins',      n: 20, cash: 60,  xp: 40, lvl: 2, go: 'casino' },
+    { id: 'q6',  txt: 'Fais 20 tours de machine à sous',    stat: 'spins',      n: 20, cash: 60,  xp: 40, lvl: 3, go: 'casino' },
     { id: 'q7',  txt: 'Achète un objet au Comptoir',        stat: 'itemBuy',    n: 1,  cash: 50,  xp: 40, lvl: 2, go: 'shop' },
     { id: 'q9',  txt: 'Vends une crypto avec du bénéfice',  stat: 'cryptoProfit', n: 1, cash: 100, xp: 60, go: 'pc' },
     { id: 'q8',  txt: 'Revends un objet avec du bénéfice',  stat: 'itemProfit', n: 1,  cash: 100, xp: 60, lvl: 2, go: 'shop' },
     { id: 'q12', txt: 'Garde une crypto 30 min sans vendre', stat: 'hodl30',    n: 1,  cash: 150, xp: 80, trophy: 't-hodl', go: 'pc' },
-    { id: 'q10', txt: 'Joue 10 fois à la roulette',         stat: 'roulette',   n: 10, cash: 80,  xp: 60, lvl: 3, go: 'casino' },
+    { id: 'q10', txt: 'Joue 10 fois à la roulette',         stat: 'roulette',   n: 10, cash: 80,  xp: 60, lvl: 5, go: 'casino' },
     { id: 'q11', txt: 'Gagne un combiné',                   stat: 'combiWon',   n: 1,  cash: 200, xp: 120, trophy: 't-combi', lvl: 3, go: 'balto' },
     { id: 'q19', txt: 'Complète une série de cartes',       stat: 'series',     n: 1,  cash: 300, xp: 150, go: 'collection' },
     { id: 'q13', txt: 'Possède 6 objets de collection',     stat: 'itemsOwned', n: 6,  cash: 300, xp: 150, trophy: 't-collect', max: true, lvl: 3, go: 'shop' },
-    { id: 'q14', txt: 'Touche un gain ×100 à la machine',   stat: 'bigWin',     n: 1,  cash: 0,   xp: 200, trophy: 't-jackpot', lvl: 2, go: 'casino' },
+    { id: 'q14', txt: 'Touche un gain ×100 à la machine',   stat: 'bigWin',     n: 1,  cash: 0,   xp: 200, trophy: 't-jackpot', lvl: 3, go: 'casino' },
     { id: 'q20', txt: 'Saisis 3 bons plans',                stat: 'deals',      n: 3,  cash: 200, xp: 120, lvl: 2, go: 'deal' },
     { id: 'q15', txt: 'Atteins 5 000<i class="cur"></i> de patrimoine',  stat: 'worth', n: 5000,  cash: 0, lingots: 5,  xp: 200, max: true, go: 'wallet' },
     { id: 'q16', txt: 'Atteins 50 000<i class="cur"></i> de patrimoine', stat: 'worth', n: 50000, cash: 0, lingots: 15, xp: 600, max: true, lvl: 6, go: 'wallet' }

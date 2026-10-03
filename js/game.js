@@ -4,7 +4,10 @@
   const D = window.DATA;
   // le back-office (#admin) joue sur une COPIE de la partie : il ne doit jamais écraser la vraie sauvegarde du joueur
   const ADMIN = /^#(admin|placer)/.test(location.hash);
-  const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
+  // partie de test (#test) : tout débloqué, cash et lingots illimités, sauvegarde à part (ne touche jamais la vraie partie)
+  const TEST = /^#test/.test(location.hash);
+  const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = TEST ? 'hustleCity.test' : ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
+  function testBoost() { if (!TEST) return; st.lvl = Math.max(st.lvl, D.MAX_LVL); st.xp = 0; if (st.cash < 5e6) st.cash = 1e7; if (st.lingots < 5e4) st.lingots = 1e5; st.tutoDone = true; st.name = st.name || 'Testeuse'; }
   const MAX_OFFLINE = 12 * 3600;
 
   const now = () => Date.now();
@@ -75,6 +78,8 @@
       }
     } catch (e) { console.warn('save illisible', e); st = fresh(); }
     st.clubFix = 1;   // une partie neuve n'a rien à rattraper
+    if (st.scratchPending > 0) { addCash(st.scratchPending); st.scratchPending = 0; }
+    testBoost();
     const away = Math.min(MAX_OFFLINE, (now() - st.last) / 1000);
     const report = catchUp(away);
     return report;
@@ -103,6 +108,9 @@
   const seriousMin = () => Math.ceil(Math.max(5, betMax() / 20));
   const serious = v => v >= seriousMin();
   const xpCap = c => Math.round(c * (1 + st.lvl / 10));
+  // l'XP des achats / ventes (crypto, bourse, objets) a un plafond par jour : sinon acheter-revendre en boucle faisait monter de niveau
+  function tradeXp(n) { const d = Math.floor(now() / 86400000), T = st.tradeXp = st.tradeXp && st.tradeXp.d === d ? st.tradeXp : { d, n: 0 };
+    const cap = 60 + st.lvl * 25, g = Math.max(0, Math.min(n, cap - T.n)); T.n += g; addXp(g); }
   function addXp(n) {
     if (n <= 0) return;
     if (habitOn('club')) n *= 1 + D.HABITS.find(h => h.id === 'club').xpBoost;
@@ -132,7 +140,8 @@
       const vol = c.vol * m.volx * Math.sqrt(stepMin);
       const nw = (st.crypto.news || []).find(n => n.id === c.id && n.until > now());
       // rappel vers le prix de départ : sans lui, les cours s'effondraient à la longue (Nova ×0,11, KebabCoin ×0,02 en 7 jours de jeu)
-      const back = D.CRYPTO_REVERT * Math.log(c.p0 / p);
+      // rappel très doux, et seulement loin du prix de départ (sinon acheter après une chute rapportait à coup sûr)
+      const lr = Math.log(c.p0 / p), back = Math.abs(lr) > .7 ? D.CRYPTO_REVERT * (lr - Math.sign(lr) * .7) : 0;
       const drift = (c.drift + back + m.drift * (c.vol / .01) + (nw ? (nw.real ? 1 : -1) * D.PCX.newsDrift : 0)) * stepMin;
       p *= Math.exp(drift - vol * vol / 2 + vol * gauss());
       // rug pull : rare effondrement brutal des memecoins
@@ -177,10 +186,11 @@
     if (!st.crypto.hold[id]) st.crypto.since[id] = now();
     st.crypto.hold[id] += qty; st.crypto.cost[id] += eur;
     if (st.crypto.flash && st.crypto.flash.applied && st.crypto.flash.id === id) st.crypto.flash.acted = true;   // l'alerte a servi
-    stat('cryptoBuy'); if (serious(eur)) addXp(3 + Math.min(xpCap(40), eur / 25));
+    stat('cryptoBuy'); if (serious(eur)) tradeXp(3 + Math.min(xpCap(40), eur / 25));
     emit('change'); return { qty };
   }
   function sellCrypto(id, frac) {
+    frac = Math.min(1, Math.max(0, +frac || 0)); if (!frac) return { err: 'Rien à vendre.' };
     const cr = st.crypto, q = cr.hold[id] * frac;
     if (!(q > 0)) return { err: 'Rien à vendre.' };
     const gross = q * cr.prices[id], net = Math.floor(gross * (1 - fee()) * 100) / 100;
@@ -190,7 +200,7 @@
     addCash(net);
     if (cr.flash && cr.flash.applied && cr.flash.id === id) cr.flash.acted = true;
     if (profit > 0) { stat('cryptoProfit'); const tr = traderState(); tr.profit += profit; }
-    if (serious(net)) addXp(Math.min(xpCap(40), net / 25));
+    if (profit > 0) tradeXp(Math.min(xpCap(40), profit / 10));   // XP seulement sur un vrai bénéfice
     emit('change'); return { net, profit };
   }
 
@@ -216,7 +226,10 @@
     } else if (f && !f.applied && now() >= f.at) {
       pushPrice(f.id, f.up ? f.k : 1 / f.k); f.applied = true; f.back = now() + X.flashMin * 60000; emit('flash', f);
     } else if (f && f.applied && now() >= f.back) {
-      pushPrice(f.id, Math.pow(f.up ? 1 / f.k : f.k, X.flashBack)); cr.flash = null; cr.nextFlash = now() + rnd(...X.flashEvery) * 60000;
+      // la suite est imprévisible : une fois sur deux ça revient en partie, sinon ça continue dans le même sens
+      // (avant : ça revenait toujours à 85 % et acheter chaque plongeon rapportait à coup sûr)
+      const e = Math.random() < .5 ? rnd(.6, 1) : -rnd(.2, .6);
+      pushPrice(f.id, Math.pow(f.up ? 1 / f.k : f.k, e)); cr.flash = null; cr.nextFlash = now() + rnd(...X.flashEvery) * 60000;
     }
     // une actu sur une crypto : vraie ou fausse selon la source
     if (!cr.nextNews) cr.nextNews = now() + rnd(2, 5) * 60000;
@@ -262,8 +275,9 @@
     if (!m) return { r, idle: true, hot: true, ready: false, value: 0, mined: 0, pct: 0, left: 0, heat: 0, perHour, heatMs: 0 };
     const t = now(), end = m.start + m.dur, ready = t >= end, pct = Math.min(1, (t - m.start) / m.dur);
     const heat = mineHeat(m, t); if (heat >= 100 && !m.burnt) { m.burnt = true; emit('mineBurnt'); }
-    const full = m.amt * st.crypto.prices[m.id];
-    return { r, run: m, opt: mineOpt(m.id), idle: false, ready, hot: ready, value: full * pct, full, mined: m.amt * pct, pct, left: Math.max(0, end - t), heat, burnt: !!m.burnt,
+    // la récolte vaut un montant en billets fixé au départ : on reçoit la quantité de crypto correspondante au cours de la récolte
+    const full = m.val != null ? m.val : m.amt * st.crypto.prices[m.id];
+    return { r, run: m, opt: mineOpt(m.id), idle: false, ready, hot: ready, value: full * pct, full, mined: full * pct / st.crypto.prices[m.id], pct, left: Math.max(0, end - t), heat, burnt: !!m.burnt,
       coolLeft: Math.max(0, (m.coolAt || 0) + D.FINDS.coolCd * 60000 - t), perHour, heatMs: m.dur };
   }
   function mineStart(id) {
@@ -271,7 +285,7 @@
     if (st.mine) return { err: 'Ta machine tourne déjà.' };
     if (st.rig.lvl < o.need) return { err: `Il faut la machine niveau ${o.need + 1}.` };
     const h = o.min / 60, val = powerH() * h * o.mult * (1 + o.swing * (2 * Math.random() - 1));   // l'imprévu est tiré au départ, révélé à la récolte
-    st.mine = { id, start: now(), dur: o.min * 60000 * (evOn('rig') ? .5 : 1), amt: Math.max(0, val) / st.crypto.prices[id], cool: 0, coolAt: 0, burnt: false, lvl: st.rig.lvl };
+    st.mine = { id, start: now(), dur: o.min * 60000 * (evOn('rig') ? .5 : 1), val: Math.max(0, val), amt: Math.max(0, val) / st.crypto.prices[id], cool: 0, coolAt: 0, burnt: false, lvl: st.rig.lvl };
     stat('rigRestart'); addXp(2); emit('change'); return { ok: true };
   }
   function mineCool() {
@@ -287,7 +301,7 @@
     if (!i.ready) return { err: 'Pas encore fini.' };
     const m = st.mine, o = i.opt, F = D.FINDS, h = m.dur / 3600000, px = st.crypto.prices[m.id];
     // ce qu'on a miné est de la CRYPTO : elle va dans le portefeuille du PC et suit le cours (on la vend quand on veut)
-    let amt = m.amt * (m.burnt ? 1 - F.burnt : 1) * (evOn('rig') ? 1.5 : 1);
+    let amt = (m.val != null ? m.val / px : m.amt) * (m.burnt ? 1 - F.burnt : 1) * (evOn('rig') ? 1.5 : 1);
     const k = 1 + m.lvl * .15 + h * .05, r = Math.random(), virus = F.virus + (m.burnt ? F.virusHot : 0);
     let find = null, c = 0;
     if (r < (c += virus)) { amt *= .6; find = { kind: 'virus' }; }
@@ -491,9 +505,11 @@
     let r = Math.random(), prize = 0;
     for (const [amt, p] of t.prizes.slice().reverse()) { if (r < p) { prize = amt; break; } r -= p; }
     stat('scratch'); addXp(1 + t.price);
+    st.scratchPending = (st.scratchPending || 0) + prize;   // le gain est gardé par le moteur : payé au grattage, ou au prochain lancement si on ferme avant
     return { t, prize, free, no: 100000 + Math.floor(Math.random() * 899999) };
   }
-  function scratchPay(prize) {
+  function scratchPay() {
+    const prize = st.scratchPending || 0; st.scratchPending = 0;
     if (prize > 0) { addCash(prize); if (prize >= 100) addXp(20); const ss = st.scratchStats; if (ss) { ss.won += prize; ss.best = Math.max(ss.best, prize); } }
     emit('change');
   }
@@ -502,6 +518,7 @@
   // ------------------------------------------------------------ machine à sous
   function spin(bet) {
     if (st.lvl < D.SLOT.lvl) return { err: `Casino au niveau ${D.SLOT.lvl}.` };
+    bet = Math.floor(+bet || 0); if (bet < 1) return { err: 'Mise invalide.' };
     if (!pay(bet)) return { err: 'Pas assez de cash.' };
     const reels = [0, 1, 2].map(() => weighted(D.SLOT.symbols));
     let mult = 0;
@@ -539,6 +556,7 @@
   }
   function roulette(bets) {
     if (st.lvl < D.ROULETTE.lvl) return { err: `Roulette au niveau ${D.ROULETTE.lvl}.` };
+    if (!Array.isArray(bets) || bets.some(b => !(b.amt >= 1) || b.amt !== Math.floor(b.amt))) return { err: 'Jetons invalides.' };
     const total = bets.reduce((s, b) => s + b.amt, 0);
     if (!total) return { err: 'Pose au moins un jeton.' };
     if (!pay(total)) return { err: 'Pas assez de cash.' };
@@ -617,6 +635,8 @@
   // où un objet se range : étagère de l'appart (compte dans les places), classeur, coffre (sans limite) ou parking du garage
   const placeOf = id => (D.ITEM_CATS[item(id).cat] || {}).place || 'shelf';
   const onShelf = id => placeOf(id) === 'shelf';
+  // objets de collection possédés, toutes catégories (sauf trophées) : pour la mission « Possède 6 objets »
+  const collCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (item(id) && item(id).cat !== 'trophy' ? a.length : 0), 0);
   const parkedCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'park' ? a.length : 0), 0);
   const garageSlots = () => D.GARAGES[st.garageLvl || 0].slots;
   function garageUp() { const nx = D.GARAGES[(st.garageLvl || 0) + 1]; if (!nx) return { err: 'Déjà au max.' }; if (!pay(nx.cost)) return { err: 'Pas assez de cash.' }; st.garageLvl = (st.garageLvl || 0) + 1; addXp(60); emit('change'); return { ok: true }; }
@@ -629,7 +649,7 @@
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
   function cardStock() {
     const ed = stockEd(); if (cardStock.ed === ed) return cardStock.ids;
-    const cards = D.ITEMS.filter(i => i.cat === 'card'), shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event && !i.noBuy), shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     cardStock.ed = ed; cardStock.ids = new Set([...shuf(cards.filter(i => i.r === 'C')).slice(0, 3), ...shuf(cards.filter(i => i.r !== 'C')).slice(0, 1)]);
     return cardStock.ids;
   }
@@ -654,7 +674,7 @@
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
     if (it.series) st.lastUp = 'card';
-    stat('itemBuy'); stat('itemsOwned', ownedCount(), true); addXp(5 + Math.min(xpCap(60), p / 40));
+    stat('itemBuy'); stat('itemsOwned', collCount(), true); tradeXp(5 + Math.min(xpCap(60), p / 40));
     emit('change'); return { p };
   }
   function sellItem(id) {
@@ -1138,9 +1158,10 @@
     if (d.type === 'sell') {
       if (st.owned[d.id] && st.owned[d.id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
       if (onShelf(d.id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : revends ou déménage.' };
+      if (placeOf(d.id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein.' };
       if (!pay(d.price)) return { err: 'Pas assez de cash.' };
       (st.owned[d.id] = st.owned[d.id] || []).push({ paid: d.price, t: now() });
-      stat('itemsOwned', ownedCount(), true);
+      stat('itemsOwned', collCount(), true);
     } else {
       const a = st.owned[d.id]; if (!a || !a.length) return { err: 'Tu ne l\'as plus.' };
       const e = a.shift(); if (!a.length) delete st.owned[d.id];
@@ -1156,7 +1177,7 @@
   // ------------------------------------------------------------ La Tour : immobilier
   const props = () => (st.props = st.props || {});
   const prop = id => D.PROPS.find(p => p.id === id);
-  function propValue(id) { const o = props()[id]; return o ? Math.round(prop(id).price * Math.pow(1 + D.PROP.growDay, (now() - o.t) / 86400000)) : 0; }
+  function propValue(id) { const o = props()[id]; return o ? Math.round(prop(id).price * Math.min(2, Math.pow(1 + D.PROP.growDay, (now() - o.t) / 86400000))) : 0;   /* au plus ×2 */ }
   function propsValue() { return Object.keys(props()).reduce((s, id) => s + propValue(id) * (1 - D.PROP.sellFee), 0); }
   function propPending(id) { const o = props()[id]; if (!o) return 0; const days = Math.min(D.PROP.maxDays, (now() - o.last) / 86400000); return Math.floor(prop(id).rent * days); }
   function propBuy(id) {
@@ -1194,9 +1215,10 @@
   function stockBuy(id, eur) {
     const b = bourse(), c = D.STOCKS.find(x => x.id === id); if (!c) return { err: 'Introuvable.' }; if (st.lvl < D.BOURSE.lvl) return { err: `Bourse au niveau ${D.BOURSE.lvl}.` };
     eur = Math.floor(eur); if (eur < 1) return { err: 'Montant trop petit.' }; if (!pay(eur)) return { err: 'Pas assez de cash.' };
-    b.hold[id] += eur * (1 - D.BOURSE.fee) / b.prices[id]; b.cost[id] += eur; stat('stockBuy'); addXp(3 + Math.min(xpCap(30), eur / 50)); emit('change'); return { ok: true };
+    b.hold[id] += eur * (1 - D.BOURSE.fee) / b.prices[id]; b.cost[id] += eur; stat('stockBuy'); tradeXp(3 + Math.min(xpCap(30), eur / 50)); emit('change'); return { ok: true };
   }
   function stockSell(id, frac = 1) {
+    frac = Math.min(1, Math.max(0, +frac || 0)); if (!frac) return { err: 'Rien à vendre.' };
     const b = bourse(); if (!(b.hold[id] > 0)) return { err: 'Tu n\'en as pas.' };
     const q = b.hold[id] * frac, net = q * b.prices[id] * (1 - D.BOURSE.fee), cost = b.cost[id] * frac;
     b.hold[id] -= q; b.cost[id] -= cost; if (b.hold[id] < 1e-9) { b.hold[id] = 0; b.cost[id] = 0; }
@@ -1205,6 +1227,7 @@
   function score() { return Math.round(worth() + st.lvl * 500); }
   function questState(q) { const v = st.stats[q.stat] || 0; return { v: Math.min(v, q.n), done: v >= q.n, claimed: !!st.quests[q.id], open: st.lvl >= (q.lvl || 1) }; }
   function claimQuest(id) {
+    if (!D.QUESTS.find(x => x.id === id)) return { err: 'Mission inconnue.' };
     const q = D.QUESTS.find(x => x.id === id), s = questState(q);
     if (!s.open || !s.done || s.claimed) return { err: 'Pas encore.' };
     st.quests[id] = now();
@@ -1252,6 +1275,7 @@
     simDeal(offline);
     simSix(offline);
     simFriendTip(offline); simCryptoTip(offline); simPc(offline); simBourse(offline);
+    testBoost();
     stat('worth', Math.floor(worth()), true);
     if (!offline) checkBailout();
   }
@@ -1264,7 +1288,7 @@
   }
 
   window.GAME = {
-    get st() { return st; }, get asleep() { return asleep; }, on, emit, load, save, reset, simulate,
+    get st() { return st; }, get asleep() { return asleep; }, TEST, on, emit, load, save, reset, simulate,
     placeOf, parkedCount, garageSlots, garageUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
     looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,

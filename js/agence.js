@@ -25,6 +25,8 @@
   // objets achetés pour elle : effet ×2 s'il colle à sa niche
   const hasG = (m, g) => g.sub ? !!(m.abo && m.abo[g.id]) : !!(m.gear && m.gear[g.id]);
   const gearK = (m, key) => A.gear.reduce((t, g) => t + (hasG(m, g) && g[key] ? g[key] * (g.niche && g.niche.includes(prof(m.id).niche) ? 2 : 1) : 0), 0);
+  // plafond d'abonnés : dépend du charisme (une star plafonne plus haut) ; le matos d'abonnés le relève un peu
+  const subsCap = m => A.subsCap * (prof(m.id).cha / 3) * (1 + gearK(m, 'subs') * .5);
   const perHour = m => m.subs * A.subPrice * moodK(m) * (.8 + prof(m.id).reg * .05) * share(m) * (1 + gearK(m, 'rev')) * (m.priceK || 1);
   const recruitCost = c => Math.round(100 * Math.pow(c.cha, 1.5) + c.subs * .05);   // remboursée en ~1 journée de jeu
 
@@ -36,7 +38,9 @@
       const h = Math.min(48, (t - (m.last || t)) / 3600000); m.last = t; if (h <= 0) return;
       const p = prof(m.id);
       m.pend = Math.min((m.pend || 0) + perHour(m) * h, perHour(m) * A.payCapH);
-      m.subs *= 1 + .004 * p.cha / 3 * moodK(m) * (1 + gearK(m, 'subs')) * h;
+      // croissance qui ralentit en approchant du plafond d'abonnés (avant : ça grossissait à l'infini, 138 000/h au bout d'un mois)
+      m.subs *= 1 + .004 * p.cha / 3 * moodK(m) * (1 + gearK(m, 'subs')) * h * Math.max(0, 1 - m.subs / subsCap(m));
+      m.subs = Math.min(m.subs, subsCap(m)); m.priceK = Math.min(m.priceK || 1, 1.6);
       m.mood = Math.max(0, Math.min(100, m.mood - (share(m) - .2) * 20 * h + gearK(m, 'mood') * h));
       if (m.act && t >= m.act.start + m.act.dur) finishAct(m);
       if (m.mood < 15 && !a.offer && m.id !== 'me') rivalOffer(m, true);
@@ -180,7 +184,7 @@
       if (G.st.lingots < n) return U.toast('Pas assez de lingots.', true);
       G.addLingots(-n); finishAct(host); U.sfx.coin(); refresh();
     },
-    agShare(el) { const m = ag().crew.find(x => x.id === el.dataset.id); m.pct = +el.dataset.v; refresh(); },
+    agShare(el) { const m = ag().crew.find(x => x.id === el.dataset.id), v = +el.dataset.v; if (m.shareLock > now() && v > m.pct) return U.toast(`Tu lui as promis de baisser ta part : attends encore ${U.mmss(m.shareLock - now())}.`, true); m.pct = v; refresh(); },
     agAct(el) {
       const a = ag(), m = a.crew.find(x => x.id === el.dataset.id), x = A.acts.find(o => o.id === el.dataset.k);
       if (m.act) return U.toast('Elle est déjà occupée.', true);
@@ -195,7 +199,7 @@
     agKeep(el) {
       const a = ag(), o = a.offer, m = o && a.crew.find(x => x.id === o.id); if (!m) { a.offer = null; return refresh(); }
       if (el.dataset.how === 'prime') { if (!G.pay(o.prime)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 30); }
-      else { m.pct = Math.max(.2, m.pct - .15); m.mood = Math.min(100, m.mood + 25); }
+      else { m.pct = Math.max(.2, m.pct - .15); m.mood = Math.min(100, m.mood + 25); m.shareLock = now() + 12 * 3600000; }   // promesse tenue 12 h
       a.offer = null; U.toast(`${prof(m.id).name} reste chez toi.`); refresh();
     },
     agLetGo() { const a = ag(), o = a.offer; a.crew = a.crew.filter(x => x.id !== o.id); a.crew.forEach(x => { if (x.act && x.act.with === o.id) x.act = null; }); a.offer = null; U.toast(`${prof(o.id).name} est partie chez la concurrence.`); refresh(); },
@@ -233,7 +237,7 @@
             const fx = [g.rev ? `<span class="gx rev">💰 +${Math.round(g.rev * k * 100)} % de revenus<small>≈ +${U.short(Math.max(1, Math.round(perHour(m) / (1 + gearK(m, 'rev')) * g.rev * k)))}/h pour toi</small></span>` : '',
               g.subs ? `<span class="gx subs">👥 +${Math.round(g.subs * k * 100)} % d'abonnés<small>ils montent plus vite</small></span>` : '',
               g.mood ? `<span class="gx mood">😊 +${g.mood * k} de moral<small>chaque heure, toute seule</small></span>` : ''].join('');
-            return `<div class="ag-g ${own ? 'own' : ''} ${fit ? 'fit' : ''}">${fit ? `<span class="gfit">×2 pour ${p.me ? 'toi' : 'elle'}</span>` : ''}<span class="gpic">${U.has('gear-' + g.id) ? `<img src="${U.src('gear-' + g.id)}" alt="">` : g.icon}</span>
+            return `<div class="ag-g ${own ? 'own' : ''} ${fit ? 'fit' : ''}">${fit ? `<span class="gfit">${p.me ? 'Ta' : 'Sa'} spécialité : effet ×2</span>` : ''}<span class="gpic">${U.has('gear-' + g.id) ? `<img src="${U.src('gear-' + g.id)}" alt="">` : g.icon}</span>
               <b>${g.name}</b><div class="gfx">${fx}</div>${g.sub ? (own ? `<span class="gown">✓ Abonnée · prochain paiement dans ${Math.max(1, Math.round((m.abo[g.id] - Date.now()) / 3600000))} h</span><button class="btn xs red" data-act="agAbo" data-id="${m.id}" data-g="${g.id}">Résilier</button>`
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
               : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}

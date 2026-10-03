@@ -210,7 +210,7 @@
     const s = st(), L = [];
     D.BUILDINGS.forEach(b => b.lvl > s.lvl && L.push([b.lvl, `le ${b.name.replace(/^(Le|La) /, '')}`.replace('le Lucky', 'le Lucky'), b.tag]));
     Object.values(D.SPORTS).forEach(x => x.lvl > s.lvl && L.push([x.lvl, `les paris ${x.name.toLowerCase()}`, x.league]));
-    Object.entries(D.ITEM_CATS).forEach(([, c]) => !c.noBuy && c.lvl > s.lvl && L.push([c.lvl, `les ${c.name.toLowerCase()} au Comptoir`, 'des objets qui prennent de la valeur']));
+    Object.entries(D.ITEM_CATS).forEach(([, c]) => !c.noBuy && c.lvl > s.lvl && L.push([c.lvl, `les ${c.name.toLowerCase()} ${{ comptoir: 'au Comptoir', bijou: 'à la Bijouterie', garage: 'au Garage' }[c.shop] || ''}`, 'des objets qui prennent de la valeur']));
     D.SCRATCH.forEach(t => t.lvl > s.lvl && L.push([t.lvl, `le ticket ${t.name}`, `jusqu'à ${short(t.prizes[t.prizes.length - 1][0])}`]));
     D.COINS.forEach(c => c.lvl > s.lvl && L.push([c.lvl, `la crypto ${c.name}`, c.desc.split('.')[0]]));
     if (D.COMBI_LVL > s.lvl) L.push([D.COMBI_LVL, 'les paris combinés', 'plusieurs matchs, une grosse cote']);
@@ -675,7 +675,7 @@
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
-  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || placing) location.reload(); });
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || location.hash === '#test' || G.TEST || placing) location.reload(); });
   // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
   // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
@@ -1646,6 +1646,10 @@
     if (L === D.DEALS.lvl) u.push({ img: 'guide', name: 'Bons plans' });
     if (L === D.AGENCE.lvl) u.push({ img: 'app-agence', emo: '📸', name: (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Ta page PrivéFans' : 'Agence PrivéFans' });
     D.CITY_SHOP.filter(x => x.lvl === L && L > 1).forEach(x => u.push({ img: 'deco-' + x.id, emo: x.emo, name: x.name }));
+    D.EXT_PLACES.filter(b => b.lvl === L).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name + ' (en bus)' }));
+    D.PROPS.filter(p => p.lvl === L).forEach(p => u.push({ img: 'item-' + p.id, emo: p.icon, name: p.name }));
+    if (L === D.BOURSE.lvl) u.push({ img: 'item-st-kbc', emo: '📈', name: 'La bourse' });
+    D.CITY_LOOKS.filter(x => x.lvl === L && (x.cash || x.lingots)).forEach(x => u.push({ img: 'bg-city-' + x.id, emo: '🏙️', name: x.name }));
     return u;
   }
   function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }
@@ -1863,6 +1867,7 @@
       <button class="btn blue wide" style="margin-top:8px" data-act="howto">Comment jouer</button>
       <button class="btn purple wide" style="margin-top:8px" data-act="tutoAgain">Revoir le tuto</button>
       ${admLocal ? '<button class="btn purple wide" style="margin-top:8px" data-act="adminOpen">Back-office (placer la ville et l\'appart)</button>' : ''}
+      <button class="btn purple wide" style="margin-top:8px" onclick="location.hash='#test'">Partie test (tout débloqué)</button>
       <button class="btn red wide" style="margin-top:8px" data-act="resetAsk">Recommencer à zéro</button>
       <p class="muted center" style="margin-top:10px">Hustle City est un jeu : l'argent du jeu est fictif : il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>` });
   }
@@ -2047,6 +2052,8 @@
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
     setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k) return;
+      const cur = D.SKINS.find(x => x.id === st().skin) || {}, ag = st().agence;
+      if (cur.g !== k.g && ag && ag.crew && ag.crew.length) return toast(cur.g === 'f' ? 'Tu as ta page PrivéFans : garde un look féminin.' : 'Tu gères une agence PrivéFans : garde un look masculin.', true);
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); sfx.coin(); toast(`Nouveau look : ${k.name} !`); }
       st().skin = k.id; G.save(); setBody(profileBody()); renderHud(); },
     settings: () => openSettings(),
@@ -2146,6 +2153,7 @@
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
+  G.on('mineBurnt', () => notify('rig', 'Ta machine a surchauffé', 'La récolte en prend un coup : la prochaine fois, refroidis-la avant 100 %.'));
   G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) notify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
   G.on('tipResult', r => {
     const score = `${r.m.home} ${r.m.sh} – ${r.m.sa} ${r.m.away}`;
@@ -2236,6 +2244,7 @@
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
     cleanChats(); purgeOld();
+    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST · tout débloqué, cash illimité · ta vraie partie n\'est pas touchée <button onclick="history.replaceState(null,\'\',location.pathname);location.reload()">Quitter</button></div>');
     { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
