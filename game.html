@@ -58,14 +58,46 @@
     <div id="modal" class="hidden"></div>
     <div id="fx"></div>
     <div id="toast"></div>
-    <div id="start" class="loading"></div>
+    <div id="start" class="loading">
+      <style>
+        #start.loading { background: radial-gradient(circle at 50% 38%, #3a2470, #1b1433 70%); justify-content: center; gap: 26px; }
+        #start.loading .ld-logo { font: 400 54px/0.9 'Lilita One', 'Lilita', system-ui, sans-serif; color: #ffd23f; text-align: center; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; text-shadow: 0 6px 0 #2a1a10; transform: rotate(-4deg); }
+        #start.loading .ld-logo span { display: block; color: #fff; text-shadow: 0 6px 0 #2a1a10, 0 0 26px #ff3cac; }
+        #start.loading .ld-bar { width: min(76%, 300px); height: 22px; border: 3px solid #2a1a10; border-radius: 14px; background: #2b1d4f; overflow: hidden; box-shadow: 0 4px 0 #2a1a10; }
+        #start.loading .ld-fill { height: 100%; width: 0; background: linear-gradient(#8cf06a, #3fb82e); border-radius: 10px; box-shadow: inset 0 3px 0 rgba(255,255,255,.35); transition: width .15s linear; }
+        #start.loading .ld-txt { min-height: 40px; max-width: 300px; margin: -12px 0 0; padding: 0 16px; color: #e6dcff; font: 800 14px/1.35 system-ui, sans-serif; text-align: center; transition: opacity .25s; }
+      </style>
+      <div class="ld-logo">HUSTLE<span>CITY</span></div>
+      <div class="ld-bar"><div class="ld-fill"></div></div>
+      <p class="ld-txt"></p>
+      <script>
+      // écran de chargement : la barre avance pendant le chargement du code, puis des images (UI la termine)
+      window.HC_LOAD = (function () {
+        var el = document.getElementById('start'), fill = el.querySelector('.ld-fill'), txt = el.querySelector('.ld-txt');
+        var L = ['Momo recompte les billets…', 'On chauffe la machine à crypto…', 'On graisse la roulette…', 'Négociation avec le videur…', 'On repasse le survêt…',
+          'Calcul des cotes (arrondies à notre avantage)…', 'On cire les sneakers…', 'Le Kiosque imprime les tuyaux du jour…', 'On lustre les lingots…',
+          'Réveil des pigeons du PigeonCoin…', 'On cache le fromage du KebabCoin…', 'Le bus est en retard, comme d\'hab…', 'On allume les néons du Lucky Palace…',
+          'On mélange les boosters…', 'Le patron du Royal compte la caisse…', 'On dépoussière les montres de la Bijouterie…', 'On gare les bolides au Garage…'];
+        L.sort(function () { return Math.random() - .5; });
+        var p = 0, target = .12, t0 = Date.now(), i = 0, cb = null;
+        var say = function () { txt.style.opacity = 0; setTimeout(function () { txt.textContent = L[i++ % L.length]; txt.style.opacity = 1; }, 250); };
+        txt.textContent = L[i++]; var rot = setInterval(say, 1600);
+        var tick = setInterval(function () {
+          if (!cb) target += (.6 - target) * .02;   // le code se charge : on avance doucement jusqu'à 60 %
+          p += (target - p) * .25; fill.style.width = (p * 100).toFixed(1) + '%';
+          if (cb && p > .985 && Date.now() - t0 > 900) { clearInterval(tick); clearInterval(rot); fill.style.width = '100%'; var f = cb; cb = null; setTimeout(f, 120); }
+        }, 60);
+        return { set: function (f) { target = Math.max(target, .6 + .38 * f); }, done: function (f) { target = 1; cb = f; } };
+      })();
+      </script>
+    </div>
   </div>
 
   <script>
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=215', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=216', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

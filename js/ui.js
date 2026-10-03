@@ -1911,7 +1911,7 @@
 
   // ------------------------------------------------------------ accueil
   function startScreen() {
-    const el = $('#start'); el.className = has('splash') ? 'splash' : '';
+    const el = $('#start'); el.className = has('splash') ? 'splash' : ''; startBg(el);
     const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '<div class="t1">HUSTLE</div><div class="t2">CITY</div>';
     let sel = 'survet'; if (!st().tag) st().tag = String(1000 + Math.floor(Math.random() * 9000));
     const draw = () => {
@@ -2299,19 +2299,28 @@
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
   }
+  // fin de l'écran de chargement : on attend les images du premier écran (la barre suit), puis on l'affiche
+  function preload(html, then) {
+    const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(['bg-accueil', 'bg-city'].filter(has).map(src)))];
+    let n = 0; const one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / L.length); };
+    const all = Promise.all(L.map(u => new Promise(ok => { const i = new Image(); i.onload = i.onerror = () => { one(); ok(); }; i.src = u; })));
+    Promise.race([all, new Promise(ok => setTimeout(ok, 8000))]).then(() => window.HC_LOAD ? window.HC_LOAD.done(then) : then());
+  }
+  // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
+  const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`); };
   function boot() {
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
-    if (!st().skin) return startScreen();
+    if (!st().skin) return preload(D.SKINS.map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
-    el.className = 'welcome';
-    el.innerHTML = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>
+    const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>
       <div class="st-hero">${skinPic(s.skin)}</div>
       <div class="st-bottom"><p class="st-hello stroke">Re, ${esc(s.name)} !</p><button class="btn green start-btn" id="st-go">Continuer</button>
-      <p class="start-note">*ou pas · jeu gratuit · argent fictif, sans aucune valeur réelle · réservé aux adultes</p></div>`;
-    $('#st-go').onclick = () => {
+      <p class="start-note">*ou pas. Réservé aux adultes</p></div>`;
+    preload(html, () => { el.className = 'welcome'; startBg(el); el.innerHTML = html; welcomeGo(); });
+    const welcomeGo = () => $('#st-go').onclick = () => {
       sfx.tap(); el.classList.add('gone'); setTimeout(() => el.remove(), 400);
       boot2(false);
       if (report && (Math.abs(report.worthDiff) >= 1 || report.bets)) queue(() => openModal({ title: 'Pendant ton absence', icon: 'star', center: true, body: `<p class="center">Tu es parti ${mmss(report.away * 1000)}.</p><div class="card center"><div class="muted">Ton patrimoine a bougé de</div><div class="big ${report.worthDiff >= 0 ? 'up' : 'down'}">${report.worthDiff >= 0 ? '+' : ''}${eur(report.worthDiff)}</div>${report.bets ? `<p>${report.bets} pari(s) gagné(s) pendant ce temps.</p>` : ''}</div><button class="btn green wide" style="margin-top:10px" data-act="closeModal">OK</button>` }));

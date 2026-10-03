@@ -2700,3 +2700,10 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
   margin: 2px auto 0 !important; padding: 2px 8px 2px 5px; border-radius: 8px; background: rgba(42,26,16,.82); color: #ffe066 !important; -webkit-text-stroke: 0 !important; font: 900 10.5px/1.2 var(--text); white-space: nowrap; }
 #app .bld.locked .plaque small .ic { width: 13px; height: 13px; }
 #app .bld.locked .plaque > b { flex: 0 0 100%; text-align: center; }
+
+/* ---------- accueil : la rue du jeu en décor, le perso posé sur le trottoir ---------- */
+#app #start.acc { background: linear-gradient(rgba(27,20,51,0) 55%, rgba(27,20,51,.75)), var(--acc) center bottom / cover #1b1433; }
+#app #start.acc .st-hero { position: relative; }
+#app #start.acc .st-hero::after { content: ''; position: absolute; bottom: 8px; left: 50%; width: 46%; max-width: 190px; height: 22px; transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(20,10,30,.55), transparent); z-index: -1; }
+#app #start.acc .st-hero .pic { filter: drop-shadow(0 0 18px rgba(255,230,180,.25)); }
