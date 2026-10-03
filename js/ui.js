@@ -2095,9 +2095,27 @@
     profile: () => openProfile(),
     setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
       const cur = D.SKINS.find(x => x.id === st().skin) || {}, ag = st().agence;
-      if (cur.g !== k.g && ag && ag.crew && ag.crew.length) return toast(cur.g === 'f' ? 'Tu as ta page PrivéFans : garde un look féminin.' : 'Tu gères une agence PrivéFans : garde un look masculin.', true);
+      if (cur.g !== k.g && ag && ag.crew && ag.crew.length) {
+        // changer de genre de look = reconversion PrivéFans : on prévient avant
+        const toF = k.g === 'f', pend = Math.floor(window.AGENCE.pending()), price = own.includes(k.id) ? 0 : k.cost;
+        return openModal({ title: 'Reconversion', icon: 'star', center: true, body: `<p class="center">${toF
+          ? `Avec ce look, tu fermes ton <b>agence PrivéFans</b> : tes créatrices partent, et tu pourras lancer <b>ta propre page</b> de créatrice, en partant de zéro.`
+          : `Avec ce look, tu fermes <b>ta page PrivéFans</b> : tes abonnés partent, et tu pourras monter <b>ton agence</b> et recruter des créatrices, en partant de zéro.`}</p>
+          <div class="card center"><small>${pend >= 1 ? 'Tu encaisses tout de suite' : 'Rien en attente à encaisser'}</small>${pend >= 1 ? `<b>+${eur(pend)}</b>` : ''}</div>
+          ${price ? `<p class="hint-line center">Le look coûte ${eur(price)}.</p>` : ''}
+          <div class="grid2"><button class="btn" data-act="profile">Annuler</button><button class="btn green" data-act="skinSwitch" data-id="${k.id}">Je change</button></div>` });
+      }
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); sfx.coin(); toast(`Nouveau look : ${k.name} !`); }
       st().skin = k.id; G.save(); setBody(profileBody()); renderHud(); },
+    skinSwitch(el) {
+      const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
+      if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); }
+      const n = window.AGENCE.reconvert();
+      st().skin = k.id; if (st().bldTuto) delete st().bldTuto.agence;   // Momo présentera le nouveau PrivéFans
+      G.save(); sfx.coin(); if (n) floatTxt(`+${eur(n)}`);
+      toast(k.g === 'f' ? 'Nouveau look ! Ta page PrivéFans t\'attend dans ton téléphone.' : 'Nouveau look ! Ton agence PrivéFans t\'attend dans ton téléphone.');
+      openProfile(); renderHud();
+    },
     settings: () => openSettings(),
     howto: () => openHowto(),
     tutoAgain() { closeModal(); setScene('city'); st().tutoStep = 0; window.TUTO.start(0); },

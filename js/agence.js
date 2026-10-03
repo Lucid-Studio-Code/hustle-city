@@ -273,5 +273,13 @@
   function open() { U.openModal({ title: solo() ? 'Ma page PrivéFans' : 'PrivéFans', icon: 'star', full: true, body: body(), refresh: () => U.setBody(body()) }); setTimeout(intro, 300); }
 
   setInterval(() => { try { sim(); } catch (e) { console.error(e); } }, 5000);
-  window.AGENCE = { open, sim, choose, pending: () => st() && st().agence ? st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0) : 0, offer: () => st() && st().agence && st().agence.offer, unlocked };
+  // reconversion (le joueur change de look homme ↔ femme) : on encaisse ce qui est en attente, puis le PrivéFans repart de zéro dans l'autre mode
+  function reconvert() {
+    if (!st().agence) return 0;
+    try { sim(); } catch (e) {}
+    const n = Math.floor(st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0));
+    if (n > 0) G.addCash(n);
+    st().agence = null; G.save(); return n;
+  }
+  window.AGENCE = { open, sim, choose, reconvert, pending: () => st() && st().agence ? st().agence.crew.reduce((x, m) => x + (m.pend || 0), 0) : 0, offer: () => st() && st().agence && st().agence.offer, unlocked };
 })();
