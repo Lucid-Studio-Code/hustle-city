@@ -815,8 +815,16 @@
     ['Les {t} auraient préparé ce match en secret depuis un mois.', 5], ['Le meilleur buteur des {t} serait de retour plus tôt que prévu.', 5],
     ['Les {t} auraient fait la fête toute la nuit avant le match.', -5], ['Le nouveau coach des {t} aurait changé toute la tactique.', 4]
   ];
+  // au moins 2 rumeurs par journée (le hasard pouvait laisser une journée entière sans aucune)
+  function sixRumorOn(i) {
+    const salt = sixSalt(), base = j => seeded(j * 13 + salt + 5) <= .75;
+    if (base(i)) return true;
+    const day = D.SIX.matches[i][0], ids = D.SIX.matches.map((x, j) => x[0] === day ? j : -1).filter(j => j >= 0);
+    const missing = Math.max(0, 2 - ids.filter(base).length);
+    return ids.filter(j => !base(j)).slice(0, missing).includes(i);
+  }
   function sixRumor(i) {
-    const salt = sixSalt(); if (seeded(i * 13 + salt + 5) > .75) return null;
+    const salt = sixSalt(); if (!sixRumorOn(i)) return null;
     const [, , h, a] = D.SIX.matches[i], side = seeded(i * 17 + salt + 9) < .5 ? h : a, k = (i * 5 + Math.floor(seeded(i * 23 + salt + 4) * RUMOR_TXT.length)) % RUMOR_TXT.length;
     return { team: side, txt: RUMOR_TXT[k][0].replace('{t}', D.SIX.teams[side][0]), eff: RUMOR_TXT[k][1], real: seeded(i * 19 + salt + 6) < .5 };
   }
