@@ -2563,3 +2563,12 @@ h3.sec { margin: 18px 6px 10px; }
 #app .item-card.bought .ib-art .card-mini, #app .item-card.bought .ib-art > .pic { width: 100% !important; height: auto !important; max-width: 170px; margin: 0 auto; }
 #app .item-card.bought .ib-art .card-mini > * { width: 100% !important; }
 #app .item-card.bought .ib-stamp { top: 50%; font-size: 22px; }
+/* coup de sifflet final : la carte du match s'assombrit, TERMINÉ tombe, puis le score et le vainqueur (joué une seule fois) */
+#app .mcard { position: relative; }
+#app .end-flash { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: inherit; background: rgba(26,15,40,.82); animation: efBg 8s ease both; animation-delay: var(--ago); }
+#app .end-flash .ef-t { font: 400 34px var(--title); color: #ffd23f; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; animation: efDrop .6s cubic-bezier(.2,1.6,.4,1) both; animation-delay: var(--ago); }
+#app .end-flash .ef-sc { font: 400 40px var(--title); color: #fff; -webkit-text-stroke: 5px #2a1a10; paint-order: stroke fill; animation: efUp .5s ease both; animation-delay: calc(var(--ago) + .5s); }
+#app .end-flash .ef-w { margin-top: 4px; padding: 3px 12px; border-radius: 999px; background: #1f9d55; color: #fff; font: 900 13px var(--text); animation: efUp .5s ease both; animation-delay: calc(var(--ago) + .9s); }
+@keyframes efBg { 0% { opacity: 0; } 6% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes efDrop { from { transform: scale(2.6) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes efUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }

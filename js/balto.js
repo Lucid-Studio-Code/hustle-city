@@ -31,8 +31,10 @@
   const pickName = (m, p) => labels(m)[p] === 'N' ? 'Match nul' : labels(m)[p] === '1' ? m.home : m.away;
 
   // « BUT ! » : on retient le dernier score vu de chaque match
-  const seen = {}, flash = {}, flashSide = {};
+  const seen = {}, flash = {}, flashSide = {}, ended = {}, wasLive = new Set();
+  const justEnded = m => ended[m.id] && Date.now() - ended[m.id] < 8000;   // le coup de sifflet final reste affiché 8 s, à sa place
   function checkGoals() {
+    st().matches.forEach(m => { if (m.state === 'live') wasLive.add(m.id); else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
     const mine = new Set(st().bets.filter(b => b.state === 'open').flatMap(b => b.legs.map(l => l.m)));
     st().matches.filter(m => m.state === 'live').forEach(m => {
       const sc = liveScore(m), prev = seen[m.id];
@@ -71,7 +73,7 @@
     const oddBtns = soon ? `<div class="odds n${m.odds.length}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" data-act="bPick" data-m="${m.id}" data-p="${i}">
         ${labels(m)[i] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[i] === '2', 'mini')}
         <span class="ob-txt"><small>${labels(m)[i] === 'N' ? 'Match nul' : shortName(labels(m)[i] === '1' ? m.home : m.away)}</small><b>${boost ? `<s>${fmtOdd(o)}</s>` : ''}${fmtOdd(G.legOdd(m, i))}</b></span></button>`).join('')}</div>` : '';
-    return `<div class="mcard ${m.state} sp-${m.sport} ${goal ? 'goal' : ''} ${sel ? 'picked' : ''}">
+    return `<div class="mcard ${m.state} sp-${m.sport} ${goal ? 'goal' : ''} ${done && justEnded(m) ? 'ended' : ''} ${sel ? 'picked' : ''}">
       <div class="mc-top"><span class="mc-league">${sp.icon} ${sp.league}</span>
         <span class="mc-time ${live ? 'live' : ''}">${soon ? `Coup d'envoi ${U.mmss(m.kickoff - Date.now())}` : live ? `<i class="dot"></i>EN DIRECT` : 'Terminé'}</span></div>
       <div class="mc-mid">
@@ -84,6 +86,7 @@
       ${done ? `<p class="mc-res">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire ${U.de(m.res === 0 ? m.home : m.away)}`}</p>` : ''}
       ${sportTip() && sportTip().m === m.id ? `<div class="mc-tip">📰 <b>Ton tuyau du Kiosque :</b> « ${U.esc(sportTip().txt)} »</div>` : ''}
       ${goal ? '<div class="goal-flash stroke">BUT !</div>' : ''}
+      ${done && justEnded(m) ? `<div class="end-flash" style="--ago:-${Date.now() - ended[m.id]}ms"><span class="ef-t stroke">TERMINÉ</span><span class="ef-sc stroke">${sc ? `${sc.a} - ${sc.b}` : ''}</span><span class="ef-w">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire ${U.de(m.res === 0 ? m.home : m.away)}`}</span></div>` : ''}
     </div>`;
   }
 
@@ -125,8 +128,8 @@
     slip = slip.filter(l => { const m = G.match(l.m); return m && m.state === 'soon'; });
     const s = st(), ok = m => sport === 'all' || m.sport === sport;
     const tip = sportTip(), tm = tip && G.match(tip.m);
-    const up = s.matches.filter(m => m.state !== 'done' && (ok(m) || (tm && m.id === tm.id))).sort((a, b) => (tm && b.id === tm.id) - (tm && a.id === tm.id) || a.kickoff - b.kickoff);
-    const done = s.matches.filter(m => m.state === 'done' && ok(m)).slice(-3).reverse();
+    const up = s.matches.filter(m => (m.state !== 'done' || justEnded(m)) && (ok(m) || (tm && m.id === tm.id))).sort((a, b) => (tm && b.id === tm.id) - (tm && a.id === tm.id) || a.kickoff - b.kickoff);
+    const done = s.matches.filter(m => m.state === 'done' && !justEnded(m) && ok(m)).slice(-3).reverse();
     return `${sportsBar()}
       ${tm && tm.state !== 'done' ? `<div class="tip-banner">📰 <span><b>Tuyau : ${tm.home} – ${tm.away}</b>${tm.state === 'soon' ? `coup d'envoi dans ${U.mmss(tm.kickoff - Date.now())}` : 'en direct'} · le match est en haut de la liste</span></div>` : ''}
       <p class="hint-line">Les cotes viennent des vraies chances de chaque équipe, moins la marge du Royal (7 %). Mise max : <b>${G.betMax()}<i class="cur"></i></b>${G.habitOn('drink') ? ' (+30 % de culot 🍺)' : ''}.${s.lvl < D.COMBI_LVL ? ` Combinés au niveau ${D.COMBI_LVL}.` : ' Coche plusieurs matchs pour un combiné.'}</p>
