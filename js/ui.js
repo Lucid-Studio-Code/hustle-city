@@ -1997,6 +1997,14 @@
       ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>` : ''}
       <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button><button class="btn green" data-act="closeModal">Trop bien !</button></div></div>` });
   }
+  // la partie a été ouverte dans un autre onglet : celui-ci s'arrête net pour ne rien écraser
+  G.on('asleep', () => {
+    if (document.getElementById('tab-lock')) return;
+    const el = document.createElement('div'); el.id = 'tab-lock';
+    el.innerHTML = `<div class="tl-box"><b>Ta partie est ouverte ailleurs</b><p>Hustle City tourne dans un autre onglet. Pour ne rien perdre, on joue dans un seul onglet à la fois : celui-ci est en pause.</p><button class="btn green wide">Jouer dans cet onglet</button></div>`;
+    el.querySelector('button').onclick = () => location.reload();
+    document.body.appendChild(el);
+  });
   G.on('levelup', e => { queue(() => showLevelUp(e)); renderCity(); });
   // mini-événement : annoncé par Momo en bas de l'écran (rien ne cache le haut du jeu), la pastille reste en haut
   G.on('event', ev => { sfx.goal(); notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });

@@ -2445,3 +2445,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ev-frame.img { overflow: visible; border: 0; box-shadow: none; }
 #app .ev-frame.img > .pic img, #app .ev-frame.img > img:not(.fr-over) { border-radius: 50%; }
 #app .ev-frame .fr-over { position: absolute; inset: -14%; width: 128% !important; height: 128% !important; transform: none !important; object-fit: contain !important; }
+#tab-lock { position: fixed; inset: 0; z-index: 99999; display: grid; place-items: center; background: rgba(20,10,35,.88); padding: 16px; }
+#tab-lock .tl-box { max-width: 340px; padding: 22px 20px; border: 3px solid #2a1a10; border-radius: 20px; background: #fff8ec; text-align: center; box-shadow: 0 6px 0 #2a1a10; }
+#tab-lock b { display: block; font: 400 22px var(--title); color: #2a1a10; margin-bottom: 8px; }
+#tab-lock p { font: 700 14px/1.4 var(--text); color: #5a4a3a; margin: 0 0 14px; }

@@ -51,6 +51,7 @@
   // minage d'Axion de 15 min déjà terminé (nouvelle partie, ou ancienne sauvegarde d'avant la nouvelle machine)
   function starterMine(lvl, t) { return { id: 'btk', start: t - 15 * 60000, dur: 15 * 60000, amt: D.RIG[lvl].btkH * .25, cool: 0, coolAt: 0, burnt: false, lvl }; }
   function load() {
+    claimTab();
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) {
@@ -68,7 +69,17 @@
     const report = catchUp(away);
     return report;
   }
-  function save() { st.last = now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {} }
+  // un seul onglet à la fois : sinon chaque onglet enregistre sa propre version et le plus ancien écrase les progrès de l'autre
+  const TAB = Math.random().toString(36).slice(2), OWN_KEY = SAVE_KEY + '.onglet';
+  let asleep = false;
+  function claimTab() { try { localStorage.setItem(OWN_KEY, TAB); } catch (e) {} asleep = false; }
+  function sleepTab() { if (asleep) return; asleep = true; emit('asleep'); }
+  window.addEventListener('storage', e => { if (e.key === OWN_KEY && e.newValue && e.newValue !== TAB) sleepTab(); });
+  function save() {
+    if (asleep) return;
+    try { const o = localStorage.getItem(OWN_KEY); if (o && o !== TAB) return sleepTab(); } catch (e) {}
+    st.last = now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
+  }
   function reset() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} st = fresh(); emit('change'); }
 
   // ------------------------------------------------------------ monnaie, XP, stats
@@ -1154,7 +1165,7 @@
   }
 
   window.GAME = {
-    get st() { return st; }, on, emit, load, save, reset, simulate,
+    get st() { return st; }, get asleep() { return asleep; }, on, emit, load, save, reset, simulate,
     addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,
