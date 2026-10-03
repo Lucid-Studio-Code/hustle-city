@@ -2308,3 +2308,42 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .sheet.th-casino.has-header .sheet-close { right: -34%; top: 20%; }
 #app .room-obj .bed-emo { position: relative; display: block; font-size: clamp(30px, 9vw, 52px); line-height: 1; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }
 #app .room-obj .bed-emo i { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: .42em; font-style: normal; }
+/* casino : tout tient sur un écran (pas de défilement) */
+#modal .sheet.th-casino.has-header .sheet-head > span { top: 56.5%; }
+#modal .sheet.th-casino.has-header .sheet-close { right: -52%; top: 8%; }
+#modal .sheet.th-casino.has-frame .sheet-body { overflow: hidden; }
+#modal .sheet.th-casino.has-frame .tabs { margin: 0 2px 4px; }
+#modal .sheet.th-casino.has-frame .tabs .tab { min-height: 30px; padding: 2px 8px; }
+#modal .sheet.th-casino.has-frame .reel, #modal .sheet.th-casino.has-frame .reel .sym { height: clamp(62px, 11vh, 96px); }
+#modal .sheet.th-casino.has-frame .reels { padding: 6px; }
+#modal .sheet.th-casino.has-frame #slot-msg { margin: 4px 0 4px !important; font-size: 17px !important; min-height: 0 !important; }
+#modal .sheet.th-casino.has-frame .slot-machine .seg .btn { min-height: 30px; }
+#modal .sheet.th-casino.has-frame [data-act="slSpin"] { margin-top: 6px !important; min-height: 48px !important; font-size: 22px !important; }
+#modal .sheet.th-casino.has-frame .sm-pay { margin-top: 6px !important; padding: 6px 10px; }
+#modal .sheet.th-casino.has-frame .sm-pay > b { font-size: 12px; }
+#modal .sheet.th-casino.has-frame .paytable { display: grid; grid-template-columns: repeat(3, auto 1fr); gap: 2px 6px; margin-top: 4px; }
+#modal .sheet.th-casino.has-frame .paytable span { font-size: 11px; gap: 0; } #modal .sheet.th-casino.has-frame .paytable span img { width: 15px; height: 15px; }
+#modal .sheet.th-casino.has-frame .paytable b { font-size: 13px; text-align: left; }
+#modal .sheet.th-casino.has-frame .sm-pay .muted { margin-top: 3px !important; font-size: 10px; line-height: 1.2; }
+/* roulette compacte */
+#modal .sheet.th-casino.has-frame .wheel-wrap { width: clamp(150px, 27vh, 230px); height: clamp(150px, 27vh, 230px); margin-bottom: 2px; }
+#modal .sheet.th-casino.has-frame .wheel-wrap + .center { font-size: 15px !important; min-height: 0 !important; }
+#modal .sheet.th-casino.has-frame .chips { margin: 4px 0; } #modal .sheet.th-casino.has-frame .chips button { width: 38px; height: 38px; }
+#modal .sheet.th-casino.has-frame .felt { margin-top: 4px; padding: 5px; }
+#modal .sheet.th-casino.has-frame .rl-board button { aspect-ratio: auto; height: clamp(20px, 3.4vh, 30px); font-size: 11px; }
+#modal .sheet.th-casino.has-frame .rl-board .zr { height: clamp(18px, 3vh, 26px); }
+#modal .sheet.th-casino.has-frame .rl-outside button { min-height: 0; height: clamp(22px, 3.6vh, 32px); padding: 0; font-size: 11px; }
+#modal .sheet.th-casino.has-frame .grid2 { margin-top: 6px !important; } #modal .sheet.th-casino.has-frame .grid2 .btn { min-height: 38px; }
+#modal .sheet.th-casino.has-frame .muted.center { font-size: 10px; margin-top: 3px !important; line-height: 1.2; }
+#modal .sheet.th-casino.has-frame .reel, #modal .sheet.th-casino.has-frame .reel .sym { height: clamp(66px, 14vh, 120px); }
+#modal .sheet.th-casino.has-frame .tabs { padding-top: 4px; }
+#modal .sheet.th-casino.has-frame .wheel-wrap { width: clamp(140px, 22vh, 210px); height: clamp(140px, 22vh, 210px); }
+#modal .sheet.th-casino.has-frame .rl-outside { gap: 3px; }
+#modal .th-casino .rl-top { display: flex; align-items: center; justify-content: center; gap: 10px; }
+#modal .th-casino .rl-top .wheel-wrap { flex: 0 0 auto; margin: 6px 0 0; }
+#modal .th-casino .rl-side { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+#modal .th-casino .rl-side .chips { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; margin: 0; }
+#modal .sheet.th-casino.has-frame .wheel-wrap { width: clamp(140px, 24vh, 200px); height: clamp(140px, 24vh, 200px); }
+#modal .th-casino .rl-rule { font: 800 10px/1.3 var(--text); color: #e8c99a; text-align: center; }
+#modal .sheet.th-casino.has-frame .rl-board ~ .rl-outside ~ *, #modal .sheet.th-casino.has-frame .grid2 + .muted.center { display: none; }
+#modal .sheet.th-casino.has-frame .wheel-wrap { width: clamp(136px, 22vh, 190px); height: clamp(136px, 22vh, 190px); }
