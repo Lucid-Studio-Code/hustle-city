@@ -2244,7 +2244,7 @@
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
     cleanChats(); purgeOld();
-    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST · tout débloqué, cash illimité · ta vraie partie n\'est pas touchée <button onclick="history.replaceState(null,\'\',location.pathname);location.reload()">Quitter</button></div>');
+    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST <button onclick="history.replaceState(null,\'\',location.pathname);location.reload()">Quitter</button></div>');
     { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();

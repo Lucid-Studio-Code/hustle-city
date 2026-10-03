@@ -2652,3 +2652,5 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ag-g > .gown { min-height: 42px; display: flex; align-items: center; justify-content: center; }
 #hud .avatar .lvl, #app #hud .lvl { z-index: 6; } #hud .avatar .av-frame-img { z-index: 3; inset: -8% !important; width: 116% !important; height: 116% !important; } #app #hud .avatar .av-pin { z-index: 5; }
 #test-banner { position: absolute; top: 0; left: 0; right: 0; z-index: 60; padding: 3px 8px; background: #7b2cbf; color: #fff; font: 900 11px var(--text); text-align: center; } #test-banner button { margin-left: 6px; padding: 1px 8px; border: 0; border-radius: 999px; background: #fff; color: #7b2cbf; font: 900 11px var(--text); }
+#test-banner { top: auto !important; bottom: 96px; left: 8px !important; right: auto !important; border-radius: 999px; padding: 4px 6px 4px 12px !important; box-shadow: 0 2px 0 #2a1a10; }
+#test-banner { left: auto !important; right: 8px !important; }
