@@ -51,6 +51,8 @@
     if (a.crew.length && t >= a.nextDil && !(a.dil && t < a.dil.until)) { a.nextDil = t + rnd(...A.dilEvery) * 60000; dilemma(); }
   }
   // ce que rapporte une activité, affiché sous son bouton (abonnés, pourboires, moral)
+  // la collab demande 2 places dans l'agence : avant l'agrandissement, elle est verrouillée (et rangée en bas)
+  const lockedDuo = (m, o) => o.duo && m.id !== 'me' && slotsN() < 2;
   function actGain(m, x) {
     const p = prof(m.id), subs = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
     const tips = x.cash ? Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)) : 0, L = [];
@@ -228,8 +230,10 @@
                 : `<button class="btn xs green" data-act="agAbo" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>S'abonner · ${U.short(g.cost)}/jour</button>`)
               : own ? '<span class="gown">✓ Possédé</span>' : `<button class="btn xs green" data-act="agGear" data-id="${m.id}" data-g="${g.id}" ${s.cash >= g.cost ? '' : 'disabled'}>${U.short(g.cost)}</button>`}</div>`; }).join('')}</div>` : ''}`; })()}
         ${m.act ? `<div class="ag-busy">${actIc(x)} ${x.name}${m.act.with ? ` avec ${prof(m.act.with).name}` : ''} · fini dans <b>${U.mmss(left)}</b></div>`
-          : `<div class="ag-acts">${A.acts.map(o => { const noDuo = o.duo && !p.me && !ag().crew.some(c => c.id !== m.id && !c.act);
-            return `<button class="ag-act ${noDuo ? 'need' : ''}" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${(o.lvl && s.lvl < o.lvl) || noDuo ? 'disabled' : ''}><span>${actIc(o)}</span><b>${o.name}</b><small>${noDuo ? 'Il faut 2 créatrices libres' : `${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}`}</small>${noDuo ? '' : actGain(m, o)}</button>`; }).join('')}</div>`}
+          : `<div class="ag-acts">${A.acts.slice().sort((a1, a2) => (lockedDuo(m, a1) ? 1 : 0) - (lockedDuo(m, a2) ? 1 : 0)).map(o => { const locked = lockedDuo(m, o), noDuo = !locked && o.duo && !p.me && !ag().crew.some(c => c.id !== m.id && !c.act), lvlLock = o.lvl && s.lvl < o.lvl;
+            const dur = `${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}${o.cost ? ` · ${U.short(o.cost)}` : ''}`;
+            const btn = locked ? `<span class="act-lock">${U.ic('lock')}</span>` : `<button class="btn xs green act-go" data-act="agAct" data-id="${m.id}" data-k="${o.id}" ${lvlLock || noDuo || (o.cost && s.cash < o.cost) ? 'disabled' : ''}>Lancer</button>`;
+            return `<div class="ag-act ${locked || noDuo || lvlLock ? 'need' : ''}"><span>${actIc(o)}</span><b>${o.name}</b><small>${locked ? 'Agrandis ton agence pour la débloquer' : lvlLock ? `Niveau ${o.lvl}` : noDuo ? 'Il faut 2 créatrices libres' : dur}</small>${locked || noDuo || lvlLock ? '<em class="ag-gain"></em>' : actGain(m, o)}${btn}</div>`; }).join('')}</div>`}
       </div>`;
     }).join('');
     const cand = a.crew.length < slotsN() ? `<h3 class="sec">Elles cherchent une agence</h3><div class="ag-cands">${candidates().map(c => `<div class="card ag-cand">${face(c, 'big')}<b>${c.name}</b><small>${c.niche} · ${fmtSubs(c.subs)} abonnés</small><p>${c.desc}</p>
