@@ -910,7 +910,8 @@
     const c = G.coin(f.id);
     if (!f.applied) return `<div class="flash-banner soon"><span class="fb-ic">🔔</span><div class="grow"><b>Ton PC a repéré un mouvement sur ${c.name}</b><small>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</small></div><button class="btn xs blue" data-act="coinSel" data-id="${f.id}">Voir</button></div>`;
     const hold = s.crypto.hold[f.id] || 0, val = hold * s.crypto.prices[f.id], net = val * (1 - G.fee()), gain = net - (s.crypto.cost[f.id] || 0);
-    const sell = hold > 0 && val >= .01 ? `<button class="btn xs ${gain >= 0 ? 'green' : 'red'} fb-sell" data-act="flashSell"><span>Vendre · +${short(net)}</span><small>${gain >= 0 ? `gagné +${short(gain)}` : `perdu ${short(gain)}`}</small></button>` : '';
+    // à la hausse on propose de vendre ; à la baisse, on propose d'acheter pas cher (vendre au creux n'a pas de sens)
+    const sell = f.up && hold > 0 && val >= .01 ? `<button class="btn xs ${gain >= 0 ? 'green' : 'red'} fb-sell" data-act="flashSell"><span>Vendre · +${short(net)}</span><small>${gain >= 0 ? `gagné +${short(gain)}` : `perdu ${short(gain)}`}</small></button>` : '';
     return `<div class="flash-banner ${f.up ? 'up' : 'down'}"><span class="fb-ic">⚡</span><div class="grow"><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b><small>${f.up ? (hold > 0 ? 'Vends avant que ça retombe' : 'Ça va sûrement retomber') : 'Ça plonge : acheter pas cher ?'} · encore ${mmss(f.back - Date.now())}</small></div>
       ${sell || `<button class="btn xs blue" data-act="coinSel" data-id="${f.id}">${f.up ? 'Voir' : 'Acheter'}</button>`}</div>`;
   }
