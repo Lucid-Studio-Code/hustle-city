@@ -563,7 +563,7 @@
     $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
-    $('#adm-quit').onclick = () => { history.replaceState(null, '', location.pathname); location.reload(); };
+    $('#adm-quit').onclick = () => { history.replaceState(null, '', location.href.split('#')[0]); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
     $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
@@ -723,7 +723,7 @@
     $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
     $('#rp-copy').onclick = () => publishLayout();
     $('#rp-move').onclick = () => { RP.top = !RP.top; $('#rplacer').classList.toggle('top', RP.top); };
-    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; RP.g = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.pathname); renderAppart(); if (placing) setScene('city'); };
+    $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; RP.g = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.href.split('#')[0]); renderAppart(); if (placing) setScene('city'); };
     $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
     if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
@@ -2060,6 +2060,7 @@
     soundToggle() { st().sound = !st().sound; G.save(); setBody(settingsBody()); },
     setToggle(el) { const k = el.dataset.k, s = st(); if (k === 'vibrate') s.vibrate = s.vibrate === false; else s[k] = !s[k]; document.body.classList.toggle('calm', !!s.calm); G.save(); setBody(settingsBody()); },
     tipNext() { nextTip(); },
+    leaveTest() { location.replace(location.href.split('#')[0]); setTimeout(() => location.reload(), 50); },
     setName() { const n = prompt('Ton nouveau pseudo :', st().name || ''); if (n && n.trim()) { st().name = n.trim().slice(0, 16); G.save(); renderHud(); setBody(settingsBody()); toast('Pseudo changé !'); } },
     saveExport() { G.save(); const code = 'HC1.' + btoa(unescape(encodeURIComponent(localStorage.getItem('hustleCity.v1') || JSON.stringify(st()))));
       try { navigator.clipboard.writeText(code); toast('Code de sauvegarde copié : garde-le précieusement.'); } catch (e) { prompt('Copie ce code :', code); } },
@@ -2284,7 +2285,7 @@
   function boot2(first) {
     cleanChats(); purgeOld();
     document.body.classList.toggle('calm', !!st().calm);
-    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST <button onclick="history.replaceState(null,\'\',location.pathname);location.reload()">Quitter</button></div>');
+    if (G.TEST) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">PARTIE TEST <button data-act="leaveTest">Quitter</button></div>');
     { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
