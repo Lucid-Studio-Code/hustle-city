@@ -639,11 +639,13 @@
   function betMax() { const d = habit('drink'); return Math.round(D.BET_MAX(st.lvl) * (habitOn('drink') ? 1 + d.betBoost : 1)); }
   function startHabit(id) {
     const h = habit(id); if (!h || st.lvl < h.lvl) return { err: 'Pas encore.' };
+    if (h.auto) return { err: 'Celle-là ne se choisit pas : elle vient à force de sortir.' };
     if (habitState(id) === 'quitting') return { err: 'Tu es en plein sevrage. Tiens bon !' };
     if (habitOn(id)) return { err: 'C\'est déjà ton habitude.' };
     st.habits[id] = { since: now() }; stat('habits'); emit('change'); return { ok: true };
   }
   function quitHabit(id) {
+    if (habit(id) && habit(id).auto) return { err: `Pour arrêter, ne remets pas les pieds au Club pendant ${D.QUIT_H} h.` };
     if (!habitOn(id)) return { err: 'Tu n\'as pas cette habitude.' };
     st.habits[id].quitUntil = now() + D.QUIT_H * 3600000; emit('change'); return { ok: true };
   }
@@ -654,6 +656,7 @@
     const perDay = D.HABITS.reduce((a, h) => a + (habitMalus(h.id) ? h.perDay : 0), 0);
     if (perDay) st.cash = Math.max(0, Math.round((st.cash - perDay * dtDay) * 100) / 100);
     D.HABITS.forEach(h => { const x = st.habits[h.id]; if (x && x.quitUntil && now() >= x.quitUntil) { delete st.habits[h.id]; emit('quit', h); } });
+    if (st.habits.club && !clubQuitLeft()) { delete st.habits.club; emit('quit', habit('club')); }
   }
   // l'ancien blocage au casino (« tilt ») est supprimé : il frustrait trop
   function tiltCheck() { st.tiltUntil = 0; }
@@ -674,8 +677,18 @@
     pay(e);
     st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false };
     st.clubNext = st.club.end + D.CLUB.cooldownMin * 60000;
-    stat('clubNights'); emit('change'); return { e };
+    stat('clubNights'); clubHabitTick(); emit('change'); return { e };
   }
+  // l'habitude « sortir en boîte » s'attrape toute seule : 3 soirées en 7 jours. Elle part après 48 h sans remettre les pieds au Club.
+  function clubHabitTick() {
+    const h = habit('club'), a = h.auto, x = st.habits.club;
+    st.clubLog = (st.clubLog || []).filter(t => now() - t < a.days * 86400000); st.clubLog.push(now());
+    if (x) { delete x.quitUntil; return; }   // déjà sortie : la soirée relance juste le compteur des 48 h
+    if (st.clubLog.length >= a.nights) { st.habits.club = { since: now() }; stat('habits'); emit('habitAuto', h); }
+  }
+  const clubLast = () => Math.max(...(st.clubLog || [0]), (st.habits.club && st.habits.club.since) || 0);
+  const clubQuitLeft = () => Math.max(0, clubLast() + D.QUIT_H * 3600000 - now());
+  const clubNightsLeft = () => Math.max(0, habit('club').auto.nights - (st.clubLog || []).filter(t => now() - t < habit('club').auto.days * 86400000).length);
   function clubDo(id) {
     if (!clubIn()) return { err: 'La soirée est finie : repasse par le videur.' };
     const c = st.club; if (c.done[id]) return { err: 'Déjà fait ce soir.' };
@@ -1150,7 +1163,7 @@
     evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
-    habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, tilted,
+    habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,

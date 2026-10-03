@@ -1123,9 +1123,17 @@
   // ------------------------------------------------------------ habitudes (au Royal : fumer, boire ; au Club : sortir)
   function habitsBody(where) {
     const s = st();
-    return `<p class="hint-line">Une habitude donne un vrai bonus… et un malus qui coûte chaque jour. Arrêter prend ${D.QUIT_H} h : pendant le sevrage, tu gardes le malus sans le bonus.</p>` +
+    return (where === 'club' ? '' : `<p class="hint-line">Une habitude donne un vrai bonus… et un malus qui coûte chaque jour. Arrêter prend ${D.QUIT_H} h : pendant le sevrage, tu gardes le malus sans le bonus.</p>`) +
       D.HABITS.filter(h => !where || h.where === where).map(h => {
         const state = G.habitState(h.id), lock = s.lvl < h.lvl, x = s.habits[h.id];
+        if (h.auto) {
+          const on = state !== 'off', left = G.clubQuitLeft(), n = G.clubNightsLeft();
+          return `<div class="card habit-card ${lock ? 'locked' : ''}">
+          <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${h.icon} ${h.name}</h4>${on ? '<span class="rtag rE">Ton habitude</span>' : ''}</div>
+          <p style="margin-top:6px"><b class="up">＋</b> ${h.bonus}</p><p><b class="down">－</b> ${h.malus}</p>
+          <p class="hab-auto">${lock ? `Au niveau ${h.lvl}.` : on ? `Pour t'en défaire, ne remets pas les pieds au Club pendant ${D.QUIT_H} h. Il reste <b>${Math.ceil(left / 3600000)} h</b> : chaque soirée relance le compteur.`
+            : `Ça ne se choisit pas : sors ${h.auto.nights} soirs en ${h.auto.days} jours et ça devient ton habitude.${n < h.auto.nights ? ` Encore <b>${n} soirée${n > 1 ? 's' : ''}</b> et c'est fait.` : ''}`}</p></div>`;
+        }
         return `<div class="card habit-card ${lock ? 'locked' : ''}">
           <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${h.icon} ${h.name}</h4>
           ${state === 'on' ? '<span class="rtag rE">Ton habitude</span>' : state === 'quitting' ? `<span class="rtag lose">Sevrage ${mmss(x.quitUntil - Date.now())}</span>` : ''}</div>
@@ -2034,7 +2042,8 @@
     else notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline);
   });
   G.on('money', () => bump('#pill-cash'));
-  G.on('quit', h => dialog('Sevrage terminé', `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'));
+  G.on('quit', h => (() => dialog(h.auto ? 'Fini les nuits blanches' : 'Sevrage terminé', h.auto ? `${D.QUIT_H} h sans mettre les pieds au Club : ${h.icon} ${h.name} n'est plus ton habitude. Plus de frais chaque jour, ta machine refroidit normalement.` : `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'))());
+  G.on('habitAuto', h => (() => dialog('Nouvelle habitude', `${h.icon} <b>${h.name}</b> : ${h.auto.nights} soirées en ${h.auto.days} jours, tu ne peux plus t'en passer.<br><br><b class="up">＋</b> ${h.bonus}<br><b class="down">－</b> ${h.malus}<br><br>Pour t'en défaire : ${D.QUIT_H} h sans mettre les pieds au Club.`, 'Compris'))());
 
   // ------------------------------------------------------------ démarrage
   let lastSave = 0;

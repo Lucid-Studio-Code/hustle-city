@@ -444,7 +444,7 @@
     { id: 'drink', name: 'Boire', icon: '🍺', lvl: 3, perDay: 30, betBoost: .3, where: 'balto',
       bonus: 'Plus de culot : mise max au Royal +30 %.',
       malus: 'Les tournées au bar : −30<i class="cur"></i> chaque jour, que tu joues ou non.' },
-    { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 4, perDay: 25, xpBoost: .2, where: 'club',
+    { id: 'club', name: 'Sortir en boîte', icon: '🎉', lvl: 4, perDay: 25, xpBoost: .2, where: 'club', auto: { nights: 3, days: 7 },   // pas un choix : elle vient toute seule à force de sortir, et part après QUIT_H sans y mettre les pieds
       bonus: 'Réseau et rencontres : +20 % d\'XP sur tout.',
       malus: '−25<i class="cur"></i> par jour, et ta machine à crypto surchauffe 25 % plus vite (tu rentres tard).' }
   ];
@@ -457,7 +457,7 @@
     spots: [
       { id: 'dance', name: 'La piste',        icon: '🕺', x: 62, y: 81, w: 58, h: 20, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
       { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 38, y: 21, w: 40, h: 16, desc: 'Demander ton son : la piste rapporte ×1,5.' },
-      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 22, y: 53, w: 40, h: 20, desc: 'Un cocktail, et ton habitude « sortir ».' },
+      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 22, y: 53, w: 40, h: 20, desc: 'Un cocktail : un peu d\'XP pour bien finir la soirée.' },
       { id: 'lounge', name: 'Les canapés',    icon: '🛋️', x: 80, y: 57, w: 38, h: 17, desc: 'Discuter : on y rencontre des gens qui ont des plans.' },
       { id: 'vip',   name: 'Le carré VIP',    icon: '🍾', x: 80, y: 23, w: 36, h: 20, desc: 'Pour les lingots : un contact assuré et des lingots possibles.' },
       { id: 'door',  name: 'Le videur',       icon: '🚪', x: 21, y: 85, w: 30, h: 20, desc: 'Sortir du Club.' }
