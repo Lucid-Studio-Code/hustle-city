@@ -611,14 +611,15 @@
     closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); RP.sel = RP.sel || 'pc';
     RP.pv = RP.pv || { pc: G.pcLvl(), rig: st().rig.lvl }; setScene('appart');
     const objs = () => ['pc', 'rig', 'light', 'shelf', ...RP.L.slots.slice(0, D.ROOMS[RP.room].slots).map((_, i) => 'slot' + i)];
-    $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''}">
-      <div class="rp-row"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<button class="btn xs purple" id="rp-g"></button><span class="rp-sep"></span>
+    $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''} ${RP.more ? 'more' : ''}">
+      <div class="rp-row"><select id="rp-sel"></select><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
+        <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔</button><button class="btn xs purple" id="rp-more">⋯</button></div>
+      <div class="rp-row rp-x"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<button class="btn xs purple" id="rp-g"></button>
         <small>PC</small>${D.PCS.map((x, i) => `<button class="btn xs rp-pv" data-k="pc" data-i="${i}">${i + 1}</button>`).join('')}<small>Mach.</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
-      <div class="rp-row"><select id="rp-sel"></select><span id="rp-cur"></span></div>
-      <div class="rp-row rp-tools"><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
-        <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔ Miroir</button><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
-      <div class="rp-row"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><span class="rp-sep"></span><button class="btn xs red" id="rp-reset" title="Remettre toute la chambre">↺ Chambre</button><button class="btn xs" id="rp-move" title="Déplacer la barre">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
+      <div class="rp-row rp-x"><span id="rp-cur"></span><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
+      <div class="rp-row rp-x"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><button class="btn xs red" id="rp-reset">↺ Chambre</button><button class="btn xs" id="rp-move" title="Haut / bas">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <textarea id="rp-out" readonly></textarea></div>`);
+    $('#rp-more').onclick = () => { RP.more = !RP.more; $('#rplacer').classList.toggle('more', RP.more); };
     const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} };
     const cur = () => { const k = RP.sel; if (k === 'shelf') return { x: '–', y: '–', w: RP.L.shelf.w }; if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; return { x: p[0], y: p[1], w: RP.L.shelf.w }; } return RP.L[k]; };
     const out = () => {
@@ -709,6 +710,23 @@
     if (!st().agence || !st().agence.crew.length) return `<button class="obj-bubble" data-act="agence"><span><small>PrivéFans</small><b>${me ? 'Lance ta page' : 'Ouvre ton agence'}</b></span></button>`;
     return `<button class="obj-bubble ${p >= 1 ? 'up' : ''}" data-act="agence"><span><small>PrivéFans</small><b>${p >= 1 ? `+${short(p)} à encaisser` : 'Ouvrir'}</b></span></button>`;
   }
+  const BUBBLE_GAP = 1.2;   // écart (en % de la hauteur de la chambre) entre le haut de l'objet et la pointe de sa bulle
+  window.addEventListener('resize', () => placeBubbles());
+  function placeBubbles() {
+    const stage = document.querySelector('#scene-appart .room-stage'); if (!stage) return;
+    const R = stage.getBoundingClientRect(); if (!R.width) return;
+    stage.querySelectorAll('.bubble-at[data-for]').forEach(b => {
+      const k = b.dataset.for;
+      const els = k === 'shelf' ? [...stage.querySelectorAll('.shelf-item')] : [stage.querySelector(`.room-obj[data-rp="${k}"]`)].filter(Boolean);
+      if (!els.length) return;
+      const rs = els.map(e => { const img = e.querySelector('img') || e; return img.getBoundingClientRect(); });
+      // pour l'étagère : la rangée du haut (les objets les plus hauts), centrée sur toute l'étagère
+      const top = Math.min(...rs.map(r => r.top)), row = k === 'shelf' ? rs.filter(r => r.top < top + 8) : rs;
+      const cx = k === 'shelf' ? (() => { const sl = (RP.on ? RP.L : roomLayout(st().room)).slots.slice(0, 4); return (Math.min(...sl.map(p => p[0])) + Math.max(...sl.map(p => p[0]))) / 2; })()
+        : ((Math.min(...row.map(r => r.left)) + Math.max(...row.map(r => r.right))) / 2 - R.left) / R.width * 100;
+      b.style.left = cx + '%'; b.style.top = ((top - R.top) / R.height * 100 - BUBBLE_GAP) + '%';
+    });
+  }
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
@@ -737,18 +755,19 @@
       <div class="room-stage">
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
-        ${owned.length ? `<button class="obj-bubble shelf-b" data-act="collectionInfo" style="left:16%;top:22%"><span><small>Ta collection</small><b>${short(iv)}</b></span></button>` : ''}
+        ${owned.length ? `<div class="bubble-at" data-for="shelf"><button class="obj-bubble shelf-b" data-act="collectionInfo"><span><small>Ta collection</small><b>${short(iv)}</b></span></button></div>` : ''}
         <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
-        <div class="bubble-at" style="left:${L.pc.x - 6}%;top:${L.pc.y - L.pc.w * .42}%">${pcBubble}</div>
+        <div class="bubble-at" data-for="pc">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
         ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${(n => has(n) ? pic(n) : null)('bed-laptop-' + gg) || `<span class="bed-emo">💻<i>${gg === 'f' ? '💗' : '❤️'}</i></span>`}</button>
-        <div class="bubble-at ag-b" style="left:${L.light.x - 10}%;top:${L.light.y - L.light.w * .9}%">${agBubble()}</div>` : ''}
+        <div class="bubble-at" data-for="light">${agBubble()}</div>` : ''}
         <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
-        <div class="bubble-at rig-b" style="left:${L.rig.x + 9}%;top:${L.rig.y - L.rig.w * .95}%">${rigBubble}</div>
+        <div class="bubble-at" data-for="rig">${rigBubble}</div>
       </div>
       <div class="room-head">
         <div class="rt-row"><div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div><button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button></div>
       </div>`;
+    placeBubbles(); el.querySelectorAll('img').forEach(i => { if (!i.complete) i.addEventListener('load', placeBubbles, { once: true }); });
   }
   function openRoomHelp() {
     openModal({ title: 'Ton appart', icon: 'home', center: true, body: `

@@ -2347,3 +2347,16 @@ h3.sec { margin: 18px 6px 10px; }
 #modal .th-casino .rl-rule { font: 800 10px/1.3 var(--text); color: #e8c99a; text-align: center; }
 #modal .sheet.th-casino.has-frame .rl-board ~ .rl-outside ~ *, #modal .sheet.th-casino.has-frame .grid2 + .muted.center { display: none; }
 #modal .sheet.th-casino.has-frame .wheel-wrap { width: clamp(136px, 22vh, 190px); height: clamp(136px, 22vh, 190px); }
+/* bulles : toujours centrées au-dessus de leur objet (placées par placeBubbles), pointe au milieu */
+.room-stage .bubble-at .obj-bubble::after, .room-stage .bubble-at .obj-bubble::before { left: 50% !important; }
+.room-stage .bubble-at .obj-bubble.shelf-b { position: static; transform: none; }
+#app .room-stage .bubble-at .obj-bubble.shelf-b { position: relative; transform: none; padding: 6px 12px; }
+#app .room-stage .bubble-at .obj-bubble.shelf-b::before, #app .room-stage .bubble-at .obj-bubble.shelf-b::after { display: block; }
+/* barre de l'éditeur de chambre : compacte, semi-transparente, le reste replié dans ⋯ */
+#app #rplacer { bottom: 6px; left: 6px; right: 6px; padding: 4px 6px; background: rgba(255,248,236,.92); backdrop-filter: blur(3px); }
+#app #rplacer .rp-row { flex-wrap: nowrap; overflow-x: auto; }
+#app #rplacer .rp-x { display: none; } #app #rplacer.more .rp-x { display: flex; flex-wrap: wrap; }
+#app #rplacer select { max-width: 40%; }
+#app #rplacer .btn.xs { min-width: 30px; min-height: 26px; padding: 0 6px 2px; }
+#app:has(#rplacer) #bottom { display: none; }
+#app:has(#rplacer) .room-head { display: none; }
