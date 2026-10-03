@@ -1442,7 +1442,7 @@
           <div class="pe-box mid"><small>2. Son prix monte</small><b>130<i class="cur"></i></b></div><span class="pe-arr">→</span>
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
-        <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}Le Comptoir garde une petite part à l'achat et à la revente : il faut que le prix monte pour être gagnant.</small></div>
+        <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : le Comptoir te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
       <div class="stock-chip">${ico('ic-truck', '🚚')} Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
       <div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}${shopTab === 'card' ? ' · les cartes vont dans ton classeur' : ''}</div>
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
@@ -1627,11 +1627,11 @@
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
         return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
           <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b><small>${RAR[it.r]} · cote ${short(st().market.prices[it.id])}</small></div>
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b><small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
       d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
-        stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: `Cote du jour : ${short(st().market.prices[it.id])}`, flav: se.name, rarity: it.r, label: se.sub, no };
+        stat: t ? `${t[1]}` : '', ability: t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub, no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
       <div class="tcg-top"><b class="tcg-name ${d.name.length > 16 ? 'xl' : d.name.length > 11 ? 'l' : ''}">${d.name}</b>${d.stat ? `<span class="tcg-stat">${d.stat}</span>` : ''}</div>
@@ -1674,6 +1674,9 @@
       onTab: id => { boosterTab = id; setBody(boostersBody()); }, refresh: () => { if (boosterTab === 'open') setBody(boostersBody()); } });
   }
   // carte en grand : on la penche avec le doigt, reflets holographiques ; on peut la revendre
+  // ce qu'un objet rapporte VRAIMENT au joueur : son prix de revente s'il l'a, son prix d'achat s'il est en rayon (la cote seule prêtait à confusion)
+  const priceWord = id => (st().owned[id] || []).length ? `revente ${short(G.sellPrice(id))}` : G.inStock(id) ? `prix ${short(G.buyPrice(id))}` : `cote ${short(st().market.prices[id])}`;
+  const priceSentence = id => (st().owned[id] || []).length ? `Tu la revends ${short(G.sellPrice(id))} au Comptoir.` : G.inStock(id) ? `Au Comptoir : ${short(G.buyPrice(id))}.` : `Cote du jour : ${short(st().market.prices[id])}.`;
   function cardZoom(id) {
     const n = (st().owned[id] || []).length, it = G.item(id), canBuy = !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
     let el = $('#cardzoom'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="cardzoom"></div>'); el = $('#cardzoom'); }
