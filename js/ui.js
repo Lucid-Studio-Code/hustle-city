@@ -1330,14 +1330,14 @@
       const fin = G.sixState().final;
       return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
         `<h3 class="sec">Les équipes</h3><div class="six-board-list">${G.sixTable().map((t, k) => `<div class="sb-row"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}</span><small class="muted">${t.j} m · ${t.diff >= 0 ? '+' : ''}${t.diff}</small><b>${t.pts} pts</b></div>`).join('')}</div>
-        <p class="hint-line">4 points la victoire, 2 le nul, 1 point de bonus si on perd de 7 points ou moins.</p>
+        <p class="hint-line sx-pts-note">4 points la victoire, 2 le nul, 1 point de bonus si on perd de 7 points ou moins.</p>
         <h3 class="sec">Les joueurs</h3><p class="hint-line">${S.pts} points par bon prono.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
         <h3 class="sec">À la fin du tournoi</h3><div class="six-rew">${S.rewards.map((r, i) => `<div><small>${r.top === 1 ? '1<sup>er</sup>' : r.top === 999 ? 'Tous les autres' : `Top ${r.top}`}</small>${chips(0, r.lingots, r.boosters ? `<span class="need">${packArt(true)}${r.boosters}</span>` : '')}</div>`).join('')}</div>`;
     }
     if (sixTab === 'shop') {
       const closed = ph === 'over', price = x => x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
       const can = x => x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
-      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? `<span class="ev-frame ${frameImg(x) ? 'img' : ''}" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}${frameImg(x) ? `<img class="fr-over" src="${src(frameImg(x))}" alt="">` : `<em>${x.emo}</em>`}</span>` : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
+      const art = x => x.kind === 'avatar' ? teamCrest('rugby', x.team) : x.kind === 'frame' ? (frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(s.skin, true)}<em>${x.emo}</em></span>`) : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`;
       const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id);
         const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="evUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
           : closed ? '<button class="btn xs" disabled>Fermé</button>' : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="evBuy" data-id="${x.id}" ${can(x) ? '' : 'disabled'}>${price(x)}</button>`;

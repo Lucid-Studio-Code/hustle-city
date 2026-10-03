@@ -41,7 +41,9 @@
       seen[m.id] = { a: sc.a, b: sc.b };
       if (!prev || sc.a + sc.b <= prev.a + prev.b) return;
       // tout point marqué (foot, basket, tennis) envoie le ballon dans le bon camp
-      flash[m.id] = Date.now(); flashSide[m.id] = sc.a > prev.a ? 'r' : 'l';
+      // si les deux équipes ont marqué depuis le dernier coup d'œil (fréquent au basket), le ballon va chez celle qui a marqué le plus, sinon on alterne
+      const da = sc.a - prev.a, db = sc.b - prev.b;
+      flash[m.id] = Date.now(); flashSide[m.id] = da > db ? 'r' : db > da ? 'l' : (flashSide[m.id] === 'r' ? 'l' : 'r');
       if (m.sport !== 'foot') return;
       const who = sc.a > prev.a ? m.home : m.away;
       if (mine.has(m.id)) { U.sfx.goal(); U.toast(`⚽ BUT pour ${who} ! ${m.home} ${sc.a} - ${sc.b} ${m.away}`, false, 'mybets'); }

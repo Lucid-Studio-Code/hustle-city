@@ -2572,3 +2572,5 @@ h3.sec { margin: 18px 6px 10px; }
 @keyframes efBg { 0% { opacity: 0; } 6% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes efDrop { from { transform: scale(2.6) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes efUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+#app .ev-frame-only { display: grid; place-items: center; width: 84px; height: 84px; margin: 0 auto; } #app .ev-frame-only img { width: 100%; height: 100%; object-fit: contain; }
+#app .sx-pts-note { margin-top: 12px; }
