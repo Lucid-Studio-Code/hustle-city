@@ -1059,6 +1059,17 @@
     if (msg.from === 'them') c.unread++; c.last = msg.t;
     if (phoneOpen() && phoneApp === 'chat' && chatOpen === name) { c.unread = 0; drawPhone(); }
   }
+  // ménage : messages et notifications de plus de 10 min disparaissent (au lancement du jeu, puis chaque minute)
+  const MSG_TTL = 10 * 60000;
+  function purgeOld() {
+    const lim = Date.now() - MSG_TTL;
+    Object.keys(chats()).forEach(k => { if (phoneOpen() && phoneApp === 'chat' && chatOpen === k) return;
+      const c = chats()[k]; c.msgs = c.msgs.filter(m => (m.t || 0) >= lim);
+      if (!c.msgs.length) delete chats()[k]; else c.unread = Math.min(c.unread, c.msgs.filter(m => m.from === 'them').length); });
+    st().notifs = notifs().filter(n => (n.t || 0) >= lim);
+    renderPhoneBtn(); if (phoneOpen() && phoneApp !== 'chat') drawPhone();
+  }
+  setInterval(purgeOld, 60000);
   const chatUnread = () => Object.values(chats()).reduce((a, c) => a + c.unread, 0);
   function bubbleHtml(c, m, i) {
     if (m.from === 'me') return `<div class="bub out">${m.txt}</div>`;
@@ -2092,7 +2103,7 @@
   window.addEventListener('resize', hudBottom);
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
-    cleanChats();
+    cleanChats(); purgeOld();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);
