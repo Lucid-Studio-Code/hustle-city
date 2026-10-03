@@ -333,6 +333,8 @@
   // ---------------------------------------------------------------- événement : le Tournoi des 6 Quartiers (rugby)
   // Calqué sur le vrai calendrier du tournoi 2027 (heures en temps universel). Les équipes sont inventées : une par quartier.
   // Pronos gratuits (3 points par bon prono), classement avec d'autres joueurs, cartes en édition limitée dans les boosters.
+  // prochain événement annoncé sur le Panneau quand rien n'est en cours (date à changer quand on prépare le suivant ; null = « bientôt »)
+  const NEXT_EVENT = { at: '2026-11-07T18:00:00+01:00' };
   const SIX = {
     name: 'Tournoi des 6 Quartiers', short: '6 Quartiers', img: 'crest-r',
     // simulation : si une date est indiquée, la journée 1 a lieu ce jour-là et les suivantes un jour après l'autre
@@ -676,7 +678,7 @@
     } catch (e) {}
   });
   window.DATA = {
-    START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
+    NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD

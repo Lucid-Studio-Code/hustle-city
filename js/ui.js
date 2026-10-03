@@ -200,7 +200,7 @@
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
     { const t = $('#promo-t'); if (t) { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 1 ? `${h} h` : mmss(ms); } }
-    $('.six-badge')?.classList.toggle('hidden', !G.sixBadge());
+    $('.six-badge')?.classList.toggle('hidden', G.eventOff() || !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
   }
@@ -416,10 +416,12 @@
   function focusMap(yPct) { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -(cam.h * yPct / 100 - map.clientHeight * .55); clampCam(); applyCam(); }
   // enseigne d'un lieu : couleur et picto propres à chaque endroit (le style d'ensemble se règle en CSS via data-sign sur #app)
   const SIGN = { six: ['#e63946', 'star'], casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
-  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
+  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.id === 'six' && G.eventOff() ? 'Le Panneau' : b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
   // compte à rebours de l'événement, sous le nom du Tournoi sur la carte
+  const nextEvDays = () => { const t = G.nextEventAt(); return t ? Math.max(1, Math.ceil((t - Date.now()) / 86400000)) : 0; };
   function sixTimer() {
     const ph = G.sixPhase(), t = ph === 'before' ? G.sixKick(0) - Date.now() : G.sixEnd() - Date.now();
+    if (G.eventOff()) { const n = nextEvDays(); return n ? `Rien en cours, reviens dans ${n} j` : 'Rien en cours'; }
     if (ph === 'over') return 'Terminé';
     const m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
     const left = d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min ${String(Math.floor(t / 1000) % 60).padStart(2, '0')}`;
@@ -436,7 +438,7 @@
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
-      const img = has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
+      const img = b.id === 'six' && G.eventOff() ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
@@ -1445,7 +1447,18 @@
     return head + how + today.join('') + upcoming.join('') + lockTxt + (past.length ? `<h3 class="sec">Journées passées</h3>${past.join('')}` : '');
   }
   const shortTeam = n => n.split(' ')[0];
+  // pas d'événement : un panneau de quartier sobre qui annonce le prochain
+  function openPanneau() {
+    const t = G.nextEventAt(), n = nextEvDays();
+    const when = t ? new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : '';
+    openModal({ title: 'Le Panneau', icon: 'star', center: true, body: `<div class="panneau-off">
+      <div class="po-board">${has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`}</div>
+      <b class="po-title">Pas d'événement en cours</b>
+      <p class="center">${t ? `Reviens dans <b>${n} jour${n > 1 ? 's' : ''}</b> : le prochain commence le <b>${when}</b>.` : 'Le prochain arrive bientôt : il sera annoncé ici.'}</p>
+      <p class="hint-line center">Tes pin's et tes cadres restent dans ton profil.</p></div>` });
+  }
   function openSix(tab) {
+    if (G.eventOff()) return openPanneau();
     if (tab) sixTab = tab; else sixTab = 'pronos';
     G.sixSeenNow(); renderHud();
     openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }, { id: 'shop', label: 'Boutique' }], tab: sixTab,

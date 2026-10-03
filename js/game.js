@@ -916,6 +916,9 @@
   }
   const sixMatches = () => D.SIX.matches.map((x, i) => sixMatch(i));
   const sixEnd = () => sixKick(D.SIX.matches.length - 1) + sixLive();
+  // plus d'événement en cours : tournoi fini et récompense touchée (ou fini depuis plus de 7 jours)
+  function eventOff() { if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || S.final.claimed || now() - sixEnd() > 7 * 86400000; }
+  function nextEventAt() { const t = D.NEXT_EVENT && D.NEXT_EVENT.at && Date.parse(D.NEXT_EVENT.at); return t && t > now() ? t : null; }
   function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
   // les journées s'ouvrent une par une : la suivante quand la précédente est finie
   function sixDayOpen(d) { return d === 1 || D.SIX.matches.every((x, i) => x[0] !== d - 1 || sixMatch(i).state === 'done'); }
@@ -1330,7 +1333,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,

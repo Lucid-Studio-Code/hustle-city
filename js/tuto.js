@@ -36,7 +36,7 @@
   // Mini-tuto de chaque lieu : au début du jeu (lieux du niveau 1) ou dès qu'il se débloque. Appart et Royal sont vus dans le grand tuto.
   const title = () => ([...document.querySelectorAll('#modal .sheet-head > span')].pop() || {}).textContent || '';
   const enter = (id, name, intro, inside, target) => [
-    { say: () => intro, target: `.bld[data-id=${id}]`, before: () => U.focusBld(id), done: () => modalOpen() && title() === name },
+    { say: () => typeof intro === 'function' ? intro() : intro, target: `.bld[data-id=${id}]`, before: () => U.focusBld(id), done: () => modalOpen() && title() === (typeof name === 'function' ? name() : name) },
     { say: () => typeof inside === 'function' ? inside() : inside, target, btn: 'Compris' }
   ];
   const BLD = {
@@ -48,9 +48,9 @@
       'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
     shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes et des baskets de collection. Entre.',
       'Leur prix bouge tout le temps. Tu achètes quand c\'est pas cher, tu revends quand ça monte. Le Comptoir garde une petite part, donc il faut que ça monte assez. L\'onglet <b>Actus</b> te dit ce qui va bouger.', '#modal .tab[data-tab=news]'),
-    six: enter('six', 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
-      () => G.sixPhase() === 'over' ? 'Le dernier en date : le <b>Tournoi des 6 Quartiers</b>, du rugby. Il est terminé, mais <b>le prochain événement sera annoncé ici</b> : pronos gratuits, classement contre les autres joueurs et cartes en édition limitée. Repasse de temps en temps !'
-        : 'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs'),
+    six: enter('six', () => G.eventOff() ? 'Le Panneau' : 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
+      () => G.eventOff() ? 'Pour l\'instant, pas d\'événement : le Panneau te dit <b>quand revient le prochain</b>. Ce jour-là : pronos <b>gratuits</b>, classement contre les autres joueurs et cartes en édition limitée dans les boosters. Repasse voir !'
+        : 'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs, #modal .panneau-off'),
     club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Va voir le videur.',
       'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo], #modal .sheet-body')
   };
