@@ -1775,7 +1775,7 @@
     const card = el.querySelector('.tcg');
     el.onpointermove = e => {
       const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
-      card.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 22).toFixed(1)}deg)`;
+      card.classList.add('touched'); card.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 22).toFixed(1)}deg)`;
       card.style.setProperty('--hx', `${((x + .5) * 100).toFixed(0)}%`); card.style.setProperty('--hy', `${((y + .5) * 100).toFixed(0)}%`);
     };
     el.onclick = e => { if (e.target === el) closeZoom(); };
