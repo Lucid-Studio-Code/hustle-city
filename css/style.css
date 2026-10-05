@@ -2882,3 +2882,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .odds.closed .odd-btn { filter: grayscale(1); opacity: .5; cursor: default; box-shadow: none; }
 
 #app .odds-closed { width: 100%; margin: 0 0 4px; text-align: center; font: 800 11px var(--text); color: #7a5a3a; }
+.tcg .tcg-sub.full { inset: 0; }   /* illustrations bonus : pleine fenêtre, comme les cartes joueur */

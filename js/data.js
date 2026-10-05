@@ -135,15 +135,15 @@
     ],
     // objets à acheter pour une créatrice (une fois chacun) : rev = revenus, subs = croissance des abonnés, mood = moral par heure
     // niche : ×2 sur l'effet si ça colle à sa spécialité
-    // équilibrage 03/10 : un objet « de spécialité » vaut ×2 pour les créatrices de cette spécialité, il est donc plus cher que l'objet pour tout le monde à effet égal
+    // équilibrage 05/10 : un objet « de spécialité » rapporte moins que le micro pour tout le monde, donc il coûte moins cher ; dans sa spécialité son effet ×2 en fait la meilleure affaire
     gear: [
       { id: 'ring',   name: 'Ring light pro',        icon: '💡', cost: 300,  subs: .15, desc: 'Des photos nettes : les abonnés montent plus vite.' },
       { id: 'cam',    name: 'Appareil photo hybride', icon: '📷', cost: 900,  subs: .25, desc: 'Qualité pro pour chaque shooting.' },
       { id: 'mic',    name: 'Micro de stream',       icon: '🎙️', cost: 400,  rev: .10,  desc: 'Les lives rapportent plus de pourboires.' },
-      { id: 'sport',  name: 'Tenue de sport premium', icon: '🏋️', cost: 600,  rev: .06, niche: ['Fitness', 'Danse', 'Bien-être'], desc: 'Parfaite pour les vidéos qui bougent.' },
-      { id: 'gown',   name: 'Robe de soirée',        icon: '👗', cost: 900,  rev: .07, niche: ['Mode & luxe', 'Beauté', 'Musique'], desc: 'Pour les photos glamour.' },
-      { id: 'cosplay', name: 'Costume de héroïne',   icon: '🦸', cost: 800,  rev: .07, niche: ['Cosplay', 'Gaming'], desc: 'Les fans adorent.' },
-      { id: 'travel', name: 'Valise de voyage',      icon: '🧳', cost: 650,  rev: .06, niche: ['Voyage', 'Cuisine'], desc: 'Prête à partir tourner au soleil.' },
+      { id: 'sport',  name: 'Tenue de sport premium', icon: '🏋️', cost: 320,  rev: .06, niche: ['Fitness', 'Danse', 'Bien-être'], desc: 'Parfaite pour les vidéos qui bougent.' },
+      { id: 'gown',   name: 'Robe de soirée',        icon: '👗', cost: 380,  rev: .07, niche: ['Mode & luxe', 'Beauté', 'Musique'], desc: 'Pour les photos glamour.' },
+      { id: 'cosplay', name: 'Costume de héroïne',   icon: '🦸', cost: 360,  rev: .07, niche: ['Cosplay', 'Gaming'], desc: 'Les fans adorent.' },
+      { id: 'travel', name: 'Valise de voyage',      icon: '🧳', cost: 340,  rev: .06, niche: ['Voyage', 'Cuisine'], desc: 'Prête à partir tourner au soleil.' },
       { id: 'spa',    name: 'Abonnement spa',        icon: '🧖', cost: 120,  mood: 2,   sub: true, desc: 'Elle récupère toute seule. Prélevé chaque jour, résiliable quand tu veux.' },   // sub = abonnement : cost par jour
       { id: 'studio', name: 'Déco de studio',        icon: '🛋️', cost: 2500, rev: .15, subs: .1, desc: 'Un vrai décor : tout son contenu prend de la valeur.' }
     ],

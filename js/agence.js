@@ -267,7 +267,7 @@
           return `<button class="sh-opt ${m.pct === v ? 'on' : ''}" data-act="agShare" data-id="${m.id}" data-v="${v}"><b>${Math.round(v * 100)} %</b><span class="g-up">≈ ${U.short(perHour({ ...m, pct: v }))}/h pour toi</span><span class="${d ? 'g-down' : 'g-up'}">${d ? `moral −${d}/h` : 'moral stable'}</span></button>`; }).join('')}</div></div>`}
         ${(() => { const n = A.gear.filter(g => hasG(m, g)).length, open = gearOpen.has(m.id);
           return `<button class="ag-gear-btn" data-act="agGearOpen" data-id="${m.id}">${U.has('gear-gown') ? `<img class="ico" src="${U.src('gear-gown')}" alt="">` : ''} ${p.me ? 'Tes affaires' : 'Ses affaires'} · ${n}/${A.gear.length}${gearK(m, 'rev') ? ` · revenus +${Math.round(gearK(m, 'rev') * 100)} %` : ''} <i>${open ? '▾' : '▸'}</i></button>
-          ${open ? `<div class="ag-gear">${A.gear.map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
+          ${open ? `<div class="ag-gear">${A.gear.slice().sort((g1, g2) => (g1.sub ? 1e9 : g1.cost) - (g2.sub ? 1e9 : g2.cost)).map(g => { const own = hasG(m, g), fit = g.niche && g.niche.includes(p.niche), k = fit ? 2 : 1;
             const fx = [g.rev ? `<span class="gx rev">💰 +${Math.round(g.rev * k * 100)} % de revenus<small>≈ +${U.short(Math.max(1, Math.round(perHour(m) / (1 + gearK(m, 'rev')) * g.rev * k)))}/h pour toi</small></span>` : '',
               g.subs ? `<span class="gx subs">👥 +${Math.round(g.subs * k * 100)} % d'abonnés<small>ils montent plus vite</small></span>` : '',
               g.mood ? `<span class="gx mood">😊 +${g.mood * k} ${p.me ? 'd\'énergie' : 'de moral'}<small>chaque heure, toute seule</small></span>` : ''].join('');
