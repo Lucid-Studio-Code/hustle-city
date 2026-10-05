@@ -1333,7 +1333,14 @@
     return D.SEASONS.find(x => { const at = v => { if (v.startsWith('bf')) { const b = bfDate(y); b.setDate(b.getDate() + (+v.slice(3) || 0)); return b; } const [m, d] = v.split('-').map(Number); return new Date(y, m - 1, d); };
       const a = at(x.from), b = at(x.to); x._end = new Date(b.getFullYear(), b.getMonth(), b.getDate() + 1); return today >= a && today <= b; }) || null;
   }
-  const promoNow = () => { const se = seasonNow(); if (se) return { ...se.deal, season: se };
+  // une promo programmée dans le back office passe en premier (la plus ancienne qui a commencé)
+  function campaignNow() {
+    const t = Date.now(), c = (D.CAMPAIGNS || []).filter(x => x.on !== false && Date.parse(x.start) <= t && t < Date.parse(x.end)).sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0];
+    if (!c) return null; const lk = (D.PROMO_LOOKS || {})[c.look] || D.PROMO_LOOKS.promo;
+    return { id: c.offer, off: c.kind === 'off' ? +c.value : 0, bonus: c.kind === 'bonus' ? +c.value : 0, title: c.title, desc: c.desc,
+      season: { id: 'c-' + c.id, name: c.name || 'Promo', img: has(lk[0]) ? lk[0] : 'ic-promo', color: lk[1], _end: new Date(Date.parse(c.end)) } };
+  }
+  const promoNow = () => { const cp = campaignNow(); if (cp) return cp; const se = seasonNow(); if (se) return { ...se.deal, season: se };
     return D.PROMO_DAYS.includes(new Date().getDay()) ? D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length] : null; };
   const promoLeft = () => { const p = promoNow(); if (p && p.season) return p.season._end - Date.now(); const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
   // le bouton à gauche : visuel de saison ou de promo ; sans promo, il alterne entre la boutique de lingots, « Ma ville » (décos) et, pour un nouveau joueur, l'offre de bienvenue

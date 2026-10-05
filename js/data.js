@@ -776,6 +776,10 @@
     { id: 'noel', name: 'Noël',          from: '12-15', to: '12-26', img: 'ic-promo-noel', color: '#d33a2c',
       deal: { id: 'l-1300', bonus: 50, title: 'Coffre de Noël : +50 % de lingots', desc: '1 950 lingots au lieu de 1 300' } }
   ];
+  // promos programmées depuis le back office (page Promos) : { look, name, offer, kind: off|bonus, value, start, end, on, title, desc }.
+  // Elles passent avant les saisons et les offres du jour. Vide tant que le jeu n'a pas parlé au serveur.
+  const CAMPAIGNS = [];
+  const PROMO_LOOKS = { promo: ['ic-promo', '#ff3cac'], halloween: ['ic-promo-halloween', '#ff7a1a'], bf: ['ic-promo-bf', '#1d1d1f'], noel: ['ic-promo-noel', '#d33a2c'] };
   // l'offre du moment ne tourne pas tous les jours : ces jours-là (0 = dimanche), sinon le bouton redevient une simple boutique
   const PROMO_DAYS = [0, 3, 5, 6];
   // Pubs récompensées : on regarde une pub pour gagner des lingots (le pack « Sans pub » donne la récompense sans la pub)
@@ -827,6 +831,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

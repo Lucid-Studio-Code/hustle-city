@@ -100,9 +100,10 @@
       promoDays: [...(c.promoDays || D.PROMO_DAYS || [])], ads: { ...(D.ADS || {}), ...(c.ads || {}) }, values: { ...(c.values || {}) }
     };
     let dirty = false, fSeason = 0, fPromo = 0;
-    const SECS = [['ev-news', 'Annonces', 'ic-rumor'], ['ev-maint', 'Maintenance', 'hdr-settings'], ['ev-next', 'Prochain événement', 'bld-six-off'], ['ev-six', 'Tournoi', 'bld-six'], ['ev-seasons', 'Saisons', 'ic-promo'], ['ev-promos', 'Offres du jour', 'ev-sale'], ['ev-ads', 'Pubs', 'bonus-lingots'], ['ev-adv', 'Avancé', 'btn-setup']];
+    const SECS = [['ev-news', 'Annonces', 'ic-rumor'], ['ev-maint', 'Maintenance', 'hdr-settings'], ['ev-next', 'Prochain événement', 'bld-six-off'], ['ev-six', 'Tournoi', 'bld-six'], ['ev-ads', 'Pubs', 'bonus-lingots'], ['ev-adv', 'Avancé', 'btn-setup']];
     HC.main(`<div class="page-head"><div><h1>Événements et nouveautés</h1><div class="sub">Tout ce qui est ici change le jeu chez tous les joueurs, sans republier le jeu : dans la minute pour ceux qui jouent, à la connexion pour les autres.</div></div></div>
       <div class="subnav">${SECS.map(([id, l, i]) => `<button class="chip" data-scroll="${id}">${img(i)}${l}</button>`).join('')}</div>
+      <div class="card pm-note" style="margin-bottom:16px">${img('ic-promo')}<div><b>Les promos ont leur propre page</b><p class="help">Halloween, Black Friday, Noël, offres flash : tout se fait dans « Promos », une promo à la fois.</p></div><button class="btn" data-go="promos">Ouvrir les promos</button></div>
       <div id="ev-body"></div>
       <div class="publish-bar" id="pub-bar"><span class="pb-txt" id="pub-txt"></span><button class="btn ghost" id="pub-reset">Annuler mes changements</button><button class="btn lg green" id="pub-go">${img('icon-check')}Publier pour tous les joueurs</button></div>`);
     const setDirty = v => { dirty = v; $('#pub-bar').classList.toggle('dirty', v); $('#pub-txt').innerHTML = v ? '<b>Changements pas encore publiés.</b> Les joueurs ne les voient pas tant que tu n\'as pas cliqué sur « Publier ».' : `Tout est publié${lastPubT ? ` (dernière publication ${ago(lastPubT)})` : ''}.`; };
@@ -184,7 +185,7 @@
         nextEvent: S.nextEvent || null, sixStart: S.sixStart || null, maintenance: { on: !!S.maintenance.on, text: S.maintenance.text || '' },
         seasons: S.seasons.filter(s => s.name).map(s => ({ ...s, id: s.id || s.name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, ''), deal: { ...(s.deal || {}), off: num((s.deal || {}).off), bonus: num((s.deal || {}).bonus) } })),
         promos: S.promos.map(p => ({ ...p, off: num(p.off), bonus: num(p.bonus) })), promoDays: [...S.promoDays].sort(),
-        ads: { reward: +S.ads.reward || 0, perDay: +S.ads.perDay || 0, cooldownMin: +S.ads.cooldownMin || 0, watchS: +S.ads.watchS || 0 }, values: S.values
+        campaigns: c.campaigns, ads: { reward: +S.ads.reward || 0, perDay: +S.ads.perDay || 0, cooldownMin: +S.ads.cooldownMin || 0, watchS: +S.ads.watchS || 0 }, values: S.values
       };
     }
     const setPath = (o, k, v) => { const ks = k.split('.'); let x = o; for (let i = 0; i < ks.length - 1; i++) x = x[ks[i]] = x[ks[i]] || {}; x[ks[ks.length - 1]] = v; };

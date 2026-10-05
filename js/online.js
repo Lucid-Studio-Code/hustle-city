@@ -19,9 +19,10 @@
   function applyConfig(c) {
     if (!c) return; ONLINE.config = c;
     if (c.nextEvent) D.NEXT_EVENT.at = c.nextEvent || null;
-    if (Array.isArray(c.seasons) && c.seasons.length) D.SEASONS.splice(0, D.SEASONS.length, ...c.seasons);
+    if (Array.isArray(c.seasons) && (c.seasons.length || Array.isArray(c.campaigns))) D.SEASONS.splice(0, D.SEASONS.length, ...c.seasons);
     if (Array.isArray(c.promoDays)) D.PROMO_DAYS.splice(0, D.PROMO_DAYS.length, ...c.promoDays);
     if (Array.isArray(c.promos) && c.promos.length) D.PROMOS.splice(0, D.PROMOS.length, ...c.promos);
+    if (Array.isArray(c.campaigns)) D.CAMPAIGNS.splice(0, D.CAMPAIGNS.length, ...c.campaigns);
     if (c.ads) Object.assign(D.ADS, c.ads);
     if (c.sixStart) D.SIX.sim = c.sixStart;
     Object.entries(c.values || {}).forEach(([p, v]) => { try { setPath(D, p, v); } catch (e) {} });

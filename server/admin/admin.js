@@ -149,6 +149,7 @@
     { id: 'stats', label: 'Statistiques', icon: 'app-crypto' },
     { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
     { id: 'support', label: 'SAV', icon: 'app-msg', badge: 'nb-tk' },
+    { id: 'promos', label: 'Promos', icon: 'ic-promo' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
     { id: 'logs', label: 'Journal', icon: 'hdr-missions' }
