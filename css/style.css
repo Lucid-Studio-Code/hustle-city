@@ -3130,3 +3130,9 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .panneau-off .po-board { position: relative; width: 150px; height: 150px; flex: none; overflow: hidden; }
 #app .panneau-off .po-board > .pic, #app .panneau-off .po-board > .six-off-fb { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 #app .panneau-off .po-board img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* onglet verrouillé : cadenas + niveau de déblocage */
+#app .tab.tab-locked { display: flex; align-items: center; justify-content: center; gap: 8px; }
+#app .tab .tab-lock { display: grid; place-items: center; width: 26px; height: 26px; flex: none; }
+#app .tab .tab-lock .ic { width: 24px; height: 24px; margin: 0; }
+#app .tab .tab-lbl { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; }
+#app .tab .tab-lbl small { font: 900 10px var(--text); color: #fff; opacity: .9; -webkit-text-stroke: 0; margin-top: 1px; }

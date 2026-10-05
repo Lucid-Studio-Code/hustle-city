@@ -158,7 +158,7 @@
     m.className = full ? 'full' : '';
     m.innerHTML = `<div class="sheet ${center ? 'center' : ''} ${theme ? 'th-' + theme : ''}">
       <div class="sheet-head">${icon ? ic(icon) : ''}<span>${title}</span><button class="sheet-close" data-act="closeModal" aria-label="Fermer">×</button></div>
-      ${tabs ? `<div class="tabs">${tabs.map(t => `<button class="tab ${t.id === tab ? 'on' : ''}" data-tab="${t.id}" ${t.locked ? 'disabled' : ''}>${t.label}</button>`).join('')}</div>` : ''}
+      ${tabs ? `<div class="tabs">${tabs.map(t => `<button class="tab ${t.id === tab ? 'on' : ''} ${t.locked ? 'tab-locked' : ''}" data-tab="${t.id}" ${t.locked ? 'disabled' : ''}>${t.locked ? `<span class="tab-lock">${ic('lock')}</span>` : ''}<span class="tab-lbl">${t.label}${t.locked && t.lvl ? `<small>Niveau ${t.lvl}</small>` : ''}</span></button>`).join('')}</div>` : ''}
       <div class="sheet-body">${body}</div></div>`;
     modalClose = onClose || null; modalRefresh = refresh || null; tabHandler = onTab || null;
     m.onclick = e => { if (e.target === m) closeModal(); };
@@ -1632,7 +1632,7 @@
   function openShop(tab, place) {
     if (place) shopPlace = place; else if (!tab || (D.ITEM_CATS[tab] && D.ITEM_CATS[tab].shop !== shopPlace)) shopPlace = tab && D.ITEM_CATS[tab] ? D.ITEM_CATS[tab].shop : 'comptoir';
     if (tab) shopTab = tab;
-    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy && c.shop === shopPlace).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k) }));
+    const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy && c.shop === shopPlace).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k), lvl: c.lvl }));
     if (shopPlace === 'comptoir') tabs.push({ id: 'news', label: 'Actus' });
     if (!tabs.find(t => t.id === shopTab) || tabs.find(t => t.id === shopTab).locked) shopTab = (tabs.find(t => !t.locked) || tabs[0]).id;
     const P = SHOP_PLACES[shopPlace];
