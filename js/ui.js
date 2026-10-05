@@ -295,7 +295,7 @@
     hydrateIcons(b);
     // un nouveau rang de fortune : on le fête
     const rk = G.rankOf(G.worth()); if (s.rankMax == null) s.rankMax = rk.i;
-    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Nouveau rang !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="lv-big stroke">${rk.emo} ${rk.name.toUpperCase()}</div><p class="hint-line center">Ton patrimoine passe <b>${short(rk.n)}</b>. Tout le quartier en parle.${rk.next ? ` Prochain rang : <b>${rk.next.emo} ${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
+    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="lv-big stroke">${rk.emo} ${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.emo} ${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
   let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
   function renderNextBtn() {
@@ -1755,30 +1755,6 @@
           <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
       body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '2 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}2 + booster</span>`}</div>`;
-    } else if (rewardsTab === 'semaine') {
-      const w = G.week(), nGot = w.list.filter(c => c.got).length, R = D.WEEK_REWARD, left = G.weekLeft();
-      body += `<p class="hint-line">4 objectifs pour la semaine, renouvelés dans <b>${left} jour${left > 1 ? 's' : ''}</b> (lundi). Chacun : <b>${short(R.cash(s.lvl))}<i class="cur"></i> + ${R.lingots} lingots</b>. Les 4 réussis : <b>${R.bonus.boosters} boosters + ${R.bonus.lingots} lingots</b> !</p>`;
-      w.list.forEach((c, i) => {
-        const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
-        body += `<div class="row rw-row ${c.got ? 'owned' : ready ? 'focus ready' : 'open'}"><div class="art">${ic(c.got ? 'check' : 'trophy')}</div><div class="info">
-          <h4>Objectif ${i + 1}</h4><p class="rw-do">${c.t.replace('{n}', c.goal)}</p>
-          ${c.got ? '' : `<div class="bar"><div style="width:${(v / c.goal * 100).toFixed(0)}%"></div><span>${v} / ${c.goal}</span></div>`}
-          <p class="rw-get">Tu gagnes ${chips(R.cash(s.lvl), R.lingots)}</p></div>
-          <div class="btns">${c.got ? '<span class="rw-done">✓ Récupéré</span>' : ready ? `<button class="btn green" data-act="claimWeek" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
-      });
-      body += `<div class="chal-bonus ${w.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus de la semaine</b><small>${w.bonus ? 'Déjà récupéré. Nouveaux objectifs lundi !' : `${nGot} / 4 objectifs réussis`}</small></div>${w.bonus ? '<span class="got-tag">✓ Récupéré</span>' : `<span class="stroke">${R.bonus.boosters} boosters</span>`}</div>`;
-      // les grands objectifs : ce qui se construit sur des semaines
-      const cards = D.ITEMS.filter(i => i.series && G.cardOk(i)), crea = c => (D.SERIES.find(x => x.id === c.series) || {}).col === 'crea';
-      const have = L => L.filter(c => (s.owned[c.id] || []).length).length, sp = cards.filter(c => !crea(c)), cr = cards.filter(crea);
-      const rk = G.rankOf(G.worth()), achN = Object.keys(s.ach || {}).length;
-      const goal = (emo, t, v, n, sub) => `<div class="lt-goal"><span class="lt-ic">${emo}</span><div class="grow"><b>${t}</b><div class="bar"><div style="width:${Math.min(100, v / Math.max(1, n) * 100).toFixed(0)}%"></div><span>${sub || `${v} / ${n}`}</span></div></div></div>`;
-      body += `<h3 class="sec">Tes grands objectifs</h3><div class="lt-goals">
-        ${goal('⭐', `Niveau ${D.MAX_LVL}`, s.lvl, D.MAX_LVL, `Niveau ${s.lvl} / ${D.MAX_LVL}`)}
-        ${goal(rk.emo, rk.next ? `Rang de fortune : ${rk.next.emo} ${rk.next.name}` : `Rang : ${rk.name}`, rk.next ? G.worth() - rk.n : 1, rk.next ? rk.next.n - rk.n : 1, rk.next ? `${rk.name} · encore ${short(rk.next.n - G.worth())}` : 'Tu es au sommet')}
-        ${goal('🏆', 'Cartes de sport', have(sp), sp.length)}
-        ${cr.length ? goal('🐲', 'Cartes Créatures', have(cr), cr.length) : ''}
-        ${goal('🎖️', 'Succès', achN, D.ACHIEVEMENTS.length)}
-        ${goal('🎯', 'Missions', G.questsClaimed(), D.QUESTS.length)}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
@@ -1800,7 +1776,24 @@
       if (got >= D.QUESTS.length) body += '<p class="hint-line">Tu as terminé toutes les missions. Respect !</p>';
     } else {
       const need = G.xpNeed();
-      body += '<p class="hint-line">Gagne de l\'XP en pariant, en tradant, en jouant et en collectionnant. À chaque niveau : des billets, des lingots, un booster et des nouveautés.</p>';
+      // street cred : le rang qui suit ton patrimoine, avec les moyens de le faire grimper
+      const rk = G.rankOf(G.worth()), pct = rk.next ? (G.worth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
+      const ways = [['shop', '🃏', 'Objets qui montent', G.catUnlocked('card')], ['pc', '📈', 'Investir en crypto', true], ['rig', '⛏️', 'Lancer un minage', true]].filter(w => w[3]);
+      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${rk.emo}</span><div class="grow"><small>Ta street cred</small><b>${rk.name}</b></div>${rk.next ? `<div class="cred-next"><small>Prochain</small><b>${rk.next.emo} ${rk.next.name}</b></div>` : ''}</div>
+        <div class="bar"><div style="width:${Math.min(100, pct).toFixed(0)}%"></div><span>${rk.next ? `${short(G.worth())} / ${short(rk.next.n)}` : 'Au sommet'}</span></div>
+        <div class="cred-ranks">${D.RANKS.map((r, k) => `<i class="${k <= rk.i ? 'on' : ''}" title="${r.name}">${r.emo}</i>`).join('')}</div>
+        <div class="cred-ways">${ways.map(w => `<button class="btn xs" data-act="credGo" data-id="${w[0]}">${w[1]} ${w[2]}</button>`).join('')}</div></div>`;
+      // objectifs de la semaine, en compact
+      const w = G.week(), R = D.WEEK_REWARD, left = G.weekLeft();
+      body += `<div class="wk-card"><div class="wk-head"><b>Objectifs de la semaine</b><small>encore ${left} j · ${w.list.filter(c => c.got).length}/4${w.bonus ? ' · bonus ✓' : ` · bonus ${R.bonus.boosters} boosters`}</small></div>${w.list.map((c, i) => {
+        const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
+        return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">+${R.lingots} ${ic('lingot')}</button>` : `<span class="wk-v">${v}/${c.goal}</span>`}</div>`; }).join('')}</div>`;
+      // grands objectifs, en tuiles
+      const cards = D.ITEMS.filter(i => i.series && G.cardOk(i)), crea = c => (D.SERIES.find(x => x.id === c.series) || {}).col === 'crea';
+      const have = L => L.filter(c => (s.owned[c.id] || []).length).length, sp = cards.filter(c => !crea(c)), cr = cards.filter(crea);
+      const tile = (emo, t, v, n) => `<div class="lt-tile"><span>${emo}</span><b>${v}<small>/${n}</small></b><small>${t}</small><i style="--p:${Math.min(100, v / Math.max(1, n) * 100).toFixed(0)}%"></i></div>`;
+      body += `<div class="lt-tiles">${tile('🏆', 'Cartes sport', have(sp), sp.length)}${cr.length ? tile('🐲', 'Créatures', have(cr), cr.length) : ''}${tile('🎖️', 'Succès', Object.keys(s.ach || {}).length, D.ACHIEVEMENTS.length)}${tile('🎯', 'Missions', G.questsClaimed(), D.QUESTS.length)}</div>
+        <h3 class="sec">Niveaux <small>· chaque niveau : billets, lingots, booster et nouveautés</small></h3>`;
       for (let L = 2; L <= D.MAX_LVL; L++) {
         const r = D.LEVEL_REWARD(L), done = L <= s.lvl, next = L === s.lvl + 1, un = unlocksAt(L);
         const tag = done ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : next ? '<span class="rw-tag next">Prochain</span>' : `<span class="rw-tag">${ic('lock')}À venir</span>`;
@@ -1816,14 +1809,14 @@
   }
   function openRewards(tab, scrollCur) {
     if (tab) rewardsTab = tab;
-    else rewardsTab = G.questsReady() ? 'missions' : G.chalReady() ? 'defis' : G.weekReady() ? 'semaine' : rewardsTab;
-    const labels = () => ({ defis: `Défis du jour${G.chalReady() ? ` <span class="tab-badge">${G.chalReady()}</span>` : ''}`, semaine: `Semaine${G.weekReady() ? ` <span class="tab-badge">${G.weekReady()}</span>` : ''}`, missions: `Missions${G.questsReady() ? ` <span class="tab-badge">${G.questsReady()}</span>` : ''}`, levels: 'Niveaux' });
+    else rewardsTab = G.questsReady() ? 'missions' : G.chalReady() ? 'defis' : G.weekReady() ? 'levels' : rewardsTab;
+    const labels = () => ({ defis: `Défis du jour${G.chalReady() ? ` <span class="tab-badge">${G.chalReady()}</span>` : ''}`, missions: `Missions${G.questsReady() ? ` <span class="tab-badge">${G.questsReady()}</span>` : ''}`, levels: `Niveaux${G.weekReady() ? ` <span class="tab-badge">${G.weekReady()}</span>` : ''}` });
     const tabs = Object.entries(labels()).map(([id, label]) => ({ id, label }));
     // les pastilles des onglets se mettent à jour dès qu'on réclame
     const retab = () => { const L = labels(); document.querySelectorAll('#modal .tab').forEach(t => { if (L[t.dataset.tab] != null && t.innerHTML !== L[t.dataset.tab]) t.innerHTML = L[t.dataset.tab]; }); };
     openModal({ title: 'Récompenses', icon: 'hdr-missions', full: true, tabs, tab: rewardsTab, body: rewardsBody(),
-      onTab: id => { rewardsTab = id; setBody(rewardsBody()); scrollToCur(); }, refresh: () => { setBody(rewardsBody()); retab(); } });
-    if (scrollCur !== false) scrollToCur();
+      onTab: id => { rewardsTab = id; setBody(rewardsBody()); }, refresh: () => { setBody(rewardsBody()); retab(); } });
+    if (scrollCur) scrollToCur();
   }
   function scrollToCur() { const c = $('#modal .rw-row.focus'), b = $('#modal .sheet-body'); if (c && b) b.scrollTop = c.offsetTop - b.offsetTop - 12; }
 
@@ -2056,7 +2049,7 @@
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
-        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank">${G.rankOf(G.worth()).emo} ${G.rankOf(G.worth()).name}</span>
+        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${G.rankOf(G.worth()).emo} ${G.rankOf(G.worth()).name}</span>
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}
@@ -2262,7 +2255,8 @@
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); refresh(); },
     lvlGo(el) { closeModal(); setScene('city'); focusBld(el.dataset.id); },
-    nextCap() { openRewards('levels'); },
+    nextCap() { openRewards('levels', true); },
+    credGo(el) { questGo(el.dataset.id); },
     claimWeek(el) { const r = G.claimWeek(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-lingots'); if (r.bonus) { rain('bill', 40); toast('Semaine bouclée : 3 boosters et 15 lingots !'); } refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
     questGo(el) { questGo(D.QUESTS.find(q => q.id === el.dataset.id).go); },
