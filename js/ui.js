@@ -1334,7 +1334,7 @@
   function promoBanner() {
     const p = promoNow(), x = p && D.IAP.find(i => i.id === p.id); if (!x) return '';
     const btn = p.off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price;
-    return `<div class="promo-banner"><span class="pb-off">${p.off ? `−${p.off} %` : `+${p.bonus} %`}</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon">${btn}</button></div>`;
+    return `<div class="promo-banner"><span class="pb-off">${p.off ? `−${p.off} %` : `+${p.bonus} %`}</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon" data-id="${x.id}">${btn}</button></div>`;
   }
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
@@ -1350,9 +1350,9 @@
       const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
       return `${promoBanner()}${adCard()}${pass}
         <p class="hint-line">Des lingots et des packs en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
-        <h3 class="sec">Lingots</h3><div class="iap-grid3">${L.map(x => `<div class="card iap-card ${x.best ? 'best' : ''}">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n.toLocaleString('fr-FR')}</b><small>${x.name}</small>${x.best ? `<span class="iap-best">${x.best}</span>` : ''}<button class="btn gold xs" data-act="iapSoon">${x.price}</button></div>`).join('')}</div>
+        <h3 class="sec">Lingots</h3><div class="iap-grid3">${L.map(x => `<div class="card iap-card ${x.best ? 'best' : ''}">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n.toLocaleString('fr-FR')}</b><small>${x.name}</small>${x.best ? `<span class="iap-best">${x.best}</span>` : ''}<button class="btn gold xs" data-act="iapSoon" data-id="${x.id}">${x.price}</button></div>`).join('')}</div>
         <h3 class="sec">Packs</h3>${P.map(x => { const done = x.once && owned[x.id];
-          return `<div class="card iap-pack ${done ? 'done' : ''}"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}${done ? '<span class="iap-own">✓ Acheté</span>' : `<button class="btn purple xs" data-act="iapSoon">${x.price}</button>`}</div>`; }).join('')}`;
+          return `<div class="card iap-pack ${done ? 'done' : ''}"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}${done ? '<span class="iap-own">✓ Acheté</span>' : `<button class="btn purple xs" data-act="iapSoon" data-id="${x.id}">${x.price}</button>`}</div>`; }).join('')}`;
     }
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
       const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
@@ -1970,6 +1970,8 @@
       <h3 class="sec">Aide</h3><div class="card set-card">
         <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
+        ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="supportOpen"><span><b>Contacter le support</b><small>Un souci, une question : on te répond dans ton téléphone</small></span><em>›</em></button>
+        <button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
       ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>
@@ -2202,6 +2204,12 @@
     },
     adClaim() { const r = G.adReward(); adClose(); if (r.err) return toast(r.err, true); sfx.coin(); rain('confetti', 16); toast(`+${r.n} lingots, merci !`); renderHud(); refresh(); },
     adQuit() { adClose(); toast('Pub interrompue : pas de lingots cette fois.', true); },
+    supportOpen() { openModal({ title: 'Support', icon: 'star', center: true, body: `<p class="hint-line">Explique ton souci : la réponse arrive dans ton téléphone, dans les messages.</p><textarea id="sup-txt" class="sup-txt" maxlength="2000" placeholder="Ton message…"></textarea><button class="btn green wide" data-act="supportSend">Envoyer</button>` }); },
+    async supportSend() { const t = ($('#sup-txt') || {}).value || ''; if (t.trim().length < 5) return toast('Écris un peu plus, stp.', true);
+      try { const r = await window.ONLINE.support(t); if (!r.ok) throw 0; closeModal(); toast('Message envoyé au support !'); } catch (e) { toast('Envoi impossible pour l\'instant, réessaie plus tard.', true); } },
+    onlineCode() { openModal({ title: 'Code de récupération', icon: 'star', center: true, body: `<p class="hint-line">Garde ce code précieusement : sur un autre appareil, il te rend ta partie.</p><div class="card center sup-code">${esc(window.ONLINE.code())}</div><button class="btn blue wide" data-act="onlineCopy">Copier</button><h3 class="sec">Récupérer une partie</h3><input id="rec-code" class="sup-in" placeholder="Colle ton code ici"><button class="btn wide" data-act="onlineRestore">Récupérer</button><p class="hint-line center">Attention : la partie de cet appareil sera remplacée.</p>` }); },
+    onlineCopy() { try { navigator.clipboard.writeText(window.ONLINE.code()); toast('Code copié !'); } catch (e) { toast('Copie impossible : recopie-le à la main.', true); } },
+    async onlineRestore() { try { await window.ONLINE.restore(($('#rec-code') || {}).value || ''); } catch (e) { toast(e.message || 'Code inconnu.', true); } },
     skinSwitch(el) {
       const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); }

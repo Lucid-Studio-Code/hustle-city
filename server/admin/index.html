@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hustle City · Back office</title>
+<link rel="stylesheet" href="admin.css">
+</head><body>
+<div id="login" class="login hidden"><div class="box"><b>Hustle City · back office</b><p>Colle ton jeton d'accès (affiché par le serveur au démarrage).</p><input id="tok" type="password" placeholder="Jeton"><button id="tok-go">Entrer</button><p id="tok-err" class="err"></p></div></div>
+<div id="shell" class="hidden">
+  <aside><div class="brand">Hustle City<small>back office</small></div>
+    <nav>
+      <button data-p="dash" class="on">Tableau de bord</button>
+      <button data-p="players">Joueurs</button>
+      <button data-p="support">SAV <i id="nb-tk"></i></button>
+      <button data-p="live">Événements et nouveautés</button>
+      <button data-p="broadcast">Message à tous</button>
+      <button data-p="logs">Journal</button>
+    </nav>
+    <button id="logout" class="ghost">Se déconnecter</button>
+  </aside>
+  <main id="main"></main>
+</div>
+<script src="/js/layout.js"></script><script src="/js/data.js"></script>
+<script src="admin.js"></script>
+</body></html>

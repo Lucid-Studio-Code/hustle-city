@@ -2909,3 +2909,9 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app #btn-promo.pm-shop b { color: #2a1a10; }
 #app #btn-promo.pm-season { background: linear-gradient(color-mix(in srgb, var(--pm) 70%, #fff), var(--pm)); }
 #app #btn-promo .pr-ic .ic { width: 32px; height: 32px; }
+/* en ligne : maintenance / compte suspendu, SAV */
+#app .online-block { position: absolute; inset: 0; z-index: 95; display: grid; place-items: center; padding: 30px; background: rgba(18,12,36,.94); text-align: center; color: #fff; }
+#app .online-block b { display: block; font: 400 26px var(--title); margin-bottom: 8px; } #app .online-block p { font: 700 14px var(--text); opacity: .9; }
+#app .sup-txt { width: 100%; min-height: 120px; padding: 10px; border: 2px solid #2a1a10; border-radius: 12px; font: 600 14px var(--text); margin-bottom: 10px; box-sizing: border-box; }
+#app .sup-in { width: 100%; padding: 10px; border: 2px solid #2a1a10; border-radius: 12px; font: 600 13px var(--text); margin-bottom: 8px; box-sizing: border-box; }
+#app .sup-code { font: 800 12px monospace; word-break: break-all; padding: 12px; margin-bottom: 8px; user-select: all; }

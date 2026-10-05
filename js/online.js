@@ -1,0 +1,95 @@
+/* Hustle City : lien avec le serveur (sauvegarde en ligne, statistiques, SAV, cadeaux, réglages en direct).
+   Sans serveur joignable, ce fichier ne fait rien : le jeu marche comme avant, tout en local.
+   Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300), sinon localStorage « hc.api ». */
+(function () {
+  'use strict';
+  const G = window.GAME, U = window.UI, D = window.DATA;
+  const h = location.hash || '';
+  const API = window.HC_API || (location.port === '5300' ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
+  const off = !API || G.TEST || /^#(neuf|admin)/.test(h);
+  const ID_KEY = 'hustleCity.online';
+  let id = null; try { id = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) {}
+  if (!id) { const r = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)); id = { pid: r().slice(0, 12), secret: r() }; try { localStorage.setItem(ID_KEY, JSON.stringify(id)); } catch (e) {} }
+  const queue = [], ev = (type, data) => { if (!off) { queue.push({ t: Date.now(), type, data }); if (queue.length > 400) queue.splice(0, queue.length - 400); } };
+  const post = (p, b) => fetch(API + p, { method: 'POST', keepalive: JSON.stringify(b).length < 60000, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...b, pid: id.pid, secret: id.secret }) }).then(r => r.json());
+  const ONLINE = window.ONLINE = { on: false, id, ev, banned: false, config: {} };
+
+  // ---------------------------------------------------------- réglages en direct (back office → jeu)
+  function setPath(obj, p, v) { const k = p.split('.'); let o = obj; for (let i = 0; i < k.length - 1; i++) { o = o[isNaN(k[i]) ? k[i] : +k[i]]; if (o == null) return; } o[k[k.length - 1]] = v; }
+  function applyConfig(c) {
+    if (!c) return; ONLINE.config = c;
+    if (c.nextEvent) D.NEXT_EVENT.at = c.nextEvent || null;
+    if (Array.isArray(c.seasons) && c.seasons.length) D.SEASONS.splice(0, D.SEASONS.length, ...c.seasons);
+    if (Array.isArray(c.promoDays)) D.PROMO_DAYS.splice(0, D.PROMO_DAYS.length, ...c.promoDays);
+    if (Array.isArray(c.promos) && c.promos.length) D.PROMOS.splice(0, D.PROMOS.length, ...c.promos);
+    if (c.ads) Object.assign(D.ADS, c.ads);
+    if (c.sixStart) D.SIX.sim = c.sixStart;
+    Object.entries(c.values || {}).forEach(([p, v]) => { try { setPath(D, p, v); } catch (e) {} });
+    // annonces : chacune une seule fois, dans le téléphone
+    const seen = G.st.seenNews = G.st.seenNews || {};
+    (c.news || []).forEach(n => { if (n && n.id && !seen[n.id] && (!n.until || Date.parse(n.until) > Date.now())) { seen[n.id] = Date.now(); U.notify('missions', n.title || 'Hustle City', n.text || ''); } });
+    maintenance(c.maintenance && c.maintenance.on ? c.maintenance.text || 'Le jeu est en maintenance, reviens dans un petit moment.' : null);
+  }
+  function overlay(id_, html) {
+    let el = document.getElementById(id_); if (!html) { if (el) el.remove(); return; }
+    if (!el) { document.getElementById('app').insertAdjacentHTML('beforeend', `<div id="${id_}" class="online-block"></div>`); el = document.getElementById(id_); } el.innerHTML = html;
+  }
+  const maintenance = txt => overlay('ol-maint', txt && `<div><b>Maintenance</b><p>${U.esc(txt)}</p></div>`);
+  const banScreen = why => overlay('ol-ban', why !== null && `<div><b>Compte suspendu</b><p>${U.esc(why || 'Ton compte a été suspendu. Contacte le support si tu penses que c\'est une erreur.')}</p></div>`);
+
+  // ---------------------------------------------------------- boîte de réception : cadeaux, réponses du SAV, restauration
+  function inbox(list) {
+    (list || []).forEach(m => {
+      const g = m.gift || {};
+      if (g.restore) { try { localStorage.setItem('hustleCity.v1', g.restore); } catch (e) {} post('/api/claim', { id: m.id }).then(() => location.reload()); return; }
+      if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
+      const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`].filter(Boolean).join(', ');
+      if (/support/i.test(m.title)) U.chatPush('Support Hustle City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
+      U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Hustle City', (m.text || '') + (gl ? ` ${gl} !` : ''));
+      ev('gift_received', { id: m.id, g: gl });
+      post('/api/claim', { id: m.id }).catch(() => {});
+    });
+    if ((list || []).length) { G.save(); U.refresh(); }
+  }
+
+  // ---------------------------------------------------------- synchronisation
+  let playMs = 0, tick = Date.now(), cfgAt = 0;
+  setInterval(() => { const t = Date.now(); if (!document.hidden) playMs += t - tick; tick = t; }, 5000);
+  function summary() { const s = G.st; return { lvl: s.lvl, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, skin: s.skin, name: s.name, tag: s.tag }; }
+  async function sync(withSave) {
+    if (off || !ONLINE.on || !G.st.skin) return;
+    const events = queue.splice(0), ms = playMs; playMs = 0;
+    try {
+      const r = await post('/api/sync', { summary: summary(), events, playMs: ms, save: withSave ? JSON.stringify(G.st) : undefined });
+      if (r.banned) banScreen(r.banReason); else banScreen(null);
+      inbox(r.inbox);
+      if (r.cfgAt && +r.cfgAt !== cfgAt) { cfgAt = +r.cfgAt; fetch(API + '/api/config').then(x => x.json()).then(applyConfig).catch(() => {}); }
+    } catch (e) { queue.unshift(...events); playMs += ms; }
+  }
+  async function hello() {
+    if (off) return;
+    try {
+      const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120) });
+      if (!r.ok) return; ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
+      sync(true); setInterval(() => sync(true), 60000);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) sync(true); });
+      window.addEventListener('pagehide', () => sync(false));   // en quittant : on envoie au moins les stats (la sauvegarde complète part avec la sync régulière)
+    } catch (e) { /* hors ligne : on réessaiera au prochain lancement */ }
+  }
+
+  // ---------------------------------------------------------- ce qu'on mesure : chaque bouton touché + les grands moments
+  document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
+    if (a === 'noop' || a === 'closeModal') return; ev('act', { a }); if (a === 'iapSoon') ev('iap_click', { id: b.dataset.id || '' }); if (a === 'adClaim') ev('ad', {}); }, true);
+  G.on('levelup', e => ev('levelup', { lvl: G.st.lvl }));
+  G.on('achievement', a => ev('achievement', { id: a.id }));
+  G.on('betResult', ({ b }) => b && ev('bet', { state: b.state, stake: b.stake, gain: b.gain || 0 }));
+  G.on('trophy', it => it && ev('trophy', { id: it.id }));
+
+  // ---------------------------------------------------------- SAV et récupération de partie (paramètres)
+  ONLINE.support = text => post('/api/support', { text });
+  ONLINE.code = () => id.pid + '.' + id.secret;
+  ONLINE.restore = async code => { const [pid, secret] = String(code).trim().split('.'); const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, secret }) }).then(x => x.json());
+    if (!r.ok || !r.save) throw new Error(r.err || 'Code inconnu.'); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };
+
+  setTimeout(hello, 1500);
+})();

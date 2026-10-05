@@ -5,3 +5,5 @@ refs/
 __pycache__/
 *.pyc
 tools/inbox/*.png
+server/hustle.db*
+server/.admin-token
