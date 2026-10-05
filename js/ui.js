@@ -282,6 +282,7 @@
     return L.sort((a, b) => b.p - a.p);
   }
   // le prochain cap, toujours visible en ville : ce qui s'ouvre au niveau suivant et où on en est
+  const rkImg = r => has(r.img) ? r.img : r.alt || r.img;   // image du palier (en attendant la sienne : un objet du jeu)
   let capKey = '', capAt = 0, capOff = null;
   function renderCap() {
     const b = $('#next-cap'); if (!b) return; const s = st(), nu = nextUnlock();
@@ -295,7 +296,7 @@
     hydrateIcons(b);
     // un nouveau rang de fortune : on le fête
     const rk = G.rankOf(); if (s.rankMax == null) s.rankMax = rk.i;
-    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rk.img, rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
+    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rkImg(rk), rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
   let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
   function renderNextBtn() {
@@ -1781,10 +1782,10 @@
       const rk = G.rankOf(), pct = rk.next ? (G.credWorth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
       const ways = [['shop', 'cat-card', 'Objets qui montent', G.catUnlocked('card')], ['pc', 'app-crypto', 'Investir en crypto', true], ['rig', 'minerv-1', 'Lancer un minage', true]].filter(w => w[3]);
       const lab = n => n ? short(n, true) : '0';
-      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${pic(rk.img, rk.emo)}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
-          ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${pic(rk.next.img, rk.next.emo, 'cn-ic')}${rk.next.name}</b><em>encore ${short(rk.next.n - G.credWorth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
+      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${pic(rkImg(rk), rk.emo)}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
+          ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${pic(rkImg(rk.next), rk.next.emo, 'cn-ic')}${rk.next.name}</b><em>encore ${short(rk.next.n - G.credWorth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
         <p class="cred-how">Elle suit ton <b>record de patrimoine</b> (cash, crypto, objets, immobilier) : elle ne redescend jamais.</p>
-        <div class="cred-track">${D.RANKS.map((r, k) => `<div class="ct-step ${k < rk.i ? 'done' : k === rk.i ? 'now' : ''}"><i>${pic(r.img, r.emo)}</i><b>${r.name}</b><small>${lab(r.n)}</small>${k === rk.i && rk.next ? `<span class="ct-fill" style="--p:${Math.min(100, pct).toFixed(0)}%"></span>` : ''}</div>`).join('')}</div>
+        <div class="cred-track">${D.RANKS.map((r, k) => `<div class="ct-step ${k < rk.i ? 'done' : k === rk.i ? 'now' : ''}"><i>${pic(rkImg(r), r.emo)}</i><b>${r.name}</b><small>${lab(r.n)}</small>${k === rk.i && rk.next ? `<span class="ct-fill" style="--p:${Math.min(100, pct).toFixed(0)}%"></span>` : ''}</div>`).join('')}</div>
         <div class="cred-ways">${ways.map(w => `<button class="btn xs" data-act="credGo" data-id="${w[0]}">${pic(w[1], '', 'cw-ic')}<span>${w[2]}</span></button>`).join('')}</div></div>`;
       // objectifs de la semaine, en compact
       const w = G.week(), R = D.WEEK_REWARD, left = G.weekLeft(), wGot = w.list.filter(c => c.got).length;
@@ -2050,7 +2051,7 @@
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
-        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${pic(G.rankOf().img, G.rankOf().emo)}${G.rankOf().name}</span>
+        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${pic(rkImg(G.rankOf()), G.rankOf().emo)}${G.rankOf().name}</span>
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}

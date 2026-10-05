@@ -504,8 +504,8 @@
   // street cred : paliers selon le RECORD de patrimoine (on ne redescend jamais), image = un asset du jeu
   const RANKS = [
     { n: 0,        name: 'Petit joueur',     emo: '🪙', img: 'chip-1' }, { n: 5000,     name: 'Débrouillard',     emo: '💵', img: 'icon-cash' },
-    { n: 25000,    name: 'Hustler',          emo: '😎', img: 'item-s-gold' }, { n: 100000,   name: 'Boss du quartier', emo: '🧢', img: 'item-w-chrono' },
-    { n: 500000,   name: 'Caïd de la ville', emo: '🕶️', img: 'item-o-bar10' }, { n: 2000000,  name: 'Magnat',           emo: '💼', img: 'item-g-diam' },
+    { n: 25000,    name: 'Hustler',          emo: '😎', img: 'cred-hustler', alt: 'item-s-gold' }, { n: 100000,   name: 'Boss du quartier', emo: '🧢', img: 'cred-boss', alt: 'item-w-chrono' },
+    { n: 500000,   name: 'Caïd de la ville', emo: '🕶️', img: 'cred-caid', alt: 'item-o-bar10' }, { n: 2000000,  name: 'Magnat',           emo: '💼', img: 'cred-magnat', alt: 'item-g-diam' },
     { n: 10000000, name: 'Légende',          emo: '👑', img: 'cat-trophy' }
   ];
 
