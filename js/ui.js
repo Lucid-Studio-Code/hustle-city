@@ -206,7 +206,7 @@
     const gift = $('#btn-gift'), dr = G.dailyReady();
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
-    { const t = $('#promo-t'); if (t) { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 1 ? `${h} h` : mmss(ms); } }
+    promoUi();
     $('.six-badge')?.classList.toggle('hidden', G.eventOff() || !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
@@ -1306,12 +1306,33 @@
 
   // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
   let bqTab = 'deco';
-  const promoNow = () => D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length];
-  const promoLeft = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
+  // saison commerciale en cours (Halloween, Black Friday, Noël), sinon l'offre du jour certains jours, sinon rien (simple boutique)
+  const mmdd = d => String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function bfDate(y) { const d = new Date(y, 10, 1); const th = (4 - d.getDay() + 7) % 7 + 1 + 21; return new Date(y, 10, th + 1); }   // vendredi après le 4e jeudi de novembre
+  function seasonNow() {
+    const now = new Date(), y = now.getFullYear(), today = new Date(y, now.getMonth(), now.getDate());
+    return D.SEASONS.find(x => { const at = v => { if (v.startsWith('bf')) { const b = bfDate(y); b.setDate(b.getDate() + (+v.slice(3) || 0)); return b; } const [m, d] = v.split('-').map(Number); return new Date(y, m - 1, d); };
+      const a = at(x.from), b = at(x.to); x._end = new Date(b.getFullYear(), b.getMonth(), b.getDate() + 1); return today >= a && today <= b; }) || null;
+  }
+  const promoNow = () => { const se = seasonNow(); if (se) return { ...se.deal, season: se };
+    return D.PROMO_DAYS.includes(new Date().getDay()) ? D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length] : null; };
+  const promoLeft = () => { const p = promoNow(); if (p && p.season) return p.season._end - Date.now(); const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
+  // le bouton à gauche : visuel de saison, de promo, ou simple boutique de lingots
+  let promoMode = '';
+  function promoUi() {
+    const b = $('#btn-promo'); if (!b) return; const p = promoNow(), mode = p ? (p.season ? p.season.id : 'promo') : 'shop';
+    if (mode !== promoMode) { promoMode = mode;
+      const img = p && p.season ? p.season.img : p ? 'ic-promo' : 'ic-shop-lingots';
+      b.className = 'pm-' + (p && p.season ? 'season' : mode); b.style.setProperty('--pm', p && p.season ? p.season.color : '');
+      b.querySelector('.pr-rib').textContent = p && p.season ? p.season.name.toUpperCase() : p ? 'PROMO' : 'BOUTIQUE';
+      b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : ic('lingot');
+    }
+    const t = $('#promo-t'); if (t) { if (!p) t.textContent = 'Lingots'; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
+  }
   const eur2 = v => (Math.floor(v * 100 + 1e-6) / 100).toFixed(2).replace('.', ',') + ' €';   // 2,99 € à −50 % → 1,49 €
   const priceNum = x => parseFloat(x.price.replace(',', '.'));
   function promoBanner() {
-    const p = promoNow(), x = D.IAP.find(i => i.id === p.id); if (!x) return '';
+    const p = promoNow(), x = p && D.IAP.find(i => i.id === p.id); if (!x) return '';
     const btn = p.off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price;
     return `<div class="promo-banner"><span class="pb-off">${p.off ? `−${p.off} %` : `+${p.bonus} %`}</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon">${btn}</button></div>`;
   }
@@ -2384,7 +2405,7 @@
     cleanChats(); purgeOld();
     document.body.classList.toggle('calm', !!st().calm);
     if (G.TEST || /^#neuf/.test(location.hash)) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
-    { const pi = document.querySelector('#btn-promo .pr-ic'); if (pi && has('ic-promo')) pi.innerHTML = `<img src="${src('ic-promo')}" alt="">`; }
+    promoUi();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);

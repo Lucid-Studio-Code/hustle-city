@@ -2904,3 +2904,8 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #ad-layer .ad-bar { width: min(86%, 320px); height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); overflow: hidden; } #ad-layer .ad-bar i { display: block; height: 100%; background: #5fc73a; transition: width 1s linear; }
 #ad-layer .ad-hint { margin: 0; font: 800 13px var(--text); opacity: .85; } #ad-layer .ad-claim { max-width: 320px; }
 #app .iap-best { position: static; transform: none; margin: 0 0 2px; }
+/* bouton Promo : simple boutique (sans promo) et versions de saison */
+#app #btn-promo.pm-shop { background: linear-gradient(#ffe27a, #e0a21d); animation: none; }
+#app #btn-promo.pm-shop b { color: #2a1a10; }
+#app #btn-promo.pm-season { background: linear-gradient(color-mix(in srgb, var(--pm) 70%, #fff), var(--pm)); }
+#app #btn-promo .pr-ic .ic { width: 32px; height: 32px; }

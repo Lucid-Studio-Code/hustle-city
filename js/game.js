@@ -810,13 +810,14 @@
     if (n) { addLingots(-n); st.cash = 0; emit('money'); return true; }
     return pay(price);
   }
-  function tipPrice(t) { return cost(Math.round(t.base * (1 + st.lvl * .6))); }
+  // tuyau sportif : 3 % de la mise max (gagne ~8 % en moyenne → +5 % net sur une grosse mise) ; les autres tuyaux restent au barème
+  function tipPrice(t) { return t.id === 'sport' ? cost(Math.max(5, Math.round(D.BET_MAX(st.lvl) * .03))) : cost(Math.round(t.base * (1 + st.lvl * .6))); }
   function tipBought(id) { const k = st.kiosk || {}; return k.ed === edition() && k.tips && k.tips[id]; }
   // un tuyau ne nomme qu'une issue crédible (au moins 30 % de chances) ; quand il nomme X, X gagne avec une probabilité ≈ « chance réelle + edge ».
   // (avant : juste « hasard + edge » quelle que soit la cote, donc les tuyaux sur les outsiders payaient ×1,45 en moyenne)
   function tipPick(m, edge) {
     const P = m.p || m.odds.map(o => 1 / o), real = m.res;
-    const C = [...P.keys()].filter(i => P[i] >= .3);
+    const C0 = [...P.keys()].filter(i => P[i] >= .3 && P[i] <= .6), C = C0.length ? C0 : [...P.keys()].filter(i => P[i] >= .3);   // jamais le gros favori évident
     const w = C.map(x => { const h = Math.min(.9, P[x] + edge); return P[x] * (x === real ? h : (1 - h) * P[real] / (1 - P[x])); });
     let r = Math.random() * w.reduce((a, b) => a + b, 0);
     for (let i = 0; i < C.length; i++) { r -= w[i]; if (r <= 0) return C[i]; }
@@ -829,8 +830,11 @@
     let ref = null;
     if (id === 'sport') {
       // un match qui commence dans au moins 2 min (le temps d'aller au Royal), sinon le plus lointain
+      // seulement un match serré : un tuyau payant sur un favori à 1,15 ne sert à rien (on choisit le plus équilibré parmi ceux qui laissent le temps de parier)
       const soon = st.matches.filter(x => x.state === 'soon').sort((a, b) => a.kickoff - b.kickoff);
-      const m = soon.find(x => x.kickoff - now() > 120000) || soon[soon.length - 1];
+      const pool = soon.filter(x => x.kickoff - now() > 120000), P = x => x.p || x.odds.map(o => 1 / o);
+      const tight = pool.filter(x => P(x).some(p => p >= .3 && p <= .6));
+      const m = (tight.length ? tight : pool).sort((a, b) => Math.max(...P(a)) - Math.max(...P(b)))[0] || soon[soon.length - 1];
       if (!m) return { err: 'Aucun match à venir.' };
       playMatch(m);   // le résultat est tiré maintenant : le tuyau parle du vrai résultat
       ref = m.id;

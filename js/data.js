@@ -718,6 +718,17 @@
     { id: 'x-collec', off: 30, title: 'Pack Collectionneur à −30 %', desc: '20 boosters de cartes et 150 lingots' },
     { id: 'l-1300',   bonus: 25, title: 'Coffre de lingots +25 %',   desc: '1 625 lingots au lieu de 1 300' }
   ];
+  // Saisons commerciales : elles remplacent l'offre du moment et changent le visuel du bouton Promo (dates incluses, au format MM-JJ)
+  const SEASONS = [
+    { id: 'halloween', name: 'Halloween',    from: '10-24', to: '10-31', img: 'ic-promo-halloween', color: '#ff7a1a',
+      deal: { id: 'x-collec', off: 40, title: 'Boosters de l\'horreur : −40 %', desc: '20 boosters de cartes et 150 lingots, juste avant Halloween' } },
+    { id: 'blackfriday', name: 'Black Friday', from: 'bf', to: 'bf+3', img: 'ic-promo-bf', color: '#1d1d1f',
+      deal: { id: 'x-pass', off: 60, title: 'Black Friday : Pass Hustle −60 %', desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' } },
+    { id: 'noel', name: 'Noël',          from: '12-15', to: '12-26', img: 'ic-promo-noel', color: '#d33a2c',
+      deal: { id: 'l-1300', bonus: 50, title: 'Coffre de Noël : +50 % de lingots', desc: '1 950 lingots au lieu de 1 300' } }
+  ];
+  // l'offre du moment ne tourne pas tous les jours : ces jours-là (0 = dimanche), sinon le bouton redevient une simple boutique
+  const PROMO_DAYS = [0, 3, 5, 6];
   // Pubs récompensées : on regarde une pub pour gagner des lingots (le pack « Sans pub » donne la récompense sans la pub)
   const ADS = { reward: 3, perDay: 5, cooldownMin: 10, watchS: 15 };
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
@@ -740,6 +751,6 @@
     NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();
