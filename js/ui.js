@@ -1421,8 +1421,8 @@
     const T = S.teams, lab = ['1', 'N', '2'];
     const card = m => {
       const btn = (p, txt) => `<button class="sx-pick ${m.pick === p ? 'on' : ''} ${m.state === 'done' && m.res === p ? 'win' : ''}" data-act="sixPick" data-i="${m.i}" data-p="${p}" ${m.state !== 'soon' ? 'disabled' : ''}>${txt}</button>`;
-      const st2 = m.state === 'soon' ? `${fDay(m.kickoff)} · ${fHour(m.kickoff)}` : m.state === 'live' ? '<span class="live-dot">●</span> En direct' : 'Terminé';
-      const res = m.state === 'done' ? (m.pick == null ? '<span class="sx-res">Pas de prono</span>' : m.ok ? `<span class="sx-res ok">✓ Bon prono : +${S.pts} pts, +${S.lingotPerGood} lingot</span>` : '<span class="sx-res ko">✗ Raté</span>') : m.state === 'soon' && m.pick == null ? '<span class="sx-res todo">À toi de jouer : choisis ton prono</span>' : '';
+      const st2 = m.state === 'soon' ? `${fDay(m.kickoff)} · ${fHour(m.kickoff)}` : m.state === 'live' ? '<span class="live-pill"><i></i>LIVE</span>' : 'Terminé';
+      const res = m.state === 'done' ? (m.pick == null ? '<span class="sx-res">Match terminé</span>' : m.ok ? `<span class="sx-res ok">✓ Bon prono : +${S.pts} pts, +${S.lingotPerGood} lingot</span>` : '<span class="sx-res ko">✗ Raté</span>') : m.state === 'soon' && m.pick == null ? '<span class="sx-res todo">À toi de jouer : choisis ton prono</span>' : '';
       const o = G.sixOdds(m.i), ru = G.sixRumor(m.i), form = t => `<span class="sx-form">${G.sixForm(t).map(x => `<i class="f${x}">${x}</i>`).join('')}</span>`;
       return `<div class="sx-match ${m.state}"><div class="sx-top"><small>${st2}</small>${res}</div>
         <div class="sx-teams"><span class="sx-t">${teamCrest('rugby', m.h, 'mini')}<span><b>${T[m.h][0]}</b>${form(m.h)}</span></span><span class="sx-score">${m.state === 'soon' ? 'vs' : `${m.sh} - ${m.sa}`}</span><span class="sx-t r"><span><b>${T[m.a][0]}</b>${form(m.a)}</span>${teamCrest('rugby', m.a, 'mini')}</span></div>
@@ -1435,7 +1435,7 @@
     // Une journée terminée tient sur UNE ligne (bons pronos, points) ; on la déplie d'un geste pour voir les scores.
     // Les journées à venir sont regroupées en une seule ligne. La journée en cours est toujours en haut.
     const pastRow = m => {
-          const res = m.pick == null ? 'none' : m.ok ? 'ok' : 'ko', pk = m.pick == null ? 'Pas de prono' : m.pick === 1 ? 'Nul' : shortTeam(m.pick === 0 ? m.home : m.away);
+          const res = m.pick == null ? 'none' : m.ok ? 'ok' : 'ko', pk = m.pick == null ? 'Match terminé' : m.pick === 1 ? 'Nul' : shortTeam(m.pick === 0 ? m.home : m.away);
           return `<div class="sx-p ${res}"><span class="sx-pt">${teamCrest('rugby', m.h, 'mini')}<b>${shortTeam(m.home)}</b></span><span class="sx-ps">${m.sh}-${m.sa}</span><span class="sx-pt r"><b>${shortTeam(m.away)}</b>${teamCrest('rugby', m.a, 'mini')}</span>
             <span class="sx-pv">${res === 'ok' ? `✓ ${pk}<em>+${S.pts} pts</em>` : res === 'ko' ? `✗ ${pk}` : pk}</span></div>`; };
     const today = [], upcoming = [], locked = [], past = [];
