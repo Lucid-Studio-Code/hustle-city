@@ -2883,3 +2883,24 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 
 #app .odds-closed { width: 100%; margin: 0 0 4px; text-align: center; font: 800 11px var(--text); color: #7a5a3a; }
 .tcg .tcg-sub.full { inset: 0; }   /* illustrations bonus : pleine fenêtre, comme les cartes joueur */
+/* boutique : lingots en 3 colonnes, packs, pub récompensée */
+#app .iap-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin-top: 6px; }
+#app .iap-grid3 .iap-card { padding: 14px 4px 8px; }
+#app .iap-grid3 .iap-card b { font-size: 14px; }
+#app .iap-card.best { background: linear-gradient(#fff3b0, #fffaf0); box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ffc933 inset; }
+#app .iap-best { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 8px; border: 2px solid #2a1a10; border-radius: 999px; background: #ffd23f; font: 900 9px var(--text); }
+#app .iap-pack.done { opacity: .6; } #app .iap-own { font: 900 12px var(--text); color: #1f9d55; white-space: nowrap; }
+#app .ad-card { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: linear-gradient(#e8fbe0, #fff); }
+#app .ad-card .ad-ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 2px solid #2a1a10; border-radius: 12px; background: #5fc73a; color: #fff; font: 900 18px var(--text); }
+#app .ad-card .grow { flex: 1; min-width: 0; } #app .ad-card b { display: flex; align-items: center; gap: 3px; font: 900 14px var(--text); } #app .ad-card b .ic { width: 16px; height: 16px; } #app .ad-card small { display: block; font: 700 11px var(--text); color: #7a5a3a; }
+#ad-layer { position: absolute; inset: 0; z-index: 90; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; background: #0e0a1c; color: #fff; }
+#ad-layer.on { display: flex; }
+#ad-layer .ad-top { position: absolute; top: calc(env(safe-area-inset-top) + 14px); left: 16px; right: 16px; display: flex; align-items: center; gap: 8px; font: 900 12px var(--text); text-transform: uppercase; letter-spacing: .08em; opacity: .85; }
+#ad-layer .ad-top em { font-style: normal; margin-left: auto; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.15); }
+#ad-layer .ad-x { margin-left: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(255,255,255,.15); color: #fff; font: 900 18px var(--text); cursor: pointer; }
+#ad-layer .ad-top em + .ad-x { margin-left: 8px; } #ad-layer .ad-top span + .ad-x { margin-left: auto; }
+#ad-layer .ad-box { width: min(86%, 320px); aspect-ratio: 4 / 5; border: 2px dashed rgba(255,255,255,.3); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+#ad-layer .ad-box img { width: 70%; } #ad-layer .ad-box p { margin: 0; font: 800 13px var(--text); opacity: .6; }
+#ad-layer .ad-bar { width: min(86%, 320px); height: 8px; border-radius: 999px; background: rgba(255,255,255,.15); overflow: hidden; } #ad-layer .ad-bar i { display: block; height: 100%; background: #5fc73a; transition: width 1s linear; }
+#ad-layer .ad-hint { margin: 0; font: 800 13px var(--text); opacity: .85; } #ad-layer .ad-claim { max-width: 320px; }
+#app .iap-best { position: static; transform: none; margin: 0 0 2px; }

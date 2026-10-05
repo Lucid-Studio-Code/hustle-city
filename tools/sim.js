@@ -10,7 +10,11 @@ const ctx = { console, Math, JSON, Object, Array, Number, String, Set, Map, Prom
   sessionStorage: { getItem: () => null, setItem() {} }, location: { hash: '', hostname: 'sim' }, setTimeout() {}, setInterval() {} };
 ctx.window = ctx; ctx.window.addEventListener = () => {};
 vm.createContext(ctx);
-for (const f of ['js/layout.js', 'js/data.js', 'js/game.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
+// LINGOT_TRACE=1 : on note d'où vient chaque lingot gagné (ligne du moteur qui l'a donné)
+ctx.__lsrc = {};
+for (const f of ['js/layout.js', 'js/data.js', 'js/game.js']) { let code = fs.readFileSync(path.join(root, f), 'utf8');
+  if (f === 'js/game.js' && process.env.LINGOT_TRACE) code = code.replace('function addLingots(n) {', 'function addLingots(n) { if (n > 0) { const l = (new Error().stack.split(String.fromCharCode(10))[2] || "").match(/game[.]js:([0-9]+)/); const k = l ? l[1] : "?"; __lsrc[k] = (__lsrc[k] || 0) + n; }');
+  vm.runInContext(code, ctx, { filename: f }); }
 const G = ctx.GAME, D = ctx.DATA;
 G.load();
 module.exports = { G, D, ctx, tick: ms => { clock += ms; }, now: () => clock };

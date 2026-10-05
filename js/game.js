@@ -1044,17 +1044,17 @@
         () => { const n = 10 + L * 4; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
       ],
       R: [
-        () => { addLingots(3); return { kind: 'lingots', n: 3, name: 'Lingots' }; },
+        () => { addLingots(2); return { kind: 'lingots', n: 2, name: 'Lingots' }; },
         () => { const n = R(30 + L * 8); if (st.freebets.length < 20) st.freebets.push(n); return { kind: 'freebet', n, name: 'Pari gratuit' }; },
         () => { const n = 20 + L * 10; addXp(n); return { kind: 'xp', n, name: 'Expérience' }; }
       ],
       E: [
-        () => { addLingots(8); return { kind: 'lingots', n: 8, name: 'Lingots' }; },
+        () => { addLingots(5); return { kind: 'lingots', n: 5, name: 'Lingots' }; },
         () => { const n = R(80 + L * 40); airdrop(n); return { kind: 'airdrop', n, name: 'Airdrop d\'Axion' }; },
         () => { const n = R(50 + L * 10); if (st.freebets.length < 20) st.freebets.push(n); return { kind: 'freebet', n, name: 'Pari gratuit' }; }
       ],
       L: [
-        () => { addLingots(20); return { kind: 'lingots', n: 20, name: 'Lingots' }; },
+        () => { addLingots(12); return { kind: 'lingots', n: 12, name: 'Lingots' }; },
         () => { const n = R(400 + L * 120); airdrop(n); return { kind: 'airdrop', n, name: 'Airdrop d\'Axion' }; }
       ]
     };
@@ -1107,7 +1107,7 @@
     if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
     c.got = true; addCash(chalCash()); addXp(15);
     let bonus = false;
-    if (!ch.bonus && ch.list.every(x => x.got)) { ch.bonus = true; bonus = true; st.boosters++; addLingots(3); }
+    if (!ch.bonus && ch.list.every(x => x.got)) { ch.bonus = true; bonus = true; st.boosters++; addLingots(2); }
     emit('change'); return { cash: chalCash(), bonus };
   }
 
@@ -1290,6 +1290,26 @@
   }
   const questsClaimed = () => D.QUESTS.filter(q => st.quests[q.id]).length;
   // cadeau du jour : série de 7 jours, on repart au jour 1 si on saute un jour
+  // ------------------------------------------------------------ pubs récompensées
+  const adsDay = () => { const d = today(); return st.ads = st.ads && st.ads.d === d ? st.ads : { d, n: 0, last: 0 }; };
+  function adState() { const A = adsDay(); return { left: Math.max(0, D.ADS.perDay - A.n), wait: Math.max(0, A.last + D.ADS.cooldownMin * 60000 - now()), reward: D.ADS.reward, noAds: !!st.noAds }; }
+  function adReward() {
+    const a = adState(); if (!a.left) return { err: 'Plus de pub pour aujourd\'hui : reviens demain.' };
+    if (a.wait) return { err: 'Encore un peu de patience avant la prochaine.' };
+    const A = adsDay(); A.n++; A.last = now(); addLingots(D.ADS.reward); stat('ads'); emit('change'); return { n: D.ADS.reward, left: a.left - 1 };
+  }
+  // ------------------------------------------------------------ achats intégrés : ce que donne chaque offre (appelé quand le paiement sera branché)
+  function iapGrant(id) {
+    const x = D.IAP.find(o => o.id === id); if (!x) return { err: 'Introuvable.' };
+    st.iapOwned = st.iapOwned || {}; if (x.once && st.iapOwned[id]) return { err: 'Déjà acheté.' };
+    const g = x.kind === 'lingots' ? { lingots: x.n } : x.give || {};
+    if (g.lingots) addLingots(g.lingots); if (g.boosters) st.boosters += g.boosters; if (g.cash) addCash(g.cash);
+    if (g.rig && st.rig.lvl < g.rig) st.rig.lvl = g.rig; if (g.noAds) st.noAds = true;
+    if (g.skin) (st.skinsOwned = st.skinsOwned || [st.skin]).includes(g.skin) || st.skinsOwned.push(g.skin);
+    if (g.passDays) st.passUntil = Math.max(st.passUntil || 0, now()) + g.passDays * 86400000;
+    st.iapOwned[id] = (st.iapOwned[id] || 0) + 1; emit('change'); return { ok: true, g };
+  }
+  const passOn = () => (st.passUntil || 0) > now();
   function dailyReady() { return st.daily.claimedDay !== today(); }
   function dailyDay() {
     const dl = st.daily, N = D.DAILY.days.length;
@@ -1302,6 +1322,7 @@
     const day = dailyDay(), r = dailyReward(day);
     st.daily.claimedDay = today(); st.daily.streak = day;
     addCash(r.cash); addLingots(r.lingots); st.boosters += r.boosters;
+    if (passOn()) { addLingots(15); st.boosters++; r.pass = true; }   // Pass Hustle : 15 lingots et 1 booster en plus chaque jour
     emit('change'); return { r, day };
   }
   function dailyState() { return { can: dailyReady(), idx: dailyDay() - 1 }; }
@@ -1347,7 +1368,7 @@
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
-    inStock, stockLeft, contactFor, cardOk, cardsLive,
+    inStock, stockLeft, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,

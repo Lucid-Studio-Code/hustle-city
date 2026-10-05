@@ -1308,17 +1308,30 @@
   let bqTab = 'deco';
   const promoNow = () => D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length];
   const promoLeft = () => { const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
+  const eur2 = v => (Math.floor(v * 100 + 1e-6) / 100).toFixed(2).replace('.', ',') + ' €';   // 2,99 € à −50 % → 1,49 €
+  const priceNum = x => parseFloat(x.price.replace(',', '.'));
   function promoBanner() {
-    const p = promoNow(), x = D.IAP.find(i => i.id === p.id);
-    return `<div class="promo-banner"><span class="pb-off">−${p.off} %</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon">${x && p.id.startsWith('x-') ? `<s>${x.price}</s>${(parseFloat(x.price.replace(',', '.')) * (1 - p.off / 100) - .005).toFixed(2).replace('.', ',')} €` : x ? x.price : ''}</button></div>`;
+    const p = promoNow(), x = D.IAP.find(i => i.id === p.id); if (!x) return '';
+    const btn = p.off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price;
+    return `<div class="promo-banner"><span class="pb-off">${p.off ? `−${p.off} %` : `+${p.bonus} %`}</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon">${btn}</button></div>`;
+  }
+  // carte « regarder une pub » : récompense en lingots, quelques fois par jour
+  function adCard() {
+    const a = G.adState(), ready = a.left && !a.wait;
+    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>Regarde une pub : +${a.reward} ${ic('lingot')}</b>
+      <small>${a.noAds ? 'Sans pub : la récompense tombe tout de suite. ' : ''}${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
+      <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>${a.noAds ? 'Récupérer' : 'Regarder'}</button></div>`;
   }
   function boutiqueBody() {
     const s = st();
     if (bqTab === 'vip') {
-      const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack');
-      return `${promoBanner()}<p class="hint-line">Des lingots et des exclusivités, en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
-        <div class="grid2 iap-grid">${L.map(x => `<div class="card iap-card">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n} lingots</b><small>${x.name}</small><button class="btn gold xs" data-act="iapSoon">${x.price}</button></div>`).join('')}</div>
-        <h3 class="sec">Exclusivités</h3>${P.map(x => `<div class="card iap-pack"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}<button class="btn purple xs" data-act="iapSoon">${x.price}</button></div>`).join('')}`;
+      const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {};
+      const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
+      return `${promoBanner()}${adCard()}${pass}
+        <p class="hint-line">Des lingots et des packs en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
+        <h3 class="sec">Lingots</h3><div class="iap-grid3">${L.map(x => `<div class="card iap-card ${x.best ? 'best' : ''}">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n.toLocaleString('fr-FR')}</b><small>${x.name}</small>${x.best ? `<span class="iap-best">${x.best}</span>` : ''}<button class="btn gold xs" data-act="iapSoon">${x.price}</button></div>`).join('')}</div>
+        <h3 class="sec">Packs</h3>${P.map(x => { const done = x.once && owned[x.id];
+          return `<div class="card iap-pack ${done ? 'done' : ''}"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}${done ? '<span class="iap-own">✓ Acheté</span>' : `<button class="btn purple xs" data-act="iapSoon">${x.price}</button>`}</div>`; }).join('')}`;
     }
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
       const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
@@ -1335,6 +1348,19 @@
     return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
       <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
   }
+  // écran de pub (emplacement réservé : la vraie régie se branchera ici dans la version mobile)
+  let adTimer = null;
+  function adShow() {
+    let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
+    let left = D.ADS.watchS;
+    const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}<button class="ad-x" data-act="adQuit" aria-label="Fermer">×</button></div>
+      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-bar"><i style="width:${Math.round((1 - left / D.ADS.watchS) * 100)}%"></i></div>
+      ${left > 0 ? `<p class="ad-hint">Encore ${left} s pour gagner tes ${D.ADS.reward} lingots</p>` : `<button class="btn green wide ad-claim" data-act="adClaim">Récupérer +${D.ADS.reward} lingots</button>`}`; };
+    el.className = 'on'; draw(); clearInterval(adTimer);
+    adTimer = setInterval(() => { left--; draw(); if (left <= 0) clearInterval(adTimer); }, 1000);
+  }
+  function adClose() { clearInterval(adTimer); const el = $('#ad-layer'); if (el) { el.className = ''; el.innerHTML = ''; } }
   function openBoutique(tab) {
     if (tab) bqTab = tab;
     openModal({ title: 'Boutique', icon: 'shop', full: true, tabs: [{ id: 'deco', label: 'Ma ville' }, { id: 'vip', label: 'Lingots & exclus' }], tab: bqTab,
@@ -1598,7 +1624,7 @@
     let body = '';
     if (rewardsTab === 'defis') {
       const ch = G.chal(), nGot = ch.list.filter(c => c.got).length;
-      body += `<p class="hint-line">3 défis par jour, renouvelés dans <b>${mmss(untilMidnight())}</b>. Chaque défi : <b>${G.chalCash()}<i class="cur"></i></b>. Les 3 réussis : <b>1 booster + 3 lingots</b> !</p>`;
+      body += `<p class="hint-line">3 défis par jour, renouvelés dans <b>${mmss(untilMidnight())}</b>. Chaque défi : <b>${G.chalCash()}<i class="cur"></i></b>. Les 3 réussis : <b>1 booster + 2 lingots</b> !</p>`;
       ch.list.forEach((c, i) => {
         const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
         body += `<div class="row rw-row ${c.got ? 'owned' : ready ? 'focus ready' : 'open'}"><div class="art">${ic(c.got ? 'check' : 'star')}</div><div class="info">
@@ -1607,7 +1633,7 @@
           <p class="rw-get">Tu gagnes ${chips(G.chalCash(), 0)}</p></div>
           <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
-      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '3 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}3 + booster</span>`}</div>`;
+      body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '2 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}2 + booster</span>`}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
@@ -1747,7 +1773,7 @@
           <button class="btn green bst-open ${n ? 'pulse' : ''}" data-act="boosterOpen" ${n ? '' : 'disabled'}>Ouvrir un booster</button>
           <button class="btn" data-act="boosterBuy" ${s.lingots >= D.BOOSTER.cost ? '' : 'disabled'}>Acheter un booster · ${ic('lingot')}${D.BOOSTER.cost}</button></div>
         <h3 class="sec">Chances par carte de collection</h3><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
-        <div class="bst-defis ${ready ? 'hot' : ''}"><div class="bd-ic">${ic('trophy')}</div><div class="bd-info"><b>Défis du jour · ${got}/3</b><small>${ch.bonus ? 'Booster du jour gagné ! Nouveaux défis demain.' : ready ? `${ready} défi${ready > 1 ? 's' : ''} à réclamer !` : 'Réussis les 3 défis : <b>1 booster + 3 lingots</b> offerts.'}</small>
+        <div class="bst-defis ${ready ? 'hot' : ''}"><div class="bd-ic">${ic('trophy')}</div><div class="bd-info"><b>Défis du jour · ${got}/3</b><small>${ch.bonus ? 'Booster du jour gagné ! Nouveaux défis demain.' : ready ? `${ready} défi${ready > 1 ? 's' : ''} à réclamer !` : 'Réussis les 3 défis : <b>1 booster + 2 lingots</b> offerts.'}</small>
           <div class="bd-dots">${ch.list.map(c => `<i class="bd-dot ${c.got ? 'got' : G.chalValue(c) >= c.goal ? 'ready' : ''}">${c.got ? '✓' : ''}</i>`).join('')}</div></div>
           <button class="btn ${ready ? 'green pulse' : ''}" data-act="goDefis">${ready ? 'Réclamer' : 'Voir'}</button></div>`;
     }
@@ -2147,6 +2173,13 @@
       if (id && !G.evOwned(id)) return;
       st()[k] = id; G.save(); sfx.tap(); setBody(profileBody()); renderHud();
     },
+    adWatch() {
+      const a = G.adState(); if (!a.left || a.wait) return;
+      if (a.noAds) { const r = G.adReward(); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${r.n} lingots`); return refresh(); }
+      adShow();
+    },
+    adClaim() { const r = G.adReward(); adClose(); if (r.err) return toast(r.err, true); sfx.coin(); rain('confetti', 16); toast(`+${r.n} lingots, merci !`); renderHud(); refresh(); },
+    adQuit() { adClose(); toast('Pub interrompue : pas de lingots cette fois.', true); },
     skinSwitch(el) {
       const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
       if (!own.includes(k.id)) { if (!G.pay(k.cost)) return toast('Pas assez de cash pour ce look.', true); own.push(k.id); }

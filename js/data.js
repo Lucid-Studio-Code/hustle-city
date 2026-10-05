@@ -162,7 +162,7 @@
     ]
   };
   // Trouvailles à la récolte (chances de base, un peu plus avec une grosse machine et un long minage)
-  const FINDS = { gold: .04, lingots: .10, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
+  const FINDS = { gold: .04, lingots: .03, card: .05, wallet: .02, virus: .05, virusHot: .25, burnt: .35, coolCd: 5 };
   // équilibrage du 03/10 : minage ×2,5 (la 1re machine se rentabilisait en ~20 jours de jeu, maintenant ~10 h de minage)
   const RIG = [
     { name: 'Vieille tour bricolée', cost: 0,     btkH: .001,   heatMin: 40, desc: 'Elle chauffe, elle souffle, elle crache quelques pièces.' },
@@ -687,22 +687,39 @@
     { id: 'dc-statue',   kind: 'deco', name: 'Ta statue en or',      emo: '🗿', desc: 'Toi, en or massif, au milieu de la place.', x: 66, y: 50, w: 8, lingots: 150, lvl: 10 }
   ];
   // Achats intégrés (vrai argent) : affichés, pas encore achetables (il faudra la version App Store / Google Play)
+  // Achats intégrés (révision du 05/10) : base ≈ 50 lingots par euro, bonus croissant avec le palier.
+  // Repère : un joueur gratuit gagne ~13-15 lingots par jour en jouant (+ jusqu'à 15 avec les pubs) ; un booster vaut 12 lingots.
   const IAP = [
-    { id: 'l-80',   kind: 'lingots', n: 80,   name: 'Poignée de lingots', price: '1,99 €' },
-    { id: 'l-450',  kind: 'lingots', n: 450,  name: 'Sac de lingots',     price: '9,99 €', tag: '+12 %' },
-    { id: 'l-1000', kind: 'lingots', n: 1000, name: 'Coffre de lingots',  price: '19,99 €', tag: '+25 %' },
-    { id: 'l-2800', kind: 'lingots', n: 2800, name: 'Camion de lingots',  price: '49,99 €', tag: '+40 %' },
-    { id: 'x-start', kind: 'pack', name: 'Pack de départ', desc: '200 lingots, 5 boosters, la machine niveau 2', price: '4,99 €', tag: 'Une seule fois' },
-    { id: 'x-gold',  kind: 'pack', name: 'Skin exclusif « Gold »', desc: 'Survêt en or, chaîne XXL : introuvable ailleurs', price: '7,99 €', tag: 'Exclusif' }
+    { id: 'l-50',   kind: 'lingots', n: 50,   name: 'Poignée de lingots', price: '0,99 €' },
+    { id: 'l-280',  kind: 'lingots', n: 280,  name: 'Sacoche de lingots', price: '4,99 €',  tag: '+12 %' },
+    { id: 'l-600',  kind: 'lingots', n: 600,  name: 'Sac de lingots',     price: '9,99 €',  tag: '+20 %' },
+    { id: 'l-1300', kind: 'lingots', n: 1300, name: 'Coffre de lingots',  price: '19,99 €', tag: '+30 %', best: 'Le plus choisi' },
+    { id: 'l-3500', kind: 'lingots', n: 3500, name: 'Camion de lingots',  price: '49,99 €', tag: '+40 %' },
+    { id: 'l-7500', kind: 'lingots', n: 7500, name: 'Banque de lingots',  price: '99,99 €', tag: '+50 %' },
+    { id: 'x-start',  kind: 'pack', once: true, name: 'Pack de départ', price: '2,99 €', tag: 'Une seule fois', give: { lingots: 300, boosters: 5, cash: 2000, rig: 1 },
+      desc: '300 lingots, 5 boosters, 2 000 de cash et ta machine passe au niveau 2' },
+    { id: 'x-noads',  kind: 'pack', once: true, name: 'Sans pub', price: '3,99 €', tag: 'Pour toujours', give: { lingots: 100, noAds: true },
+      desc: 'Plus aucune pub, et les récompenses des pubs arrivent tout de suite. +100 lingots offerts' },
+    { id: 'x-pass',   kind: 'pack', name: 'Pass Hustle 30 jours', price: '4,99 €', tag: 'Meilleur rapport', give: { lingots: 150, passDays: 30 },
+      desc: '150 lingots tout de suite, puis 15 lingots et 1 booster offerts chaque jour pendant 30 jours' },
+    { id: 'x-collec', kind: 'pack', name: 'Pack Collectionneur', price: '9,99 €', give: { boosters: 20, lingots: 150 },
+      desc: '20 boosters de cartes et 150 lingots' },
+    { id: 'x-gold',   kind: 'pack', once: true, name: 'Skin exclusif « Gold »', price: '4,99 €', tag: 'Exclusif', give: { skin: 'gold' },
+      desc: 'Survêt en or, chaîne XXL : introuvable ailleurs' },
+    { id: 'x-magnat', kind: 'pack', once: true, name: 'Pack Magnat', price: '24,99 €', tag: 'Tout-en-un', give: { lingots: 1800, boosters: 15, cash: 10000, skin: 'gold' },
+      desc: '1 800 lingots, 15 boosters, 10 000 de cash et le skin « Gold »' }
   ];
 
-  // Bouton « Promos » (à gauche, séparé du coach à droite) : une offre du moment en vrai argent, qui change chaque jour à minuit
+  // Bouton « Promos » : une offre du moment en vrai argent, qui change chaque jour à minuit
   const PROMOS = [
-    { id: 'x-start', off: 50, title: 'Pack de départ à −50 %', desc: '200 lingots, 5 boosters et la machine niveau 2' },
-    { id: 'l-450',   off: 30, title: 'Sac de lingots +30 %',   desc: '585 lingots au lieu de 450' },
-    { id: 'x-gold',  off: 40, title: 'Skin « Gold » à −40 %',  desc: 'Survêt en or, chaîne XXL : exclusif' },
-    { id: 'l-1000',  off: 25, title: 'Coffre de lingots +25 %', desc: '1 250 lingots au lieu de 1 000' }
+    { id: 'x-start',  off: 50, title: 'Pack de départ à −50 %',     desc: '300 lingots, 5 boosters, 2 000 de cash et la machine niveau 2' },
+    { id: 'l-600',    bonus: 30, title: 'Sac de lingots +30 %',      desc: '780 lingots au lieu de 600' },
+    { id: 'x-pass',   off: 40, title: 'Pass Hustle à −40 %',        desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' },
+    { id: 'x-collec', off: 30, title: 'Pack Collectionneur à −30 %', desc: '20 boosters de cartes et 150 lingots' },
+    { id: 'l-1300',   bonus: 25, title: 'Coffre de lingots +25 %',   desc: '1 625 lingots au lieu de 1 300' }
   ];
+  // Pubs récompensées : on regarde une pub pour gagner des lingots (le pack « Sans pub » donne la récompense sans la pub)
+  const ADS = { reward: 3, perDay: 5, cooldownMin: 10, watchS: 15 };
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
@@ -723,6 +740,6 @@
     NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

@@ -60,3 +60,6 @@
 ## À l'arrivée de lot-cartes-v2 (04/10)
 - NE PAS intégrer art-k-f7, art-k-f8, art-k-f9, art-k-f10, art-k-b1, art-k-b2, full-k-f8 : maillots aux mauvaises couleurs (prompt ≠ blason). Remplacés par lot-redo-6.
 - Écarter aussi les art-k-t* contradictoires (lot-tennis-fix).
+
+## À prévoir (05/10)
+- skin-gold (+ bust) : le skin exclusif « Gold » vendu dans les packs (survêt en or, chaîne XXL), même gabarit que les autres skins.
