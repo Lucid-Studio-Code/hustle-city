@@ -1,23 +1,48 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hustle City · Back office</title>
+<meta name="theme-color" content="#120c24">
+<link rel="icon" href="/assets/img/icon-lingot.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 <link rel="stylesheet" href="admin.css">
 </head><body>
-<div id="login" class="login hidden"><div class="box"><b>Hustle City · back office</b><p>Colle ton jeton d'accès (affiché par le serveur au démarrage).</p><input id="tok" type="password" placeholder="Jeton"><button id="tok-go">Entrer</button><p id="tok-err" class="err"></p></div></div>
-<div id="shell" class="hidden">
-  <aside><div class="brand">Hustle City<small>back office</small></div>
-    <nav>
-      <button data-p="dash" class="on">Tableau de bord</button>
-      <button data-p="players">Joueurs</button>
-      <button data-p="support">SAV <i id="nb-tk"></i></button>
-      <button data-p="live">Événements et nouveautés</button>
-      <button data-p="broadcast">Message à tous</button>
-      <button data-p="logs">Journal</button>
-    </nav>
-    <button id="logout" class="ghost">Se déconnecter</button>
-  </aside>
-  <main id="main"></main>
+<div id="login" class="hidden">
+  <div class="lg-bg"></div>
+  <form class="lg-box" id="lg-form" autocomplete="off">
+    <img class="lg-logo" src="/assets/img/logo.png" alt="Hustle City">
+    <h1>Le QG du patron</h1>
+    <p>Colle ton jeton d'accès pour entrer dans le back office.</p>
+    <input id="tok" type="password" placeholder="Jeton d'accès" autocomplete="current-password">
+    <button class="btn lg green" type="submit">Entrer</button>
+    <p id="tok-err" class="err"></p>
+    <div class="lg-skins"><img src="/assets/img/skin-survet-bust.png" alt=""><img src="/assets/img/skin-doudoune-bust.png" alt=""><img src="/assets/img/skin-flambeur-bust.png" alt=""><img src="/assets/img/skin-boss-bust.png" alt=""><img src="/assets/img/skin-hoodie-bust.png" alt=""><img src="/assets/img/skin-sportive-bust.png" alt=""></div>
+  </form>
 </div>
-<script src="/js/layout.js"></script><script src="/js/data.js"></script>
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="brand"><img src="/assets/img/logo.png" alt="Hustle City"><small>Back office</small></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div class="live-pill" data-go="map"><span class="dot"></span><b id="live-n">–</b><span>joueurs<br>en ligne</span></div>
+      <button class="btn ghost" id="logout">Se déconnecter</button>
+    </div>
+  </aside>
+  <div style="min-width:0">
+    <header id="topbar">
+      <button class="burger" id="burger" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M2 4h16M2 10h16M2 16h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
+      <img class="tb-logo" src="/assets/img/logo.png" alt=""><span class="tb-t" id="tb-t"></span>
+      <div class="live-pill" data-go="map"><span class="dot"></span><b id="live-n2">–</b><span>en ligne</span></div>
+    </header>
+    <main id="main"></main>
+  </div>
+</div>
+<div id="toasts"></div>
+<!-- les réglages du jeu (mêmes fichiers que le jeu) et la liste des images disponibles -->
+<script src="/js/layout.js"></script><script src="/js/data.js"></script><script src="/js/assets.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="admin.js"></script>
+<script src="admin-stats.js"></script>
+<script src="admin-players.js"></script>
+<script src="admin-ops.js"></script>
 </body></html>

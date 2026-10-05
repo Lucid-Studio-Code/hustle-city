@@ -7,3 +7,5 @@ __pycache__/
 tools/inbox/*.png
 server/hustle.db*
 server/.admin-token
+server/demo.db*
+server/captures/
