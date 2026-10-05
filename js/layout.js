@@ -40,7 +40,7 @@ window.LAYOUT = {
   "six": {
    "x": 21,
    "y": 66.5,
-   "w": 16,
+   "w": 12,
    "flip": false
   },
   "bus": {

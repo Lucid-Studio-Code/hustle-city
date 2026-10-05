@@ -28,7 +28,7 @@
     { id: 'balto',   name: 'Le Royal',            lvl: 1,  x: 77, y: 57.5, w: 28, tag: 'Paris sportifs · grattage' },
     { id: 'club',    name: 'Le Club',             lvl: 5,  x: 53, y: 46, w: 25, tag: 'Soirées · rencontres · sortir en boîte' },
     { id: 'kiosque', name: 'Le Kiosque',          lvl: 1,  x: 59, y: 66.5, w: 20, tag: 'Tuyaux du jour · boosters de cartes' },
-    { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 3,  x: 21, y: 64, w: 16, tag: 'Événements spéciaux' },
+    { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 3,  x: 21, y: 64, w: 12, tag: 'Événements spéciaux' },
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' },
     // apparaît dans la ville dès qu'on possède une voiture ou une moto (Garage Prestige)
     { id: 'parking', name: 'Mon parking',        lvl: 10, x: 88, y: 80, w: 20, needVehicle: true, tag: 'Tes voitures et motos' }
@@ -342,8 +342,29 @@
    ['coacht', 'Coach Ben', 'Coach de tennis', 'R', 40, 'art-coach-tennis'], ['ref', 'Mme Carton', 'Arbitre', 'R', 40, 'art-ref-foot'],
    ['fan', 'Le Capo', 'Supporter ultra', 'E', 140, 'art-fan-ultra'], ['mascot', 'Roucoul', 'Mascotte', 'E', 160, 'art-mascot']]
     .forEach(([k, name, role, r, p0, art]) => ITEMS.push({ id: 'st-' + k, cat: 'card', series: 'staff', noBuy: true, kind: 'staff', role, name, r, p0, vol: .05, art, needArt: art }));
-  ['c-rookie', 'c-dragon', 'c-holo', 'c-signed', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
-  ITEMS.find(x => x.id === 'c-rookie').art = 'art-rookie';   // sa grande illustration full-rookie s'affiche sur la carte
+  // Les grandes cartes du sport : la rookie (grande illustration full-rookie) et la dédicacée (attend son image dans la D.A. des cartes de sport)
+  ['c-rookie', 'c-signed'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
+  ITEMS.find(x => x.id === 'c-rookie').art = 'art-rookie';
+  Object.assign(ITEMS.find(x => x.id === 'c-signed'), { art: 'art-c-signed', needArt: 'art-c-signed' });
+  // ---------------------------------------------------------------- 2e collection : les cartes Créatures (parodie de cartes à monstres, version street)
+  // Image = la carte entière, cadre compris (item-cr-…), dans la D.A. de Dragon Ardent. Visibles une fois l'image installée (needArt).
+  ['c-dragon', 'c-holo', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'crea-og'; });
+  ITEMS.find(x => x.id === 'c-psa10').name = 'Raton gradé 10/10';
+  const CREATURES = [
+    // [id, nom, rareté, série]
+    ['ratchou', 'Ratchou', 'C', 'bitume'], ['pigeonnard', 'Pigeonnard', 'C', 'bitume'], ['kebabzor', 'Kebabzor', 'C', 'bitume'], ['trotilezard', 'Trotilézard', 'C', 'bitume'],
+    ['matouz', 'Matouz', 'C', 'bitume'], ['escargoat', 'Escargoat', 'C', 'bitume'], ['taupecash', 'Taupe-Cash', 'C', 'bitume'], ['grenouf', 'Grenouf', 'C', 'bitume'],
+    ['moustikass', 'Moustikass', 'C', 'bitume'], ['canardo', 'Canardo', 'C', 'bitume'], ['poubellou', 'Poubellou', 'C', 'bitume'], ['chenillette', 'Chenillette', 'C', 'bitume'],
+    ['biscotto', 'Biscotto', 'C', 'bitume'], ['herissnik', 'Hérissnik', 'C', 'bitume'], ['fourmidable', 'Fourmidable', 'C', 'bitume'], ['bitumouche', 'Bitumouche', 'C', 'bitume'],
+    ['crocodalle', 'Crocodalle', 'R', 'caids'], ['betonnard', 'Bétonnard', 'R', 'caids'], ['tigresko', 'Tigresko', 'R', 'caids'], ['hiboss', 'Hiboss', 'R', 'caids'],
+    ['requinoir', 'Requinoir', 'R', 'caids'], ['flamenkoh', 'Flamenkoh', 'R', 'caids'], ['gorilleur', 'Gorilleur', 'R', 'caids'], ['scarabling', 'Scarabling', 'R', 'caids'],
+    ['electrochat', 'Électrochat', 'R', 'caids'], ['meduzik', 'Méduzik', 'R', 'caids'], ['pandagrillz', 'Panda Grillz', 'R', 'caids'], ['fenekko', 'Fenekko', 'R', 'caids'],
+    ['phenix', 'Phénix du Tieks', 'E', 'mythes'], ['kraken', 'Kraken du Port', 'E', 'mythes'], ['liontours', 'Lion des Tours', 'E', 'mythes'], ['licornette', 'Licornette Néon', 'E', 'mythes'],
+    ['golemneon', 'Golem de Néon', 'E', 'mythes'], ['louperiph', 'Loup du Périph', 'E', 'mythes'], ['serpentdor', 'Serpent d\'Or', 'E', 'mythes'], ['yetiz', 'Yétiz', 'E', 'mythes'],
+    ['parrain', 'Le Parrain', 'L', 'mythes'], ['kaiju', 'Kaïju du Bitume', 'L', 'mythes'], ['esprit', 'Esprit du Hustle', 'L', 'mythes'], ['cosmo', 'Dragon Cosmique', 'L', 'mythes']
+  ];
+  CREATURES.forEach(([k, name, r, se], i) => ITEMS.push({ id: 'cr-' + k, cat: 'card', series: 'crea-' + se, kind: 'creature', name, r,
+    p0: Math.round({ C: 10, R: 38, E: 140, L: 560 }[r] * (0.9 + (i % 5) / 20)), vol: .06, needArt: 'item-cr-' + k }));
   // Séries du classeur : compléter une série = grosse récompense
   const SERIES = [
     { id: 'foot',     name: 'Ligue du Bitume',       sub: 'Équipe',  reward: { cash: 600, lingots: 10 } },
@@ -353,7 +374,12 @@
     { id: 'staff',    name: 'Les coulisses',         sub: 'Coulisses', reward: { cash: 700, lingots: 10 } },
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
     { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
-    { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } }
+    { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } },
+    // collection Créatures (onglet à part dans le classeur)
+    { id: 'crea-og',     col: 'crea', name: 'Les Originaux',       sub: 'Créature', reward: { cash: 3000, lingots: 25 } },
+    { id: 'crea-bitume', col: 'crea', name: 'Bestioles du Bitume', sub: 'Créature', reward: { cash: 700, lingots: 10 } },
+    { id: 'crea-caids',  col: 'crea', name: 'Les Caïds',           sub: 'Créature', reward: { cash: 1200, lingots: 15 } },
+    { id: 'crea-mythes', col: 'crea', name: 'Les Mythiques',       sub: 'Créature', reward: { cash: 4000, lingots: 30 } }
   ];
   // ---------------------------------------------------------------- événement : le Tournoi des 6 Quartiers (rugby)
   // Calqué sur le vrai calendrier du tournoi 2027 (heures en temps universel). Les équipes sont inventées : une par quartier.

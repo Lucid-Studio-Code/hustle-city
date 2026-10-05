@@ -652,6 +652,7 @@
     ['💰 +1 000 de cash', () => G.addCash(1000)], ['🪙 +50 lingots', () => G.addLingots(50)], ['⭐ +1 niveau', () => G.addXp(Math.max(1, G.xpNeed() - st().xp))],
     ['⛏️ Finir le minage', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; m.start -= m.dur; }],
     ['🌡️ Machine à 90 %', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; const o = D.MINE.find(x => x.id === m.id); m.cool = 0; m.start = Date.now() - Math.min(m.dur - 60000, .9 * D.RIG[m.lvl].heatMin / o.heat * 60000); }],
+    ['🎁 Offre de bienvenue', () => maybeWelcome(true)],
     ['⚡ Alerte flash', () => { const c = st().crypto; c.flash = null; c.nextFlash = 1; }],
     ['📰 Actu crypto', () => { st().crypto.nextNews = 1; }],
     ['📈 Tuyau crypto d\'un pote', () => { st().crypto.moodUntil = Date.now() + 5 * 60000; st().nextCryptoTipAt = 1; }],
@@ -1317,24 +1318,71 @@
   const promoNow = () => { const se = seasonNow(); if (se) return { ...se.deal, season: se };
     return D.PROMO_DAYS.includes(new Date().getDay()) ? D.PROMOS[Math.floor(Date.now() / 86400000) % D.PROMOS.length] : null; };
   const promoLeft = () => { const p = promoNow(); if (p && p.season) return p.season._end - Date.now(); const d = new Date(); d.setHours(24, 0, 0, 0); return d - Date.now(); };
-  // le bouton à gauche : visuel de saison, de promo, ou simple boutique de lingots
+  // le bouton à gauche : visuel de saison ou de promo ; sans promo, il alterne entre la boutique de lingots, « Ma ville » (décos) et, pour un nouveau joueur, l'offre de bienvenue
   let promoMode = '';
+  const welcomeOk = () => { const s = st(); return !(s.iapOwned || {})['x-start'] && s.lvl >= 2 && s.lvl <= 15; };
   function promoUi() {
-    const b = $('#btn-promo'); if (!b) return; const p = promoNow(), mode = p ? (p.season ? p.season.id : 'promo') : 'shop';
+    const b = $('#btn-promo'); if (!b) return; const p = promoNow();
+    const cyc = ['shop', 'ville'].concat(welcomeOk() ? ['welcome'] : []);
+    const mode = p ? (p.season ? p.season.id : 'promo') : cyc[Math.floor(Date.now() / 7000) % cyc.length];
     if (mode !== promoMode) { promoMode = mode;
-      const img = p && p.season ? p.season.img : p ? 'ic-promo' : 'ic-shop-lingots';
-      b.className = 'pm-' + (p && p.season ? 'season' : mode); b.style.setProperty('--pm', p && p.season ? p.season.color : '');
-      b.querySelector('.pr-rib').textContent = p && p.season ? p.season.name.toUpperCase() : p ? 'PROMO' : 'BOUTIQUE';
-      b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : ic('lingot');
+      const img = p && p.season ? p.season.img : p ? 'ic-promo' : { shop: 'ic-shop-lingots', ville: 'ic-shop-ville', welcome: 'pack-start' }[mode];
+      const fb = { shop: ic('lingot'), ville: pic('deco-dc-bench', '🏙️'), welcome: pic('booster-pack', '🎁') }[mode] || ic('lingot');
+      b.className = 'pm-' + (p && p.season ? 'season' : mode) + ' pm-flip'; b.style.setProperty('--pm', p && p.season ? p.season.color : '');
+      b.querySelector('.pr-rib').textContent = p && p.season ? p.season.name.toUpperCase() : p ? 'PROMO' : { shop: 'BOUTIQUE', ville: 'BOUTIQUE', welcome: 'BIENVENUE' }[mode];
+      b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : fb;
+      setTimeout(() => b.classList.remove('pm-flip'), 450);
     }
-    const t = $('#promo-t'); if (t) { if (!p) t.textContent = 'Lingots'; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
+    const t = $('#promo-t'); if (t) { if (!p) t.textContent = { shop: 'Lingots', ville: 'Ma ville', welcome: 'Cadeau' }[promoMode] || 'Lingots'; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
   }
   const eur2 = v => (Math.floor(v * 100 + 1e-6) / 100).toFixed(2).replace('.', ',') + ' €';   // 2,99 € à −50 % → 1,49 €
   const priceNum = x => parseFloat(x.price.replace(',', '.'));
-  function promoBanner() {
-    const p = promoNow(), x = p && D.IAP.find(i => i.id === p.id); if (!x) return '';
-    const btn = p.off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price;
-    return `<div class="promo-banner"><span class="pb-off">${p.off ? `−${p.off} %` : `+${p.bonus} %`}</span><div class="grow"><small>Offre du moment · finit dans ${mmss(promoLeft())}</small><b>${p.title}</b><small>${p.desc}</small></div><button class="btn gold sm pb-price" data-act="iapSoon" data-id="${x.id}">${btn}</button></div>`;
+  // ce que contient une offre, en pastilles illustrées
+  function giveChips(x) {
+    const g = x.give || (x.kind === 'lingots' ? { lingots: x.n } : {}), out = [];
+    if (g.lingots) out.push(`<span class="gc gc-l">${ic('lingot')}<b>${g.lingots.toLocaleString('fr-FR')}</b></span>`);
+    if (g.boosters) out.push(`<span class="gc gc-b">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>×${g.boosters}</b></span>`);
+    if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash)}</b></span>`);
+    if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
+    if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Zéro pub</b></span>');
+    if (g.passDays) out.push(`<span class="gc gc-p"><b>Chaque jour : +15</b>${ic('lingot')}<b>+1 booster</b></span>`);
+    if (g.skin) out.push(`<span class="gc gc-s">${has('skin-' + g.skin) ? `<img src="${src('skin-' + g.skin)}" alt="">` : '👑'}<b>Skin Gold</b></span>`);
+    return out.join('');
+  }
+  // image d'une offre (en attendant les visuels dédiés : une composition avec les images du jeu)
+  const PACK_IMG = { 'x-start': 'pack-start', 'x-noads': 'pack-noads', 'x-pass': 'pack-pass', 'x-collec': 'pack-collec', 'x-gold': 'skin-gold', 'x-magnat': 'pack-magnat' };
+  function offerArt(x) {
+    if (x.kind === 'lingots') { const k = D.IAP.filter(i => i.kind === 'lingots').indexOf(x) + 1;
+      return has('shop-lingot-' + k) ? `<img src="${src('shop-lingot-' + k)}" alt="">` : `<span class="lg-stack n${Math.min(k, 4)}">${Array.from({ length: Math.min(k, 4) }, () => `<img src="${src('icon-lingot')}" alt="">`).join('')}</span>`; }
+    const im = PACK_IMG[x.id]; if (im && has(im)) return `<img src="${src(im)}" alt="">`;
+    const g = x.give || {}, n = [g.boosters, g.lingots, g.cash].filter(Boolean).length;
+    return `<span class="pk-compo n${n}">${g.boosters && has('booster-pack') ? `<img class="pk-a" src="${src('booster-pack')}" alt="">` : ''}${g.lingots && has('bonus-lingots') ? `<img class="pk-b" src="${src('bonus-lingots')}" alt="">` : ''}${g.cash && has('bonus-cash') ? `<img class="pk-c" src="${src('bonus-cash')}" alt="">` : ''}${g.noAds ? '<i class="pk-e">🚫</i>' : g.skin ? '<i class="pk-e">👑</i>' : ''}</span>`;
+  }
+  // l'offre mise en avant : choisie selon le joueur (nouveau, gros joueur de pubs, collectionneur, à court de lingots…)
+  function offerFor() {
+    const s = st(), own = s.iapOwned || {}, p = promoNow(), X = id => D.IAP.find(i => i.id === id);
+    if (p && X(p.id)) return { x: X(p.id), p, why: p.season ? `Spécial ${p.season.name}` : 'Offre du jour' };
+    if (welcomeOk()) return { x: X('x-start'), why: 'Offre de bienvenue', sub: 'Une seule fois, pour bien démarrer.' };
+    if (!G.adState().noAds && s.ads && s.ads.n >= 3) return { x: X('x-noads'), why: 'Tu regardes beaucoup de pubs', sub: 'Garde les lingots, oublie les pubs.' };
+    const cards = D.ITEMS.filter(i => i.cat === 'card' && (s.owned[i.id] || []).length).length;
+    if (cards >= 12) return { x: X('x-collec'), why: 'Pour ton classeur', sub: `Tu as déjà ${cards} cartes : complète tes séries.` };
+    if (s.lingots < 40) return { x: X('l-600'), why: 'Recharge tes lingots', sub: 'De quoi t\'offrir boosters et décos.' };
+    if (!G.passOn()) return { x: X('x-pass'), why: 'Le meilleur rapport', sub: 'Des lingots et un booster chaque jour.' };
+    return { x: own['x-magnat'] ? X('l-1300') : X('x-magnat'), why: 'Pour les grands', sub: '' };
+  }
+  function priceBtn(x, p, cls) {
+    const off = p && p.id === x.id && p.off;
+    return `<button class="btn ${cls || 'gold'} iap-buy" data-act="iapSoon" data-id="${x.id}">${off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price}</button>`;
+  }
+  function shopHero() {
+    const o = offerFor(); if (!o || !o.x) return ''; const { x, p } = o;
+    const badge = p ? (p.off ? `−${p.off} %` : `+${p.bonus} %`) : '';
+    return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
+      ${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
+      <span class="sh2-for">✨ Choisie pour toi · ${o.why}</span>
+      <div class="sh2-row"><div class="sh2-art">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
+        <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
+      <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${mmss(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
   }
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
@@ -1343,16 +1391,34 @@
       <small>${a.noAds ? 'Sans pub : la récompense tombe tout de suite. ' : ''}${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
       <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>${a.noAds ? 'Récupérer' : 'Regarder'}</button></div>`;
   }
+  // offre de bienvenue : proposée régulièrement aux nouveaux joueurs (dès le niveau 3, tous les 2 jours, 5 fois au plus)
+  function maybeWelcome(force) {
+    const s = st(); if (!force && (!welcomeOk() || s.lvl < 3 || G.TEST && !force || (window.TUTO && window.TUTO.active) || !s.tutoDone)) return;
+    const w = s.welcome = s.welcome || { n: 0, at: 0 };
+    if (!force && (w.n >= 5 || Date.now() - w.at < 2 * 86400000)) return;
+    w.n++; w.at = Date.now(); G.save && G.save();
+    const x = D.IAP.find(i => i.id === 'x-start');
+    queue(() => openModal({ title: 'Offre de bienvenue', icon: 'gift', center: true, body: `<div class="welcome-pop">
+      <div class="wp-art">${has('pop-starter') ? `<img src="${src('pop-starter')}" alt="">` : offerArt(x)}</div>
+      <h3>Le pack du débutant</h3><p>Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.</p>
+      <div class="give-chips">${giveChips(x)}</div>
+      ${priceBtn(x, null, 'green big')}<button class="wp-later" data-act="closeModal">Plus tard</button></div>` }));
+  }
+  const PACK_COL = { 'x-start': '#5fc73a', 'x-noads': '#45a8ec', 'x-pass': '#a867e3', 'x-collec': '#ff8a3d', 'x-gold': '#e0a21d', 'x-magnat': '#e63946' };
   function boutiqueBody() {
     const s = st();
     if (bqTab === 'vip') {
-      const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {};
+      const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {}, p = promoNow(), top = offerFor();
       const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
-      return `${promoBanner()}${adCard()}${pass}
-        <p class="hint-line">Des lingots et des packs en <b>vrai argent</b>. Bientôt disponible : ça arrivera avec la version App Store et Google Play.</p>
-        <h3 class="sec">Lingots</h3><div class="iap-grid3">${L.map(x => `<div class="card iap-card ${x.best ? 'best' : ''}">${x.tag ? `<span class="iap-tag">${x.tag}</span>` : ''}<span class="iap-ic">${ic('lingot')}</span><b>${x.n.toLocaleString('fr-FR')}</b><small>${x.name}</small>${x.best ? `<span class="iap-best">${x.best}</span>` : ''}<button class="btn gold xs" data-act="iapSoon" data-id="${x.id}">${x.price}</button></div>`).join('')}</div>
-        <h3 class="sec">Packs</h3>${P.map(x => { const done = x.once && owned[x.id];
-          return `<div class="card iap-pack ${done ? 'done' : ''}"><div class="grow"><b>${x.name}</b><small>${x.desc}</small></div>${x.tag ? `<span class="iap-tag in">${x.tag}</span>` : ''}${done ? '<span class="iap-own">✓ Acheté</span>' : `<button class="btn purple xs" data-act="iapSoon" data-id="${x.id}">${x.price}</button>`}</div>`; }).join('')}`;
+      return `${shopHero()}${pass}
+        <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
+        <div class="lg-grid">${L.map(x => { const bonus = p && p.id === x.id && p.bonus; return `<div class="lg-card ${x.best ? 'best' : ''}">${x.tag || bonus ? `<span class="lg-tag">${bonus ? `+${bonus} %` : x.tag}</span>` : ''}
+          <div class="lg-art">${offerArt(x)}</div><b>${ic('lingot')}${(bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n).toLocaleString('fr-FR')}</b>${x.best ? `<span class="lg-best">${x.best}</span>` : `<small>${x.name}</small>`}${priceBtn(x, p)}</div>`; }).join('')}</div>
+        ${adCard()}
+        <h3 class="sec">Packs</h3><div class="pk-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
+          return `<div class="pk-card ${done ? 'done' : ''}" style="--pk:${PACK_COL[x.id] || '#a867e3'}"><div class="pk-art">${offerArt(x)}</div><div class="pk-info">${x.tag ? `<span class="pk-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
+            ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
+        <p class="hint-line center">Paiement en <b>vrai argent</b> : disponible avec la version App Store et Google Play.</p>`;
     }
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
       const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
@@ -1748,10 +1814,14 @@
   }
 
   // ------------------------------------------------------------ Boosters et classeur (comme Mama Kana)
-  let boosterTab = 'open';
+  let boosterTab = 'open', colTab = 'sport';
   const RAR = { C: 'Commune', R: 'Rare', E: 'Épique', L: 'Légendaire' }, RSYM = { C: '●', R: '◆', E: '★', L: '✦' };
   function packArt(mini) { return mini ? `<i class="bst-mini">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}</i>` : `<div class="bst-pack">${pic('booster-pack', '🃏')}<i class="bst-gloss"></i></div>`; }
   const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
+  // numéro d'une carte dans SA collection (sport ou créatures) : 03/98
+  const colOf = c => (D.SERIES.find(x => x.id === c.series) || {}).col || 'sport';
+  const colCards = c => CARD_ALL.filter(x => colOf(x) === colOf(c));
+  const cardNo = c => `${String(colCards(c).indexOf(c) + 1).padStart(2, '0')}/${colCards(c).length}`;
   // carte façon jeu de cartes : une carte de collection (it) ou une carte récompense (c.kind)
   function tcgCard(c, extra = '') {
     let d;
@@ -1762,16 +1832,16 @@
         freebet: 'Une mise offerte au Royal : si tu gagnes, tu touches le bénéfice.', airdrop: 'Des Axion versés dans ton portefeuille crypto.' }[c.kind];
       d = { type: 'item', name: c.name, art: has('bonus-' + c.kind) ? `<div class="tcg-sub full"><img src="${src('bonus-' + c.kind)}" alt=""></div>` : `<div class="tcg-sub ico">${art}</div>`, stat, ability: 'Récompense', text: txt, flav: 'Trouvé dans un booster du Kiosque.', rarity: c.rarity, label: 'Bonus' };
     } else {
-      const it = G.item(c.id), se = D.SERIES.find(x => x.id === it.series), no = CARD_ALL.indexOf(it) + 1;
+      const it = G.item(c.id), se = D.SERIES.find(x => x.id === it.series), no = cardNo(it);
       const t = it.team ? D.TEAMS[it.team[0]][it.team[1]] : null;
       // cartes rares et plus : l'illustration remplit toute la carte, seuls le nom et la cote restent en bandeau
-      if (it.r !== 'C' || it.series === 'classics') {
+      if (it.r !== 'C' || it.series === 'classics' || it.kind === 'creature') {
         const nm = it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase());
         const full = it.art && 'full-' + it.art.replace(/^art-/, '');   // grande illustration verticale (full-k-…) quand elle existe
         const art = full && has(full) ? `<span class="fa-img fa-ill"><img src="${src(full)}" alt=""></span>` : it.art && has(it.art) && !it.img ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
         return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
-          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${String(no).padStart(2, '0')}/${CARD_ALL.length}</span>
+          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
@@ -1783,7 +1853,7 @@
       <div class="tcg-art">${d.art}</div>
       <div class="tcg-line">${d.label}</div>
       <div class="tcg-txt"><b>${d.ability}</b><p>${d.text}</p></div>
-      <div class="tcg-foot"><span class="tcg-rsym">${RSYM[d.rarity]}</span><span>${RAR[d.rarity]}</span><span class="tcg-no">${d.no ? `${String(d.no).padStart(2, '0')}/${CARD_ALL.length}` : 'Hustle City'}</span></div>
+      <div class="tcg-foot"><span class="tcg-rsym">${RSYM[d.rarity]}</span><span>${RAR[d.rarity]}</span><span class="tcg-no">${d.no || 'Hustle City'}</span></div>
       </div><i class="tcg-holo"></i></div></div>`;
   }
   function boostersBody() {
@@ -1799,17 +1869,22 @@
           <div class="bd-dots">${ch.list.map(c => `<i class="bd-dot ${c.got ? 'got' : G.chalValue(c) >= c.goal ? 'ready' : ''}">${c.got ? '✓' : ''}</i>`).join('')}</div></div>
           <button class="btn ${ready ? 'green pulse' : ''}" data-act="goDefis">${ready ? 'Réclamer' : 'Voir'}</button></div>`;
     }
-    const got = CARD_ALL.filter(c => (s.owned[c.id] || []).length).length;
+    // deux collections dans le classeur : cartes de sport et cartes Créatures
+    const ALL = CARD_ALL.filter(c => colOf(c) === colTab);
+    const got = ALL.filter(c => (s.owned[c.id] || []).length).length;
     const val = CARD_ALL.reduce((a, c) => a + (s.owned[c.id] || []).length * G.sellPrice(c.id), 0);
-    let body = `<div class="col-top"><div class="col-bar"><i style="width:${(got / CARD_ALL.length * 100).toFixed(1)}%"></i></div><b>${got} / ${CARD_ALL.length} cartes</b></div>
-      <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>`;
-    for (const se of D.SERIES) {
+    const nCrea = CARD_ALL.filter(c => colOf(c) === 'crea').length;
+    let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ic('trophy')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">🐲 Créatures</button></div>
+      <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
+      <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>
+      ${colTab === 'crea' && nCrea < 10 ? '<p class="hint-line"><b>Nouvelles créatures en route :</b> elles arrivent dans les boosters au fil des mises à jour.</p>' : ''}`;
+    for (const se of D.SERIES.filter(x => (x.col || 'sport') === colTab)) {
       const cards = G.seriesCards(se.id), have = G.seriesHave(se.id), done = G.seriesDone(se.id), claimed = s.colClaimed[se.id];
       if (!cards.length) continue;
       body += `<div class="col-set"><div class="col-head"><b>${se.name}</b><small>${have}/${cards.length}</small></div>
         <div class="col-grid tcg-grid">${cards.map(c => { const n = (s.owned[c.id] || []).length; return n
           ? `<div class="col-slot" data-act="cardZoom" data-id="${c.id}">${tcgCard({ id: c.id }, 'mini')}${n > 1 ? `<i class="col-n">×${n}</i>` : ''}</div>`
-          : `<div class="col-slot miss"><div class="tcg-back"><span>${String(CARD_ALL.indexOf(c) + 1).padStart(2, '0')}</span></div></div>`; }).join('')}</div>
+          : `<div class="col-slot miss"><div class="tcg-back ${colTab === 'crea' ? 'crea' : ''}"><span>${cardNo(c).slice(0, 2)}</span></div></div>`; }).join('')}</div>
         <div class="col-rew">Série complète : ${chips(se.reward.cash, se.reward.lingots)} ${claimed ? '<span class="rw-done">✓ Déjà récupérée</span>' : done ? `<button class="btn green" data-act="claimSeries" data-id="${se.id}">Réclamer</button>` : ''}</div></div>`;
     }
     return body;
@@ -2168,12 +2243,14 @@
     traderClaim() { const r = G.claimTrader(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); toast(`Défi du trader réussi : +${r.n} lingots !`); refresh(); },
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
+    colTab(el) { colTab = el.dataset.id; setBody(boostersBody()); },
     boutique() { openBoutique(); },
     valToggle(el) { const i = +el.dataset.i; valOpen.has(i) ? valOpen.delete(i) : valOpen.add(i); setBody(valuesBody()); },
     valPub() { publishLayout(); },
     admTest(el) { const t = TESTS[+el.dataset.i]; if (!t || !placing) return; const r = t[1](); toast(r || `${t[0]} : fait. Ça arrive dans quelques secondes si c'est une notification.`); refresh(); },
     valReset() { if (!confirm('Annuler tous tes changements de valeurs pas encore publiés ?')) return; try { localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); },
-    promo() { openBoutique('vip'); },
+    welcomeTest() { maybeWelcome(true); },
+    promo() { openBoutique(promoMode === 'ville' ? 'deco' : 'vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
@@ -2420,6 +2497,7 @@
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
+    setTimeout(maybeWelcome, 40000);
   }
   // fin de l'écran de chargement : on attend les images du premier écran (la barre suit), puis on l'affiche
   function preload(html, then) {

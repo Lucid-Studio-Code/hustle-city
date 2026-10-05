@@ -2915,3 +2915,79 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .sup-txt { width: 100%; min-height: 120px; padding: 10px; border: 2px solid #2a1a10; border-radius: 12px; font: 600 14px var(--text); margin-bottom: 10px; box-sizing: border-box; }
 #app .sup-in { width: 100%; padding: 10px; border: 2px solid #2a1a10; border-radius: 12px; font: 600 13px var(--text); margin-bottom: 8px; box-sizing: border-box; }
 #app .sup-code { font: 800 12px monospace; word-break: break-all; padding: 12px; margin-bottom: 8px; user-select: all; }
+/* classeur : deux collections (sport / créatures) */
+#app .col-tabs { display: flex; gap: 6px; margin: 0 8px 10px; padding: 4px; border: 2px solid #2a1a10; border-radius: 16px; background: #ead9bd; }
+#app .col-tabs button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; border: 0; border-radius: 12px; background: transparent; font: 400 14px var(--title); color: #7a5a3a; cursor: pointer; }
+#app .col-tabs button .ic { width: 18px; height: 18px; }
+#app .col-tabs button.on { background: #fffdf6; color: #2a1a10; box-shadow: 0 2px 0 #2a1a10; border: 2px solid #2a1a10; }
+/* ---------- Boutique v2 : offre mise en avant, lingots illustrés, packs colorés ---------- */
+#app #btn-promo.pm-ville { background: linear-gradient(#7fe0a0, #1f9d55); animation: none; }
+#app #btn-promo.pm-welcome { background: linear-gradient(#b48cff, #6a3fd0); }
+#app #btn-promo.pm-flip { animation: pmFlip .45s ease; }
+@keyframes pmFlip { 0% { transform: rotateY(0); } 50% { transform: rotateY(90deg) scale(.92); } 100% { transform: rotateY(0); } }
+#app #btn-promo .pr-ic .pic { width: 34px; height: 34px; display: block; }
+#app .shop-hero2 { position: relative; overflow: hidden; margin: 0 0 12px; padding: 12px 12px 12px; border: 3px solid #2a1a10; border-radius: 20px; background: radial-gradient(120% 90% at 20% 30%, #3fd07a 0%, #1f9d55 45%, #0d5c33 100%); box-shadow: 0 4px 0 #2a1a10, inset 0 0 0 3px #ffd23f; color: #fff; }
+#app .shop-hero2.season { background: radial-gradient(120% 90% at 20% 30%, color-mix(in srgb, var(--pm) 60%, #fff) 0%, var(--pm) 55%, color-mix(in srgb, var(--pm) 60%, #000) 100%); }
+#app .shop-hero2 .sh2-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; pointer-events: none; }
+#app .shop-hero2 .sh2-bills { position: absolute; inset: 0; pointer-events: none; opacity: .18; background-image: url(../assets/img/icon-cash.png), url(../assets/img/icon-lingot.png); background-size: 46px, 34px; background-position: 0 0, 23px 23px; transform: rotate(-12deg) scale(1.4); }
+#app .shop-hero2 > * { position: relative; }
+#app .sh2-for { display: inline-block; padding: 3px 10px; border: 2px solid #2a1a10; border-radius: 999px; background: #ffd23f; color: #2a1a10; font: 900 11px var(--text); box-shadow: 0 2px 0 #2a1a10; }
+#app .sh2-row { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+#app .sh2-art { position: relative; flex: 0 0 112px; width: 112px; height: 112px; display: grid; place-items: center; border-radius: 18px; background: radial-gradient(circle, rgba(255,240,170,.9), rgba(255,210,63,.25) 60%, transparent 72%); animation: sh2Float 3s ease-in-out infinite; }
+#app .sh2-art > img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 0 rgba(42,26,16,.35)); }
+@keyframes sh2Float { 50% { transform: translateY(-4px) rotate(-2deg); } }
+#app .sh2-badge { position: absolute; top: -6px; right: -8px; padding: 3px 7px; border: 2.5px solid #2a1a10; border-radius: 12px; background: #e63946; color: #fff; font: 400 16px var(--title); transform: rotate(10deg); box-shadow: 0 2px 0 #2a1a10; }
+#app .sh2-info { flex: 1; min-width: 0; }
+#app .sh2-info > b { display: block; font: 400 21px/1.05 var(--title); -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; }
+#app .sh2-info > small { display: block; margin: 4px 0 6px; font: 800 12px/1.3 var(--text); color: #eafff0; }
+#app .give-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+#app .give-chips .gc { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px 2px 3px; border: 2px solid #2a1a10; border-radius: 999px; background: #fffdf6; color: #2a1a10; font: 900 11px var(--text); white-space: nowrap; }
+#app .give-chips .gc img, #app .give-chips .gc .ic { width: 18px; height: 18px; object-fit: contain; }
+#app .give-chips .gc.gc-p { white-space: normal; }
+#app .sh2-buy { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 10px; }
+#app .sh2-buy .btn { width: 100%; min-height: 48px; font-size: 20px; }
+#app .sh2-buy small { font: 900 11px var(--text); color: #fff; }
+#app .iap-buy s { margin-right: 6px; opacity: .7; font-size: .75em; }
+#app .lg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+#app .lg-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px 8px; border: 2.5px solid #2a1a10; border-radius: 16px; background: linear-gradient(#fff6d6, #ffe08a); box-shadow: 0 3px 0 #2a1a10; text-align: center; }
+#app .lg-card.best { background: linear-gradient(#fff3b0, #ffc933); box-shadow: 0 3px 0 #2a1a10, 0 0 0 3px #ff8a3d; }
+#app .lg-art { width: 70px; height: 62px; display: grid; place-items: center; }
+#app .lg-art > img { width: 100%; height: 100%; object-fit: contain; }
+#app .lg-stack { position: relative; width: 64px; height: 56px; }
+#app .lg-stack img { position: absolute; width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(42,26,16,.3)); }
+#app .lg-stack img:nth-child(1) { left: 13px; top: 16px; } #app .lg-stack img:nth-child(2) { left: 0; top: 6px; } #app .lg-stack img:nth-child(3) { left: 26px; top: 4px; } #app .lg-stack img:nth-child(4) { left: 13px; top: -6px; }
+#app .lg-card > b { display: flex; align-items: center; gap: 3px; font: 400 18px var(--title); color: #2a1a10; }
+#app .lg-card > b .ic { width: 16px; height: 16px; }
+#app .lg-card > small { font: 800 10px/1.2 var(--text); color: #7a5a3a; min-height: 24px; }
+#app .lg-card .btn { width: 100%; min-height: 32px; padding: 0 4px; font-size: 13px; }
+#app .lg-tag { position: absolute; top: -9px; right: -5px; padding: 2px 6px; border: 2px solid #2a1a10; border-radius: 9px; background: #e63946; color: #fff; font: 400 12px var(--title); transform: rotate(6deg); }
+#app .lg-best { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 6px; border: 2px solid #2a1a10; border-radius: 8px; background: #ff8a3d; color: #fff; font: 900 9px var(--text); white-space: nowrap; }
+#app .pk-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+#app .pk-card { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2.5px solid #2a1a10; border-radius: 18px; background: linear-gradient(110deg, color-mix(in srgb, var(--pk) 28%, #fffdf6) 0%, #fffdf6 70%); box-shadow: 0 3px 0 #2a1a10; }
+#app .pk-card.done { opacity: .6; }
+#app .pk-art { flex: 0 0 76px; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--pk) 35%, #fff); border: 2px solid #2a1a10; }
+#app .pk-art > img { width: 92%; height: 92%; object-fit: contain; }
+#app .pk-info { flex: 1; min-width: 0; }
+#app .pk-info > b { display: block; font: 400 16px/1.1 var(--title); color: #2a1a10; margin: 2px 0 5px; }
+#app .pk-tag { display: inline-block; padding: 1px 7px; border-radius: 8px; background: var(--pk); color: #fff; font: 900 10px var(--text); border: 1.5px solid #2a1a10; }
+#app .pk-card .btn { flex: none; min-width: 74px; }
+#app .pk-compo { position: relative; width: 100%; height: 100%; display: block; }
+#app .pk-compo img { position: absolute; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(42,26,16,.3)); }
+#app .pk-compo .pk-a { width: 56%; height: 70%; left: 4%; top: 6%; transform: rotate(-8deg); }
+#app .pk-compo .pk-b { width: 52%; height: 52%; right: 2%; top: 4%; }
+#app .pk-compo .pk-c { width: 54%; height: 50%; right: 8%; bottom: 2%; }
+#app .pk-compo .pk-e { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 34px; font-style: normal; }
+#app .sh2-art .pk-compo .pk-e { font-size: 50px; }
+/* offre de bienvenue (fenêtre) */
+#app .welcome-pop { text-align: center; }
+#app .welcome-pop .wp-art { position: relative; margin: -6px auto 6px; width: 220px; height: 220px; display: grid; place-items: center; border-radius: 24px; background: radial-gradient(circle, #ffe9a0, #b48cff 65%, #6a3fd0); border: 3px solid #2a1a10; box-shadow: 0 4px 0 #2a1a10; overflow: hidden; }
+#app .welcome-pop .wp-art > img { width: 100%; height: 100%; object-fit: cover; }
+#app .welcome-pop .wp-art .pk-compo { width: 80%; height: 80%; }
+#app .welcome-pop h3 { margin: 6px 0 2px; font: 400 24px var(--title); color: #2a1a10; }
+#app .welcome-pop p { margin: 0 0 8px; font: 800 13px/1.35 var(--text); color: #5a3a20; }
+#app .welcome-pop .give-chips { justify-content: center; margin-bottom: 12px; }
+#app .welcome-pop .btn { width: 100%; }
+#app .welcome-pop .wp-later { margin-top: 6px; background: transparent; border: 0; box-shadow: none; color: #7a5a3a; font: 800 13px var(--text); text-decoration: underline; }
+#app .lg-card .lg-best { position: static; transform: none; margin: 2px 0 4px; min-height: 0; }
+#app .pk-compo.n1 img { width: 86%; height: 86%; left: 7%; top: 7%; right: auto; bottom: auto; transform: none; }
+#app .tcg-back.crea, .tcg-back.crea { background: url(../assets/img/card-back-crea.png) center / 100% 100% no-repeat, repeating-linear-gradient(45deg, #e6dcf5 0 8px, #d8c9ef 8px 16px); }
