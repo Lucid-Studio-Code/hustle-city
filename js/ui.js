@@ -1353,6 +1353,7 @@
     }
     const t = $('#promo-t'); if (t) { if (!p) t.textContent = ''; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
   }
+  const leftTxt = ms => { const h = Math.floor(ms / 3600000); return h >= 48 ? `${Math.floor(h / 24)} jours` : h >= 1 ? `${h} h ${String(Math.floor(ms / 60000) % 60).padStart(2, '0')}` : mmss(ms); };
   const eur2 = v => (Math.floor(v * 100 + 1e-6) / 100).toFixed(2).replace('.', ',') + ' €';   // 2,99 € à −50 % → 1,49 €
   const priceNum = x => parseFloat(x.price.replace(',', '.'));
   // ce que contient une offre, en pastilles illustrées
@@ -1400,7 +1401,7 @@
       <span class="sh2-for">✨ Choisie pour toi · ${o.why}</span>
       <div class="sh2-row"><div class="sh2-art">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
         <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
-      <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${mmss(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
+      <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
   }
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
