@@ -3123,3 +3123,6 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lv-now b { display: block; font: 400 20px var(--title); color: #2a1a10; margin-bottom: 4px; }
 #app .lv-now .bar { margin: 0; }
 #app .lv-now > .grow { flex: 1; min-width: 0; } #app .lv-now .bar { display: block; width: 100%; }
+#app .cred-ways .btn { justify-content: flex-start; padding: 0 6px; text-align: left; }
+#app .cred-ways .cw-ic, #app .cred-ways .cw-ic img { width: 26px; height: 26px; border-radius: 7px; }
+#app .cred-ways .btn span { flex: 1; text-align: center; }

@@ -1780,7 +1780,7 @@
       const need = G.xpNeed();
       // street cred : le rang qui suit ton patrimoine, avec les moyens de le faire grimper
       const rk = G.rankOf(), pct = rk.next ? (G.credWorth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
-      const ways = [['shop', 'cat-card', 'Objets qui montent', G.catUnlocked('card')], ['pc', 'app-crypto', 'Investir en crypto', true], ['rig', 'minerv-1', 'Lancer un minage', true]].filter(w => w[3]);
+      const ways = [['shop', has('app-objets') ? 'app-objets' : 'app-binder', 'Objets qui montent', G.catUnlocked('card')], ['pc', 'app-crypto', 'Investir en crypto', true], ['rig', has('app-minage') ? 'app-minage' : 'app-bank', 'Lancer un minage', true]].filter(w => w[3]);
       const lab = n => n ? short(n, true) : '0';
       body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${pic(rkImg(rk), rk.emo)}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
           ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${pic(rkImg(rk.next), rk.next.emo, 'cn-ic')}${rk.next.name}</b><em>encore ${short(rk.next.n - G.credWorth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
@@ -2548,6 +2548,8 @@
   window.addEventListener('resize', hudBottom);
   function cleanChats() { const sk = st().skin; Object.keys(chats()).forEach(k => { const c = chats()[k]; if (sk && c.img && c.img.includes(sk + '-')) delete chats()[k]; }); }
   function boot2(first) {
+    // images posées en dur dans game.html (bouton setup, booster) : même chemin que les autres, sinon elles cassent quand le jeu vient d'internet
+    document.querySelectorAll('img[src^="assets/img/"]').forEach(i => { const m = i.getAttribute('src').match(/img\/(.+?)\.png/); if (m) i.src = src(m[1]); });
     cleanChats(); purgeOld();
     document.body.classList.toggle('calm', !!st().calm);
     if (G.TEST || /^#neuf/.test(location.hash)) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
