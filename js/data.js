@@ -488,6 +488,26 @@
     { k: 'cryptoProfit', t: 'Vends {n} fois une crypto en bénéfice', g: [1, 2] }
   ];
   const CHAL_CASH = lvl => 40 + lvl * 15;
+  // objectifs de la semaine (lundi → dimanche) : 4 défis plus longs, chacun +5 lingots et du cash ; les 4 réussis = 3 boosters + 15 lingots
+  const WEEKLY = [
+    { k: 'bets',        t: 'Place {n} paris au Royal',             g: [12, 40] },
+    { k: 'betsWon',     t: 'Gagne {n} paris',                      g: [5, 15] },
+    { k: 'scratch',     t: 'Gratte {n} tickets',                   g: [12, 40] },
+    { k: 'rigCollect',  t: 'Récolte {n} minages',                  g: [8, 20] },
+    { k: 'boosters',    t: 'Ouvre {n} boosters',                   g: [5, 10] },
+    { k: 'cryptoProfit', t: 'Vends {n} fois une crypto en bénéfice', g: [4, 10] },
+    { k: 'itemBuy',     t: 'Achète {n} objets au Comptoir',        g: [4, 10], lvl: 2 },
+    { k: 'spins',       t: 'Fais {n} tours de machine à sous',     g: [80, 250], lvl: 3 },
+    { k: 'roulette',    t: 'Joue {n} fois à la roulette',          g: [20, 60], lvl: 7 }
+  ];
+  const WEEK_REWARD = { lingots: 5, cash: lvl => 200 + lvl * 60, bonus: { boosters: 3, lingots: 15 } };
+  // rangs de fortune (patrimoine) : la richesse se voit sur le profil et se fête à chaque palier
+  const RANKS = [
+    { n: 0,        name: 'Petit joueur',     emo: '🪙' }, { n: 5000,     name: 'Débrouillard',     emo: '💵' },
+    { n: 25000,    name: 'Hustler',          emo: '😎' }, { n: 100000,   name: 'Boss du quartier', emo: '🧢' },
+    { n: 500000,   name: 'Caïd de la ville', emo: '🕶️' }, { n: 2000000,  name: 'Magnat',           emo: '💼' },
+    { n: 10000000, name: 'Légende',          emo: '👑' }
+  ];
 
   // ---------------------------------------------------------------- mini-événements (quelques minutes, de temps en temps)
   const EVENTS = { lvl: 2, first: 240, every: [600, 1200], time: 180,
@@ -807,6 +827,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

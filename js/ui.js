@@ -99,9 +99,9 @@
   // ------------------------------------------------------------ message de Momo, effets
   // même carte que Mama Kana : la tête du perso + le texte, au-dessus de la barre du bas ; un appui mène à l'action liée
   let toastT;
-  function toast(msg, bad, act, id) {
+  function toast(msg, bad, act, id, who) {
     const t = $('#toast');
-    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span class="t-txt">${msg}</span>`;
+    t.innerHTML = `<span class="t-who">${pic(who && has(who) ? who : 'guide', '🧢')}</span><span class="t-txt">${msg}</span>`;
     t.classList.toggle('bad', !!bad);
     if (act) { t.dataset.act = act; if (id) t.dataset.id = id; else delete t.dataset.id; t.classList.add('tapme'); }
     else { delete t.dataset.act; delete t.dataset.id; t.classList.remove('tapme'); }
@@ -199,14 +199,14 @@
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
     // boutons du côté droit (comme Mama Kana) : Récompenses, Booster, Cadeau
-    const rw = G.questsReady() + G.chalReady();
+    const rw = G.questsReady() + G.chalReady() + G.weekReady();
     $('#trophy .badge').classList.toggle('hidden', !rw); $('#trophy .badge').textContent = rw;
     const nb = G.boosterCount(), bst = $('#btn-booster');
     bst.querySelector('.badge').classList.toggle('hidden', !nb); bst.querySelector('.badge').textContent = nb; bst.classList.toggle('glow', G.boosterFree());
     const gift = $('#btn-gift'), dr = G.dailyReady();
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
-    promoUi();
+    promoUi(); renderCap();
     $('.six-badge')?.classList.toggle('hidden', G.eventOff() || !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
@@ -230,7 +230,7 @@
   }
   function coach() {
     const s = st(), L = [], add = (p, ic, t, d, go, now) => L.push({ p, ic, t, d, go, now: !!now });
-    const rw = G.questsReady() + G.chalReady();
+    const rw = G.questsReady() + G.chalReady() + G.weekReady();
     if (rw) add(100, '🏆', `${rw} récompense${rw > 1 ? 's' : ''} à récupérer`, 'Tes missions ou tes défis sont réussis : encaisse.', () => openRewards(), true);
     if (G.dailyReady()) add(95, '🎁', 'Ton cadeau du jour t\'attend', 'Reviens chaque jour : il grossit avec la série.', () => openDaily(), true);
     const ri = G.rigInfo();
@@ -280,6 +280,19 @@
     if (doable) add(...doable);
     add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
     return L.sort((a, b) => b.p - a.p);
+  }
+  // le prochain cap, toujours visible en ville : ce qui s'ouvre au niveau suivant et où on en est
+  let capKey = '';
+  function renderCap() {
+    const b = $('#next-cap'); if (!b) return; const s = st(), nu = nextUnlock();
+    const show = s.tutoDone && nu; b.classList.toggle('hidden', !show); if (!show) return;
+    const need = G.xpNeed(), pct = isFinite(need) ? Math.min(100, s.xp / need * 100) : 100, togo = nu.lvl - s.lvl;
+    const key = `${nu.lvl}|${nu.what[0]}|${Math.round(pct)}`; if (key === capKey) return; capKey = key;
+    b.innerHTML = `<span class="nc-lock">${ic('lock')}</span><span class="nc-txt"><small>Niveau ${nu.lvl}${togo > 1 ? ` · dans ${togo} niveaux` : ''}</small><b>${nu.what[0].replace(/^./, c => c.toUpperCase())}</b></span><span class="nc-bar"><i style="width:${pct.toFixed(0)}%"></i></span>`;
+    hydrateIcons(b);
+    // un nouveau rang de fortune : on le fête
+    const rk = G.rankOf(G.worth()); if (s.rankMax == null) s.rankMax = rk.i;
+    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Nouveau rang !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="lv-big stroke">${rk.emo} ${rk.name.toUpperCase()}</div><p class="hint-line center">Ton patrimoine passe <b>${short(rk.n)}</b>. Tout le quartier en parle.${rk.next ? ` Prochain rang : <b>${rk.next.emo} ${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
   let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
   function renderNextBtn() {
@@ -1333,7 +1346,7 @@
       b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : fb;
       setTimeout(() => b.classList.remove('pm-flip'), 450);
     }
-    const t = $('#promo-t'); if (t) { if (!p) t.textContent = { shop: 'Lingots', ville: 'Ma ville', welcome: 'Cadeau' }[promoMode] || 'Lingots'; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
+    const t = $('#promo-t'); if (t) { if (!p) t.textContent = ''; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
   }
   const eur2 = v => (Math.floor(v * 100 + 1e-6) / 100).toFixed(2).replace('.', ',') + ' €';   // 2,99 € à −50 % → 1,49 €
   const priceNum = x => parseFloat(x.price.replace(',', '.'));
@@ -1577,7 +1590,25 @@
       <p class="center">${t ? `Reviens dans <b>${n} jour${n > 1 ? 's' : ''}</b> : le prochain commence le <b>${when}</b>.` : 'Le prochain arrive bientôt : il sera annoncé ici.'}</p>
       <p class="hint-line center">Tes pin's et tes cadres restent dans ton profil.</p></div>` });
   }
+  // fin du tournoi : un récap (scores, ta place, tes récompenses), puis le Panneau redevient normal
+  function openSixRecap() {
+    const S = D.SIX, fin = G.sixState().final, ms = G.sixMatches(), rows = G.sixBoard(), me = rows.find(r => r.me), tab = G.sixTable(), champ = tab[0];
+    const good = ms.filter(m => m.ok).length, played = ms.filter(m => m.pick != null).length, rw = G.sixReward(fin.rank);
+    const cards = D.ITEMS.filter(i => i.event === 'six'), got = cards.filter(i => (st().owned[i.id] || []).length).length;
+    const sup = r => r === 1 ? 'er' : 'e';
+    const podium = rows.slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${['🥇', '🥈', '🥉'][k]}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
+    openModal({ title: 'Tournoi terminé', icon: 'star', center: true, body: `<div class="six-recap">
+      <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${rows.length}</b></div></div>
+      <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
+      <h3 class="sec">Le podium des joueurs</h3><div class="rc-podium">${podium}</div>${me.rank > 3 ? `<p class="hint-line center">Toi : ${me.rank}<sup>${sup(me.rank)}</sup> avec ${me.pts} points.</p>` : ''}
+      <h3 class="sec">Le classement des équipes</h3><div class="six-board-list">${tab.map((t, k) => `<div class="sb-row ${k === 0 ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}${k === 0 ? ' 🏆' : ''}</span><b>${t.pts} pts</b></div>`).join('')}</div>
+      <h3 class="sec">Tes récompenses</h3><div class="rc-rew">${chips(0, rw.lingots + good * S.lingotPerGood, rw.boosters ? `<span class="need">${packArt(true)}${rw.boosters}</span>` : '')}<small>dont ${good * S.lingotPerGood} lingot${good > 1 ? 's' : ''} déjà gagnés avec tes bons pronos</small></div>
+      <button class="btn green wide big" data-act="sixRecapOk">${fin.claimed ? 'Super !' : 'Récupérer mes récompenses'}</button>
+      <p class="hint-line center">${champ ? `${champ.name} remporte le tournoi. ` : ''}Rendez-vous au prochain événement, sur le Panneau !</p></div>` });
+  }
   function openSix(tab) {
+    const fin = G.sixState().final;
+    if (G.sixPhase() === 'over' && fin && !G.eventOff()) return openSixRecap();
     if (G.eventOff()) return openPanneau();
     if (tab) sixTab = tab; else sixTab = 'pronos';
     G.sixSeenNow(); renderHud();
@@ -1721,6 +1752,30 @@
           <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
       body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '2 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}2 + booster</span>`}</div>`;
+    } else if (rewardsTab === 'semaine') {
+      const w = G.week(), nGot = w.list.filter(c => c.got).length, R = D.WEEK_REWARD, left = G.weekLeft();
+      body += `<p class="hint-line">4 objectifs pour la semaine, renouvelés dans <b>${left} jour${left > 1 ? 's' : ''}</b> (lundi). Chacun : <b>${short(R.cash(s.lvl))}<i class="cur"></i> + ${R.lingots} lingots</b>. Les 4 réussis : <b>${R.bonus.boosters} boosters + ${R.bonus.lingots} lingots</b> !</p>`;
+      w.list.forEach((c, i) => {
+        const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
+        body += `<div class="row rw-row ${c.got ? 'owned' : ready ? 'focus ready' : 'open'}"><div class="art">${ic(c.got ? 'check' : 'trophy')}</div><div class="info">
+          <h4>Objectif ${i + 1}</h4><p class="rw-do">${c.t.replace('{n}', c.goal)}</p>
+          ${c.got ? '' : `<div class="bar"><div style="width:${(v / c.goal * 100).toFixed(0)}%"></div><span>${v} / ${c.goal}</span></div>`}
+          <p class="rw-get">Tu gagnes ${chips(R.cash(s.lvl), R.lingots)}</p></div>
+          <div class="btns">${c.got ? '<span class="rw-done">✓ Récupéré</span>' : ready ? `<button class="btn green" data-act="claimWeek" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
+      });
+      body += `<div class="chal-bonus ${w.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus de la semaine</b><small>${w.bonus ? 'Déjà récupéré. Nouveaux objectifs lundi !' : `${nGot} / 4 objectifs réussis`}</small></div>${w.bonus ? '<span class="got-tag">✓ Récupéré</span>' : `<span class="stroke">${R.bonus.boosters} boosters</span>`}</div>`;
+      // les grands objectifs : ce qui se construit sur des semaines
+      const cards = D.ITEMS.filter(i => i.series && G.cardOk(i)), crea = c => (D.SERIES.find(x => x.id === c.series) || {}).col === 'crea';
+      const have = L => L.filter(c => (s.owned[c.id] || []).length).length, sp = cards.filter(c => !crea(c)), cr = cards.filter(crea);
+      const rk = G.rankOf(G.worth()), achN = Object.keys(s.ach || {}).length;
+      const goal = (emo, t, v, n, sub) => `<div class="lt-goal"><span class="lt-ic">${emo}</span><div class="grow"><b>${t}</b><div class="bar"><div style="width:${Math.min(100, v / Math.max(1, n) * 100).toFixed(0)}%"></div><span>${sub || `${v} / ${n}`}</span></div></div></div>`;
+      body += `<h3 class="sec">Tes grands objectifs</h3><div class="lt-goals">
+        ${goal('⭐', `Niveau ${D.MAX_LVL}`, s.lvl, D.MAX_LVL, `Niveau ${s.lvl} / ${D.MAX_LVL}`)}
+        ${goal(rk.emo, rk.next ? `Rang de fortune : ${rk.next.emo} ${rk.next.name}` : `Rang : ${rk.name}`, rk.next ? G.worth() - rk.n : 1, rk.next ? rk.next.n - rk.n : 1, rk.next ? `${rk.name} · encore ${short(rk.next.n - G.worth())}` : 'Tu es au sommet')}
+        ${goal('🏆', 'Cartes de sport', have(sp), sp.length)}
+        ${cr.length ? goal('🐲', 'Cartes Créatures', have(cr), cr.length) : ''}
+        ${goal('🎖️', 'Succès', achN, D.ACHIEVEMENTS.length)}
+        ${goal('🎯', 'Missions', G.questsClaimed(), D.QUESTS.length)}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
       body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
@@ -1758,8 +1813,8 @@
   }
   function openRewards(tab, scrollCur) {
     if (tab) rewardsTab = tab;
-    else rewardsTab = G.questsReady() ? 'missions' : G.chalReady() ? 'defis' : rewardsTab;
-    const labels = () => ({ defis: `Défis du jour${G.chalReady() ? ` <span class="tab-badge">${G.chalReady()}</span>` : ''}`, missions: `Missions${G.questsReady() ? ` <span class="tab-badge">${G.questsReady()}</span>` : ''}`, levels: 'Niveaux' });
+    else rewardsTab = G.questsReady() ? 'missions' : G.chalReady() ? 'defis' : G.weekReady() ? 'semaine' : rewardsTab;
+    const labels = () => ({ defis: `Défis du jour${G.chalReady() ? ` <span class="tab-badge">${G.chalReady()}</span>` : ''}`, semaine: `Semaine${G.weekReady() ? ` <span class="tab-badge">${G.weekReady()}</span>` : ''}`, missions: `Missions${G.questsReady() ? ` <span class="tab-badge">${G.questsReady()}</span>` : ''}`, levels: 'Niveaux' });
     const tabs = Object.entries(labels()).map(([id, label]) => ({ id, label }));
     // les pastilles des onglets se mettent à jour dès qu'on réclame
     const retab = () => { const L = labels(); document.querySelectorAll('#modal .tab').forEach(t => { if (L[t.dataset.tab] != null && t.innerHTML !== L[t.dataset.tab]) t.innerHTML = L[t.dataset.tab]; }); };
@@ -1772,26 +1827,26 @@
   // ce qui s'ouvre à un niveau (fenêtre Niveaux, montée de niveau)
   function unlocksAt(L) {
     const u = [];
-    D.BUILDINGS.filter(b => b.lvl === L && !b.spot).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name }));
-    D.COINS.filter(c => c.lvl === L && L > 1).forEach(c => u.push({ html: coinIco(c), name: c.name }));
-    Object.entries(D.SPORTS).filter(([, x]) => x.lvl === L && L > 1).forEach(([k, x]) => u.push({ html: teamCrest(k, 0), name: `Paris ${x.name.toLowerCase()}` }));
-    Object.entries(D.ITEM_CATS).filter(([, c]) => c.lvl === L && L > 1).forEach(([k, c]) => u.push({ img: 'item-' + D.ITEMS.find(i => i.cat === k).id, name: c.name }));
+    D.BUILDINGS.filter(b => b.lvl === L && !b.spot).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name, how: b.tag, go: b.id }));
+    D.COINS.filter(c => c.lvl === L && L > 1).forEach(c => u.push({ html: coinIco(c), name: c.name, how: 'Nouvelle crypto à trader' }));
+    Object.entries(D.SPORTS).filter(([, x]) => x.lvl === L && L > 1).forEach(([k, x]) => u.push({ html: teamCrest(k, 0), name: `Paris ${x.name.toLowerCase()}`, how: 'Plus de matchs où parier', go: 'balto' }));
+    Object.entries(D.ITEM_CATS).filter(([, c]) => c.lvl === L && L > 1).forEach(([k, c]) => u.push({ img: 'item-' + D.ITEMS.find(i => i.cat === k).id, name: c.name, how: 'Achète, attends que ça monte, revends' }));
     D.SKINS.filter(k => k.lvl === L && L > 1).forEach(k => u.push({ img: `skin-${k.id}-bust`, name: k.name }));
-    if (L === D.ROULETTE.lvl) u.push({ emo: '🎡', name: 'Roulette' });
+    if (L === D.ROULETTE.lvl) u.push({ emo: '🎡', name: 'Roulette', how: 'Au Lucky Palace', go: 'casino' });
     if (L === D.COMBI_LVL) u.push({ emo: '🎟️', name: 'Paris combinés' });
     D.SCRATCH.filter(t => t.lvl === L && L > 1).forEach(t => u.push({ img: 'ticket-' + t.id, emo: '🎟️', name: t.name }));
     D.HABITS.filter(h => h.lvl === L).forEach(h => u.push({ emo: h.icon, name: h.name }));
     if (L === D.EVENTS.lvl) u.push({ emo: '⚡', name: 'Mini-événements' });
     if (L === D.DEALS.lvl) u.push({ img: 'guide', name: 'Bons plans' });
-    if (L === D.AGENCE.lvl) u.push({ img: 'app-agence', emo: '📸', name: (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Ta page PrivéFans' : 'Agence PrivéFans' });
+    if (L === D.AGENCE.lvl) u.push({ img: 'app-agence', emo: '📸', name: (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Ta page PrivéFans' : 'Agence PrivéFans', how: 'Des revenus chaque heure, même absent' });
     D.CITY_SHOP.filter(x => x.lvl === L && L > 1).forEach(x => u.push({ img: 'deco-' + x.id, emo: x.emo, name: x.name }));
     D.EXT_PLACES.filter(b => b.lvl === L).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name + ' (en bus)' }));
-    D.PROPS.filter(p => p.lvl === L).forEach(p => u.push({ img: 'item-' + p.id, emo: p.icon, name: p.name }));
-    if (L === D.BOURSE.lvl) u.push({ img: 'item-st-kbc', emo: '📈', name: 'La bourse' });
+    D.PROPS.filter(p => p.lvl === L).forEach(p => u.push({ img: 'item-' + p.id, emo: p.icon, name: p.name, how: 'Un loyer qui tombe chaque jour' }));
+    if (L === D.BOURSE.lvl) u.push({ img: 'item-st-kbc', emo: '📈', name: 'La bourse', how: 'Des actions et des dividendes' });
     D.CITY_LOOKS.filter(x => x.lvl === L && (x.cash || x.lingots)).forEach(x => u.push({ img: 'bg-city-' + x.id, emo: '🏙️', name: x.name }));
     return u;
   }
-  function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }
+  function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span>${u.how ? `<small class="ul-how">${u.how}</small>` : ''}</div>`; }
 
   // ------------------------------------------------------------ Cadeau du jour (série de 7 jours)
   function openDaily() {
@@ -1998,7 +2053,7 @@
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
-        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span>
+        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank">${G.rankOf(G.worth()).emo} ${G.rankOf(G.worth()).name}</span>
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}
@@ -2199,9 +2254,13 @@
     evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
     evUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); renderCity(); renderHud(); },
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
+    sixRecapOk() { const claimed = G.sixState().final.claimed; G.sixRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 50); } closeModal(); renderCity(); renderHud(); },
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
     claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); refresh(); },
+    lvlGo(el) { closeModal(); setScene('city'); focusBld(el.dataset.id); },
+    nextCap() { openRewards('levels'); },
+    claimWeek(el) { const r = G.claimWeek(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-lingots'); if (r.bonus) { rain('bill', 40); toast('Semaine bouclée : 3 boosters et 15 lingots !'); } refresh(); },
     claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
     questGo(el) { questGo(D.QUESTS.find(q => q.id === el.dataset.id).go); },
     daily: () => openDaily(),
@@ -2376,7 +2435,7 @@
       <div class="gains"><span>${ic('cash')}+${short(e.cash, true)}</span><span>${ic('lingot')}+${e.lingots}</span><span>${packArt(true)}+1 booster</span></div>
       <p class="hint-line center">Mise max au Royal : <b>${G.betMax()}<i class="cur"></i></b></p>
       ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>` : ''}
-      <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button><button class="btn green" data-act="closeModal">Trop bien !</button></div></div>` });
+      <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button>${un.find(x => x.go) ? `<button class="btn green" data-act="lvlGo" data-id="${un.find(x => x.go).go}">Aller voir !</button>` : '<button class="btn green" data-act="closeModal">Trop bien !</button>'}</div></div>` });
   }
   // la partie a été ouverte dans un autre onglet : celui-ci s'arrête net pour ne rien écraser
   G.on('asleep', () => {

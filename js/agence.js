@@ -11,6 +11,9 @@
   const nslug = n => n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '').replace('modeluxe', 'mode');
   const prof = id => id === 'me' ? { id: 'me', name: st().name || 'Toi', niche: (st().agence || {}).meNiche || 'Lifestyle', cha: 3, reg: 3, drama: 2, me: true } : A.crew.find(c => c.id === id);
   const fmtSubs = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',') + ' k' : String(Math.round(n));
+  // tête à afficher sur une notif ou un message : la créatrice concernée (ou ton perso), jamais Momo
+  const faceImg = id => id === 'me' ? (st().skin && U.has(`skin-${st().skin}-bust`) ? `skin-${st().skin}-bust` : null) : U.has('cr-' + id) ? 'cr-' + id : null;
+  const say = (id, msg, bad) => U.toast(msg, bad, null, null, faceImg(id));
   const actIc = o => U.has('act-' + o.id) ? `<img class="act-ic" src="${U.src('act-' + o.id)}" alt="">` : o.icon;
   const face = (c, cls = '') => c.me ? `<span class="cr-face ${cls}">${U.pic(st().skin ? `skin-${st().skin}-bust` : 'guide', '🙂')}</span>` : U.has('cr-' + c.id) ? `<span class="pic cr-face ${cls}"><img src="${U.src('cr-' + c.id)}" alt=""></span>` : `<span class="cr-face emo ${cls}">${c.name[0]}</span>`;
 
@@ -50,7 +53,7 @@
     a.crew.forEach(m => { if (m.gear && m.gear.spa) { (m.abo = m.abo || {}).spa = m.abo.spa || t + 86400000; delete m.gear.spa; } });
     // abonnements : prélevés toutes les 24 h ; pas assez de cash = abonnement arrêté
     a.crew.forEach(m => Object.keys(m.abo || {}).forEach(id => { const g = A.gear.find(x => x.id === id); let n = 0;
-      while (m.abo[id] && t >= m.abo[id] && n++ < 7) { if (G.st.cash >= g.cost) { G.addCash(-g.cost); m.abo[id] += 86400000; } else { delete m.abo[id]; U.notify('agence', `${g.icon} ${g.name} arrêté`, `Pas assez de cash pour payer l'abonnement de ${prof(m.id).name}.`); } } }));
+      while (m.abo[id] && t >= m.abo[id] && n++ < 7) { if (G.st.cash >= g.cost) { G.addCash(-g.cost); m.abo[id] += 86400000; } else { delete m.abo[id]; U.notify('agence', `${g.icon} ${g.name} arrêté`, `Pas assez de cash pour payer l'abonnement de ${prof(m.id).name}.`, null, false, null, faceImg(m.id)); } } }));
     if (a.crew.length && t >= a.nextEv) { a.nextEv = t + rnd(...A.eventEvery) * 60000; randomEvent(); }
     if (!a.nextDil) a.nextDil = t + rnd(10, 25) * 60000;
     if (a.crew.length && t >= a.nextDil && !(a.dil && t < a.dil.until)) { a.nextDil = t + rnd(...A.dilEvery) * 60000; dilemma(); }
@@ -92,12 +95,12 @@
     let tips = 0; if (x.cash) { tips = Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)); m.pend = (m.pend || 0) + tips; }
     if (duo) { duo.subs += duo.subs * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
     m.act = null; G.stat('agActs');
-    U.notify('agence', p.me ? `Tu as fini : ${x.name}` : `${p.name} a fini : ${x.name}`, `${gain >= 1 ? `+${fmtSubs(gain)} abonnés` : 'Elle a bien récupéré'}${tips ? ` et +${U.short(tips)} de pourboires pour toi` : ''}.`);
+    U.notify('agence', p.me ? `Tu as fini : ${x.name}` : `${p.name} a fini : ${x.name}`, `${gain >= 1 ? `+${fmtSubs(gain)} abonnés` : 'Elle a bien récupéré'}${tips ? ` et +${U.short(tips)} de pourboires pour toi` : ''}.`, null, false, null, faceImg(p.me ? 'me' : p.id));
   }
   function randomEvent() {
     const a = ag(), m = pick(a.crew), p = prof(m.id), r = Math.random(), d = p.drama / 5;
-    if (r < .35) { const k = rnd(.15, .35); m.subs *= 1 + k; U.notify('agence', p.me ? '🔥 Tu fais le buzz !' : `🔥 ${p.name} fait le buzz !`, `${p.me ? 'Une de tes vidéos' : 'Une de ses vidéos'} explose : +${Math.round(k * 100)} % d'abonnés.`); }
-    else if (r < .35 + .3 * d) { const k = rnd(.08, .18); m.subs *= 1 - k; m.mood = Math.max(0, m.mood - 10); U.notify('agence', p.me ? '😬 Bad buzz pour toi' : `😬 Bad buzz pour ${p.name}`, `Une polémique sur les réseaux : −${Math.round(k * 100)} % d'abonnés. Un peu de repos lui ferait du bien.`); }
+    if (r < .35) { const k = rnd(.15, .35); m.subs *= 1 + k; U.notify('agence', p.me ? '🔥 Tu fais le buzz !' : `🔥 ${p.name} fait le buzz !`, `${p.me ? 'Une de tes vidéos' : 'Une de ses vidéos'} explose : +${Math.round(k * 100)} % d'abonnés.`, null, false, null, faceImg(p.me ? 'me' : p.id)); }
+    else if (r < .35 + .3 * d) { const k = rnd(.08, .18); m.subs *= 1 - k; m.mood = Math.max(0, m.mood - 10); U.notify('agence', p.me ? '😬 Bad buzz pour toi' : `😬 Bad buzz pour ${p.name}`, `Une polémique sur les réseaux : −${Math.round(k * 100)} % d'abonnés. Un peu de repos lui ferait du bien.`, null, false, null, faceImg(p.me ? 'me' : p.id)); }
     else if (r < .35 + .3 * d + .2 * d && !a.offer && m.id !== 'me') rivalOffer(m, false);
   }
   // ------------------------------------------------------------ dilemmes : une créatrice t'écrit, tu choisis, ça a des conséquences
@@ -164,7 +167,7 @@
   function rivalOffer(m, unhappy) {
     const a = ag(), p = prof(m.id);
     a.offer = { id: m.id, prime: Math.round(perHour(m) * 24 + 100), t: now(), unhappy };
-    U.notify('agence', `📩 ${p.name} hésite à partir`, unhappy ? 'Elle n\'a plus le moral et une agence rivale lui fait les yeux doux. Ouvre PrivéFans.' : 'Une agence rivale lui propose un contrat. Ouvre PrivéFans pour décider.');
+    U.notify('agence', `📩 ${p.name} hésite à partir`, unhappy ? 'Elle n\'a plus le moral et une agence rivale lui fait les yeux doux. Ouvre PrivéFans.' : 'Une agence rivale lui propose un contrat. Ouvre PrivéFans pour décider.', null, false, null, faceImg(p.id));
   }
 
   // ------------------------------------------------------------ actions
@@ -178,18 +181,18 @@
   }
   const gearOpen = new Set();
   const act = {
-    agStart(el) { const a = ag(); if (a.crew.length) return; a.meNiche = el.dataset.n; a.crew = [{ id: 'me', subs: 250, mood: 90, pct: .8, pend: 0, last: now(), act: null, since: now() }]; G.addXp(30); U.sfx.win(); U.rain('confetti', 24); U.toast('Ta page PrivéFans est en ligne ! Lance ton premier shooting.'); refresh(); },
+    agStart(el) { const a = ag(); if (a.crew.length) return; a.meNiche = el.dataset.n; a.crew = [{ id: 'me', subs: 250, mood: 90, pct: .8, pend: 0, last: now(), act: null, since: now() }]; G.addXp(30); U.sfx.win(); U.rain('confetti', 24); say('me', 'Ta page PrivéFans est en ligne ! Lance ton premier shooting.'); refresh(); },
     agGearOpen(el) { const id = el.dataset.id; gearOpen.has(id) ? gearOpen.delete(id) : gearOpen.add(id); refresh(); },
     agAbo(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return;
       m.abo = m.abo || {}; if (m.abo[g.id]) { delete m.abo[g.id]; U.toast(`${g.name} résilié.`); return refresh(); }
-      if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); m.abo[g.id] = Date.now() + 86400000; m.mood = clamp(m.mood + 8); U.sfx.coin(); U.toast(`${g.icon} ${prof(m.id).name} est abonnée au spa : ${U.short(g.cost)} par jour.`); refresh(); },
-    agGear(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return; if (m.gear && m.gear[g.id]) return; if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); (m.gear = m.gear || {})[g.id] = Date.now(); m.mood = clamp(m.mood + 8); G.addXp(10); U.sfx.coin(); U.toast(`${g.icon} ${g.name} pour ${prof(m.id).name} : elle adore !`); refresh(); },
+      if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); m.abo[g.id] = Date.now() + 86400000; m.mood = clamp(m.mood + 8); U.sfx.coin(); say(m.id, `${g.icon} ${prof(m.id).name} est abonnée au spa : ${U.short(g.cost)} par jour.`); refresh(); },
+    agGear(el) { const m = ag().crew.find(x => x.id === el.dataset.id), g = A.gear.find(x => x.id === el.dataset.g); if (!m || !g) return; if (m.gear && m.gear[g.id]) return; if (!G.pay(g.cost)) return U.toast('Pas assez de cash.', true); (m.gear = m.gear || {})[g.id] = Date.now(); m.mood = clamp(m.mood + 8); G.addXp(10); U.sfx.coin(); say(m.id, `${g.icon} ${g.name} pour ${prof(m.id).name} : elle adore !`); refresh(); },
     agRecruit(el) {
       const a = ag(), c = prof(el.dataset.id), cost = recruitCost(c);
       if (a.crew.length >= slotsN()) return U.toast('Agence pleine : agrandis-la pour en recruter une autre.', true);
       if (!G.pay(cost)) return U.toast('Pas assez de cash.', true);
       a.crew.push({ id: c.id, subs: c.subs, mood: 80, pct: .35, pend: 0, last: now(), act: null, since: now() });
-      a.cand = a.cand.filter(x => x !== c.id); G.stat('agRecruit'); G.addXp(30); U.sfx.win(); U.toast(`${c.name} rejoint ton agence !`); refresh();
+      a.cand = a.cand.filter(x => x !== c.id); G.stat('agRecruit'); G.addXp(30); U.sfx.win(); say(c.id, `${c.name} rejoint ton agence !`); refresh();
     },
     agCollect() {
       const a = ag(), n = Math.floor(a.crew.reduce((x, m) => x + (m.pend || 0), 0));
@@ -205,14 +208,14 @@
     agShare(el) { const m = ag().crew.find(x => x.id === el.dataset.id), v = +el.dataset.v; if (m.shareLock > now() && v > m.pct) return U.toast(`Tu lui as promis de baisser ta part : attends encore ${U.mmss(m.shareLock - now())}.`, true); m.pct = v; refresh(); },
     agAct(el) {
       const a = ag(), m = a.crew.find(x => x.id === el.dataset.id), x = A.acts.find(o => o.id === el.dataset.k);
-      if (m.act) return U.toast('Elle est déjà occupée.', true);
+      if (m.act) return say(m.id, 'Elle est déjà occupée.', true);
       if (x.lvl && st().lvl < x.lvl) return U.toast(`Niveau ${x.lvl} requis.`, true);
       if (x.duo && m.id === 'me') return pickPartner();
       let duo = null;
       if (x.duo && m.id !== 'me') { duo = a.crew.find(o => o.id !== m.id && !o.act); if (!duo) return U.toast('Il faut une autre créatrice libre dans ton agence.', true); }
       if (x.cost && !G.pay(x.cost)) return U.toast('Pas assez de cash.', true);
       m.act = { k: x.id, start: now(), dur: x.min * 60000, with: duo && duo.id }; if (duo) duo.act = { k: x.id, start: now(), dur: x.min * 60000, with: m.id, guest: true };
-      U.sfx.tap(); U.toast(m.id === 'me' ? `C'est parti : ${x.name.toLowerCase()} !` : `${prof(m.id).name} : ${x.name}${duo ? ` avec ${prof(duo.id).name}` : ''}.`); refresh();
+      U.sfx.tap(); say(m.id, m.id === 'me' ? `C'est parti : ${x.name.toLowerCase()} !` : `${prof(m.id).name} : ${x.name}${duo ? ` avec ${prof(duo.id).name}` : ''}.`); refresh();
     },
     // renvoyer une créatrice : on confirme, elle part avec ses abonnés, ses gains en attente te sont versés
     agFireAsk(el) { const m = ag().crew.find(x => x.id === el.dataset.id); if (!m) return; const p = prof(m.id), pend = Math.floor(m.pend || 0);
@@ -222,19 +225,19 @@
     agFire(el) { const a = ag(), m = a.crew.find(x => x.id === el.dataset.id); if (!m || m.id === 'me') return;
       const pend = Math.floor(m.pend || 0); if (pend >= 1) G.addCash(pend);
       a.crew = a.crew.filter(x => x.id !== m.id); a.crew.forEach(x => { if (x.act && x.act.with === m.id) x.act = null; }); if (a.offer && a.offer.id === m.id) a.offer = null;
-      G.save(); U.toast(`${prof(m.id).name} a quitté ton agence.${pend >= 1 ? ` +${U.short(pend)} encaissés.` : ''}`); open(); },
+      G.save(); say(m.id, `${prof(m.id).name} a quitté ton agence.${pend >= 1 ? ` +${U.short(pend)} encaissés.` : ''}`); open(); },
     agBack() { open(); },
     // collab sur ta page (joueuse) : tu choisis avec qui ; même taille que toi = gratuit, plus grosse = elle se fait payer
     agCollab(el) { const a = ag(), m = a.crew.find(x => x.id === 'me'), x = A.acts.find(o => o.id === 'collab'), c = partners().find(o => o.id === el.dataset.id); if (!m || !c || m.act) return;
       const fee = partnerFee(c, m); if (!G.pay(fee + x.cost)) return U.toast('Pas assez de cash.', true);
       m.act = { k: 'collab', start: now(), dur: x.min * 60000, with: c.id, pSubs: c.subs };
-      U.sfx.tap(); U.toast(`Collab avec ${c.name} : c'est parti !`); open(); },
-    agGift(el) { const m = ag().crew.find(x => x.id === el.dataset.id), c = 50 + st().lvl * 10; if (!G.pay(c)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 20); U.toast(`Un petit cadeau à ${prof(m.id).name} : +20 de moral.`); refresh(); },
+      U.sfx.tap(); say(c.id, `Collab avec ${c.name} : c'est parti !`); open(); },
+    agGift(el) { const m = ag().crew.find(x => x.id === el.dataset.id), c = 50 + st().lvl * 10; if (!G.pay(c)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 20); say(m.id, `Un petit cadeau à ${prof(m.id).name} : +20 de moral.`); refresh(); },
     agKeep(el) {
       const a = ag(), o = a.offer, m = o && a.crew.find(x => x.id === o.id); if (!m) { a.offer = null; return refresh(); }
       if (el.dataset.how === 'prime') { if (!G.pay(o.prime)) return U.toast('Pas assez de cash.', true); m.mood = Math.min(100, m.mood + 30); }
       else { m.pct = Math.max(.2, m.pct - .15); m.mood = Math.min(100, m.mood + 25); m.shareLock = now() + 12 * 3600000; }   // promesse tenue 12 h
-      a.offer = null; U.toast(`${prof(m.id).name} reste chez toi.`); refresh();
+      a.offer = null; say(m.id, `${prof(m.id).name} reste chez toi.`); refresh();
     },
     agLetGo() { const a = ag(), o = a.offer; a.crew = a.crew.filter(x => x.id !== o.id); a.crew.forEach(x => { if (x.act && x.act.with === o.id) x.act = null; }); a.offer = null; U.toast(`${prof(o.id).name} est partie chez la concurrence.`); refresh(); },
     agSlots() { const a = ag(), nx = A.slots[a.slots + 1]; if (!nx) return; if (!G.pay(nx.cost)) return U.toast('Pas assez de cash.', true); a.slots++; U.sfx.win(); U.toast(`Ton agence peut maintenant gérer ${nx.n} créatrices.`); refresh(); }

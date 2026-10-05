@@ -2991,3 +2991,44 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lg-card .lg-best { position: static; transform: none; margin: 2px 0 4px; min-height: 0; }
 #app .pk-compo.n1 img { width: 86%; height: 86%; left: 7%; top: 7%; right: auto; bottom: auto; transform: none; }
 #app .tcg-back.crea, .tcg-back.crea { background: url(../assets/img/card-back-crea.png) center / 100% 100% no-repeat, repeating-linear-gradient(45deg, #e6dcf5 0 8px, #d8c9ef 8px 16px); }
+/* bouton boutique : l'image seule, en grand (le texte n'apparaît que pour un compte à rebours de promo) */
+#app #btn-promo { justify-content: center; padding: 0; }
+#app #btn-promo .pr-ic { margin: 4px 0 0; }
+#app #btn-promo .pr-ic img, #app #btn-promo .pr-ic .pic { width: 52px; height: 52px; }
+#app #btn-promo .pr-ic .ic { width: 44px; height: 44px; }
+#app #btn-promo b:empty { display: none; }
+#app #btn-promo:has(b:not(:empty)) .pr-ic img { width: 42px; height: 42px; }
+/* récap de fin de tournoi */
+#app .six-recap .rc-top { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #2a1a10; border-radius: 16px; background: linear-gradient(#1b2a5c, #2c4590); color: #fff; box-shadow: 0 3px 0 #2a1a10; }
+#app .six-recap .rc-top .six-board { flex: 0 0 74px; width: 74px; }
+#app .six-recap .rc-top small { display: block; font: 900 11px var(--text); color: #d8e2ff; }
+#app .six-recap .rc-top b { font: 400 22px/1.05 var(--title); color: #ffd23f; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; }
+#app .six-recap .rc-chips { display: flex; gap: 6px; margin: 10px 0 0; }
+#app .six-recap .rc-chips span { flex: 1; padding: 5px 4px; border-radius: 12px; background: #fffdf6; border: 2px solid #2a1a10; text-align: center; }
+#app .six-recap .rc-chips small { display: block; font: 900 10px var(--text); color: #7a5a3a; }
+#app .six-recap .rc-chips b { font: 400 18px var(--title); }
+#app .rc-podium { display: flex; align-items: flex-end; gap: 6px; }
+#app .rc-pod { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 6px 4px; border: 2px solid #2a1a10; border-radius: 12px 12px 6px 6px; background: #fffdf6; text-align: center; min-width: 0; }
+#app .rc-pod.p1 { order: 2; min-height: 96px; background: #ffe27a; } #app .rc-pod.p2 { order: 1; min-height: 80px; } #app .rc-pod.p3 { order: 3; min-height: 70px; }
+#app .rc-pod.me { box-shadow: 0 0 0 3px #5fc73a; }
+#app .rc-pod i { font-style: normal; font-size: 24px; } #app .rc-pod b { font: 400 13px var(--title); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } #app .rc-pod small { font: 900 11px var(--text); color: #7a5a3a; }
+#app .rc-rew { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 12px; }
+#app .rc-rew small { font: 800 11px var(--text); color: #7a5a3a; }
+/* prochain cap : ce qui s'ouvre au prochain niveau, toujours visible en ville */
+#app #next-cap { position: absolute; z-index: 19; left: 74px; right: 74px; bottom: 104px; margin: 0 auto; max-width: 260px; display: flex; align-items: center; gap: 7px; padding: 5px 10px 5px 5px; border: 2.5px solid #2a1a10; border-radius: 999px; background: rgba(255,253,246,.94); box-shadow: 0 3px 0 #2a1a10; cursor: pointer; text-align: left; }
+#app #next-cap.hidden, #app.in-appart #next-cap, #app:has(#placer) #next-cap { display: none; }
+#app #next-cap .nc-lock { flex: 0 0 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: #ffd23f; border: 2px solid #2a1a10; }
+#app #next-cap .nc-lock .ic { width: 16px; height: 16px; }
+#app #next-cap .nc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#app #next-cap .nc-txt small { font: 900 10px var(--text); color: #7a5a3a; }
+#app #next-cap .nc-txt b { font: 400 13px/1.1 var(--title); color: #2a1a10; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#app #next-cap .nc-bar { flex: 0 0 44px; height: 9px; border: 2px solid #2a1a10; border-radius: 6px; background: #ead9bd; overflow: hidden; }
+#app #next-cap .nc-bar i { display: block; height: 100%; background: linear-gradient(#8ee06a, #3fae2a); }
+#app .pf-rank { display: inline-block; margin-left: 6px; padding: 1px 8px; border: 2px solid #2a1a10; border-radius: 999px; background: #ffe27a; font: 900 11px var(--text); color: #2a1a10; }
+#app .ul .ul-how { display: block; font: 800 10px/1.2 var(--text); color: #1f7a3f; margin-top: 2px; }
+#app .lt-goals { display: flex; flex-direction: column; gap: 8px; }
+#app .lt-goal { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 2px solid #2a1a10; border-radius: 14px; background: #fffdf6; box-shadow: 0 2px 0 #2a1a10; }
+#app .lt-goal .lt-ic { font-size: 24px; flex: 0 0 30px; text-align: center; }
+#app .lt-goal b { font: 400 14px var(--title); color: #2a1a10; display: block; margin-bottom: 4px; }
+#app .lt-goal .grow { min-width: 0; } #app .lt-goal .bar { display: block; width: 100%; height: 22px; margin: 0; }
+#app .lt-goal > .grow { flex: 1; }

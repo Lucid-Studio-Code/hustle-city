@@ -931,7 +931,9 @@
   const sixMatches = () => D.SIX.matches.map((x, i) => sixMatch(i));
   const sixEnd = () => sixKick(D.SIX.matches.length - 1) + sixLive();
   // plus d'événement en cours : tournoi fini et récompense touchée (ou fini depuis plus de 7 jours)
-  function eventOff() { if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || S.final.claimed || now() - sixEnd() > 7 * 86400000; }
+  // après la fin, le Panneau garde le tournoi (avec une notif) tant que le joueur n'a pas vu le récap ; ensuite il redevient un panneau normal
+  function eventOff() { if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || !!S.final.seen || (S.final.claimed && S.final.seen === undefined) || now() - sixEnd() > 30 * 86400000; }
+  function sixRecapSeen() { const S = sixSt(); if (S.final) { if (!S.final.claimed) claimSix(); S.final.seen = now(); emit('change'); } }
   function nextEventAt() { const t = D.NEXT_EVENT && D.NEXT_EVENT.at && Date.parse(D.NEXT_EVENT.at); return t && t > now() ? t : null; }
   function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
   // les journées s'ouvrent une par une : la suivante quand la précédente est finie
@@ -978,14 +980,16 @@
       if (m.state === 'soon' && m.pick == null && !S.remind[m.i] && m.kickoff - now() < (sixTest() ? 180000 : 3600000)) { S.remind[m.i] = true; if (!offline) emit('sixRemind', m); }
       if (m.state === 'done' && m.pick != null && !S.paid[m.i]) { S.paid[m.i] = true; if (m.ok) addLingots(D.SIX.lingotPerGood); emit('sixResult', m); }
     });
-    if (sixPhase() === 'over' && !S.final) { const rank = sixRank(); S.final = { rank, claimed: false }; emit('sixEnd', S.final); }
+    if (sixPhase() === 'over' && !S.final) { const rank = sixRank(), played = sixMatches().some(m => m.pick != null);
+      // pas joué du tout : rien à récapituler, le Panneau redevient normal
+      S.final = { rank, claimed: !played, seen: played ? 0 : now(), played }; if (played) emit('sixEnd', S.final); }
     // récompense jamais récupérée 7 jours après la fin : versée d'office (le Panneau redevient un panneau normal, sans rien à réclamer)
     if (S.final && !S.final.claimed && now() - sixEnd() > 7 * 86400000) claimSix();
     // après le tournoi, les cartes en édition limitée deviennent introuvables : leur cote grimpe
     if (sixPhase() === 'over' && !sixTest() && !st.sixRaised) { st.sixRaised = true; D.ITEMS.filter(i => i.event === 'six').forEach(i => { st.market.fair[i.id] = i.p0 * 2.2; }); }
   }
   // pas d'événement en cours = aucune notif sur le Panneau
-  const sixBadge = () => !eventOff() && (sixPhase() !== 'over' && st.sixSeen !== today() || !!(sixSt().final && !sixSt().final.claimed));
+  const sixBadge = () => !eventOff() && (sixPhase() !== 'over' && st.sixSeen !== today() || !!(sixSt().final && !sixSt().final.seen));
   function sixSeenNow() { st.sixSeen = today(); }
   // la journée en cours : la première journée ouverte qui a encore un match à venir ou en direct
   function sixCurDay() { const m = sixMatches().find(x => x.state !== 'done' && sixDayOpen(x.day)); return m ? m.day : 0; }
@@ -1112,6 +1116,27 @@
   const chalValue = c => Math.max(0, (st.stats[c.k] || 0) - c.base);
   const chalReady = () => chal().list.filter(c => !c.got && chalValue(c) >= c.goal).length;
   const chalCash = () => D.CHAL_CASH(st.lvl);
+  // ---- objectifs de la semaine
+  const weekKey = () => Math.floor((today() + 3) / 7);
+  function week() {
+    if (st.week && st.week.k === weekKey()) return st.week;
+    const pool = D.WEEKLY.filter(c => !c.lvl || st.lvl >= c.lvl), list = [];
+    while (list.length < 4 && pool.length) list.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    const f = Math.min(1, (st.lvl - 1) / 24);
+    st.week = { k: weekKey(), bonus: false, list: list.map(c => ({ k: c.k, t: c.t, goal: Math.round(c.g[0] + (c.g[1] - c.g[0]) * f), base: st.stats[c.k] || 0, got: false })) };
+    return st.week;
+  }
+  const weekReady = () => week().list.filter(c => !c.got && chalValue(c) >= c.goal).length;
+  const weekLeft = () => ((weekKey() + 1) * 7 - 3 - today());   // jours avant lundi
+  function claimWeek(i) {
+    const w = week(), c = w.list[i], R = D.WEEK_REWARD;
+    if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
+    c.got = true; addCash(R.cash(st.lvl)); addLingots(R.lingots); addXp(40);
+    let bonus = false;
+    if (!w.bonus && w.list.every(x => x.got)) { w.bonus = bonus = true; st.boosters += R.bonus.boosters; addLingots(R.bonus.lingots); }
+    emit('change'); return { cash: R.cash(st.lvl), bonus };
+  }
+  const rankOf = v => { let i = 0; D.RANKS.forEach((r, k) => { if (v >= r.n) i = k; }); return { i, ...D.RANKS[i], next: D.RANKS[i + 1] || null }; };
   function claimChal(i) {
     const ch = chal(), c = ch.list[i];
     if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
@@ -1378,7 +1403,8 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    week, weekReady, weekLeft, claimWeek, rankOf,
+    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
