@@ -341,6 +341,7 @@
    ['fan', 'Le Capo', 'Supporter ultra', 'E', 140, 'art-fan-ultra'], ['mascot', 'Roucoul', 'Mascotte', 'E', 160, 'art-mascot']]
     .forEach(([k, name, role, r, p0, art]) => ITEMS.push({ id: 'st-' + k, cat: 'card', series: 'staff', noBuy: true, kind: 'staff', role, name, r, p0, vol: .05, art, needArt: art }));
   ['c-rookie', 'c-dragon', 'c-holo', 'c-signed', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
+  ITEMS.find(x => x.id === 'c-rookie').art = 'art-rookie';   // sa grande illustration full-rookie s'affiche sur la carte
   // Séries du classeur : compléter une série = grosse récompense
   const SERIES = [
     { id: 'foot',     name: 'Ligue du Bitume',       sub: 'Équipe',  reward: { cash: 600, lingots: 10 } },
