@@ -3071,3 +3071,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lt-tile > b { font: 400 15px var(--title); color: #2a1a10; } #app .lt-tile > b small { font-size: 10px; color: #9a8a7a; }
 #app .lt-tile > small { font: 900 9px var(--text); color: #7a5a3a; }
 #app .lt-tile > i { position: absolute; left: 0; bottom: 0; height: 4px; width: var(--p); background: #5fc73a; }
+#app .mine-skip { margin-top: 8px; } #app .mine-skip .ic { width: 18px; height: 18px; vertical-align: -3px; margin: 0 2px 0 4px; }

@@ -302,6 +302,13 @@
     m.cool = Math.min(el, (m.cool || 0) + D.RIG[m.lvl].heatMin / o.heat * .5); m.coolAt = now();
     stat('rigCool'); addXp(2); emit('change'); return { ok: true, heat: mineHeat(m, now()) };
   }
+  // accélérer : finir le minage tout de suite contre des lingots (1 lingot par tranche de 12 min restantes)
+  const mineSkipCost = () => { const i = rigInfo(); return i.idle || i.ready ? 0 : Math.max(1, Math.ceil(i.left / 720000)); };
+  function mineSkip() {
+    const i = rigInfo(), n = mineSkipCost(); if (!n) return { err: 'Rien à accélérer.' };
+    if (st.lingots < n) return { err: `Il te faut ${n} lingots.` };
+    st.lingots -= n; st.mine.dur = Math.max(1, now() - st.mine.start); stat('rigSkip'); emit('change'); return { ok: true, n };
+  }
   function mineHarvest() {
     const i = rigInfo(); if (i.idle) return { err: 'Ta machine est à l\'arrêt : choisis quoi miner.' };
     if (!i.ready) return { err: 'Pas encore fini.' };
@@ -1404,6 +1411,7 @@
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     week, weekReady, weekLeft, claimWeek, rankOf,
+    mineSkip, mineSkipCost,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,

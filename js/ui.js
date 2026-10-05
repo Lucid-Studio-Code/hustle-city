@@ -1058,7 +1058,8 @@
       <div class="gauge"><div class="g-lbl"><span>🌡️ Chaleur</span><b class="${heat >= 80 ? 'down' : ''}">${i.burnt ? 'Surchauffe !' : heat + ' %'}</b></div><div class="g-bar heat ${heat >= 80 ? 'hot' : ''}"><i style="width:${heat}%"></i></div></div>
       ${i.burnt ? `<p class="mine-warn">💥 Elle a surchauffé : la récolte perdra ${Math.round(D.FINDS.burnt * 100)} % et un virus est plus probable. La prochaine fois, refroidis-la avant 100 %.</p>`
         : `<button class="btn blue wide" data-act="mineCool" ${i.coolLeft > 0 ? 'disabled' : ''}>${i.coolLeft > 0 ? `💨 Le ventilo souffle… ${mmss(i.coolLeft)}` : '💨 Refroidir (−50 % de chaleur)'}</button>
-           <p class="hint-line center" style="margin-top:4px">À 100 %, elle surchauffe : la récolte en prend un coup. Passe la refroidir de temps en temps.</p>`}`;
+           <p class="hint-line center" style="margin-top:4px">À 100 %, elle surchauffe : la récolte en prend un coup. Passe la refroidir de temps en temps.</p>`}
+      <button class="btn gold wide mine-skip" data-act="mineSkip" ${st().lingots >= G.mineSkipCost() ? '' : 'disabled'}>⚡ Finir maintenant · ${ic('lingot')}${G.mineSkipCost()}</button>`;
   }
   function rigBody() {
     const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
@@ -2200,6 +2201,7 @@
     rigCollect() { A.mineHarvest(); },
     rigQuick(el, e) { e.stopPropagation(); const i = G.rigInfo(); if (i.ready) return A.mineHarvest(); if (!i.idle && !i.burnt && i.heat >= 50 && i.coolLeft <= 0) return A.mineCool(); openRig(); },
     mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
+    mineSkip() { const r = G.mineSkip(); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`⚡ −${r.n} lingots`); refresh(); },
     mineCool() { const r = G.mineCool(); if (r.err) return toast(r.err, true); sfx.tap(); floatTxt('💨 −50 %'); refresh(); },
     hvSell(el) { const id = el.dataset.id, q = +el.dataset.q, h = st().crypto.hold[id] || 0; if (!(h > 0)) return toast('Plus rien à vendre.', true);
       const r = G.sellCrypto(id, Math.min(1, q / h)); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); el.disabled = true; el.innerHTML = `Vendu · +${short(r.net)}`; refresh(); },
