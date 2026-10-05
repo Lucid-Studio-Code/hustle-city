@@ -2994,10 +2994,10 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* bouton boutique : l'image seule, en grand (le texte n'apparaît que pour un compte à rebours de promo) */
 #app #btn-promo { justify-content: center; padding: 0; }
 #app #btn-promo .pr-ic { margin: 4px 0 0; }
-#app #btn-promo .pr-ic img, #app #btn-promo .pr-ic .pic { width: 52px; height: 52px; }
-#app #btn-promo .pr-ic .ic { width: 44px; height: 44px; }
+#app #btn-promo .pr-ic img, #app #btn-promo .pr-ic .pic { width: 42px; height: 42px; }
+#app #btn-promo .pr-ic .ic { width: 36px; height: 36px; }
 #app #btn-promo b:empty { display: none; }
-#app #btn-promo:has(b:not(:empty)) .pr-ic img { width: 42px; height: 42px; }
+#app #btn-promo:has(b:not(:empty)) .pr-ic img { width: 36px; height: 36px; }
 /* récap de fin de tournoi */
 #app .six-recap .rc-top { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #2a1a10; border-radius: 16px; background: linear-gradient(#1b2a5c, #2c4590); color: #fff; box-shadow: 0 3px 0 #2a1a10; }
 #app .six-recap .rc-top .six-board { flex: 0 0 74px; width: 74px; }
