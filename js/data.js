@@ -16,7 +16,7 @@
   ];
 
   // XP pour passer au niveau suivant (index = niveau actuel)
-  const XP_TABLE = [0, 60, 140, 260, 420, 640, 900, 1250, 1650, 2150, 2750, 3450, 4250, 5200, 6300, 7600, 9000, 10600, 12400, 14400, 16600];
+  const XP_TABLE = [0, 60, 120, 200, 300, 420, 560, 720, 900, 1100, 1300, 1500, 1700, 1900, 2100, 2300, 2500, 2700, 2900, 3100, 3400, 3700, 4000, 4300, 4600, 4900, 5200, 5500, 5800, 6100, 7000, 7800, 8600, 9400, 10200, 11000, 11800, 12600, 13400, 14200];   // 40 niveaux (05/10) : XP pour passer au niveau suivant
   const MAX_LVL = XP_TABLE.length;
 
   // ---------------------------------------------------------------- la ville
@@ -37,6 +37,8 @@
   // les places dessinées sur l'image parking-bg (x = centre, y = bas de la voiture, w = largeur, en %), 7 places au maximum
   const PARK_SLOTS = [[26, 34, 30], [70, 34, 30], [26, 56, 32], [70, 56, 32], [26, 80, 34], [70, 80, 34], [48, 98, 36]];
   // le parking du Garage Prestige (une voiture ou une moto par place)
+  // le coffre de la Bijouterie (or et raretés) : places limitées, qu'on agrandit comme le parking
+  const SAFES = [{ slots: 4, cost: 0, name: 'Petit coffre' }, { slots: 8, cost: 20000, name: 'Coffre-fort' }, { slots: 14, cost: 90000, name: 'Salle forte' }, { slots: 24, cost: 350000, name: 'Chambre forte' }];
   const GARAGES = [{ slots: 2, cost: 0, name: 'Box simple' }, { slots: 4, cost: 25000, name: 'Garage double' }, { slots: 7, cost: 90000, name: 'Parking privé' }];
   // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
   const PROPS = [
@@ -643,7 +645,7 @@
     {"id": "slots4", "name": "Patron d'agence", "txt": "Agrandis ton agence au maximum.", "stat": "!agslots", "n": 3, "lingots": 20, "art": "a ring light and a camera"},
     {"id": "boo300", "name": "Accro aux boosters", "txt": "Ouvre 300 boosters.", "stat": "boosters", "n": 300, "lingots": 20, "art": "a pile of trading card booster packs"},
     {"id": "w10m", "name": "Multimillionnaire", "txt": "Atteins 10 M de patrimoine.", "stat": "worth", "n": 10000000, "lingots": 40, "art": "a golden skyscraper"},
-    {"id": "lvl21", "name": "Au sommet", "txt": "Atteins le niveau maximum.", "stat": "!lvl", "n": 21, "lingots": 30, "art": "a golden crown on a cushion"}
+    {"id": "lvl21", "name": "Au sommet", "txt": "Atteins le niveau maximum (40).", "stat": "!lvl", "n": 40, "lingots": 30, "art": "a golden crown on a cushion"}
   ];
   const TIPS = [
     'Un tuyau du Kiosque, c\'est un avis, pas une prophétie. Même le journaliste parie mal.',
@@ -732,6 +734,33 @@
   const PROMO_DAYS = [0, 3, 5, 6];
   // Pubs récompensées : on regarde une pub pour gagner des lingots (le pack « Sans pub » donne la récompense sans la pub)
   const ADS = { reward: 3, perDay: 5, cooldownMin: 10, watchS: 15 };
+  // ================= Progression (révision du 05/10) =================
+  // Une nouveauté tous les 1 à 3 niveaux, sur 40 niveaux : ~niv. 10 en 1 semaine, ~20 en 1 mois, ~30 en 2 mois, 40 vers 3-4 mois (joueur assidu).
+  // Tout se règle ici : niveau de déblocage de chaque lieu, sport, catégorie d'objets, crypto, ticket, look…
+  const UNLOCK = {
+    buildings: { shop: 2, casino: 3, six: 4, club: 6, parking: 18 },
+    sports: { basket: 5, tennis: 8 }, roulette: 7,
+    places: { bijou: 10, garage: 18, tour: 22 }, agence: 14, bourse: 25,
+    cats: { card: 2, sneaker: 4, gold: 10, watch: 12, gem: 13, car: 18, moto: 20 },
+    coins: { slr: 4, dgk: 7, ppc: 12, lmn: 16 },
+    scratch: { morpion: 2, banco: 5, black: 8, astro: 9, millio: 16 },
+    skins: { flambeur: 9, boss: 20 }, looks: { renov: 10, neon: 16, hiver: 16 },
+    props: { 'p-park': 22, 'p-studio': 23, 'p-flat': 27, 'p-office': 30 },
+    habits: { smoke: 2, drink: 3, club: 6 }
+  };
+  Object.entries(UNLOCK.buildings).forEach(([id, l]) => { const b = BUILDINGS.find(x => x.id === id); if (b) b.lvl = l; });
+  Object.entries(UNLOCK.sports).forEach(([id, l]) => { if (SPORTS[id]) SPORTS[id].lvl = l; });
+  ROULETTE.lvl = UNLOCK.roulette; AGENCE.lvl = UNLOCK.agence; BOURSE.lvl = UNLOCK.bourse; SLOT.lvl = UNLOCK.buildings.casino;
+  Object.entries(UNLOCK.places).forEach(([id, l]) => { const b = EXT_PLACES.find(x => x.id === id); if (b) b.lvl = l; });
+  EXT_PLACES.find(x => x.id === 'tour').tag = `Immobilier, puis la bourse au niveau ${BOURSE.lvl}`;
+  Object.entries(UNLOCK.cats).forEach(([id, l]) => { if (ITEM_CATS[id]) ITEM_CATS[id].lvl = l; });
+  Object.entries(UNLOCK.coins).forEach(([id, l]) => { const c = COINS.find(x => x.id === id); if (c) c.lvl = l; });
+  Object.entries(UNLOCK.scratch).forEach(([id, l]) => { const c = SCRATCH.find(x => x.id === id); if (c) c.lvl = l; });
+  Object.entries(UNLOCK.skins).forEach(([id, l]) => { const c = SKINS.find(x => x.id === id); if (c) c.lvl = l; });
+  Object.entries(UNLOCK.looks).forEach(([id, l]) => { const c = CITY_LOOKS.find(x => x.id === id); if (c) c.lvl = l; });
+  Object.entries(UNLOCK.props).forEach(([id, l]) => { const c = PROPS.find(x => x.id === id); if (c) c.lvl = l; });
+  QUESTS.find(q => q.id === 'q10').lvl = UNLOCK.roulette;   // mission roulette : pas avant la roulette
+  Object.entries(UNLOCK.habits).forEach(([id, l]) => { const c = HABITS.find(x => x.id === id); if (c) c.lvl = l; });
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
@@ -749,7 +778,7 @@
     } catch (e) {}
   });
   window.DATA = {
-    NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
+    UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, SEASONS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, EVENTS, DEALS, LEVEL_REWARD

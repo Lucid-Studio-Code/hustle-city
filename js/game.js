@@ -27,7 +27,7 @@
   function fresh() {
     const t = now();
     const st = {
-      v: 1, created: t, last: t,
+      v: 1, progV: 2, created: t, last: t,
       name: '', skin: null,
       cash: D.START.cash, lingots: D.START.lingots,
       lvl: 1, xp: 0,
@@ -65,6 +65,8 @@
         const base = fresh();
         st = Object.assign(base, saved);
         ['crypto', 'market', 'rig', 'daily'].forEach(k => { st[k] = Object.assign(fresh()[k], saved[k] || {}); });
+        // progression du 05/10 (40 niveaux au lieu de 21) : un ancien joueur passe au niveau qui garde tout ce qu'il avait déjà débloqué
+        if (!saved.progV) { const M = [0, 1, 2, 3, 5, 8, 10, 14, 16, 17, 18, 20, 22, 23, 25, 26, 30, 31, 32, 33, 34, 35]; st.lvl = M[Math.min(21, st.lvl || 1)] || st.lvl; st.xp = 0; st.progV = 2; }
         // nouveaux objets / cryptos ajoutés après la sauvegarde
         if (saved.mine === undefined) st.mine = starterMine(st.rig.lvl || 0, now());
         D.COINS.forEach(c => { if (st.crypto.prices[c.id] == null) { st.crypto.prices[c.id] = c.p0; st.crypto.hist[c.id] = [c.p0]; st.crypto.hold[c.id] = 0; st.crypto.cost[c.id] = 0; } });
@@ -649,6 +651,9 @@
   const collCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (item(id) && item(id).cat !== 'trophy' ? a.length : 0), 0);
   const parkedCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'park' ? a.length : 0), 0);
   const garageSlots = () => D.GARAGES[st.garageLvl || 0].slots;
+  const safeCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'safe' ? a.length : 0), 0);
+  const safeSlots = () => D.SAFES[st.safeLvl || 0].slots;
+  function safeUp() { const nx = D.SAFES[(st.safeLvl || 0) + 1]; if (!nx) return { err: 'Déjà au max.' }; if (!pay(nx.cost)) return { err: 'Pas assez de cash.' }; st.safeLvl = (st.safeLvl || 0) + 1; addXp(60); emit('change'); return { ok: true }; }
   function garageUp() { const nx = D.GARAGES[(st.garageLvl || 0) + 1]; if (!nx) return { err: 'Déjà au max.' }; if (!pay(nx.cost)) return { err: 'Pas assez de cash.' }; st.garageLvl = (st.garageLvl || 0) + 1; addXp(60); emit('change'); return { ok: true }; }
   function ownedCount() { return Object.entries(st.owned).reduce((s, [id, a]) => s + (onShelf(id) ? a.length : 0), 0); }
   function roomSlots() { return D.ROOMS[st.room].slots; }
@@ -685,6 +690,7 @@
     if (!inStock(id)) return { err: 'Plus en rayon : reviens au prochain arrivage.' };
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     if (placeOf(id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein : agrandis-le ou vends un véhicule.' };
+    if (placeOf(id) === 'safe' && safeCount() >= safeSlots()) return { err: 'Ton coffre est plein : agrandis-le ou revends une pièce.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
     if (it.series) st.lastUp = 'card';
@@ -1190,6 +1196,7 @@
       if (st.owned[d.id] && st.owned[d.id].length) return { err: 'Tu l\'as déjà : un seul exemplaire par objet.' };
       if (onShelf(d.id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : revends ou déménage.' };
       if (placeOf(d.id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein.' };
+      if (placeOf(d.id) === 'safe' && safeCount() >= safeSlots()) return { err: 'Ton coffre est plein.' };
       if (!pay(d.price)) return { err: 'Pas assez de cash.' };
       (st.owned[d.id] = st.owned[d.id] || []).push({ paid: d.price, t: now() });
       stat('itemsOwned', collCount(), true);
@@ -1364,7 +1371,7 @@
 
   window.GAME = {
     get st() { return st; }, get asleep() { return asleep; }, TEST, on, emit, load, save, reset, simulate,
-    placeOf, parkedCount, garageSlots, garageUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
+    placeOf, parkedCount, garageSlots, garageUp, safeCount, safeSlots, safeUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
     achValue, looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,

@@ -1581,7 +1581,7 @@
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : ${SHOP_PLACES[shopPlace].who} te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
       <div class="stock-chip">${ico('ic-truck', '🚚')} Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
-      ${(pl => pl === 'safe' ? `<div class="shelf-chip">${ico('ic-shelf', '🔐')} Ça va dans ton <b>coffre</b> : aucune limite de place.</div>`
+      ${(pl => pl === 'safe' ? (nx => `<div class="shelf-chip ${G.safeCount() >= G.safeSlots() ? 'full' : ''}">${ico('ic-shelf', '🔐')} Ton coffre : <b>${G.safeCount()} / ${G.safeSlots()}</b> places${nx ? ` <button class="btn xs ${s.cash >= nx.cost ? 'green' : ''}" data-act="safeUp" ${s.cash >= nx.cost ? '' : 'disabled'}>${nx.name} · ${nx.slots} places · ${short(nx.cost)}</button>` : ''}</div>`)(D.SAFES[(s.safeLvl || 0) + 1])
         : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
         : pl === 'binder' ? `<div class="shelf-chip">${ico('ic-shelf', '🏠')} Les cartes vont dans ton classeur : aucune limite.</div>`
         : `<div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}</div>`)((D.ITEM_CATS[shopTab] || {}).place)}
@@ -2095,6 +2095,7 @@
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
     goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
+    safeUp() { const r = G.safeUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Coffre agrandi !'); refresh(); },
     garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
     propBuy(el) { const r = G.propBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast(`${G.prop(el.dataset.id).name} : c'est à toi ! Les loyers tombent chaque jour.`); refresh(); },
     propCollect(el) { const r = G.propCollect(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); flyTo(el, '#pill-cash'); toast(r.issue ? `${r.issue.txt} : −${eur(r.issue.cost)}. Tu encaisses quand même ${eur(r.got)}.` : `Loyers encaissés : +${eur(r.got)}.`, !!r.issue); refresh(); },
