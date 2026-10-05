@@ -3032,3 +3032,15 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lt-goal b { font: 400 14px var(--title); color: #2a1a10; display: block; margin-bottom: 4px; }
 #app .lt-goal .grow { min-width: 0; } #app .lt-goal .bar { display: block; width: 100%; height: 22px; margin: 0; }
 #app .lt-goal > .grow { flex: 1; }
+/* prochain cap : il glisse quelques secondes puis repart */
+#app #next-cap { opacity: 0; transform: translateY(16px); pointer-events: none; transition: opacity .35s, transform .35s; }
+#app #next-cap.on { opacity: 1; transform: none; pointer-events: auto; }
+#app #next-cap .nc-lock { display: flex; align-items: center; justify-content: center; padding: 0; }
+#app #next-cap .nc-lock .ic { display: block; margin: 0; width: 17px; height: 17px; line-height: 0; }
+#app #next-cap .nc-lock .ic img { display: block; width: 100%; height: 100%; object-fit: contain; }
+#app #next-cap .nc-txt small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: none; letter-spacing: 0; }
+/* ce que rapportent les nouveautés (fenêtre de niveau) */
+#app .ul-hows { list-style: none; margin: -4px 0 12px; padding: 8px 10px; border: 2px solid #2a1a10; border-radius: 12px; background: #eafbe2; text-align: left; }
+#app .ul-hows li { display: flex; flex-wrap: wrap; gap: 0 6px; padding: 2px 0; font: 800 12px/1.3 var(--text); color: #2a1a10; }
+#app .ul-hows li b { font-weight: 900; }
+#app .ul-hows li span { color: #1f7a3f; }

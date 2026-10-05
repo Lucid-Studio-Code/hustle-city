@@ -282,13 +282,16 @@
     return L.sort((a, b) => b.p - a.p);
   }
   // le prochain cap, toujours visible en ville : ce qui s'ouvre au niveau suivant et où on en est
-  let capKey = '';
+  let capKey = '', capAt = 0, capOff = null;
   function renderCap() {
     const b = $('#next-cap'); if (!b) return; const s = st(), nu = nextUnlock();
     const show = s.tutoDone && nu; b.classList.toggle('hidden', !show); if (!show) return;
+    // il passe quelques secondes de temps en temps (au lancement, puis toutes les 4 min), jamais en permanence
+    const t = Date.now(); if (!capAt) capAt = t + 20000;
+    if (t >= capAt && !modalOpen() && scene === 'city') { capAt = t + 240000; b.classList.add('on'); clearTimeout(capOff); capOff = setTimeout(() => b.classList.remove('on'), 7000); }
     const need = G.xpNeed(), pct = isFinite(need) ? Math.min(100, s.xp / need * 100) : 100, togo = nu.lvl - s.lvl;
     const key = `${nu.lvl}|${nu.what[0]}|${Math.round(pct)}`; if (key === capKey) return; capKey = key;
-    b.innerHTML = `<span class="nc-lock">${ic('lock')}</span><span class="nc-txt"><small>Niveau ${nu.lvl}${togo > 1 ? ` · dans ${togo} niveaux` : ''}</small><b>${nu.what[0].replace(/^./, c => c.toUpperCase())}</b></span><span class="nc-bar"><i style="width:${pct.toFixed(0)}%"></i></span>`;
+    b.innerHTML = `<span class="nc-lock">${ic('lock')}</span><span class="nc-txt"><small>Prochain déblocage · niveau ${nu.lvl}</small><b>${nu.what[0].replace(/^./, c => c.toUpperCase())}</b></span><span class="nc-bar"><i style="width:${pct.toFixed(0)}%"></i></span>`;
     hydrateIcons(b);
     // un nouveau rang de fortune : on le fête
     const rk = G.rankOf(G.worth()); if (s.rankMax == null) s.rankMax = rk.i;
@@ -1846,7 +1849,7 @@
     D.CITY_LOOKS.filter(x => x.lvl === L && (x.cash || x.lingots)).forEach(x => u.push({ img: 'bg-city-' + x.id, emo: '🏙️', name: x.name }));
     return u;
   }
-  function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span>${u.how ? `<small class="ul-how">${u.how}</small>` : ''}</div>`; }
+  function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }
 
   // ------------------------------------------------------------ Cadeau du jour (série de 7 jours)
   function openDaily() {
@@ -2434,7 +2437,7 @@
       <div class="lv-big stroke">NIVEAU ${e.lvl} !</div>
       <div class="gains"><span>${ic('cash')}+${short(e.cash, true)}</span><span>${ic('lingot')}+${e.lingots}</span><span>${packArt(true)}+1 booster</span></div>
       <p class="hint-line center">Mise max au Royal : <b>${G.betMax()}<i class="cur"></i></b></p>
-      ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>` : ''}
+      ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>${un.some(u => u.how) ? `<ul class="ul-hows">${un.filter(u => u.how).map(u => `<li><b>${u.name}</b><span>${u.how}</span></li>`).join('')}</ul>` : ''}` : ''}
       <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button>${un.find(x => x.go) ? `<button class="btn green" data-act="lvlGo" data-id="${un.find(x => x.go).go}">Aller voir !</button>` : '<button class="btn green" data-act="closeModal">Trop bien !</button>'}</div></div>` });
   }
   // la partie a été ouverte dans un autre onglet : celui-ci s'arrête net pour ne rien écraser
