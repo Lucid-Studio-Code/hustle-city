@@ -1143,7 +1143,8 @@
     if (!w.bonus && w.list.every(x => x.got)) { w.bonus = bonus = true; st.boosters += R.bonus.boosters; addLingots(R.bonus.lingots); }
     emit('change'); return { cash: R.cash(st.lvl), bonus };
   }
-  const rankOf = v => { let i = 0; D.RANKS.forEach((r, k) => { if (v >= r.n) i = k; }); return { i, ...D.RANKS[i], next: D.RANKS[i + 1] || null }; };
+  const credWorth = () => Math.max(worth(), st.stats.worth || 0);   // la street cred suit le record : elle ne redescend pas
+  const rankOf = (v = credWorth()) => { let i = 0; D.RANKS.forEach((r, k) => { if (v >= r.n) i = k; }); return { i, ...D.RANKS[i], next: D.RANKS[i + 1] || null }; };
   function claimChal(i) {
     const ch = chal(), c = ch.list[i];
     if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
@@ -1410,7 +1411,7 @@
     rigInfo, rigCollect, rigUpgrade, rigNext, coinRisk, mineStart, mineCool, mineHarvest, mineOpt, powerH,
     match, placeBet, odd,
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
-    week, weekReady, weekLeft, claimWeek, rankOf,
+    week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, stockLeft, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,

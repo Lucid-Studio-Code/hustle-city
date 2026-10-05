@@ -3103,3 +3103,23 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .wk-bonus em { font-style: normal; font-weight: 900; color: #7a5a3a; }
 #app .wk-bonus.got { background: #d8f7c4; }
 #app .ct-step b { font-size: 7.5px; letter-spacing: -.2px; max-width: 100%; overflow-wrap: anywhere; justify-content: center; }
+/* street cred : images du jeu à la place des emojis */
+#app .cred-emo { width: 46px; height: 46px; font-size: 0; }
+#app .cred-emo .pic, #app .cred-emo img { width: 46px; height: 46px; display: block; }
+#app .cred-emo img, #app .ct-step i img, #app .cw-ic img, #app .pf-rank img, #app .rk-big img, #app .cn-ic img { object-fit: contain; }
+#app .cred-next b { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+#app .cn-ic, #app .cn-ic img { width: 20px; height: 20px; display: inline-block; }
+#app .ct-step i { width: 26px; height: 26px; display: block; }
+#app .ct-step i .pic, #app .ct-step i img { width: 26px; height: 26px; display: block; }
+#app .cred-ways .btn { gap: 4px; }
+#app .cw-ic, #app .cw-ic img { width: 20px; height: 20px; flex: none; display: inline-block; }
+#app .pf-rank { display: inline-flex; align-items: center; gap: 4px; }
+#app .pf-rank .pic, #app .pf-rank img { width: 16px; height: 16px; display: inline-block; }
+#app .rk-big { margin: -10px auto 4px; width: 90px; height: 90px; } #app .rk-big .pic, #app .rk-big img { width: 90px; height: 90px; display: block; }
+/* niveaux : ton niveau mis en avant, puis les suivants */
+#app .lv-now { display: flex; align-items: center; gap: 12px; margin: 4px 0 10px; padding: 10px 12px; border: 3px solid #2a1a10; border-radius: 18px; background: linear-gradient(#fff3b0, #ffd23f); box-shadow: 0 3px 0 #2a1a10; }
+#app .lv-now .rw-lv { flex: 0 0 56px; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #fffdf6; border: 3px solid #2a1a10; font: 400 26px var(--title); }
+#app .lv-now small { display: block; font: 900 10px var(--text); color: #7a5a3a; }
+#app .lv-now b { display: block; font: 400 20px var(--title); color: #2a1a10; margin-bottom: 4px; }
+#app .lv-now .bar { margin: 0; }
+#app .lv-now > .grow { flex: 1; min-width: 0; } #app .lv-now .bar { display: block; width: 100%; }

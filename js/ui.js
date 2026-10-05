@@ -294,8 +294,8 @@
     b.innerHTML = `<span class="nc-lock">${ic('lock')}</span><span class="nc-txt"><small>Prochain déblocage · niveau ${nu.lvl}</small><b>${nu.what[0].replace(/^./, c => c.toUpperCase())}</b></span><span class="nc-bar"><i style="width:${pct.toFixed(0)}%"></i></span>`;
     hydrateIcons(b);
     // un nouveau rang de fortune : on le fête
-    const rk = G.rankOf(G.worth()); if (s.rankMax == null) s.rankMax = rk.i;
-    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="lv-big stroke">${rk.emo} ${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.emo} ${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
+    const rk = G.rankOf(); if (s.rankMax == null) s.rankMax = rk.i;
+    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rk.img, rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
   let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
   function renderNextBtn() {
@@ -1778,14 +1778,14 @@
     } else {
       const need = G.xpNeed();
       // street cred : le rang qui suit ton patrimoine, avec les moyens de le faire grimper
-      const rk = G.rankOf(G.worth()), pct = rk.next ? (G.worth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
-      const ways = [['shop', '🃏', 'Objets qui montent', G.catUnlocked('card')], ['pc', '📈', 'Investir en crypto', true], ['rig', '⛏️', 'Lancer un minage', true]].filter(w => w[3]);
+      const rk = G.rankOf(), pct = rk.next ? (G.credWorth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
+      const ways = [['shop', 'cat-card', 'Objets qui montent', G.catUnlocked('card')], ['pc', 'app-crypto', 'Investir en crypto', true], ['rig', 'minerv-1', 'Lancer un minage', true]].filter(w => w[3]);
       const lab = n => n ? short(n, true) : '0';
-      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${rk.emo}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
-          ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${rk.next.emo} ${rk.next.name}</b><em>encore ${short(rk.next.n - G.worth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
-        <p class="cred-how">Elle suit ton <b>patrimoine</b> : cash, crypto, objets, immobilier.</p>
-        <div class="cred-track">${D.RANKS.map((r, k) => `<div class="ct-step ${k < rk.i ? 'done' : k === rk.i ? 'now' : ''}"><i>${r.emo}</i><b>${r.name}</b><small>${lab(r.n)}</small>${k === rk.i && rk.next ? `<span class="ct-fill" style="--p:${Math.min(100, pct).toFixed(0)}%"></span>` : ''}</div>`).join('')}</div>
-        <div class="cred-ways">${ways.map(w => `<button class="btn xs" data-act="credGo" data-id="${w[0]}">${w[1]} ${w[2]}</button>`).join('')}</div></div>`;
+      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${pic(rk.img, rk.emo)}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
+          ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${pic(rk.next.img, rk.next.emo, 'cn-ic')}${rk.next.name}</b><em>encore ${short(rk.next.n - G.credWorth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
+        <p class="cred-how">Elle suit ton <b>record de patrimoine</b> (cash, crypto, objets, immobilier) : elle ne redescend jamais.</p>
+        <div class="cred-track">${D.RANKS.map((r, k) => `<div class="ct-step ${k < rk.i ? 'done' : k === rk.i ? 'now' : ''}"><i>${pic(r.img, r.emo)}</i><b>${r.name}</b><small>${lab(r.n)}</small>${k === rk.i && rk.next ? `<span class="ct-fill" style="--p:${Math.min(100, pct).toFixed(0)}%"></span>` : ''}</div>`).join('')}</div>
+        <div class="cred-ways">${ways.map(w => `<button class="btn xs" data-act="credGo" data-id="${w[0]}">${pic(w[1], '', 'cw-ic')}<span>${w[2]}</span></button>`).join('')}</div></div>`;
       // objectifs de la semaine, en compact
       const w = G.week(), R = D.WEEK_REWARD, left = G.weekLeft(), wGot = w.list.filter(c => c.got).length;
       body += `<div class="wk-card"><div class="wk-head"><b>Objectifs de la semaine</b><small>Nouveaux dans ${left} j</small></div>
@@ -1794,12 +1794,13 @@
         return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓ Récupéré</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">Réclamer</button>` : `<span class="wk-v">${v} / ${c.goal}</span>`}</div>`; }).join('')}
         <div class="wk-bonus ${w.bonus ? 'got' : ''}">${packArt(true)}<span><b>Les 4 réussis</b> : ${R.bonus.boosters} boosters + ${R.bonus.lingots} ${ic('lingot')}</span><em>${w.bonus ? '✓' : `${wGot} / 4`}</em></div></div>`;
       body += `<h3 class="sec">Niveaux <small>· chaque niveau : billets, lingots, booster et nouveautés</small></h3>`;
-      for (let L = 2; L <= D.MAX_LVL; L++) {
+      body += `<div class="lv-now"><span class="rw-lv stroke">${s.lvl}</span><div class="grow"><small>Ton niveau</small><b>Niveau ${s.lvl}</b>${isFinite(need) ? `<div class="bar"><div style="width:${Math.min(100, s.xp / need * 100).toFixed(0)}%"></div><span>${s.xp} / ${need} XP</span></div>` : '<small>Niveau max atteint, respect.</small>'}</div></div>`;
+      for (let L = s.lvl + 1; L <= Math.min(D.MAX_LVL, s.lvl + 4); L++) {
         const r = D.LEVEL_REWARD(L), done = L <= s.lvl, next = L === s.lvl + 1, un = unlocksAt(L);
         const tag = done ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : next ? '<span class="rw-tag next">Prochain</span>' : `<span class="rw-tag">${ic('lock')}À venir</span>`;
         body += `<div class="row rw-row rw-lvl ${done ? 'owned' : next ? 'focus' : 'locked'}"><div class="art"><span class="rw-lv stroke">${L}</span></div><div class="info">
           <h4>Niveau ${L}</h4>
-          ${next ? `<p class="rw-do">Il te faut encore ${Math.max(0, need - s.xp)} XP</p><div class="bar"><div style="width:${Math.min(100, s.xp / need * 100).toFixed(0)}%"></div><span>${s.xp} / ${need} XP</span></div>` : ''}
+          ${next ? `<p class="rw-do">Encore ${Math.max(0, need - s.xp)} XP</p>` : ''}
           <p class="rw-get">Tu gagnes ${chips(r.cash, r.lingots, `<span class="need">${packArt(true)}1 booster</span>`)}</p>
           ${un.length ? `<div class="unlocks rw-unlocks">${un.map(unlockTile).join('')}</div>` : ''}</div>
           <div class="btns">${tag}</div></div>`;
@@ -2049,7 +2050,7 @@
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
-        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${G.rankOf(G.worth()).emo} ${G.rankOf(G.worth()).name}</span>
+        <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${pic(G.rankOf().img, G.rankOf().emo)}${G.rankOf().name}</span>
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}

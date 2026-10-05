@@ -501,12 +501,12 @@
     { k: 'roulette',    t: 'Joue {n} fois à la roulette',          g: [20, 60], lvl: 7 }
   ];
   const WEEK_REWARD = { lingots: 5, cash: lvl => 200 + lvl * 60, bonus: { boosters: 3, lingots: 15 } };
-  // rangs de fortune (patrimoine) : la richesse se voit sur le profil et se fête à chaque palier
+  // street cred : paliers selon le RECORD de patrimoine (on ne redescend jamais), image = un asset du jeu
   const RANKS = [
-    { n: 0,        name: 'Petit joueur',     emo: '🪙' }, { n: 5000,     name: 'Débrouillard',     emo: '💵' },
-    { n: 25000,    name: 'Hustler',          emo: '😎' }, { n: 100000,   name: 'Boss du quartier', emo: '🧢' },
-    { n: 500000,   name: 'Caïd de la ville', emo: '🕶️' }, { n: 2000000,  name: 'Magnat',           emo: '💼' },
-    { n: 10000000, name: 'Légende',          emo: '👑' }
+    { n: 0,        name: 'Petit joueur',     emo: '🪙', img: 'chip-1' }, { n: 5000,     name: 'Débrouillard',     emo: '💵', img: 'icon-cash' },
+    { n: 25000,    name: 'Hustler',          emo: '😎', img: 'item-s-gold' }, { n: 100000,   name: 'Boss du quartier', emo: '🧢', img: 'item-w-chrono' },
+    { n: 500000,   name: 'Caïd de la ville', emo: '🕶️', img: 'item-o-bar10' }, { n: 2000000,  name: 'Magnat',           emo: '💼', img: 'item-g-diam' },
+    { n: 10000000, name: 'Légende',          emo: '👑', img: 'cat-trophy' }
   ];
 
   // ---------------------------------------------------------------- mini-événements (quelques minutes, de temps en temps)
