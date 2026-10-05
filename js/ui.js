@@ -1780,21 +1780,20 @@
       // street cred : le rang qui suit ton patrimoine, avec les moyens de le faire grimper
       const rk = G.rankOf(G.worth()), pct = rk.next ? (G.worth() - rk.n) / (rk.next.n - rk.n) * 100 : 100;
       const ways = [['shop', '🃏', 'Objets qui montent', G.catUnlocked('card')], ['pc', '📈', 'Investir en crypto', true], ['rig', '⛏️', 'Lancer un minage', true]].filter(w => w[3]);
-      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${rk.emo}</span><div class="grow"><small>Ta street cred</small><b>${rk.name}</b></div>${rk.next ? `<div class="cred-next"><small>Prochain</small><b>${rk.next.emo} ${rk.next.name}</b></div>` : ''}</div>
-        <div class="bar"><div style="width:${Math.min(100, pct).toFixed(0)}%"></div><span>${rk.next ? `${short(G.worth())} / ${short(rk.next.n)}` : 'Au sommet'}</span></div>
-        <div class="cred-ranks">${D.RANKS.map((r, k) => `<i class="${k <= rk.i ? 'on' : ''}" title="${r.name}">${r.emo}</i>`).join('')}</div>
+      const lab = n => n ? short(n, true) : '0';
+      body += `<div class="cred-card"><div class="cred-top"><span class="cred-emo">${rk.emo}</span><div class="cred-now"><small>Ta street cred</small><b>${rk.name}</b></div>
+          ${rk.next ? `<div class="cred-next"><small>Prochain palier</small><b>${rk.next.emo} ${rk.next.name}</b><em>encore ${short(rk.next.n - G.worth(), true)}</em></div>` : '<div class="cred-next"><b>Tu es au sommet</b></div>'}</div>
+        <p class="cred-how">Elle suit ton <b>patrimoine</b> : cash, crypto, objets, immobilier.</p>
+        <div class="cred-track">${D.RANKS.map((r, k) => `<div class="ct-step ${k < rk.i ? 'done' : k === rk.i ? 'now' : ''}"><i>${r.emo}</i><b>${r.name}</b><small>${lab(r.n)}</small>${k === rk.i && rk.next ? `<span class="ct-fill" style="--p:${Math.min(100, pct).toFixed(0)}%"></span>` : ''}</div>`).join('')}</div>
         <div class="cred-ways">${ways.map(w => `<button class="btn xs" data-act="credGo" data-id="${w[0]}">${w[1]} ${w[2]}</button>`).join('')}</div></div>`;
       // objectifs de la semaine, en compact
-      const w = G.week(), R = D.WEEK_REWARD, left = G.weekLeft();
-      body += `<div class="wk-card"><div class="wk-head"><b>Objectifs de la semaine</b><small>encore ${left} j · ${w.list.filter(c => c.got).length}/4${w.bonus ? ' · bonus ✓' : ` · bonus ${R.bonus.boosters} boosters`}</small></div>${w.list.map((c, i) => {
+      const w = G.week(), R = D.WEEK_REWARD, left = G.weekLeft(), wGot = w.list.filter(c => c.got).length;
+      body += `<div class="wk-card"><div class="wk-head"><b>Objectifs de la semaine</b><small>Nouveaux dans ${left} j</small></div>
+        <p class="wk-rew">Chaque objectif : ${chips(R.cash(s.lvl), R.lingots)}</p>${w.list.map((c, i) => {
         const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
-        return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">+${R.lingots} ${ic('lingot')}</button>` : `<span class="wk-v">${v}/${c.goal}</span>`}</div>`; }).join('')}</div>`;
-      // grands objectifs, en tuiles
-      const cards = D.ITEMS.filter(i => i.series && G.cardOk(i)), crea = c => (D.SERIES.find(x => x.id === c.series) || {}).col === 'crea';
-      const have = L => L.filter(c => (s.owned[c.id] || []).length).length, sp = cards.filter(c => !crea(c)), cr = cards.filter(crea);
-      const tile = (emo, t, v, n) => `<div class="lt-tile"><span>${emo}</span><b>${v}<small>/${n}</small></b><small>${t}</small><i style="--p:${Math.min(100, v / Math.max(1, n) * 100).toFixed(0)}%"></i></div>`;
-      body += `<div class="lt-tiles">${tile('🏆', 'Cartes sport', have(sp), sp.length)}${cr.length ? tile('🐲', 'Créatures', have(cr), cr.length) : ''}${tile('🎖️', 'Succès', Object.keys(s.ach || {}).length, D.ACHIEVEMENTS.length)}${tile('🎯', 'Missions', G.questsClaimed(), D.QUESTS.length)}</div>
-        <h3 class="sec">Niveaux <small>· chaque niveau : billets, lingots, booster et nouveautés</small></h3>`;
+        return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓ Récupéré</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">Réclamer</button>` : `<span class="wk-v">${v} / ${c.goal}</span>`}</div>`; }).join('')}
+        <div class="wk-bonus ${w.bonus ? 'got' : ''}">${packArt(true)}<span><b>Les 4 réussis</b> : ${R.bonus.boosters} boosters + ${R.bonus.lingots} ${ic('lingot')}</span><em>${w.bonus ? '✓' : `${wGot} / 4`}</em></div></div>`;
+      body += `<h3 class="sec">Niveaux <small>· chaque niveau : billets, lingots, booster et nouveautés</small></h3>`;
       for (let L = 2; L <= D.MAX_LVL; L++) {
         const r = D.LEVEL_REWARD(L), done = L <= s.lvl, next = L === s.lvl + 1, un = unlocksAt(L);
         const tag = done ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : next ? '<span class="rw-tag next">Prochain</span>' : `<span class="rw-tag">${ic('lock')}À venir</span>`;
