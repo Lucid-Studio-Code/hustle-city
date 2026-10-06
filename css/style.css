@@ -3136,3 +3136,11 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .tab .tab-lock .ic { width: 24px; height: 24px; margin: 0; }
 #app .tab .tab-lbl { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.05; }
 #app .tab .tab-lbl small { font: 900 10px var(--text); color: #fff; opacity: .9; -webkit-text-stroke: 0; margin-top: 1px; }
+/* boutique : chaque image reste dans sa case (les images en grille débordaient en hauteur) */
+#app .lg-art, #app .ip-art, #app .sh2-art { position: relative; overflow: hidden; }
+#app .lg-art { width: 74px; height: 64px; margin-bottom: 4px; }
+#app .lg-art > img, #app .ip-art > img, #app .sh2-art > img { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: contain; }
+#app .sh2-art { overflow: visible; animation: none; }
+#app .sh2-art > img { animation: sh2Float 3.2s ease-in-out infinite; transform-origin: 50% 80%; will-change: transform; }
+@keyframes sh2Float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+#app .sh2-art .sh2-badge { z-index: 2; }
