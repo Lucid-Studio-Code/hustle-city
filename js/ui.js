@@ -2846,10 +2846,35 @@
     // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville (adresse complète : la variable CSS est lue depuis css/)
     const sc = window.HC_BG || (has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : ''); if (sc) { el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
     if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
+  // déménagement : l'ancienne adresse (GitHub) envoie la partie vers le nouveau site, dans l'adresse (#import=…, jamais envoyée à un serveur)
+  const NEW_SITE = 'https://hustle.lucidstudio.fr/';
+  function movedAway() {
+    if (!/github\.io$/.test(location.hostname)) return false;
+    let code = ''; try { const raw = localStorage.getItem('hustleCity.v1'); if (raw && JSON.parse(raw).skin) code = btoa(unescape(encodeURIComponent(raw))); } catch (e) {}
+    const el = $('#start'); el.className = 'first'; startBg(el);
+    el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : ''}</div><div class="form" style="text-align:center">
+      <p class="st-hello"><span><b>Le jeu a déménagé !</b><br>${code ? 'Touche le bouton : ta partie part avec toi, rien n\'est perdu.' : 'Retrouve-le à sa nouvelle adresse.'}</span></p>
+      <a class="btn green start-btn" href="${NEW_SITE}${code ? '#import=' + code : ''}">${code ? 'Emmener ma partie' : 'Y aller'}</a>
+      <p class="start-note">Nouvelle adresse : hustle.lucidstudio.fr</p></div>`;
+    return true;
+  }
+  // arrivée sur le nouveau site avec une partie : on l'enregistre (après confirmation s'il y en a déjà une)
+  function importFromHash() {
+    const m = location.hash.match(/^#import=([A-Za-z0-9+/=]+)/); if (!m) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    try { const raw = decodeURIComponent(escape(atob(m[1]))), j = JSON.parse(raw); if (!j || !j.skin) return;
+      const cur = localStorage.getItem('hustleCity.v1'), c = cur && JSON.parse(cur);
+      if (c && c.skin && (c.lvl || 1) >= (j.lvl || 1) && !confirm(`Tu as déjà une partie ici (niveau ${c.lvl}). La remplacer par celle que tu ramènes (niveau ${j.lvl}) ?`)) return;
+      localStorage.setItem('hustleCity.v1', raw); window.__imported = j.lvl || 1;
+    } catch (e) {}
+  }
   function boot() {
+    if (movedAway()) return;
+    importFromHash();
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
+    if (window.__imported) setTimeout(() => toast(`Ta partie est bien arrivée (niveau ${window.__imported}) !`), 3500);
     if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
