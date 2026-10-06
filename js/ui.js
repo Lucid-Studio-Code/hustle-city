@@ -542,18 +542,14 @@
   function openTower(tab) { if (tab) towerTab = tab; openModal({ title: 'La Tour', icon: 'bld-tour', full: true, tabs: [{ id: 'immo', label: 'Immobilier' }, { id: 'bourse', label: 'Bourse' }], tab: towerTab, body: towerBody(), refresh: () => setBody(towerBody()), onTab: id => { towerTab = id; setBody(towerBody()); } }); }
   // ------------------------------------------------------------ Mon parking : tes voitures et motos garées sur leurs places
   function parkingBody() {
-    const s = st(), cars = Object.keys(s.owned).filter(id => s.owned[id].length && G.placeOf(id) === 'park').map(G.item), n = G.garageSlots();
-    const P = D.PARK_SLOTS.slice(0, n);
-    const slots = P.map(([x, y, w], i) => { const it = cars[i];
-      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${it.cat === 'moto' ? w * .6 : w}%">${itemPic(it)}</button>`
-        : `<span class="pk-free" style="left:${x}%;top:${y}%;width:${w}%">Place libre</span>`; }).join('')
-      // les noms dans un calque au-dessus de tous les véhicules : jamais cachés
-      + `<div class="pk-lbls">${P.map(([x, y], i) => cars[i] ? `<span class="pk-tagc" style="left:${x}%;top:${y}%">${esc(cars[i].name)}</span>` : '').join('')}</div>`;
-    return `<div class="park-scene ${has('parking-bg') ? 'img' : ''}">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
-      <p class="hint-line center">${cars.length} / ${n} places occupées · touche un véhicule pour le voir ou le revendre.</p>
-      <button class="btn green wide" data-act="goPlace" data-id="garage">Aller au Garage Prestige</button>`;
+    const s = st(), cars = Object.keys(s.owned).flatMap(id => G.placeOf(id) === 'park' ? s.owned[id].map(() => G.item(id)) : []), n = G.garageSlots();
+    const slots = D.PARK_SLOTS.slice(0, n).map(([x, y, w], i) => { const it = cars[i];
+      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${it.cat === 'moto' ? w * .7 : w}%">${itemPic(it)}</button>` : ''; }).join('');
+    // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
+    return `<div class="park-full"><div class="pk-stage">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
+      <div class="pk-foot"><span class="pk-count">${cars.length} / ${n} places</span><button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button></div></div>`;
   }
-  function openParking() { openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
+  function openParking() { openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
   function openBus() {
     const s = st();
     openModal({ title: 'Arrêt de bus', icon: has('ic-bus') ? 'ic-bus' : 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +

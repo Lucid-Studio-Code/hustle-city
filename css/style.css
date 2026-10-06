@@ -3334,3 +3334,18 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* parking : noms des véhicules au-dessus de tout, juste sous chaque véhicule */
 #app .park-scene .pk-lbls { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
 #app .park-scene .pk-lbls .pk-tagc { position: absolute; transform: translate(-50%, 3px); margin: 0; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 9px; border-radius: 999px; background: rgba(42,26,16,.88); color: #fff; font: 800 10px var(--text); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+
+/* parking pleine page : le dessin couvre tout, les véhicules restent sur leurs places peintes */
+#app #modal .sheet.th-park .sheet-body { padding: 0; overflow: hidden; display: flex; }
+#app .park-full { position: relative; flex: 1 1 auto; min-height: 60vh; container-type: size; overflow: hidden; background: #1d1f26; border-radius: 0 0 18px 18px; }
+#app .park-full .pk-stage { position: absolute; left: 50%; top: 50%; width: max(100cqw, calc(100cqh * 1792 / 2400 * 1.08)); aspect-ratio: 1792 / 2400; transform: translate(-50%, -54%); }   /* un peu plus grand : le sol du bas (vide) passe sous les boutons */
+#app .park-full .pk-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+#app .park-full .pk-car { position: absolute; transform: translate(-50%, -100%); background: none; border: 0; padding: 0; }
+#app .park-full .pk-car .pic, #app .park-full .pk-car img { width: 100%; height: auto; filter: drop-shadow(0 5px 3px rgba(0,0,0,.5)); }
+#app .park-full .pk-foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 12px calc(env(safe-area-inset-bottom) + 10px); pointer-events: none; }
+#app .park-full .pk-foot > * { pointer-events: auto; }
+#app .park-full .pk-count { padding: 5px 12px; border-radius: 999px; background: rgba(20,16,30,.8); color: #fff; font: 800 13px var(--text); }
+#app .park-full .pk-foot .btn { min-height: 44px; padding: 4px 18px 7px; font-size: 16px; }
+/* compte à rebours sous le nom d'un bâtiment : une petite pastille à la taille du texte, pas une barre */
+#app .bld .plaque:has(.pq-timer) { flex-direction: column !important; flex-wrap: nowrap !important; align-items: center; }
+#app .bld .plaque .pq-timer { flex: 0 0 auto !important; align-self: center; width: auto !important; max-width: none; padding: 2px 8px !important; border-radius: 999px !important; }

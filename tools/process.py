@@ -12,6 +12,7 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
+    'ic-shop-ville': 'all',   # vides entre le palmier et le banc
     # revue du 03/10 : fonds restés coincés dans des formes fermées
     'slot-bell': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
@@ -28,7 +29,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
+MAX = {'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
