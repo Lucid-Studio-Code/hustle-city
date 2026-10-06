@@ -507,7 +507,7 @@ async function pushDue() {   // envoie les notifications programmées dont l'heu
 }
 setInterval(() => pushDue().catch(() => {}), 60000);
 
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.json': 'application/json' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'), key = req.method + ' ' + u.pathname;
   if (req.method === 'OPTIONS') return send(res, 204, {});

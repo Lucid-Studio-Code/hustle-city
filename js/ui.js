@@ -2345,6 +2345,7 @@
       <h3 class="sec">Aide</h3><div class="card set-card">
         <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
+        ${isStandalone() ? '' : `<button class="set-row" data-act="installHelp"><span><b>Mettre le jeu sur mon écran d'accueil</b><small>Comme une appli, en plein écran</small></span><em>›</em></button>`}
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
       ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
@@ -2379,6 +2380,7 @@
           <div class="skins">${D.SKINS.filter(k => !k.iap).map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
           <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
+          <button class="st-restore" data-act="restoreCode">J'ai déjà une partie : coller mon code</button>
         </div>`;
       startBg(el);
       el.querySelectorAll('.skin').forEach(b => b.onclick = () => { sel = b.dataset.skin; const n = $('#st-name').value; draw(); $('#st-name').value = n; });
@@ -2553,6 +2555,14 @@
       try { const j = JSON.parse(decodeURIComponent(escape(atob(c.trim().replace(/^HC1\./, ''))))); if (!j || typeof j.cash !== 'number' || !j.skin) throw 0;
         if (!confirm(`Remplacer ta partie actuelle par celle-ci (niveau ${j.lvl}) ?`)) return; localStorage.setItem('hustleCity.v1', JSON.stringify(j)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas.', true); } },
+    async restoreCode() {   // code de partie (« HC1.… » copié sur l'ancienne adresse ou dans Réglages) collé à la main
+      let c = ''; try { c = (await navigator.clipboard.readText() || '').trim(); } catch (e) {}
+      if (!/^HC1\./.test(c)) c = (prompt('Colle ton code de partie :') || '').trim(); if (!c) return;
+      try { const raw = decodeURIComponent(escape(atob(c.replace(/^HC1\./, '')))), j = JSON.parse(raw); if (!j || !j.skin) throw 0;
+        localStorage.setItem('hustleCity.v1', raw); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
+      catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
+    installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
+    installHelp() { openInstall(); },
     legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55"><b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans Hustle City : ils ne s'échangent pas contre de l'argent réel.<br><br><b>Tes données</b> : ta partie est enregistrée sur ton appareil. Rien n'est envoyé ailleurs tant que tu ne te connectes pas (bientôt).<br><br><b>Jeux d'argent</b> : les paris, casinos et tickets du jeu sont fictifs. Les vrais sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13.</div>` }); },
     trading() { openCrypto(); },
     moodCoin(el) { closeModal(); setTimeout(() => openCrypto(el.dataset.id), 60); },
@@ -2850,13 +2860,34 @@
   const NEW_SITE = 'https://hustle.lucidstudio.fr/';
   function movedAway() {
     if (!/github\.io$/.test(location.hostname)) return false;
-    let code = ''; try { const raw = localStorage.getItem('hustleCity.v1'); if (raw && JSON.parse(raw).skin) code = btoa(unescape(encodeURIComponent(raw))); } catch (e) {}
+    let code = '', me = null; try { const raw = localStorage.getItem('hustleCity.v1'); me = raw && JSON.parse(raw); if (me && me.skin) code = btoa(unescape(encodeURIComponent(raw))); else me = null; } catch (e) {}
     const el = $('#start'); el.className = 'first'; startBg(el);
-    el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : ''}</div><div class="form" style="text-align:center">
-      <p class="st-hello"><span><b>Le jeu a déménagé !</b><br>${code ? 'Touche le bouton : ta partie part avec toi, rien n\'est perdu.' : 'Retrouve-le à sa nouvelle adresse.'}</span></p>
-      <a class="btn green start-btn" href="${NEW_SITE}${code ? '#import=' + code : ''}">${code ? 'Emmener ma partie' : 'Y aller'}</a>
-      <p class="start-note">Nouvelle adresse : hustle.lucidstudio.fr</p></div>`;
-    return true;
+    const href = NEW_SITE + (code ? '#import=' + code : '');
+    const steps = [
+      `<div class="mv-ic">📦</div><h2>Le jeu a déménagé !</h2><p>Hustle City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
+       <button class="btn green" data-mv="1">Suivant</button>`,
+      code ? `<div class="mv-ic">🎒</div><h2>Emmène ta partie</h2><div class="mv-me">${skinPic(me.skin)}<span><b>${esc(me.name || 'Toi')}</b><small>Niveau ${me.lvl || 1} · ${short(me.cash || 0)}</small></span></div>
+       <ol class="mv-steps"><li>Appuie sur <b>« Emmener ma partie »</b>.</li><li>Le nouveau site s'ouvre <b>avec ta partie</b> dedans.</li><li>C'est tout ! À partir de maintenant, joue <b>uniquement</b> là-bas.</li></ol>
+       <a class="btn green" href="${href}" data-copy="HC1.${code}">Emmener ma partie</a><p class="mv-note">Ton code de partie est aussi copié : si ta partie n'apparaît pas, colle-le sur le nouveau site (« J'ai déjà une partie »).</p>`
+        : `<div class="mv-ic">🏙️</div><h2>Rendez-vous là-bas</h2><p>Aucune partie trouvée sur ce téléphone : tu commences directement sur le nouveau site.</p><a class="btn green" href="${href}">Y aller</a>`];
+    const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
+      startBg(el); el.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => draw(+b.dataset.mv));
+      el.querySelectorAll('[data-copy]').forEach(a => a.addEventListener('click', () => { try { navigator.clipboard.writeText(a.dataset.copy); } catch (e) {} })); };
+    draw(0); return true;
+  }
+  // mettre le jeu sur l'écran d'accueil du téléphone (comme une appli) : Android propose son bouton « Installer », iPhone se fait à la main
+  let installEvt = null; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
+  const isStandalone = () => window.matchMedia && matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.Capacitor;
+  function openInstall(arrived) {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), chromeIos = /CriOS/.test(navigator.userAgent);
+    const steps = ios ? [`Touche <b class="mv-key">⬆︎ Partager</b> ${chromeIos ? 'en haut à droite' : 'en bas de l\'écran'}.`, 'Fais défiler et touche <b>« Sur l\'écran d\'accueil »</b>.', 'Touche <b>« Ajouter »</b> en haut à droite.']
+      : ['Touche <b class="mv-key">⋮</b> en haut à droite de ton navigateur.', 'Touche <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'appli »</b>.', 'Confirme : l\'icône Hustle City apparaît avec tes applis.'];
+    openModal({ title: arrived ? 'Ta partie est arrivée !' : 'Hustle City en appli', icon: 'star', center: true, body: `
+      ${arrived ? `<p class="center hint-line">🎉 Tout est là, niveau ${arrived}. Dernière étape :</p>` : ''}
+      <div class="inst-head">${has('logo') ? `<img src="${src('logo')}" alt="">` : ''}<b>Mets le jeu sur ton écran d'accueil</b><small>Il s'ouvrira en plein écran, comme une vraie appli, et ta partie sera toujours là.</small></div>
+      ${installEvt ? '<div class="center"><button class="btn green" data-act="installNow">Installer Hustle City</button></div><p class="center hint-line">ou à la main :</p>' : ''}
+      <ol class="mv-steps">${steps.map(x => `<li>${x}</li>`).join('')}</ol>
+      <div class="center"><button class="btn" data-act="closeModal">${arrived ? 'Plus tard' : 'OK'}</button></div>` });
   }
   // arrivée sur le nouveau site avec une partie : on l'enregistre (après confirmation s'il y en a déjà une)
   function importFromHash() {
@@ -2871,10 +2902,10 @@
   function boot() {
     if (movedAway()) return;
     importFromHash();
+    try { const k = sessionStorage.getItem('hc-imported'); if (k) { sessionStorage.removeItem('hc-imported'); window.__imported = +k; } } catch (e) {}
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
-    if (window.__imported) setTimeout(() => toast(`Ta partie est bien arrivée (niveau ${window.__imported}) !`), 3500);
     if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
@@ -2882,10 +2913,11 @@
       <div class="st-hero">${skinPic(s.skin)}</div>
       <div class="st-bottom"><p class="st-hello">${has('guide') ? `<img src="${src('guide')}" alt="">` : ''}<span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
       <p class="start-note">*ou pas. Réservé aux adultes</p></div>`;
-    preload(html, () => { el.className = 'welcome'; el.innerHTML = html; startBg(el); welcomeGo(); });
+    preload(html, () => { el.className = 'welcome'; el.innerHTML = html; startBg(el); welcomeGo(); if (window.__imported) $('#st-go').click(); });   // partie ramenée : on entre direct dans le jeu
     const welcomeGo = () => $('#st-go').onclick = () => {
       sfx.tap(); el.classList.add('gone'); setTimeout(() => el.remove(), 400);
       boot2(false);
+      if (window.__imported) setTimeout(() => openInstall(window.__imported), 1200);
       if (report && (Math.abs(report.worthDiff) >= 1 || report.bets)) queue(() => openModal({ title: 'Pendant ton absence', icon: 'star', center: true, body: `<p class="center">Tu es parti ${mmss(report.away * 1000)}.</p><div class="card center"><div class="muted">Ton patrimoine a bougé de</div><div class="big ${report.worthDiff >= 0 ? 'up' : 'down'}">${report.worthDiff >= 0 ? '+' : ''}${eur(report.worthDiff)}</div>${report.bets ? `<p>${report.bets} pari(s) gagné(s) pendant ce temps.</p>` : ''}</div><button class="btn green wide" style="margin-top:10px" data-act="closeModal">OK</button>` }));
     };
   }

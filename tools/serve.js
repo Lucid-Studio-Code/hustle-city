@@ -2,7 +2,7 @@
 // + le bouton « Publier » du back-office (game.html#admin) : POST /admin/layout écrit js/layout.js puis le pousse sur GitHub.
 const http = require('http'), fs = require('fs'), path = require('path'), { execFile } = require('child_process');
 const root = process.env.ROOT || path.join(__dirname, '..'), port = +process.env.PORT || 5190;
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.json': 'application/json', '.md': 'text/markdown' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.md': 'text/markdown' };
 const git = args => new Promise(ok => execFile('git', args, { cwd: root }, (e, out, err) => ok({ e, out: String(out) + String(err) })));
 const isLocal = req => /^(::1|127\.0\.0\.1|::ffff:127\.0\.0\.1)$/.test(req.socket.remoteAddress);
 

@@ -59,8 +59,9 @@
 
   // minage d'Axion de 15 min déjà terminé (nouvelle partie, ou ancienne sauvegarde d'avant la nouvelle machine)
   function starterMine(lvl, t) { return { id: 'btk', start: t - 15 * 60000, dur: 15 * 60000, amt: D.RIG[lvl].btkH * .25, cool: 0, coolAt: 0, burnt: false, lvl }; }
+  let loaded = false;   // tant que la partie n'est pas chargée, on n'écrit jamais rien (sinon une partie vide écraserait la vraie)
   function load() {
-    claimTab();
+    loaded = true; claimTab();
     try {
       const raw = localStorage.getItem(SAVE_KEY) || (ADMIN ? localStorage.getItem(PLAYER_KEY) : null);
       if (raw) {
@@ -98,7 +99,7 @@
   function sleepTab() { if (asleep) return; asleep = true; emit('asleep'); }
   window.addEventListener('storage', e => { if (e.key === OWN_KEY && e.newValue && e.newValue !== TAB) sleepTab(); });
   function save() {
-    if (asleep) return;
+    if (asleep || !loaded) return;
     try { const o = localStorage.getItem(OWN_KEY); if (o && o !== TAB) return sleepTab(); } catch (e) {}
     st.last = now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
   }
