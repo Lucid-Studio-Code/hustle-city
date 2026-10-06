@@ -1455,9 +1455,9 @@
       const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
       return `${shopHero()}${pass}
         <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
+        ${adCard()}
         <div class="lg-grid">${L.map(x => { const bonus = p && p.id === x.id && p.bonus; return `<div class="lg-card ${x.best ? 'best' : ''}">${x.tag || bonus ? `<span class="lg-tag">${bonus ? `+${bonus} %` : x.tag}</span>` : ''}
           <div class="lg-art">${offerArt(x)}</div><b>${ic('lingot')}${(bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n).toLocaleString('fr-FR')}</b>${x.best ? `<span class="lg-best">${x.best}</span>` : `<small>${x.name}</small>`}${priceBtn(x, p)}</div>`; }).join('')}</div>
-        ${adCard()}
         <h3 class="sec">Packs</h3><div class="ip-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
           return `<div class="ip-card ${done ? 'done' : ''}" style="--ip:${PACK_COL[x.id] || '#a867e3'}"><div class="ip-art">${offerArt(x)}</div><div class="ip-info">${x.tag ? `<span class="ip-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
             ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
