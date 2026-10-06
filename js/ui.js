@@ -1371,7 +1371,7 @@
     const g = x.give || (x.kind === 'lingots' ? { lingots: x.n } : {}), out = [];
     if (g.lingots) out.push(`<span class="gc gc-l">${ic('lingot')}<b>${g.lingots.toLocaleString('fr-FR')}</b></span>`);
     if (g.boosters) out.push(`<span class="gc gc-b">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>×${g.boosters}</b></span>`);
-    if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash)}</b></span>`);
+    if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash, true)}</b></span>`);
     if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
     if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Plus de pub imposée</b></span>');
     if (g.passDays) out.push(`<span class="gc">${ic('lingot')}<b>+15 / jour</b></span>`, `<span class="gc">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>+1 / jour</b></span>`, '<span class="gc gc-r"><b>🔁 Chaque mois · sans engagement</b></span>');
@@ -1408,7 +1408,7 @@
     const badge = p ? (p.off ? `−${p.off} %` : `+${p.bonus} %`) : '';
     return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
       ${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
-      <span class="sh2-for">✨ Choisie pour toi · ${o.why}</span>
+      <span class="sh2-for"><i>★</i>Rien que pour toi<em>${o.why}</em></span>
       <div class="sh2-row"><div class="sh2-art" style="--ad:-${Date.now() % 3200}ms">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
         <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
       <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
