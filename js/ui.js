@@ -1417,7 +1417,7 @@
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
     const a = G.adState(), ready = a.left && !a.wait;
-    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>Regarde une pub : +${a.reward} ${ic('lingot')}</b>
+    return `<div class="card ad-card"><span class="ad-ic ${has('ic-ad-reward') ? 'img' : ''}">${has('ic-ad-reward') ? `<img src="${src('ic-ad-reward')}" alt="">` : '▶'}</span><div class="grow"><b>Regarde une pub : +${a.reward} ${ic('lingot')}</b>
       <small>${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
       <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>Regarder</button></div>`;
   }

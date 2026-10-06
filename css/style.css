@@ -3182,3 +3182,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .sk-iap .btn { margin-top: 4px; }
 #app .sk-iap .btn { margin-top: auto; min-width: 74px; }
 #app .iap-buy .iap-per { display: block; font: 900 11px var(--text); opacity: .9; margin-top: -2px; -webkit-text-stroke: 0; }
+#app .ad-card .ad-ic.img { background: none; border: 0; box-shadow: none; } #app .ad-card .ad-ic.img img { width: 100%; height: 100%; object-fit: contain; }
