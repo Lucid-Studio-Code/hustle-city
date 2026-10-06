@@ -37,10 +37,11 @@
 
       ${HC.secTitle('hdr-levelup', 'Rétention', 'parmi ceux qui installent, combien reviennent après 1, 3, 7… jours', 'retention')}
       <div class="kpis k5">${[1, 3, 7, 14, 30].map((n, i) => HC.kpi(null, pct(o.retention[n]), `reviennent au jour ${n}`, { color: ['var(--green)', 'var(--cyan)', 'var(--blue)', 'var(--purple)', 'var(--pink)'][i], html: `<span style="font:400 20px var(--title);color:#fff">J${n}</span>` })).join('')}</div>
-      <div class="card" style="margin-top:16px"><div class="card-h">${img('hdr-missions')}Cohortes : les joueurs regroupés par ${o.cohorts[0] && o.cohorts[0].weekly ? 'semaine' : 'jour'} d'installation<small>plus c'est vert, plus ils reviennent · « – » = pas encore assez de recul</small></div>
-        <div class="cohort-wrap"><table class="cohort"><tr><th>Installés ${o.cohorts[0] && o.cohorts[0].weekly ? 'la semaine du' : 'le'}</th><th>Joueurs</th>${[1, 3, 7, 14, 30].map(n => `<th>Jour ${n}</th>`).join('')}</tr>
-        ${o.cohorts.map(c => `<tr><td class="c0">${new Date(c.d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</td><td style="background:rgba(255,255,255,.06)">${fmt(c.n)}</td>${[1, 3, 7, 14, 30].map(n => c.r[n] == null ? '<td class="na">–</td>' : `<td style="${retColor(c.r[n])}">${c.r[n]} %</td>`).join('')}</tr>`).join('') || `<tr><td colspan="7">${HC.empty('Pas encore de joueurs sur la période.')}</td></tr>`}</table></div>
-        <p class="help" style="margin-top:10px">Repères pour un jeu mobile : 35-40 % au jour 1, 15-20 % au jour 7, 8-10 % au jour 30, c'est bien.</p></div>
+      <div class="card" style="margin-top:16px"><div class="card-h">${img('hdr-missions')}Les nouveaux joueurs reviennent-ils ?<small>chaque ligne = les joueurs arrivés la même semaine</small></div>
+        <p class="help" style="margin:0 0 12px">On regarde s'ils rejouent <b>le lendemain</b>, <b>une semaine après</b> et <b>un mois après</b>. Vert = bien pour un jeu mobile, orange = moyen, rouge = faible.</p>
+        <div class="coh2">${o.cohorts.map(c => { const g = (v, ok, bon) => v == null ? '' : v >= bon ? 'good' : v >= ok ? 'mid' : 'low';
+          const cell = (lbl, v, ok, bon) => `<div class="coh2-c ${v == null ? 'na' : g(v, ok, bon)}"><small>${lbl}</small>${v == null ? '<b>trop tôt</b>' : `<b>${v} %</b><i style="width:${Math.min(100, v)}%"></i>`}</div>`;
+          return `<div class="coh2-r"><div class="coh2-h"><b>Semaine du ${new Date(c.d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</b><small>${fmt(c.n)} nouveaux joueurs</small></div>${cell('le lendemain', c.r[1], 25, 35)}${cell('1 semaine après', c.r[7], 8, 15)}${cell('1 mois après', c.r[30], 4, 8)}</div>`; }).join('') || HC.empty('Pas encore de joueurs sur la période.')}</div></div>
 
       ${HC.secTitle('ev-xp', 'Sessions et horaires', 'combien de temps et quand ils jouent', 'sessions')}
       <div class="kpis k5">
