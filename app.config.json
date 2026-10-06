@@ -1,4 +1,4 @@
 {
-  "apiUrl": "",
+  "apiUrl": "https://hustle.lucidstudio.fr",
   "_aide": "apiUrl = l'adresse de ton serveur une fois en ligne (ex. https://hustle-city.fr). Vide = l'application joue sans back office."
 }

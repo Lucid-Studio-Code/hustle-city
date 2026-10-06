@@ -1,11 +1,11 @@
 /* Hustle City : lien avec le serveur (sauvegarde en ligne, statistiques, SAV, cadeaux, réglages en direct).
    Sans serveur joignable, ce fichier ne fait rien : le jeu marche comme avant, tout en local.
-   Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300), sinon localStorage « hc.api ». */
+   Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300 ou en ligne, ex. hustle.lucidstudio.fr), sinon localStorage « hc.api ». */
 (function () {
   'use strict';
   const G = window.GAME, U = window.UI, D = window.DATA;
   const h = location.hash || '';
-  const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (location.port === '5300' ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
+  const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (location.port === '5300' || (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|192\.168\.|10\.|\[)/.test(location.hostname)) ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
   const off = !API || G.TEST || /^#(neuf|admin)/.test(h);
   const ID_KEY = 'hustleCity.online';
   let id = null; try { id = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) {}
