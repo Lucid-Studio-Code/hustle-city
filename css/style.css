@@ -3191,3 +3191,21 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* badge de bonus posé à cheval sur l'image des lingots */
 #app .lg-card .lg-art { overflow: visible; }
 #app .lg-card .lg-art .lg-tag { top: auto; bottom: -2px; right: -16px; z-index: 2; transform: rotate(-8deg); font-size: 13px; padding: 2px 7px; }
+/* rayons de victoire v2 : halo doux + faisceaux effilés qui s'estompent, deux couches qui tournent en sens inverse, petites étincelles */
+#app .levelup .rays { isolation: isolate; }
+#app .levelup .rays::before { inset: -70px; border-radius: 50%; z-index: -1;
+  background:
+    radial-gradient(circle, rgba(255,246,200,.95) 0 14%, rgba(255,214,90,.55) 26%, rgba(255,190,60,0) 52%),
+    repeating-conic-gradient(from 0deg, rgba(255,214,90,0) 0deg, rgba(255,200,60,.85) 4deg, rgba(255,214,90,0) 9deg, rgba(255,214,90,0) 22.5deg);
+  -webkit-mask: radial-gradient(circle, #000 22%, rgba(0,0,0,.6) 45%, transparent 70%); mask: radial-gradient(circle, #000 22%, rgba(0,0,0,.6) 45%, transparent 70%);
+  filter: blur(.6px); animation: spin 24s linear infinite; }
+#app .levelup .rays::after { content: ''; position: absolute; inset: -55px; border-radius: 50%; z-index: -1; pointer-events: none;
+  background:
+    repeating-conic-gradient(from 11deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,.75) 2deg, rgba(255,255,255,0) 5deg, rgba(255,255,255,0) 30deg),
+    radial-gradient(2px 2px at 22% 30%, #fff 60%, transparent), radial-gradient(2px 2px at 76% 24%, #fff 60%, transparent), radial-gradient(3px 3px at 82% 70%, #fff7c2 60%, transparent),
+    radial-gradient(2px 2px at 18% 74%, #fff 60%, transparent), radial-gradient(2.5px 2.5px at 50% 12%, #fff7c2 60%, transparent), radial-gradient(2px 2px at 60% 88%, #fff 60%, transparent);
+  -webkit-mask: radial-gradient(circle, #000 25%, transparent 68%); mask: radial-gradient(circle, #000 25%, transparent 68%);
+  animation: spin 36s linear infinite reverse, raysPulse 3s ease-in-out infinite; }
+@keyframes raysPulse { 50% { opacity: .55; } }
+#pack .pk-rays { background: radial-gradient(circle, rgba(255,255,255,.55) 0 10%, transparent 40%), repeating-conic-gradient(from 0deg, transparent 0deg, var(--ray, rgba(255,255,255,.35)) 4deg, transparent 9deg, transparent 22deg); filter: blur(.8px); }
+@media (prefers-reduced-motion: reduce) { #app .levelup .rays::before, #app .levelup .rays::after { animation: none; } }
