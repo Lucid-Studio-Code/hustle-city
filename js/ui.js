@@ -2370,7 +2370,6 @@
         <div class="form">
           <div class="skins">${D.SKINS.filter(k => !k.iap).map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
           <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
-          <div class="name-tag">Ton blaze aura un numéro rien qu'à toi, ex. <b>#${st().tag || '????'}</b></div>
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
         </div>`;
       startBg(el);
