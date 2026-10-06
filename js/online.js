@@ -61,7 +61,9 @@
   let playMs = 0, tick = Date.now(), cfgAt = 0;
   setInterval(() => { const t = Date.now(); if (!document.hidden) playMs += t - tick; tick = t; }, 5000);
   // l'appareil (pour la carte et les stats du back office) : fuseau horaire, langue, taille d'écran
-  const device = () => { let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {} return { tz, lang: navigator.language || '', screen: `${screen.width}x${screen.height}` }; };
+  // modèle exact du téléphone dans l'application (ex. « iPhone15,4 »), sinon le back office le devine d'après l'écran
+  let model = ''; const getModel = async () => { try { const D = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Device; if (D && !model) model = String((await D.getInfo()).model || '').slice(0, 12); } catch (e) {} };
+  const device = () => { let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {} return { tz, lang: navigator.language || '', screen: `${screen.width}x${screen.height}${model ? ' ' + model : ''}` }; };
   // résumé envoyé à chaque synchro : de quoi afficher le joueur dans le back office (photo, cadre, pin's, niveau, fortune)
   function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
   async function sync(withSave) {
@@ -77,6 +79,7 @@
   async function hello() {
     if (off) return;
     try {
+      await getModel();
       const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120), ...device() });
       if (!r.ok) return; ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
       sync(true); setInterval(() => sync(true), 60000);

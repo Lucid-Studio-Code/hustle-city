@@ -76,6 +76,23 @@
   };
   HC.who = (p, size = 40, sub) => `<span class="who">${HC.avatar(p, size)}<div><b>${esc(p.name || '(sans nom)')}</b><small>${sub != null ? sub : `#${esc(p.tag || '')}${p.city ? ' · ' + flag(p.cc) + ' ' + esc(p.city) : ''}`}</small></div></span>`;
   HC.skinName = id => ((D.SKINS || []).find(s => s.id === id) || {}).name || (id === 'gold' ? 'Gold (exclusif)' : id || '–');
+  // le modèle du téléphone : exact dans l'application (code envoyé par le téléphone), sinon deviné d'après la taille d'écran
+  const IPH = { '10,1': '8', '10,4': '8', '10,2': '8 Plus', '10,5': '8 Plus', '10,3': 'X', '10,6': 'X', '11,2': 'XS', '11,4': 'XS Max', '11,6': 'XS Max', '11,8': 'XR', '12,1': '11', '12,3': '11 Pro', '12,5': '11 Pro Max', '12,8': 'SE (2e gén.)',
+    '13,1': '12 mini', '13,2': '12', '13,3': '12 Pro', '13,4': '12 Pro Max', '14,4': '13 mini', '14,5': '13', '14,2': '13 Pro', '14,3': '13 Pro Max', '14,6': 'SE (3e gén.)', '14,7': '14', '14,8': '14 Plus', '15,2': '14 Pro', '15,3': '14 Pro Max',
+    '15,4': '15', '15,5': '15 Plus', '16,1': '15 Pro', '16,2': '15 Pro Max', '17,3': '16', '17,4': '16 Plus', '17,1': '16 Pro', '17,2': '16 Pro Max', '17,5': '16e', '18,3': '17', '18,1': '17 Pro', '18,2': '17 Pro Max', '18,4': 'Air' };
+  const IPH_SCREEN = { '320x568': 'SE (1re gén.)', '375x667': '8 ou SE', '414x736': '8 Plus', '375x812': 'X, XS, 11 Pro ou 12/13 mini', '414x896': '11, XR ou 11 Pro Max', '390x844': '12, 13, 14 ou 16e', '428x926': '12/13 Pro Max ou 14 Plus',
+    '393x852': '14 Pro, 15 ou 16', '430x932': '14 Pro Max, 15 Plus/Pro Max ou 16 Plus', '402x874': '16 Pro ou 17', '440x956': '16 Pro Max ou 17 Pro Max', '420x912': 'Air' };
+  const SAMSUNG = { S901: 'Galaxy S22', S906: 'Galaxy S22+', S908: 'Galaxy S22 Ultra', S911: 'Galaxy S23', S916: 'Galaxy S23+', S918: 'Galaxy S23 Ultra', S921: 'Galaxy S24', S926: 'Galaxy S24+', S928: 'Galaxy S24 Ultra', S931: 'Galaxy S25', S936: 'Galaxy S25+', S938: 'Galaxy S25 Ultra',
+    A145: 'Galaxy A14', A146: 'Galaxy A14', A155: 'Galaxy A15', A156: 'Galaxy A15', A256: 'Galaxy A25', A346: 'Galaxy A34', A356: 'Galaxy A35', A525: 'Galaxy A52', A526: 'Galaxy A52', A528: 'Galaxy A52s', A536: 'Galaxy A53', A546: 'Galaxy A54', A556: 'Galaxy A55', F731: 'Galaxy Z Flip5', F741: 'Galaxy Z Flip6', F946: 'Galaxy Z Fold5', F956: 'Galaxy Z Fold6' };
+  HC.device = p => {
+    const ua = p.platform || '', [sz, code = ''] = String(p.screen || '').split(' ');
+    const ip = code.match(/^iPhone(\d+,\d+)$/); if (ip) return 'iPhone ' + (IPH[ip[1]] || code.replace('iPhone', ''));
+    if (/iPad/.test(ua) || /^iPad/.test(code)) return 'iPad';
+    if (/iPhone/.test(ua)) { const [w, h] = (sz || '').split('x').map(Number), k = Math.min(w, h) + 'x' + Math.max(w, h); return IPH_SCREEN[k] ? 'iPhone ' + IPH_SCREEN[k] : 'iPhone'; }
+    const am = code || (ua.match(/Android [\d.]+; ([^;)]+?)(?: Build|\))/) || [])[1] || '';
+    if (/Android/.test(ua) || code) { const sm = am.match(/SM-([A-Z]\d{3})/); if (sm) return (SAMSUNG[sm[1]] || 'Samsung ' + am); return am && am !== 'K' ? am : 'Android'; }
+    return HC.platform(ua);
+  };
   HC.platform = ua => { ua = ua || ''; return /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Linux|CrOS/.test(ua) ? 'Linux' : ua ? 'Autre' : '–'; };
   HC.offerName = id => ((D.IAP || []).find(x => x.id === id) || {}).name || id || 'Offre du moment';
   HC.offerPrice = id => ((D.IAP || []).find(x => x.id === id) || {}).price || '';
@@ -290,7 +307,7 @@
   HC.PAGES.map = async () => {
     const data = await HC.api('/admin/api/map');
     HC.main(`<div class="page-head"><div><h1>Carte des joueurs</h1><div class="sub">D'où viennent les joueurs. Les points verts qui pulsent : quelqu'un joue en ce moment.</div></div>
-        <div class="tools"><label class="chip" style="cursor:pointer"><input type="checkbox" id="m-av" checked style="width:15px;height:15px"> Photos des joueurs en ligne</label><button class="btn sm ghost" id="m-fr">France</button><button class="btn sm ghost" id="m-world">Monde</button></div></div>
+        <div class="tools"><label class="chip" style="cursor:pointer" title="Affiche sur la carte l’avatar de chaque joueur en train de jouer, à l’endroit où il se trouve"><input type="checkbox" id="m-av" checked style="width:15px;height:15px"> Avatars de ceux qui jouent en ce moment</label><button class="btn sm ghost" id="m-fr">France</button><button class="btn sm ghost" id="m-world">Monde</button></div></div>
       <div class="map-wrap"><div style="position:relative"><div id="bigmap"></div><div class="map-legend"><span><i style="background:#9b5de5"></i>joueurs d'une ville</span><span><i style="background:#3ddc84"></i>quelqu'un joue maintenant</span></div></div>
         <div class="map-side">
           <div class="card now-card"><div class="card-h"><span class="dot"></span>En ligne maintenant<small id="m-n"></small></div><div id="m-online" style="max-height:300px;overflow-y:auto"></div></div>

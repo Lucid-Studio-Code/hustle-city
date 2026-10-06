@@ -623,3 +623,9 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .ob-sum { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .pm-step .row2 > .fld { min-width: 0; } .pm-step .row2 input { min-width: 0; box-sizing: border-box; }
 @media (max-width: 1100px) { .pm-step .row2 { grid-template-columns: 1fr; } }
+
+/* fiche joueur : les cartes possédées au format carte */
+.inv .it.is-card .ci { width: 62%; aspect-ratio: 2 / 3; margin: 2px auto 6px; border-radius: 8px; overflow: hidden; border: 3px solid #9aab8c; background: #2a2140; box-shadow: 0 3px 0 rgba(0,0,0,.35); display: grid; place-items: center; }
+.inv .it.is-card .ci img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+.inv .it.is-card .ci svg { width: 80%; height: auto; }
+.inv .it.is-card.rR .ci { border-color: #3a78c2; } .inv .it.is-card.rE .ci { border-color: #8a4dd4; } .inv .it.is-card.rL .ci { border-color: #e0a21d; }

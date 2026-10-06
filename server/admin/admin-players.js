@@ -53,6 +53,10 @@
   // ================================================================== FICHE JOUEUR
   const CAT_ICON = { card: 'cat-card', sneaker: 'cat-sneaker', watch: 'cat-watch', gold: 'cat-gold', gem: 'item-g-diam', car: 'bld-garage', moto: 'bld-garage', trophy: 'cat-trophy' };
   const CAT_ORDER = ['card', 'sneaker', 'watch', 'gold', 'gem', 'car', 'moto', 'trophy'];
+  // cartes : au format carte (illustration pleine, bord à la couleur de la rareté), comme dans le classeur du jeu
+  const cardImg = it => { const crea = (D.SERIES || []).some(x => x.id === it.series && x.col === 'crea'), full = it.art && 'full-' + it.art.replace(/^art-/, '');
+    const n = crea ? first('item-' + it.id) : first(full, it.art, it.img, 'item-' + it.id);
+    return `<div class="ci">${n ? `<img src="${src(n)}" alt="" loading="lazy">` : it.team && it.team[0] === 'rugby' ? HC.crest(it.team[1]) : img(CAT_ICON[it.cat])}</div>`; };
   const itemImg = it => { const n = first(it.art, it.img, 'item-' + it.id); return n ? `<img src="${src(n)}" alt="" loading="lazy">` : (it.team && it.team[0] === 'rugby' ? HC.crest(it.team[1]) : img(CAT_ICON[it.cat])); };
   function parseSave(s) { try { return JSON.parse(s || 'null') || null; } catch (e) { return null; } }
 
@@ -77,7 +81,7 @@
           <div class="meta">${p.online ? '<span class="tag ok"><span class="dot" style="width:7px;height:7px"></span>en ligne maintenant</span>' : `<span class="tag">vu ${ago(p.last_seen)}</span>`}
             ${p.banned ? `<span class="tag ko">${img('icon-lock')}suspendu</span>` : ''}${p.spent ? `<span class="tag ok">${img('icon-treasure')}a dépensé ${eur(p.spent)}</span>` : ''}
             ${p.city ? `<span class="tag blue">${flag(p.cc)} ${esc(p.city)}${p.region && p.region !== p.city ? ', ' + esc(p.region) : ''}</span>` : ''}
-            <span class="tag">${esc(HC.platform(p.platform))}${p.screen ? ' · ' + esc(p.screen) : ''}</span><span class="tag pink">${esc(skin ? skin.name : HC.skinName(p.skin))}</span><span class="tag">inscrit le ${dt(p.created, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
+            <span class="tag">${esc(HC.device(p))}</span><span class="tag pink">${esc(skin ? skin.name : HC.skinName(p.skin))}</span><span class="tag">inscrit le ${dt(p.created, { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
           <div class="lvlbar"><span class="lv">${p.lvl || 1}</span><span class="bar"><i style="width:${need ? Math.min(100, xp / need * 100) : 100}%"></i><span>${need ? `${fmt(xp)} / ${fmt(need)} XP` : 'niveau max'}</span></span></div></div>
         <div class="hero-actions"><button class="btn green" data-scroll="pa-gift">${img('icon-gift')}Offrir un cadeau</button><button class="btn blue" data-scroll="pa-gift">${img('app-msg')}Envoyer un message</button>
           <button class="btn purple" data-scroll="pa-save">${img('hdr-settings')}Restaurer la partie</button>
@@ -91,7 +95,7 @@
       <div class="grid g3" style="margin-top:16px">
         <div class="card span2"><div class="card-h">${img('app-binder')}Ce qu'il possède<small>${items.length} objets · valeur ≈ ${cash(invValue)}</small></div>
           ${CAT_ORDER.filter(c => byCat[c]).map(c => { const L2 = byCat[c].sort((a, b) => price(b) - price(a)), cat = (D.ITEM_CATS || {})[c] || {};
-            return `<div class="inv-cat"><h4>${img(CAT_ICON[c])}${esc(c === 'car' ? 'Véhicules' : cat.name || c)}<small>${L2.length} · ${cash(L2.reduce((t, it) => t + price(it), 0))}</small></h4><div class="inv">${L2.map(it => `<div class="it r${it.r}" title="${esc(it.name)}"><span class="rar">${it.r}</span><div class="ii">${itemImg(it)}</div><small>${esc(it.name.replace(/^Carte /, ''))}</small><em>${short(price(it))}</em></div>`).join('')}</div></div>`; }).join('') || HC.empty('Pas encore d\'objets (ou pas encore de sauvegarde reçue).', 'ic-shelf')}
+            return `<div class="inv-cat"><h4>${img(CAT_ICON[c])}${esc(c === 'car' ? 'Véhicules' : cat.name || c)}<small>${L2.length} · ${cash(L2.reduce((t, it) => t + price(it), 0))}</small></h4><div class="inv">${L2.map(it => `<div class="it r${it.r} ${c === 'card' ? 'is-card' : ''}" title="${esc(it.name)}"><span class="rar">${it.r}</span>${c === 'card' ? cardImg(it) : `<div class="ii">${itemImg(it)}</div>`}<small>${esc(it.name.replace(/^Carte /, ''))}</small><em>${short(price(it))}</em></div>`).join('')}</div></div>`; }).join('') || HC.empty('Pas encore d\'objets (ou pas encore de sauvegarde reçue).', 'ic-shelf')}
           ${props.length ? `<div class="inv-cat"><h4>${img('app-immo')}Immobilier<small>${props.length}</small></h4><div class="inv">${props.map(x => `<div class="it"><div class="ii">${img('app-immo')}</div><small>${esc(x.name)}</small><em>${short(x.price)}</em></div>`).join('')}</div></div>` : ''}
           ${coins.length ? `<div class="inv-cat"><h4>${img('app-crypto')}Crypto<small>${coins.length}</small></h4><div class="inv">${coins.map(c => `<div class="it"><div class="ii">${img('coin-' + c.id) || `<span class="emo">${esc(c.sym)}</span>`}</div><small>${esc(c.name)}</small><em>${S.crypto.hold[c.id] >= 1000 ? short(S.crypto.hold[c.id]) : fmt(S.crypto.hold[c.id], 2)}</em></div>`).join('')}</div></div>` : ''}
         </div>
