@@ -53,7 +53,7 @@
   function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼', '👑'][D.SKINS.indexOf(sk)]); }
   // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
   function itemPic(it) {
-    if (it.cat === 'card' && it.team) return `<span class="card-mini">${miniCard(it)}</span>`;
+    if (it.cat === 'card') return `<span class="card-mini">${miniCard(it)}</span>`;   // toutes les cartes au même format
     return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon);
   }
   // « Joueuse de l'Union Graffiti », « Joueur du FC Bitume », « Joueur des Night Hoopers »
@@ -64,7 +64,11 @@
     return /^[AEIOUÉÈÂ]/i.test(c) ? `${who} de l'${c}` : `${who} du ${c}`;
   }
   function miniCard(it) {
-    const sp = it.team[0], bg = has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
+    const sp = it.team ? it.team[0] : '', bg = sp && has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
+    const crea = (D.SERIES.find(x => x.id === it.series) || {}).col === 'crea', full = it.art && 'full-' + it.art.replace(/^art-/, '');
+    if (crea || !sp) { const im = crea ? 'item-' + it.id : has(full) ? full : it.art && has(it.art) ? it.art : 'item-' + it.id, nm0 = it.name.replace(/^Carte /, '').replace(/^./, c => c.toUpperCase());
+      return `<span class="tcg full mini ${crea ? 'crea' : ''} r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span><span class="fa-img fa-ill"><img src="${src(im)}" alt=""></span>${crea ? '' : `<span class="fa-rar">${RSYM[it.r]}</span>`}
+        <span class="fa-plate"><b class="${nm0.length > 14 ? 'xl' : ''}">${nm0}</b></span><i class="tcg-holo"></i></span></span>`; }
     const art = it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : sp === 'tennis' && has(it.img) ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
     const nm = it.name.replace(/^Carte /, '');
     return `<span class="tcg full mini r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span>${bg}${art}<span class="fa-rar">${RSYM[it.r]}</span>
