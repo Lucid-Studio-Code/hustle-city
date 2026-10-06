@@ -165,9 +165,11 @@
   }
   // une agence rivale veut la récupérer : on la garde (prime ou part réduite) ou on la laisse partir
   function rivalOffer(m, unhappy) {
+    // une créatrice heureuse ne pense pas à partir : plus son moral est haut, moins une agence rivale a de chances (aucune à 70 et plus)
+    if (!unhappy && (m.mood >= 70 || Math.random() < m.mood / 70)) return;
     const a = ag(), p = prof(m.id);
     a.offer = { id: m.id, prime: Math.round(perHour(m) * 24 + 100), t: now(), unhappy };
-    U.notify('agence', `📩 ${p.name} hésite à partir`, unhappy ? 'Elle n\'a plus le moral et une agence rivale lui fait les yeux doux. Ouvre PrivéFans.' : 'Une agence rivale lui propose un contrat. Ouvre PrivéFans pour décider.', null, false, null, faceImg(p.id));
+    U.notify('agence', `📩 ${p.name} hésite à partir`, unhappy ? 'Elle n\'a plus le moral et une agence rivale lui fait les yeux doux. Ouvre PrivéFans.' : 'Son moral baisse et une agence rivale lui propose un contrat. Ouvre PrivéFans pour décider.', null, false, null, faceImg(p.id));
   }
 
   // ------------------------------------------------------------ actions
@@ -258,7 +260,7 @@
     const head = solo() ? `<div class="card ag-head"><div class="grow"><small>Tes gains en attente</small><b>${U.short(pend)}</b><small>≈ ${U.short(hourly)} par heure · la plateforme garde ${Math.round((1 - a.crew[0].pct) * 100)} %</small></div>
       <button class="btn green" data-act="agCollect" ${pend >= 1 ? '' : 'disabled'}>Encaisser</button></div>` : `<div class="card ag-head"><div class="grow"><small>Ta commission en attente</small><b>${U.short(pend)}</b><small>≈ ${U.short(hourly)} par heure · ${a.crew.length} / ${slotsN()} créatrice${slotsN() > 1 ? 's' : ''}</small></div>
       <button class="btn green" data-act="agCollect" ${pend >= 1 ? '' : 'disabled'}>Encaisser</button></div>`;
-    const off = offer ? `<div class="card ag-offer"><b>📩 ${offer.name} hésite à partir</b><p>${a.offer.unhappy ? 'Elle n\'a plus le moral, et une agence rivale lui propose mieux.' : 'Une agence rivale lui propose un contrat.'} Que fais-tu ?</p>
+    const off = offer ? `<div class="card ag-offer"><b>📩 ${offer.name} hésite à partir</b><p>${a.offer.unhappy ? 'Elle n\'a plus le moral, et une agence rivale lui propose mieux.' : 'Son moral n\'est pas au top, et une agence rivale lui propose un contrat.'} Que fais-tu ?</p>
       <div class="ag-btns"><button class="btn gold sm" data-act="agKeep" data-how="prime">Prime de ${U.short(a.offer.prime)}</button><button class="btn blue sm" data-act="agKeep" data-how="share">Baisser ta part (−15 %)</button><button class="btn red sm" data-act="agLetGo">La laisser partir</button></div></div>` : '';
     const crew = a.crew.map(m => {
       const p = prof(m.id), x = m.act && A.acts.find(o => o.id === m.act.k), left = m.act ? m.act.start + m.act.dur - now() : 0;
