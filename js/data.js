@@ -366,6 +366,10 @@
   ['c-rookie', 'c-signed'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
   ITEMS.find(x => x.id === 'c-rookie').art = 'art-rookie';
   Object.assign(ITEMS.find(x => x.id === 'c-signed'), { art: 'art-c-signed', needArt: 'art-c-signed' });
+  // d'autres grandes cartes du sport (illustration pleine carte full-c-…, visibles une fois l'image installée)
+  [['c-goat', 'Le GOAT du Bitume', 'L', 1400], ['c-dunk', 'Le Dunk du Siècle', 'E', 320], ['c-ace', 'Ace en Or', 'E', 280], ['c-final', 'Finale de Légende', 'L', 1100],
+   ['c-essai', 'L\'Essai du Siècle', 'E', 300], ['c-ballon', 'Ballon d\'Or du Quartier', 'L', 2200], ['c-graded', 'Rookie gradée 10/10', 'L', 3500]]
+    .forEach(([id, name, r, p0]) => ITEMS.push({ id, cat: 'card', series: 'classics', name, r, p0, vol: .07, art: 'art-' + id, needArt: 'full-' + id }));
   // ---------------------------------------------------------------- 2e collection : les cartes Créatures (parodie de cartes à monstres, version street)
   // Image = la carte entière, cadre compris (item-cr-…), dans la D.A. de Dragon Ardent. Visibles une fois l'image installée (needArt).
   ['c-dragon', 'c-holo', 'c-1st', 'c-psa10'].forEach(id => { ITEMS.find(x => x.id === id).series = 'crea-og'; });
