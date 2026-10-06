@@ -553,10 +553,10 @@
   // et un objet qui en chevauche un autre passe en rouge. « Publier » (seulement sur localhost) écrit js/layout.js
   // et le met en ligne pour tout le monde. En attendant, les réglages restent dans ce navigateur.
   let placing = false;
-  const ADM_KEY = 'hustleCity.admin', admLocal = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const ADM_KEY = 'hustleCity.admin', admLocal = !!window.HC_DEV;
   const admSaved = () => { try { return JSON.parse(localStorage.getItem(ADM_KEY) || '{}'); } catch (e) { return {}; } };
   function placerMode() {
-    if (location.hash !== '#placer' && location.hash !== '#admin') return;
+    if (!window.HC_DEV || (location.hash !== '#placer' && location.hash !== '#admin')) return;
     placing = true;
     // une seule fois : on oublie les vieux brouillons de placement (ils ont remis les décos à zéro le 03/10)
     try { if (!localStorage.getItem('hustleCity.admFix2')) { localStorage.removeItem(ADM_KEY); localStorage.setItem('hustleCity.admFix2', '1'); } } catch (e) {}
@@ -727,7 +727,7 @@
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
   const RP_NAME = k => k === 'pc' ? '🖥️ PC' : k === 'rig' ? '⛏️ Machine' : k === 'light' ? '💻 Ordi PrivéFans (lit)' : k === 'shelf' ? '📚 Toutes les étagères' : `📦 Place ${+k.slice(4) + 1}`;
   function roomPlacer(force) {
-    if (!force && location.hash !== '#placer-appart') return;
+    if (!window.HC_DEV || (!force && location.hash !== '#placer-appart')) return;
     if (RP.on || !st().skin) return;
     closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); RP.sel = RP.sel || 'pc';
     RP.pv = RP.pv || { pc: G.pcLvl(), rig: st().rig.lvl }; setScene('appart');
@@ -909,7 +909,7 @@
     openModal({ title: 'Ton appart', icon: 'home', center: true, body: `
       <div class="help-row">${pic(has('minerv-' + st().rig.lvl) ? 'minerv-' + st().rig.lvl : 'rig-0', EMO.rig)}<div><b>La machine à crypto</b><p>Elle fabrique de l'argent toute seule, même quand tu n'es pas là. Elle chauffe et s'arrête au bout d'un moment : touche sa bulle pour encaisser, ça la relance.</p></div></div>
       <div class="help-row">${pic(has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0', EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
-      <div class="help-row"><span class="pic"><span class="emo">📱</span></span><div><b>Ton téléphone</b><p>Pour déménager (appli Appart'Immo), voir ta banque, tes paris et les messages de tes contacts.</p></div></div>
+      <div class="help-row"><span class="pic help-phone"><i class="ph-mini"><i></i></i></span><div><b>Ton téléphone</b><p>Pour déménager (appli Appart'Immo), voir ta banque, tes paris et les messages de tes contacts.</p></div></div>
       <div class="help-row">${pic('item-c-holo', '🃏')}<div><b>Tes étagères</b><p>Tes objets de collection s'y exposent. Leur prix bouge aussi : touche un objet pour voir combien il vaut et le revendre.</p></div></div>
       <button class="btn green wide" data-act="closeModal">Compris</button>` });
   }
@@ -2139,24 +2139,16 @@
       ${leaderHtml()}`;
   }
   // ---- classement des fortunes : le top 10 toujours visible, puis ta place et tes voisins
-  // en ligne : le vrai classement (serveur) ; hors ligne : un quartier de joueurs simulés (mêmes fortunes pour tout le monde)
+  // le vrai classement, celui des joueurs du serveur (plus aucun joueur inventé) ; hors ligne : on le dit simplement
   let LB = null, lbAt = 0;
-  const LB_NAMES = ['Kenzo93', 'LaFouine', 'Mamadou_R', 'Lina.b', 'TiboRugby', 'Sarah_lsc', 'Yanis.zr', 'Big_Moussa', 'Chloé77', 'Nono_du_13', 'K-Rim', 'Jojo_la_frite', 'Ines_dz', 'Matteo.p', 'Ryad', 'Lucie_b',
-    'Djibril', 'Zoé.k', 'Bilal95', 'Emma_r', 'Sofiane', 'Léo_xv', 'Nadia', 'Samy_le_boss', 'Wassim', 'Jade.mtl', 'Hugo_trader', 'Maëlys', 'Amine_93', 'Kylian_b', 'Rayan.cash', 'Sana', 'Enzo_k', 'Imane', 'Théo_bet'];
-  function lbFake() {
-    const seed = n => { const x = Math.sin(n * 91.7 + 13.1) * 43758.5453; return x - Math.floor(x); }, skins = D.SKINS.filter(k => !k.iap).map(k => k.id);
-    const L = Array.from({ length: 240 }, (_, i) => ({ name: LB_NAMES[i % LB_NAMES.length] + (i >= LB_NAMES.length ? Math.floor(seed(i) * 90 + 10) : ''), skin: skins[i % skins.length],
-      worth: Math.round(Math.exp(6 + seed(i * 3) * 10.5)), lvl: 1 + Math.floor(seed(i * 7) * 39) }));
-    L.push({ name: st().name || 'Toi', skin: st().skin, avatar: st().avatar, frame: st().frame, lvl: st().lvl, worth: Math.round(G.worth()), me: true });
-    L.sort((a, b) => b.worth - a.worth); const r = L.findIndex(x => x.me), from = Math.max(0, r - 2);
-    return { total: L.length, rank: r + 1, top: L.slice(0, 10), around: L.slice(from, r + 3), aroundStart: from + 1 };
-  }
   function lbLoad() {
     if (Date.now() - lbAt < 60000) return; lbAt = Date.now();
     if (window.ONLINE && ONLINE.on && ONLINE.leaderboard) ONLINE.leaderboard().then(r => { if (r && r.top) { LB = r; if ($('#modal .lb-card')) setBody(profileBody()); } });
   }
   function leaderHtml() {
-    lbLoad(); const d = LB || lbFake(), rk = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    lbLoad();
+    if (!LB) return `<h3 class="sec">Les plus riches du quartier</h3><div class="lb-card lb-off"><p class="hint-line center">${window.ONLINE && ONLINE.on ? 'Chargement du classement…' : 'Le classement des joueurs s\'affiche quand tu es connecté à internet.'}</p></div>`;
+    const d = LB, rk = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
     const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(p.skin, true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${p.lvl || 1}</small></span><b class="lb-w">${short(p.worth)}</b></div>`;
     const inTop = d.rank <= 10, around = inTop ? [] : d.around;
     return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
@@ -2653,7 +2645,7 @@
     document.querySelectorAll('img[src^="assets/img/"]').forEach(i => { const m = i.getAttribute('src').match(/img\/(.+?)\.png/); if (m) i.src = src(m[1]); });
     cleanChats(); purgeOld();
     document.body.classList.toggle('calm', !!st().calm);
-    if (G.TEST || /^#neuf/.test(location.hash)) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
+    if (G.TEST || (window.HC_DEV && /^#neuf/.test(location.hash))) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
     promoUi();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();

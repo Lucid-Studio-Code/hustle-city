@@ -3259,3 +3259,8 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app #start .st-hello img { width: 54px; height: 54px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 0 rgba(42,26,16,.5)); }
 #app #start .st-hello span { margin-bottom: 8px; padding: 8px 13px; border: 3px solid #2a1a10; border-radius: 16px 16px 16px 4px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; color: #2a1a10; font: 800 15px/1.3 var(--text); }
 #app #start .st-hello b { color: #c2185b; }
+/* « ? » de l'appart : le même téléphone que le bouton Tél. (fond d'écran de la ville) */
+#app .help-phone { display: grid; place-items: center; }
+#app .help-phone .ph-mini { position: relative; display: block; width: 44px; height: 64px; border-radius: 10px; border: 2.5px solid #2a1a10; box-shadow: 0 3px 0 #2a1a10;
+  background: url(../assets/img/phone-wall.png) center / cover, linear-gradient(160deg, #3a2a78, #c13a8c); display: block;  }
+#app .help-phone .ph-mini > i { position: absolute; left: 50%; top: 4px; width: 14px; height: 3px; margin-left: -7px; border-radius: 2px; background: #1b1433; }

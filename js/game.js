@@ -3,10 +3,12 @@
   'use strict';
   const D = window.DATA;
   // le back-office (#admin) joue sur une COPIE de la partie : il ne doit jamais écraser la vraie sauvegarde du joueur
-  const ADMIN = /^#(admin|placer)/.test(location.hash);
+  // les outils pour tester (#admin, #test, #neuf, tournoi-test…) ne marchent que sur le Mac de développement, jamais sur le jeu en ligne ni dans l'appli
+  const DEV = window.HC_DEV = !window.Capacitor && /^(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|[\w-]+\.local)$/.test(location.hostname);
+  const ADMIN = DEV && /^#(admin|placer)/.test(location.hash);
   // partie de test (#test) : tout débloqué, cash et lingots illimités, sauvegarde à part (ne touche jamais la vraie partie)
-  const TEST = /^#test/.test(location.hash);
-  const NEUF = /^#neuf/.test(location.hash);   // nouvelle partie d'essai (tuto compris), sauvegarde à part
+  const TEST = DEV && /^#test/.test(location.hash);
+  const NEUF = DEV && /^#neuf/.test(location.hash);   // nouvelle partie d'essai (tuto compris), sauvegarde à part
   const PLAYER_KEY = 'hustleCity.v1', SAVE_KEY = NEUF ? 'hustleCity.neuf' : TEST ? 'hustleCity.test' : ADMIN ? 'hustleCity.backoffice' : PLAYER_KEY;
   function testBoost() { if (!TEST) return; st.lvl = Math.max(st.lvl, D.MAX_LVL); st.xp = 0; if (st.cash < 5e6) st.cash = 1e7; if (st.lingots < 5e4) st.lingots = 1e5; st.tutoDone = true; st.name = st.name || 'Testeuse'; st.bldTuto = Object.assign(st.bldTuto || {}, Object.fromEntries(D.BUILDINGS.map(b => b.id).concat(['outro', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse']).map(k => [k, true]))); }
   const MAX_OFFLINE = 12 * 3600;
@@ -134,6 +136,7 @@
   }
   function stat(k, n = 1, max = false) {
     st.stats[k] = max ? Math.max(st.stats[k] || 0, n) : (st.stats[k] || 0) + n;
+    if (!max && D.CDM.pts[k]) cdmGain(k, n);   // la Coupe des Morts : des points pour ton équipe
     emit('stat', k);
   }
 
@@ -883,7 +886,7 @@
   }
   // ------------------------------------------------------------ Tournoi des 6 Quartiers (événement)
   // Mode test : ajouter #tournoi-test à l'adresse du jeu → le tournoi démarre 2 min plus tard, un match toutes les 4 min.
-  const sixTest = () => /tournoi-test/.test(location.hash);
+  const sixTest = () => DEV && /tournoi-test/.test(location.hash);
   let sixBase = 0;
   function sixKick(i) {
     if (!sixTest()) {
@@ -954,7 +957,8 @@
   // après la fin, le Panneau garde le tournoi (avec une notif) tant que le joueur n'a pas vu le récap ; ensuite il redevient un panneau normal
   function eventOff() { if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || !!S.final.seen || (S.final.claimed && S.final.seen === undefined) || now() - sixEnd() > 30 * 86400000; }
   function sixRecapSeen() { const S = sixSt(); if (S.final) { if (!S.final.claimed) claimSix(); S.final.seen = now(); emit('change'); } }
-  function nextEventAt() { const t = D.NEXT_EVENT && D.NEXT_EVENT.at && Date.parse(D.NEXT_EVENT.at); return t && t > now() ? t : null; }
+  function nextEventAt() { const t = D.NEXT_EVENT && D.NEXT_EVENT.at && Date.parse(D.NEXT_EVENT.at), c = cdmPhase() === 'before' ? cdmT()[0] : 0;
+    const L = [t, c].filter(x => x && x > now()); return L.length ? Math.min(...L) : null; }
   function sixPhase() { const t = now(), n = D.SIX.matches.length; return t < sixKick(0) ? 'before' : t < sixKick(n - 1) + sixLive() ? 'on' : 'over'; }
   // les journées s'ouvrent une par une : la suivante quand la précédente est finie
   function sixDayOpen(d) { return d === 1 || D.SIX.matches.every((x, i) => x[0] !== d - 1 || sixMatch(i).state === 'done'); }
@@ -1015,7 +1019,7 @@
   function sixCurDay() { const m = sixMatches().find(x => x.state !== 'done' && sixDayOpen(x.day)); return m ? m.day : 0; }
   // boutique de l'événement : on achète une fois, on garde pour toujours (même après l'événement)
   const evOwned = id => !!(st.evItems && st.evItems[id]);
-  const decoOf = id => D.SIX.shop.find(o => o.id === id) || D.CITY_SHOP.find(o => o.id === id);
+  const decoOf = id => D.EV_SHOP.find(o => o.id === id) || D.CITY_SHOP.find(o => o.id === id);
   // Boutique (déco de la ville), toujours ouverte, débloquée par niveau
   function shopBuy(id) {
     const x = D.CITY_SHOP.find(o => o.id === id); if (!x) return { err: 'Introuvable.' };
@@ -1049,6 +1053,176 @@
     const r = sixReward(S.final.rank); S.final.claimed = true; addLingots(r.lingots); st.boosters += r.boosters; addXp(50);
     emit('change'); return { r, rank: S.final.rank };
   }
+
+  // ------------------------------------------------------------ La Coupe des Morts (événement d'Halloween)
+  // 4 équipes de monstres. On choisit son camp (une fois par édition), on gagne des points pour son équipe en jouant normalement
+  // (table D.CDM.pts, plafonnée par jour), plus 3 défis de la nuit par jour. 1 bonbon tous les 10 points, à dépenser dans la boutique.
+  // Mode test : #test-cdm (partie test) ou #cdm-test → la Coupe a commencé il y a 3 h ; ajouter « -fin » (#test-cdm-fin) → elle finit 3 min après l'ouverture.
+  const cdmTest = () => /cdm-test|test-cdm/.test(location.hash);
+  const cdmFast = () => /cdm-fin|cdm-test-fin/.test(location.hash);
+  let cdmBase = 0, cdmNet = null, cdmCache = null;
+  function cdmT() {
+    if (cdmTest()) {
+      const k = 'cdmBase' + (cdmFast() ? 'F' : '');
+      if (!cdmBase) { try { cdmBase = +sessionStorage.getItem(k) || 0; } catch (e) {} if (!cdmBase) { cdmBase = now() - 3 * 3600000; try { sessionStorage.setItem(k, cdmBase); } catch (e) {} } }
+      return [cdmBase, cdmFast() ? cdmBase + 3 * 3600000 + 180000 : cdmBase + 5 * 86400000];
+    }
+    return [Date.parse(D.CDM.start), Date.parse(D.CDM.end)];
+  }
+  function cdmPhase() { if (!D.CDM.on && !cdmTest()) return 'off'; const [a, b] = cdmT(), t = now(); if (!(a < b)) return 'off'; return t < a ? 'before' : t < b ? 'on' : 'over'; }
+  // l'édition : l'année de la Coupe (ou celle choisie au back office). Nouvelle édition = tout repart de zéro.
+  const cdmEd = () => cdmTest() ? 'test-' + cdmT()[0] : String(D.CDM.ed || new Date(cdmT()[0]).getFullYear());
+  const cdmSt = () => { const k = cdmTest() ? 'cdmTest' : 'cdm'; let S = st[k];
+    if (!S || S.ed !== cdmEd()) S = st[k] = { ed: cdmEd(), team: null, pts: 0, candy: 0, candyAll: 0, unsent: 0, day: null, night: null, steps: {}, bought: {}, final: null, announced: false };
+    return S; };
+  const cdmTeam = id => D.CDM.teams.find(t => t.id === id) || null;
+  const cdmOn = () => cdmPhase() === 'on';
+  // le Panneau montre la Coupe pendant ses dates, puis tant que le récap n'a pas été vu (30 jours au plus)
+  function cdmShow() { const ph = cdmPhase(); if (ph === 'on') return true; if (ph !== 'over') return false; const f = cdmSt().final; return !!(f && !f.seen && now() - cdmT()[1] < 30 * 86400000) || (!!cdmSt().team && !f); }
+  // ce qu'affiche le Panneau : la Coupe passe avant le tournoi (sauf choix contraire au back office pendant un tournoi en cours)
+  const panneau = () => cdmShow() && !(D.CDM.prio === 'six' && sixPhase() === 'on') ? 'cdm' : 'six';
+  function cdmAdd(n, why) {
+    const S = cdmSt(), before = S.pts; n = Math.round(n); if (n <= 0) return 0;
+    S.pts += n; S.unsent = (S.unsent || 0) + n; cdmCache = null;
+    const c = Math.floor(S.pts / D.CDM.perCandy) - Math.floor(before / D.CDM.perCandy);
+    if (c > 0) { S.candy += c; S.candyAll += c; }
+    emit('cdmPts', { n, why, candy: c }); return n;
+  }
+  // une action du jeu rapporte des points à ton équipe (plafond par jour et par action)
+  function cdmGain(k, count = 1) {
+    const P = D.CDM.pts[k]; if (!P || !cdmOn()) return 0;
+    const S = cdmSt(); if (!S.team) return 0;
+    if (!S.day || S.day.d !== today()) S.day = { d: today(), by: {} };
+    const got = S.day.by[k] || 0, n = Math.max(0, Math.min(P[0] * count, P[1] - got)); if (!n) return 0;
+    S.day.by[k] = got + n; return cdmAdd(n, k);
+  }
+  function cdmJoin(id) {
+    if (!cdmOn()) return { err: 'La Coupe des Morts n\'est pas ouverte.' };
+    const S = cdmSt(), T = cdmTeam(id); if (S.team) return { err: 'Tu as déjà choisi ton camp.' }; if (!T) return { err: 'Équipe inconnue.' };
+    S.team = id; S.joinedAt = now(); cdmNight(); addXp(10); emit('cdmJoin', T); emit('change'); return { T };
+  }
+  // défis de la nuit : 3 par jour, tirés au sort (comme les défis du jour)
+  function cdmNight() {
+    const S = cdmSt(); if (S.night && S.night.d === today()) return S.night;
+    const pool = D.CDM.nights.filter(c => !c.lvl || st.lvl >= c.lvl), list = [];
+    while (list.length < 3 && pool.length) list.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    S.night = { d: today(), bonus: false, list: list.map(c => ({ k: c.k, t: c.t, goal: c.g, base: st.stats[c.k] || 0, got: false })) };
+    return S.night;
+  }
+  const cdmNightReady = () => cdmOn() && cdmSt().team ? cdmNight().list.filter(c => !c.got && chalValue(c) >= c.goal).length : 0;
+  function cdmNightClaim(i) {
+    if (!cdmOn()) return { err: 'La Coupe est finie.' };
+    const S = cdmSt(), N = cdmNight(), c = N.list[i], B = D.CDM.nightBonus;
+    if (!S.team || !c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
+    c.got = true; cdmAdd(D.CDM.nightPts, 'night'); let bonus = false;
+    if (!N.bonus && N.list.every(x => x.got)) { N.bonus = bonus = true; cdmAdd(B.pts, 'night'); S.candy += B.candy; S.candyAll += B.candy; }
+    emit('change'); return { pts: D.CDM.nightPts + (bonus ? B.pts : 0), bonus };
+  }
+  // un objet de la boutique de la Coupe (ou du tournoi) offert : il est à toi pour toujours
+  function grantEv(id) { const x = D.EV_SHOP.find(o => o.id === id); if (!x) return; (st.evItems = st.evItems || {})[id] = now(); if (x.kind === 'deco') (st.decoOff = st.decoOff || {})[id] = false; }
+  // donne une récompense (palier ou fin de Coupe) ; un objet déjà acheté est remboursé en bonbons
+  function cdmGive(x) {
+    const S = cdmSt(); if (x.cash) addCash(x.cash); if (x.lingots) addLingots(x.lingots); if (x.boosters) st.boosters = (st.boosters || 0) + x.boosters;
+    const id = x.pin ? 'pn-' + S.team : x.item; let refund = 0;
+    if (id) { if (evOwned(id)) { const it = D.CDM.shop.find(o => o.id === id); refund = Math.max(10, Math.round(((it && it.candy) || 40) / 2)); S.candy += refund; } else grantEv(id); }
+    return { id, refund };
+  }
+  const cdmStepsReady = () => { const S = cdmSt(); return S.team ? D.CDM.steps.filter((x, i) => !S.steps[i] && S.pts >= x.n).length : 0; };
+  function cdmStepClaim(i) {
+    const S = cdmSt(), x = D.CDM.steps[i]; if (!x || S.steps[i] || S.pts < x.n) return { err: 'Pas encore.' };
+    S.steps[i] = now(); const g = cdmGive(x); addXp(10); emit('change'); return { x, g };
+  }
+  function cdmBuy(id) {
+    const x = D.CDM.shop.find(o => o.id === id); if (!x || x.noSale) return { err: 'Introuvable.' };
+    if (!cdmOn()) return { err: 'La boutique de la Coupe est fermée.' };
+    const S = cdmSt();
+    if (x.kind === 'booster') { if ((S.bought[id] || 0) >= x.max) return { err: 'Plus en stock pour cette Coupe.' }; } else if (evOwned(id)) return { err: 'Tu l\'as déjà.' };
+    if (S.candy < x.candy) return { err: 'Pas assez de bonbons.' };
+    S.candy -= x.candy;
+    if (x.kind === 'booster') { S.bought[id] = (S.bought[id] || 0) + 1; st.boosters = (st.boosters || 0) + x.n; }
+    else { grantEv(id); if (x.kind === 'avatar') st.avatar = id; if (x.kind === 'frame') st.frame = id; }
+    addXp(5); emit('change'); return { x };
+  }
+  // ---- classement des équipes. En ligne : les vrais totaux du serveur (js/online.js). Sinon : des équipes simulées, les mêmes pour tout le monde.
+  const cdmSalt = () => [...cdmEd()].reduce((a, c) => a + c.charCodeAt(0) * 7, 0);
+  const cdmActive = hr => hr < 7 ? .15 : hr < 12 ? .55 : hr < 18 ? .8 : 1.15;   // on joue surtout le soir
+  function cdmSimTotals(t) {
+    const [a, b] = cdmT(), C = D.CDM, salt = cdmSalt(), H = Math.max(0, Math.min(b, t) - a) / 3600000, full = Math.floor(H);
+    return C.teams.map((tm, i) => { let s = 0;
+      for (let h = 0; h <= full; h++) { const w = h < full ? 1 : H - full; if (w <= 0) continue;
+        const hr = new Date(a + h * 3600000).getHours(), r = .6 + .8 * seeded(h * 7 + i * 131 + salt), mo = 1 + .3 * Math.sin(h / 26 + i * 1.7 + salt % 10);
+        s += w * C.sim.players[i] * C.sim.perH * cdmActive(hr) * r * mo; }
+      return Math.round(s); });
+  }
+  // les joueurs simulés d'une équipe : quelques gros joueurs, beaucoup de petits
+  function cdmSimMembers(i, total) {
+    const N = D.CDM.sim.players[i], w = m => 1 / Math.pow(m + 4, .9); let W = 0; for (let m = 0; m < N; m++) W += w(m);
+    return { N, pts: m => Math.round(total * w(m) / W), name: m => D.CDM.names[(m + i * 8 + cdmSalt()) % D.CDM.names.length] };
+  }
+  function cdmNetSet(d) { if (d && d.totals) { cdmNet = Object.assign({ at: now() }, d); cdmCache = null; emit('cdmNet'); } }
+  function cdmBoard() {
+    if (cdmCache && now() - cdmCache.t < 5000) return cdmCache.b;
+    const S = cdmSt(), C = D.CDM, t = now(), net = cdmNet && t - cdmNet.at < 10 * 60000 ? cdmNet : null;
+    const sim = net ? null : cdmSimTotals(t);
+    const teams = C.teams.map((tm, i) => ({ id: tm.id, i, name: tm.name, color: tm.color, emo: tm.emo,
+      total: net ? (+net.totals[tm.id] || 0) + (S.team === tm.id ? S.unsent || 0 : 0) : sim[i] + (S.team === tm.id ? S.pts : 0),
+      players: net ? (+(net.count || {})[tm.id] || 0) : C.sim.players[i] + (S.team === tm.id ? 1 : 0) }));
+    [...teams].sort((x, y) => y.total - x.total).forEach((x, k) => { x.rank = k + 1; });
+    let top = [], rank = 0, of = 0;
+    if (S.team) {
+      const i = C.teams.findIndex(x => x.id === S.team);
+      if (net) { top = ((net.top || {})[S.team] || []).slice(0, 5); rank = (net.me && net.me.rank) || 1; of = teams[i].players || 1;
+        if (!top.some(r => r.me) && rank <= 5) top.push({ name: st.name, pts: S.pts, me: true }); }
+      else { const M = cdmSimMembers(i, sim[i]); let above = 0; for (let m = 0; m < M.N; m++) if (M.pts(m) > S.pts) above++;
+        rank = above + 1; of = M.N + 1;
+        for (let m = 0; m < 5; m++) top.push({ name: M.name(m), pts: M.pts(m) });
+        top.push({ name: st.name, pts: S.pts, me: true }); top.sort((x, y) => y.pts - x.pts || (x.me ? -1 : 1)); top = top.slice(0, 5); }
+    }
+    const b = { teams, top, rank, of, online: !!net, players: teams.reduce((s, x) => s + x.players, 0) };
+    cdmCache = { t: now(), b }; return b;
+  }
+  const cdmReward = place => D.CDM.rewards.find(r => r.place === place) || D.CDM.rewards[D.CDM.rewards.length - 1];
+  function cdmClaim() {
+    const S = cdmSt(), f = S.final; if (!f || f.claimed) return { err: 'Rien à récupérer.' };
+    f.claimed = true; const r = f.ok ? cdmReward(f.place) : null; if (r) cdmGive(r);
+    if (S.team) giveTrophy('t-cdm');
+    addXp(50); emit('change'); return { r, place: f.place };
+  }
+  function cdmRecapSeen() { const f = cdmSt().final; if (f) { if (!f.claimed) cdmClaim(); f.seen = now(); emit('change'); } }
+  // pastille « ! » sur le Panneau
+  const cdmBadge = () => { if (panneau() !== 'cdm') return false; const S = cdmSt(); if (S.final) return !S.final.seen;
+    return cdmOn() && (!S.team || cdmStepsReady() > 0 || cdmNightReady() > 0 || S.seenDay !== today()); };
+  function cdmSeenNow() { cdmSt().seenDay = today(); }
+  let cdmTick = 0;
+  function simCdm(offline) {
+    const ph = cdmPhase(); if (ph === 'off' || ph === 'before') return;
+    const S = cdmSt();
+    if (ph === 'on') {
+      if (S.team) cdmNight();
+      // Momo annonce la Coupe (une fois par édition), dès que le Panneau est ouvert au joueur
+      const lvl = (D.BUILDINGS.find(b => b.id === 'six') || {}).lvl || 1;
+      if (!offline && !S.announced && st.tutoDone && st.lvl >= lvl) { S.announced = true; emit('cdmStart'); }
+      // ton équipe se fait doubler : une notif (pas plus d'une toutes les 2 h)
+      if (!offline && S.team && now() - cdmTick > 60000) { cdmTick = now();
+        const B = cdmBoard(), me = B.teams.find(x => x.id === S.team);
+        if (S.lastRank && me.rank > S.lastRank && now() - (S.passAt || 0) > 2 * 3600000) { S.passAt = now(); emit('cdmPassed', { by: B.teams.find(x => x.rank === me.rank - 1), me }); }
+        S.lastRank = me.rank; }
+      return;
+    }
+    // fin : on fige le classement (en ligne, on attend les vrais totaux finaux du serveur, 10 min au plus)
+    if (S.team && !S.final) {
+      const end = cdmT()[1];
+      if (window.ONLINE && window.ONLINE.on && !(cdmNet && cdmNet.at > end + 30000) && now() - end < 10 * 60000) return;
+      cdmCache = null; if (cdmNet && cdmNet.at < end) cdmNet = null;
+      const B = cdmBoard(), me = B.teams.find(x => x.id === S.team);
+      S.final = { place: me.rank, order: [...B.teams].sort((x, y) => x.rank - y.rank).map(x => ({ id: x.id, total: x.total })), pts: S.pts, rank: B.rank, of: B.of, ok: S.pts >= D.CDM.minReward, claimed: false, seen: 0 };
+      emit('cdmEnd', S.final);
+    }
+    if (S.final && !S.final.claimed && now() - cdmT()[1] > 7 * 86400000) cdmClaim();
+  }
+  // ce que le jeu envoie au serveur (js/online.js) : l'édition, l'équipe, les points pas encore envoyés
+  const cdmOut = () => { const S = cdmSt(); return { ed: cdmEd(), team: S.team, add: S.unsent || 0, on: cdmOn(), show: cdmShow() }; };
+  function cdmSent(n) { const S = cdmSt(); S.unsent = Math.max(0, (S.unsent || 0) - n); }
 
   // ------------------------------------------------------------ boosters de cartes (comme Mama Kana)
   const dayNum = t => Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 86400000);
@@ -1151,7 +1325,7 @@
   function claimWeek(i) {
     const w = week(), c = w.list[i], R = D.WEEK_REWARD;
     if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
-    c.got = true; addCash(R.cash(st.lvl)); addLingots(R.lingots); addXp(40);
+    c.got = true; addCash(R.cash(st.lvl)); addLingots(R.lingots); addXp(40); cdmGain('week');
     let bonus = false;
     if (!w.bonus && w.list.every(x => x.got)) { w.bonus = bonus = true; st.boosters += R.bonus.boosters; addLingots(R.bonus.lingots); }
     emit('change'); return { cash: R.cash(st.lvl), bonus };
@@ -1161,7 +1335,7 @@
   function claimChal(i) {
     const ch = chal(), c = ch.list[i];
     if (!c || c.got || chalValue(c) < c.goal) return { err: 'Pas encore.' };
-    c.got = true; addCash(chalCash()); addXp(15);
+    c.got = true; addCash(chalCash()); addXp(15); cdmGain('chal');
     let bonus = false;
     if (!ch.bonus && ch.list.every(x => x.got)) { ch.bonus = true; bonus = true; st.boosters++; addLingots(2); }
     emit('change'); return { cash: chalCash(), bonus };
@@ -1338,7 +1512,7 @@
     const q = D.QUESTS.find(x => x.id === id), s = questState(q);
     if (!s.open || !s.done || s.claimed) return { err: 'Pas encore.' };
     st.quests[id] = now();
-    if (q.cash) addCash(q.cash); if (q.lingots) addLingots(q.lingots); addXp(q.xp);
+    if (q.cash) addCash(q.cash); if (q.lingots) addLingots(q.lingots); addXp(q.xp); cdmGain('quest');
     let trophy = null; if (q.trophy && giveTrophy(q.trophy)) trophy = item(q.trophy);
     emit('change'); return { q, trophy };
   }
@@ -1381,7 +1555,7 @@
     if (!dailyReady()) return { err: 'Reviens demain.' };
     const day = dailyDay(), r = dailyReward(day);
     st.daily.claimedDay = today(); st.daily.streak = day;
-    addCash(r.cash); addLingots(r.lingots); st.boosters += r.boosters;
+    addCash(r.cash); addLingots(r.lingots); st.boosters += r.boosters; cdmGain('daily');
     if (passOn()) { addLingots(15); st.boosters++; r.pass = true; }   // Pass Hustle : 15 lingots et 1 booster en plus chaque jour
     emit('change'); return { r, day };
   }
@@ -1402,6 +1576,7 @@
     simEvent(offline);
     simDeal(offline);
     simSix(offline);
+    simCdm(offline);
     simFriendTip(offline); simCryptoTip(offline); simPc(offline); simBourse(offline);
     testBoost();
     stat('worth', Math.floor(worth()), true);
@@ -1429,6 +1604,7 @@
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
+    cdmPhase, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,

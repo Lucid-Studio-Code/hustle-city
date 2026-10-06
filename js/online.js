@@ -6,7 +6,7 @@
   const G = window.GAME, U = window.UI, D = window.DATA;
   const h = location.hash || '';
   const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (location.port === '5300' || (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|192\.168\.|10\.|\[)/.test(location.hostname)) ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
-  const off = !API || G.TEST || /^#(neuf|admin)/.test(h);
+  const off = !API || G.TEST || (window.HC_DEV && /^#(neuf|admin)/.test(h));
   const ID_KEY = 'hustleCity.online';
   let id = null; try { id = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) {}
   if (!id) { const r = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)); id = { pid: r().slice(0, 12), secret: r() }; try { localStorage.setItem(ID_KEY, JSON.stringify(id)); } catch (e) {} }
