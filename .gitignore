@@ -9,3 +9,9 @@ server/hustle.db*
 server/.admin-token
 server/demo.db*
 server/captures/
+server/fcm-key.json
+
+# application (générée par npm run app:build)
+www/
+node_modules/
+server/apns-key.p8

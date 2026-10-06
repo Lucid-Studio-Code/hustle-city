@@ -1,0 +1,13 @@
+{
+  "appId": "com.lucidstudio.hustlecity",
+  "appName": "Hustle City",
+  "webDir": "www",
+  "backgroundColor": "#1b1433",
+  "ios": { "contentInset": "never" },
+  "android": { "backgroundColor": "#1b1433" },
+  "plugins": {
+    "SplashScreen": { "launchShowDuration": 1200, "backgroundColor": "#1b1433", "showSpinner": false },
+    "PushNotifications": { "presentationOptions": ["badge", "sound", "alert"] },
+    "LocalNotifications": { "iconColor": "#ffd23f" }
+  }
+}

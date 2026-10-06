@@ -8,6 +8,7 @@ const http = require('http'), fs = require('fs'), path = require('path'), crypto
 const { DatabaseSync } = require('node:sqlite');
 const { initDb } = require('./schema');
 const { clientIp, makeGeo } = require('./geo');
+const { makePush } = require('./push');
 const ROOT = path.join(__dirname, '..'), PORT = +process.env.PORT || 5300;
 const DBFILE = process.env.DB || path.join(__dirname, 'hustle.db');
 const TOKEN_FILE = path.join(__dirname, '.admin-token');
@@ -17,6 +18,7 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN || (fs.existsSync(TOKEN_FILE) ? fs.r
 
 const db = new DatabaseSync(DBFILE);
 initDb(db);
+const PUSH = makePush(db);   // notifications téléphone (application iPhone / Android)
 const q = (sql, ...a) => db.prepare(sql).all(...a), q1 = (sql, ...a) => db.prepare(sql).get(...a), run = (sql, ...a) => db.prepare(sql).run(...a);
 const now = () => Date.now(), DAY = 86400000, ONLINE_MS = 150000;
 const getCfg = () => { const r = q1("SELECT v FROM config WHERE k = 'live'"); return r ? JSON.parse(r.v) : {}; };
@@ -54,6 +56,9 @@ const str = (v, n) => v == null ? null : String(v).slice(0, n);
 
 // ------------------------------------------------------------------ API des joueurs
 const api = {
+  async 'POST /api/push-token'(req, res) {   // l'application envoie son adresse de notification (une par téléphone)
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' }); PUSH.save(p.pid, b.token, b.platform); send(res, 200, { ok: true });
+  },
   async 'POST /api/hello'(req, res) {
     const b = await body(req); if (!b.pid || !b.secret) return send(res, 400, { err: 'pid' });
     let p = q1('SELECT * FROM players WHERE pid = ?', b.pid);
@@ -276,9 +281,11 @@ const admin = {
       if (!f.banned) w.push('banned = 0');
       pids = q(`SELECT pid FROM players WHERE ${w.join(' AND ')}`, ...a).map(r => r.pid);
     } else pids = [b.pid];
-    if (b.dry) return send(res, 200, { ok: true, n: pids.length });
+    if (b.dry) return send(res, 200, { ok: true, n: pids.length, phones: PUSH.count(pids), pushOn: PUSH.on });
     const ins = db.prepare('INSERT INTO inbox (pid, t, title, text, gift) VALUES (?, ?, ?, ?, ?)'); pids.forEach(pid => ins.run(pid, now(), b.title || 'Hustle City', b.text || '', gift));
-    log(b.pid === '*' ? 'broadcast' : 'gift', { ...b, n: pids.length }); send(res, 200, { ok: true, n: pids.length });
+    // et en notification sur le téléphone (application), si demandé
+    if (b.push !== false && PUSH.on) PUSH.toPlayers(pids, b.title || 'Hustle City', (b.text || '').slice(0, 180)).then(n => n && log('push', { title: b.title, n })).catch(() => {});
+    log(b.pid === '*' ? 'broadcast' : 'gift', { ...b, n: pids.length }); send(res, 200, { ok: true, n: pids.length, phones: PUSH.on ? PUSH.count(pids) : 0 });
   },
   async 'POST /admin/api/ban'(req, res) { const b = await body(req); run('UPDATE players SET banned = ?, ban_reason = ? WHERE pid = ?', b.ban ? 1 : 0, b.reason || '', b.pid); log(b.ban ? 'ban' : 'unban', b); send(res, 200, { ok: true }); },
   async 'POST /admin/api/notes'(req, res) { const b = await body(req); run('UPDATE players SET notes = ? WHERE pid = ?', b.notes || '', b.pid); log('notes', { pid: b.pid }); send(res, 200, { ok: true }); },

@@ -532,3 +532,4 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .ev-step > div { display: flex; align-items: center; gap: 10px; } .ev-step b { min-width: 30px; text-align: center; font: 400 20px var(--title); color: var(--yellow); }
 .ev-exp summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 900; color: var(--mut); } .ev-exp summary img { width: 22px; height: 22px; }
 .ev-exp .val-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.bc-push { display: flex; align-items: center; gap: 8px; font-weight: 900; margin: 6px 0 10px; cursor: pointer; } .bc-push small { color: var(--mut); font-weight: 700; }

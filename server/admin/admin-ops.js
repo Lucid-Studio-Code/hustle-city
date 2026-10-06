@@ -250,6 +250,7 @@
         <div class="fld"><div class="lb">À qui ?</div><div class="chips" id="bc-who"><button class="chip on" data-w="all">Tous les joueurs</button><button class="chip" data-w="active7">Ceux qui ont joué cette semaine</button></div>
           <div class="row2" style="margin-top:8px"><select id="bc-cc"><option value="">Tous les pays</option>${pl.countries.map(x => { const [cc, n] = x.k.split('|'); return `<option value="${esc(cc)}">${flag(cc)} ${esc(n)}</option>`; }).join('')}</select><select id="bc-lv"><option value="">Tous les niveaux</option>${[2, 5, 10, 14, 20].map(l => `<option value="${l}">Niveau ${l} et plus</option>`).join('')}</select></div>
           <div class="help">Les comptes suspendus ne le reçoivent pas.</div></div>
+        <label class="bc-push"><input type="checkbox" id="bc-push" checked> Aussi en notification sur leur téléphone <small id="bc-ph"></small></label>
         <div class="bc-count">${img('nav-city', 'ico')}<b id="bc-n">…</b><span>joueurs vont le recevoir</span><span style="flex:1"></span><button class="btn green" id="bc-go">${img('icon-gift')}Envoyer</button></div>
       </div>
       <div class="prev"><div class="prev-lbl">Ce que voit le joueur</div><div class="phone"><div class="scr"><div class="clock"><small>${esc(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}</small>${hm(Date.now())}</div><div id="bc-prev"></div></div></div></div></div>
@@ -257,7 +258,7 @@
       <div class="card">${hist.map(h => { let d = {}; try { d = JSON.parse(h.data); } catch (e) {} const g = HC.giftTxt(d.gift || {}); return `<div class="log-row"><span class="li">${img(g ? 'icon-gift' : 'app-msg')}</span><span class="lt"><b>${esc(d.title || 'Hustle City')}</b> · ${esc(d.text || '')}<br>${g ? `<span class="tag ok">${esc(g)}</span> ` : ''}<span class="tag">${fmt(d.n)} joueurs</span></span><time>${dt(h.t)}</time></div>`; }).join('') || HC.empty('Aucun message envoyé pour l\'instant.', 'icon-gift')}</div>`);
     const gift = () => ({ lingots: +$('#bc-l').value || 0, cash: +$('#bc-c').value || 0, boosters: +$('#bc-b').value || 0 });
     const prev = () => { const g = HC.giftTxt(gift()); $('#bc-prev').innerHTML = `<div class="notif">${img('app-missions')}<div><div class="nh"><span>Hustle City</span><span>maintenant</span></div><b>${esc($('#bc-t').value || 'Ton titre')}</b><p>${esc($('#bc-x').value || 'Ton message apparaîtra ici.')}${g ? ' ' + esc(g) + ' !' : ''}</p>${g ? `<span class="gl">${img('icon-gift', 'ico')} ${esc(g)}</span>` : ''}</div></div>`; };
-    let ct; const count = () => { clearTimeout(ct); ct = setTimeout(async () => { T.filter = { active7: $('#bc-who .on').dataset.w === 'active7', cc: $('#bc-cc').value || undefined, minLvl: +$('#bc-lv').value || undefined }; const r = await HC.api('/admin/api/gift', { pid: '*', dry: true, filter: T.filter }); $('#bc-n').textContent = fmt(r.n); }, 150); };
+    let ct; const count = () => { clearTimeout(ct); ct = setTimeout(async () => { T.filter = { active7: $('#bc-who .on').dataset.w === 'active7', cc: $('#bc-cc').value || undefined, minLvl: +$('#bc-lv').value || undefined }; const r = await HC.api('/admin/api/gift', { pid: '*', dry: true, filter: T.filter }); $('#bc-n').textContent = fmt(r.n); $('#bc-ph').textContent = r.pushOn ? `(${fmt(r.phones)} avec l'application)` : '(pas encore actif : il faut l\'application et la clé Firebase)'; }, 150); };
     ['#bc-t', '#bc-x', '#bc-l', '#bc-c', '#bc-b'].forEach(s => $(s).oninput = prev);
     $$('[data-qg]').forEach(b => b.onclick = () => { const g = JSON.parse(b.dataset.qg); if (g.l) $('#bc-l').value = +$('#bc-l').value + g.l; if (g.c) $('#bc-c').value = +$('#bc-c').value + g.c; if (g.b) $('#bc-b').value = +$('#bc-b').value + g.b; prev(); });
     $('#bc-zero').onclick = () => { ['#bc-l', '#bc-c', '#bc-b'].forEach(s => $(s).value = 0); prev(); };
@@ -266,7 +267,7 @@
     $('#bc-go').onclick = async () => {
       const title = $('#bc-t').value.trim(), text = $('#bc-x').value.trim(), g = gift(); if (!title && !text) return HC.toast('Écris au moins un titre ou un message', null, true);
       if (!(await HC.confirm(`Envoyer à ${$('#bc-n').textContent} joueurs ?`, `<b>${esc(title || 'Hustle City')}</b><br>${esc(text)}${HC.giftTxt(g) ? '<br>Cadeau : <b>' + HC.giftTxt(g) + '</b>' : ''}<br><br>On ne peut pas l'annuler une fois envoyé.`, 'Envoyer à tous'))) return;
-      const r = await HC.api('/admin/api/gift', { pid: '*', title: title || 'Hustle City', text, gift: g, filter: T.filter }); HC.toast(`Envoyé à ${fmt(r.n)} joueurs`, 'icon-gift'); HC.route();
+      const r = await HC.api('/admin/api/gift', { pid: '*', title: title || 'Hustle City', text, gift: g, filter: T.filter, push: $('#bc-push').checked }); HC.toast(`Envoyé à ${fmt(r.n)} joueurs`, 'icon-gift'); HC.route();
     };
     prev(); count();
   };

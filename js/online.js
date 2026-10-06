@@ -13,6 +13,8 @@
   const queue = [], ev = (type, data) => { if (!off) { queue.push({ t: Date.now(), type, data }); if (queue.length > 400) queue.splice(0, queue.length - 400); } };
   const post = (p, b) => fetch(API + p, { method: 'POST', keepalive: JSON.stringify(b).length < 60000, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...b, pid: id.pid, secret: id.secret }) }).then(r => r.json());
   const ONLINE = window.ONLINE = { on: false, id, ev, banned: false, config: {} };
+  // application : le téléphone donne son adresse de notification, on la garde sur le serveur
+  ONLINE.pushToken = (token, platform) => { if (off) return; post('/api/push-token', { token, platform }).catch(() => {}); };
 
   // ---------------------------------------------------------- réglages en direct (back office → jeu)
   function setPath(obj, p, v) { const k = p.split('.'); let o = obj; for (let i = 0; i < k.length - 1; i++) { o = o[isNaN(k[i]) ? k[i] : +k[i]]; if (o == null) return; } o[k[k.length - 1]] = v; }

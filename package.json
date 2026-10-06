@@ -1,0 +1,24 @@
+{
+  "name": "hustle-city",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Hustle City : le jeu (web) + l'application iPhone / Android (Capacitor)",
+  "scripts": {
+    "app:build": "node tools/build-app.js",
+    "app:sync": "node tools/build-app.js && npx cap sync",
+    "app:ios": "node tools/build-app.js && npx cap sync ios && npx cap open ios",
+    "app:android": "node tools/build-app.js && npx cap sync android && npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/push-notifications": "^8.1.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/ios": "^8.5.2"
+  }
+}
