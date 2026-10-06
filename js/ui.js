@@ -480,7 +480,8 @@
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
       const img = b.id === 'six' && G.panneau() === 'cdm' ? (has('ev-cdm-board') ? pic('ev-cdm-board') : cdmBoardArt()) : b.id === 'six' && G.eventOff() ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
-      return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
+      const k = (has(`bld-${b.id}-${look}`) && (D.BLD_SCALE || {})[`bld-${b.id}-${look}`]) || 1;   // le skin de la ville ne change pas la taille du bâtiment
+      return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${(b.w * k).toFixed(2)}%">
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
@@ -543,8 +544,12 @@
   // ------------------------------------------------------------ Mon parking : tes voitures et motos garées sur leurs places
   function parkingBody() {
     const s = st(), cars = Object.keys(s.owned).flatMap(id => G.placeOf(id) === 'park' ? s.owned[id].map(() => G.item(id)) : []), n = G.garageSlots();
-    const slots = D.PARK_SLOTS.slice(0, n).map(([x, y, w], i) => { const it = cars[i];
-      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${it.cat === 'moto' ? w * .7 : w}%">${itemPic(it)}</button>` : ''; }).join('');
+    // les voitures sur les places en épi, les motos sur la grande place du milieu : jamais l'une à la place de l'autre (sauf s'il n'y a plus de place du bon type)
+    const P = D.PARK_SLOTS, motos = cars.filter(c => c.cat === 'moto'), autos = cars.filter(c => c.cat !== 'moto');
+    const carSpots = P.car.concat(motos.length ? [] : [P.big]), motoSpots = P.moto.slice(0, motos.length ? P.moto.length : 0);
+    const placed = autos.map((c, i) => [c, carSpots[i]]).concat(motos.map((m, i) => [m, motoSpots[i] || P.car[autos.length + i - motoSpots.length]]));
+    const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w]]) =>
+      `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
     // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
     return `<div class="park-full"><div class="pk-stage">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
       <div class="pk-foot"><span class="pk-count">${cars.length} / ${n} places</span><button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button></div></div>`;
@@ -1501,7 +1506,11 @@
       const price = L.lingots ? `${ic('lingot')}${L.lingots}` : short(L.cash), can = L.lingots ? s.lingots >= L.lingots : s.cash >= L.cash;
       const btn = !ready ? '<button class="btn xs" disabled>Bientôt</button>' : on ? '<span class="lk-on">✓ Ta ville</span>' : has_ ? `<button class="btn xs blue" data-act="lookBuy" data-id="${L.id}">Mettre</button>`
         : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${L.lvl}</button>` : `<button class="btn xs ${L.lingots ? 'gold' : 'green'}" data-act="lookBuy" data-id="${L.id}" ${can ? '' : 'disabled'}>${price}</button>`;
-      return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${L.special ? '<span class="lk-tag">Spécial</span>' : ''}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})"></div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
+      // look en vente limitée : un compte à rebours à la place de « Spécial » ; passé la date, il n'est plus en vente (ceux qui l'ont le gardent)
+      const left = L.until ? Date.parse(L.until) - Date.now() : 0, gone = L.until && left <= 0 && !has_;
+      if (gone) return '';
+      const tag = L.until && !has_ ? `<span class="lk-tag">⏱ ${left > 864e5 ? `Encore ${Math.ceil(left / 864e5)} j` : `Encore ${Math.max(1, Math.ceil(left / 36e5))} h`}</span>` : '';
+      return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${tag}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})"></div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
     return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
       <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
   }

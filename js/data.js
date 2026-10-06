@@ -37,7 +37,10 @@
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
   // les places dessinées sur l'image parking-bg (x = centre, y = bas de la voiture, w = largeur, en %), 7 places au maximum
-  const PARK_SLOTS = [[50, 81, 34], [31, 66.5, 27], [69, 66.5, 27], [31, 55.5, 23], [69, 55.5, 23], [31, 46.5, 19], [69, 46.5, 19]];   // places peintes du parking (x, bas du véhicule, largeur, en % de l'image) ; on remplit d'abord la grande place du milieu ; une moto prend 70 % de la largeur
+  const PARK_SLOTS = {   // places peintes du dessin du parking (x, bas du véhicule, largeur, en % de l'image)
+    car: [[31, 66.5, 27], [69, 66.5, 27], [31, 55.5, 23], [69, 55.5, 23], [31, 46.5, 19], [69, 46.5, 19]],   // voitures : les places en épi des deux côtés
+    moto: [[50, 83, 15], [40, 84, 14], [60, 84, 14], [44.5, 75, 12.5], [55.5, 75, 12.5]],                      // motos : la grande place du milieu, côte à côte
+    big: [50, 84, 34] };                                                                                          // une 7e voiture (sans moto) se gare au milieu
   // le parking du Garage Prestige (une voiture ou une moto par place)
   // le coffre de la Bijouterie (or et raretés) : places limitées, qu'on agrandit comme le parking
   const SAFES = [{ slots: 4, cost: 0, name: 'Petit coffre' }, { slots: 8, cost: 20000, name: 'Coffre-fort' }, { slots: 14, cost: 90000, name: 'Salle forte' }, { slots: 24, cost: 350000, name: 'Chambre forte' }];
@@ -810,11 +813,12 @@
   // ---------------------------------------------------------------- Boutique (bouton du bas)
   // Décos pour la ville, achetées pour toujours. Chacune a SA place sur la carte (réglée dans le back-office, jamais deux au même endroit).
   // looks du quartier : toute la ville (fond + bâtiments) change d'apparence. Images bg-city-<id> et bld-<bâtiment>-<id>.
+  const BLD_SCALE = {'bld-appart-renov': 1.049, 'bld-balto-renov': 1.035, 'bld-casino-renov': 1.002, 'bld-club-renov': 0.982, 'bld-kiosque-renov': 0.806, 'bld-shop-renov': 0.963, 'bld-six-renov': 1.05};   // généré par tools/bld-scale.py
   const CITY_LOOKS = [
     { id: 'base',  name: 'Quartier d\'origine', desc: 'Le bitume, le vrai.', cash: 0, lvl: 1 },
     { id: 'renov', name: 'Quartier rénové',    desc: 'Façades repeintes, fleurs, fresques : ton quartier monte en gamme.', cash: 20000, lvl: 6 },
-    { id: 'neon',  name: 'Nuit néon',          desc: 'Spécial : la ville s\'allume en rose et cyan, comme dans un film.', lingots: 150, lvl: 8, special: true },
-    { id: 'hiver', name: 'Hiver enneigé',      desc: 'Spécial : neige sur les toits, guirlandes et vitrines chaudes.', lingots: 150, lvl: 8, special: true }
+    { id: 'neon',  name: 'Nuit néon',          desc: 'La ville s\'allume en rose et cyan, comme dans un film.', lingots: 150, lvl: 8, special: true, until: '2027-01-01T00:00:00+01:00' },
+    { id: 'hiver', name: 'Hiver enneigé',      desc: 'Neige sur les toits, guirlandes et vitrines chaudes.', lingots: 150, lvl: 8, special: true, until: '2027-01-01T00:00:00+01:00' }
   ];
   const CITY_SHOP = [
     { id: 'dc-bench',    kind: 'deco', name: 'Banc graffé',          emo: '🪑', desc: 'Le QG des discussions du quartier.', x: 36, y: 78, w: 7,  cash: 250,   lvl: 1 },
@@ -921,7 +925,7 @@
   window.DATA = {
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

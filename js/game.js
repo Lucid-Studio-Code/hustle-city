@@ -456,6 +456,7 @@
   // look du quartier : acheté une fois, on peut ensuite passer de l'un à l'autre gratuitement
   const looksOwned = () => (st.cityLooks = st.cityLooks || ['base']);
   function lookBuy(id) {
+    { const L0 = D.CITY_LOOKS.find(x => x.id === id); if (L0 && L0.until && Date.now() >= Date.parse(L0.until) && !looksOwned().includes(id)) return { err: 'Ce look n\'est plus en vente.' }; }
     const L = D.CITY_LOOKS.find(x => x.id === id); if (!L) return { err: 'Introuvable.' };
     if (st.lvl < L.lvl) return { err: `Au niveau ${L.lvl}.` };
     if (!looksOwned().includes(id)) {
