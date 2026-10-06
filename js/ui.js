@@ -1413,8 +1413,8 @@
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
     const a = G.adState(), ready = a.left && !a.wait;
-    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>Regarde une pub : +${a.reward} ${ic('lingot')}</b>
-      <small>${a.noAds ? 'Sans pub : la récompense tombe tout de suite. ' : ''}${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
+    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>${a.noAds ? 'Lingots gratuits' : 'Regarde une pub'} : +${a.reward} ${ic('lingot')}</b>
+      <small>${a.noAds ? 'Pack Sans pub : pas de pub à regarder, appuie pour récupérer. ' : ''}${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
       <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>${a.noAds ? 'Récupérer' : 'Regarder'}</button></div>`;
   }
   // offre de bienvenue : proposée régulièrement aux nouveaux joueurs (dès le niveau 3, tous les 2 jours, 5 fois au plus)
@@ -1422,7 +1422,7 @@
   // promo en cours, pack de départ (nouveaux joueurs), sans pub, pass, collectionneur… jamais deux fois la même de suite
   const OFFER_TXT = {
     'x-start': ['Le pack du débutant', 'Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.'],
-    'x-noads': ['Fini les pubs', 'Plus aucune pub, et leurs lingots tombent quand même, tout de suite. <b>Pour toujours.</b>'],
+    'x-noads': ['Fini les pubs', 'Plus aucune pub dans le jeu, <b>pour toujours</b>. Et les lingots que tu gagnais en regardant une pub ? Tu les reçois quand même, d\'un simple appui, sans regarder la pub.'],
     'x-pass': ['Le Pass Hustle', 'Des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b> pendant 30 jours.'],
     'x-collec': ['Pour ton classeur', '<b>20 boosters</b> d\'un coup pour compléter tes séries plus vite.'],
     'x-magnat': ['Le pack Magnat', 'Tout pour devenir le patron du quartier, skin Gold compris.']
