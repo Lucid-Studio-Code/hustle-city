@@ -34,7 +34,7 @@ NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load'
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
 TOL = {'cr-leila': 140}
 
-def cutout(im, keep=None, debug=None, tol=60):
+def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches
     et parfaitement unies, d'une certaine taille ; 3) on grignote le liseré clair autour du trait."""
@@ -85,6 +85,21 @@ def cutout(im, keep=None, debug=None, tol=60):
         cx, cy = sum(xs) / len(xs) / w, sum(ys) / len(ys) / h
         hit = (keep == 'sides' and (cx < .34 or cx > .66)) or keep == 'all' or (isinstance(keep, dict) and k in keep.get('n', [])) or bool(isinstance(keep, list) and any(abs(fx - cx) < .015 and abs(fy - cy) < .015 for fx, fy in keep))
         if hit: bgmask[list(ys), list(xs)] = True
+    if shadow:   # ombre portée grise sous l'objet : on la vide (gris clair sans couleur, rattaché au fond, dans le bas de l'objet ; les contours sombres l'arrêtent)
+        ys, xs = np.nonzero(~bgmask)
+        if len(ys):
+            top, bot = ys.min(), ys.max(); lim = top + int((bot - top) * .55)
+            mx, mn = a.max(axis=2), a.min(axis=2)
+            cand = (~bgmask) & (mx - mn < 22) & (mn > 120) & (mx < 250)
+            cand[:lim] = False
+            q = deque((y, x) for y, x in zip(*np.nonzero(cand)) if any(0 <= y + dy < h and 0 <= x + dx < w and bgmask[y + dy, x + dx] for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1))))
+            for y, x in q: bgmask[y, x] = True
+            while q:
+                y, x = q.popleft()
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    ny, nx = y + dy, x + dx
+                    if 0 <= ny < h and 0 <= nx < w and cand[ny, nx] and not bgmask[ny, nx]:
+                        bgmask[ny, nx] = True; q.append((ny, nx))
     alpha = Image.fromarray(np.where(bgmask, 0, 255).astype('uint8'))
     alpha = alpha.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.GaussianBlur(0.8))
     im.putalpha(alpha)
@@ -116,7 +131,9 @@ def run(name):
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
         im.thumbnail((900, 900)) if max(im.size) > 900 else None
-        im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else None), tol=TOL.get(name, 60))   # trophées : on vide le creux des anses
+        jewel = name.startswith(('item-o-', 'item-g-', 'item-w-'))   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous
+        im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
+                    shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in NOCUT:
