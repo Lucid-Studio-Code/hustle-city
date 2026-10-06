@@ -80,6 +80,8 @@
   }
   async function hello() {
     if (off) return;
+    // on ne compte un joueur qu'une fois sa partie commencée (perso et pseudo choisis) : ouvrir la page ne crée personne
+    if (!G.st.skin || !G.st.name) return setTimeout(hello, 3000);
     try {
       await getModel();
       const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120), ...device() });
