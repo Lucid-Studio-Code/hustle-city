@@ -2835,8 +2835,8 @@
   }
   // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
   const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`);
-    // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville
-    const sc = window.HC_BG || (has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : '');   // adresse complète : la variable CSS est lue depuis css/ if (sc) { el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
+    // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville (adresse complète : la variable CSS est lue depuis css/)
+    const sc = window.HC_BG || (has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : ''); if (sc) { el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
     if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
   function boot() {
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
