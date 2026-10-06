@@ -312,6 +312,7 @@
     // OBJETS-AJOUTES (généré par tools/add-objets.js : seulement ceux dont l'image est installée)
     { id: 's-skate', cat: 'sneaker', name: "Skate usées", r: 'C', p0: 90, vol: 0.03 },
     { id: 's-basket', cat: 'sneaker', name: "Montantes de playground", r: 'C', p0: 180, vol: 0.03 },
+    { id: 's-retro', cat: 'sneaker', name: "Runner rétro 90", r: 'R', p0: 260, vol: 0.03 },
     { id: 's-chunky', cat: 'sneaker', name: "Chunky dad shoes", r: 'R', p0: 380, vol: 0.03 },
     { id: 's-neon', cat: 'sneaker', name: "Neon Night", r: 'R', p0: 520, vol: 0.03 },
     { id: 's-camo', cat: 'sneaker', name: "Camo Squad", r: 'R', p0: 600, vol: 0.03 },
@@ -326,6 +327,7 @@
     { id: 'w-iced', cat: 'watch', name: "Montre glacée de diamants", r: 'E', p0: 22000, vol: 0.02 },
     { id: 'w-tourb', cat: 'watch', name: "Tourbillon", r: 'E', p0: 38000, vol: 0.02 },
     { id: 'w-pocket', cat: 'watch', name: "Montre à gousset ancienne", r: 'R', p0: 1100, vol: 0.02 },
+    { id: 'w-unique', cat: 'watch', name: "Pièce unique d’horloger", r: 'L', p0: 140000, vol: 0.02 },
     // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
