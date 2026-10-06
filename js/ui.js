@@ -1375,7 +1375,7 @@
     if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash)}</b></span>`);
     if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
     if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Plus de pub imposée</b></span>');
-    if (g.passDays) out.push(`<span class="gc gc-p"><b>Chaque jour : +15</b>${ic('lingot')}<b>+1 booster</b></span>`);
+    if (g.passDays) out.push(`<span class="gc gc-p"><b>Chaque jour : +15</b>${ic('lingot')}<b>+1 booster</b></span>`, '<span class="gc gc-r"><b>🔁 Renouvelé chaque mois, annulable quand tu veux</b></span>');
     if (g.skin) out.push(`<span class="gc gc-s">${has('skin-' + g.skin) ? `<img src="${src('skin-' + g.skin)}" alt="">` : '👑'}<b>Skin Gold</b></span>`);
     return out.join('');
   }
@@ -1402,7 +1402,7 @@
   }
   function priceBtn(x, p, cls) {
     const off = p && p.id === x.id && p.off;
-    return `<button class="btn ${cls || 'gold'} iap-buy" data-act="iapSoon" data-id="${x.id}">${off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price}</button>`;
+    return `<button class="btn ${cls || 'gold'} iap-buy" data-act="iapSoon" data-id="${x.id}">${off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price}${x.per ? `<small class="iap-per">/ ${x.per}</small>` : ''}</button>`;
   }
   function shopHero() {
     const o = offerFor(); if (!o || !o.x) return ''; const { x, p } = o;
@@ -1427,7 +1427,7 @@
   const OFFER_TXT = {
     'x-start': ['Le pack du débutant', 'Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.'],
     'x-noads': ['Fini les pubs', 'Plus aucune pub qui coupe ton jeu (après tes montées de niveau), <b>pour toujours</b>. Tu peux toujours regarder une pub quand tu veux pour gagner des lingots.'],
-    'x-pass': ['Le Pass Hustle', 'Des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b> pendant 30 jours.'],
+    'x-pass': ['Le Pass Hustle', 'Un <b>abonnement mensuel</b> : des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b>. Sans engagement, tu l\'arrêtes quand tu veux.'],
     'x-collec': ['Pour ton classeur', '<b>20 boosters</b> d\'un coup pour compléter tes séries plus vite.'],
     'x-magnat': ['Le pack Magnat', 'Tout pour devenir le patron du quartier, skin Gold compris.']
   };
@@ -1462,7 +1462,7 @@
         <h3 class="sec">Packs</h3><div class="ip-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
           return `<div class="ip-card ${done ? 'done' : ''}" style="--ip:${PACK_COL[x.id] || '#a867e3'}"><div class="ip-art">${offerArt(x)}</div><div class="ip-info">${x.tag ? `<span class="ip-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
             ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
-        <p class="hint-line center">Paiement en <b>vrai argent</b> : disponible avec la version App Store et Google Play.</p>`;
+`;
     }
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
       const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);

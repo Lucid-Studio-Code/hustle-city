@@ -3181,3 +3181,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .pf-tile .pf-ti .card-mini { width: 34px; }
 #app .sk-iap .btn { margin-top: 4px; }
 #app .sk-iap .btn { margin-top: auto; min-width: 74px; }
+#app .iap-buy .iap-per { display: block; font: 900 11px var(--text); opacity: .9; margin-top: -2px; -webkit-text-stroke: 0; }

@@ -773,8 +773,8 @@
       desc: '300 lingots, 5 boosters, 2 000 de cash et ta machine passe au niveau 2' },
     { id: 'x-noads',  kind: 'pack', once: true, name: 'Sans pub', price: '3,99 €', tag: 'Pour toujours', give: { lingots: 100, noAds: true },
       desc: 'Plus aucune pub qui coupe ton jeu, pour toujours (les pubs pour gagner des lingots restent au choix). +100 lingots offerts' },
-    { id: 'x-pass',   kind: 'pack', name: 'Pass Hustle 30 jours', price: '4,99 €', tag: 'Meilleur rapport', give: { lingots: 150, passDays: 30 },
-      desc: '150 lingots tout de suite, puis 15 lingots et 1 booster offerts chaque jour pendant 30 jours' },
+    { id: 'x-pass',   kind: 'pack', name: 'Pass Hustle', price: '4,99 €', per: 'mois', sub: true, tag: 'Abonnement · sans engagement', give: { lingots: 150, passDays: 30 },
+      desc: 'Abonnement mensuel, sans engagement : 150 lingots tout de suite, puis 15 lingots et 1 booster chaque jour' },
     { id: 'x-collec', kind: 'pack', name: 'Pack Collectionneur', price: '9,99 €', give: { boosters: 20, lingots: 150 },
       desc: '20 boosters de cartes et 150 lingots' },
     { id: 'x-gold',   kind: 'pack', once: true, name: 'Skin exclusif « Gold »', price: '4,99 €', tag: 'Exclusif', give: { skin: 'gold' },
@@ -787,7 +787,7 @@
   const PROMOS = [
     { id: 'x-start',  off: 50, title: 'Pack de départ à −50 %',     desc: '300 lingots, 5 boosters, 2 000 de cash et la machine niveau 2' },
     { id: 'l-600',    bonus: 30, title: 'Sac de lingots +30 %',      desc: '780 lingots au lieu de 600' },
-    { id: 'x-pass',   off: 40, title: 'Pass Hustle à −40 %',        desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' },
+    { id: 'x-pass',   off: 40, title: 'Pass Hustle à −40 %',        desc: 'Le 1er mois de l\'abonnement : 150 lingots, puis 15 lingots et 1 booster par jour' },
     { id: 'x-collec', off: 30, title: 'Pack Collectionneur à −30 %', desc: '20 boosters de cartes et 150 lingots' },
     { id: 'l-1300',   bonus: 25, title: 'Coffre de lingots +25 %',   desc: '1 625 lingots au lieu de 1 300' }
   ];
@@ -796,7 +796,7 @@
     { id: 'halloween', name: 'Halloween',    from: '10-24', to: '10-31', img: 'ic-promo-halloween', color: '#ff7a1a',
       deal: { id: 'x-collec', off: 40, title: 'Boosters de l\'horreur : −40 %', desc: '20 boosters de cartes et 150 lingots, juste avant Halloween' } },
     { id: 'blackfriday', name: 'Black Friday', from: 'bf', to: 'bf+3', img: 'ic-promo-bf', color: '#1d1d1f',
-      deal: { id: 'x-pass', off: 60, title: 'Black Friday : Pass Hustle −60 %', desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' } },
+      deal: { id: 'x-pass', off: 60, title: 'Black Friday : Pass Hustle −60 %', desc: 'Le 1er mois de l\'abonnement : 150 lingots, puis 15 lingots et 1 booster par jour' } },
     { id: 'noel', name: 'Noël',          from: '12-15', to: '12-26', img: 'ic-promo-noel', color: '#d33a2c',
       deal: { id: 'l-1300', bonus: 50, title: 'Coffre de Noël : +50 % de lingots', desc: '1 950 lingots au lieu de 1 300' } }
   ];
