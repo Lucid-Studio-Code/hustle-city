@@ -93,6 +93,7 @@
 
   // ---------------------------------------------------------- SAV et récupération de partie (paramètres)
   ONLINE.support = text => post('/api/support', { text });
+  ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;
   ONLINE.restore = async code => { const [pid, secret] = String(code).trim().split('.'); const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, secret }) }).then(x => x.json());
     if (!r.ok || !r.save) throw new Error(r.err || 'Code inconnu.'); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };

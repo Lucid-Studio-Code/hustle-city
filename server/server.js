@@ -56,6 +56,16 @@ const str = (v, n) => v == null ? null : String(v).slice(0, n);
 
 // ------------------------------------------------------------------ API des joueurs
 const api = {
+  async 'POST /api/leaderboard'(req, res) {   // classement des fortunes : le top 10, puis le joueur et ses voisins
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    const cols = 'pid, name, tag, skin, avatar, frame, lvl, worth', top = q(`SELECT ${cols} FROM players WHERE banned = 0 AND name != '' ORDER BY worth DESC LIMIT 10`);
+    const rank = 1 + (q1('SELECT COUNT(*) n FROM players WHERE banned = 0 AND name != \'\' AND worth > ?', p.worth || 0).n), total = q1("SELECT COUNT(*) n FROM players WHERE banned = 0 AND name != ''").n;
+    const above = q(`SELECT ${cols} FROM players WHERE banned = 0 AND name != '' AND worth > ? ORDER BY worth ASC LIMIT 2`, p.worth || 0).reverse();
+    const below = q(`SELECT ${cols} FROM players WHERE banned = 0 AND name != '' AND worth <= ? AND pid != ? ORDER BY worth DESC LIMIT 2`, p.worth || 0, p.pid);
+    const me = q1(`SELECT ${cols} FROM players WHERE pid = ?`, p.pid);
+    const strip = r => ({ name: r.name, tag: r.tag, skin: r.skin, avatar: r.avatar, frame: r.frame, lvl: r.lvl, worth: Math.round(r.worth || 0), me: r.pid === p.pid });
+    send(res, 200, { total, rank, top: top.map(strip), around: [...above, me, ...below].map(strip), aroundStart: rank - above.length });
+  },
   async 'POST /api/push-token'(req, res) {   // l'application envoie son adresse de notification (une par téléphone)
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' }); PUSH.save(p.pid, b.token, b.platform); send(res, 200, { ok: true });
   },

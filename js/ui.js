@@ -2119,7 +2119,34 @@
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
       <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ Gagné, +${x.a.lingots} lingots` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
-        .sort((p, q) => q.done - p.done).map(x => x.html).join('')}</div>`;
+        .sort((p, q) => q.done - p.done).map(x => x.html).join('')}</div>
+      ${leaderHtml()}`;
+  }
+  // ---- classement des fortunes : le top 10 toujours visible, puis ta place et tes voisins
+  // en ligne : le vrai classement (serveur) ; hors ligne : un quartier de joueurs simulés (mêmes fortunes pour tout le monde)
+  let LB = null, lbAt = 0;
+  const LB_NAMES = ['Kenzo93', 'LaFouine', 'Mamadou_R', 'Lina.b', 'TiboRugby', 'Sarah_lsc', 'Yanis.zr', 'Big_Moussa', 'Chloé77', 'Nono_du_13', 'K-Rim', 'Jojo_la_frite', 'Ines_dz', 'Matteo.p', 'Ryad', 'Lucie_b',
+    'Djibril', 'Zoé.k', 'Bilal95', 'Emma_r', 'Sofiane', 'Léo_xv', 'Nadia', 'Samy_le_boss', 'Wassim', 'Jade.mtl', 'Hugo_trader', 'Maëlys', 'Amine_93', 'Kylian_b', 'Rayan.cash', 'Sana', 'Enzo_k', 'Imane', 'Théo_bet'];
+  function lbFake() {
+    const seed = n => { const x = Math.sin(n * 91.7 + 13.1) * 43758.5453; return x - Math.floor(x); }, skins = D.SKINS.filter(k => !k.iap).map(k => k.id);
+    const L = Array.from({ length: 240 }, (_, i) => ({ name: LB_NAMES[i % LB_NAMES.length] + (i >= LB_NAMES.length ? Math.floor(seed(i) * 90 + 10) : ''), skin: skins[i % skins.length],
+      worth: Math.round(Math.exp(6 + seed(i * 3) * 10.5)), lvl: 1 + Math.floor(seed(i * 7) * 39) }));
+    L.push({ name: st().name || 'Toi', skin: st().skin, avatar: st().avatar, frame: st().frame, lvl: st().lvl, worth: Math.round(G.worth()), me: true });
+    L.sort((a, b) => b.worth - a.worth); const r = L.findIndex(x => x.me), from = Math.max(0, r - 2);
+    return { total: L.length, rank: r + 1, top: L.slice(0, 10), around: L.slice(from, r + 3), aroundStart: from + 1 };
+  }
+  function lbLoad() {
+    if (Date.now() - lbAt < 60000) return; lbAt = Date.now();
+    if (window.ONLINE && ONLINE.on && ONLINE.leaderboard) ONLINE.leaderboard().then(r => { if (r && r.top) { LB = r; if ($('#modal .lb-card')) setBody(profileBody()); } });
+  }
+  function leaderHtml() {
+    lbLoad(); const d = LB || lbFake(), rk = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(p.skin, true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${p.lvl || 1}</small></span><b class="lb-w">${short(p.worth)}</b></div>`;
+    const inTop = d.rank <= 10, around = inTop ? [] : d.around;
+    return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
+      <div class="lb-card"><div class="lb-me">Ta place : <b>${d.rank.toLocaleString('fr-FR')}<sup>${d.rank === 1 ? 'er' : 'e'}</sup></b> sur ${d.total.toLocaleString('fr-FR')}${d.rank > 1 ? ` · encore <b>${short(Math.max(0, ((inTop ? d.top[d.rank - 2] : d.around[d.rank - d.aroundStart - 1]) || {}).worth - G.worth() + 1))}</b> pour passer devant` : ' · tu es le plus riche !'}</div>
+        ${d.top.map((p, i) => row(p, i + 1)).join('')}${around.length ? `<div class="lb-gap">• • •</div>${around.map((p, i) => row(p, d.aroundStart + i)).join('')}` : ''}</div>
+      <p class="hint-line center">Le classement suit ton patrimoine : cash, crypto, objets, immobilier.</p>`;
   }
   // pin's et cadres achetés : on choisit ici lequel porter (ou aucun), même après la fin de l'événement
   function photoLooks() {
