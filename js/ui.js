@@ -543,9 +543,12 @@
   // ------------------------------------------------------------ Mon parking : tes voitures et motos garées sur leurs places
   function parkingBody() {
     const s = st(), cars = Object.keys(s.owned).filter(id => s.owned[id].length && G.placeOf(id) === 'park').map(G.item), n = G.garageSlots();
-    const slots = D.PARK_SLOTS.slice(0, n).map(([x, y, w], i) => { const it = cars[i];
-      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}<span class="pk-tagc">${esc(it.name)}</span></button>`
-        : `<span class="pk-free" style="left:${x}%;top:${y}%;width:${w}%">Place libre</span>`; }).join('');
+    const P = D.PARK_SLOTS.slice(0, n);
+    const slots = P.map(([x, y, w], i) => { const it = cars[i];
+      return it ? `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${it.cat === 'moto' ? w * .6 : w}%">${itemPic(it)}</button>`
+        : `<span class="pk-free" style="left:${x}%;top:${y}%;width:${w}%">Place libre</span>`; }).join('')
+      // les noms dans un calque au-dessus de tous les véhicules : jamais cachés
+      + `<div class="pk-lbls">${P.map(([x, y], i) => cars[i] ? `<span class="pk-tagc" style="left:${x}%;top:${y}%">${esc(cars[i].name)}</span>` : '').join('')}</div>`;
     return `<div class="park-scene ${has('parking-bg') ? 'img' : ''}">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
       <p class="hint-line center">${cars.length} / ${n} places occupées · touche un véhicule pour le voir ou le revendre.</p>
       <button class="btn green wide" data-act="goPlace" data-id="garage">Aller au Garage Prestige</button>`;

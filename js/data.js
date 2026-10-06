@@ -37,7 +37,7 @@
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
   // les places dessinées sur l'image parking-bg (x = centre, y = bas de la voiture, w = largeur, en %), 7 places au maximum
-  const PARK_SLOTS = [[26, 34, 30], [70, 34, 30], [26, 56, 32], [70, 56, 32], [26, 80, 34], [70, 80, 34], [48, 98, 36]];
+  const PARK_SLOTS = [[26, 30, 30], [70, 30, 30], [26, 52, 32], [70, 52, 32], [26, 74, 34], [70, 74, 34], [48, 84, 32]];   // x, bas du véhicule (y), largeur (une moto prend 60 % de la largeur)
   // le parking du Garage Prestige (une voiture ou une moto par place)
   // le coffre de la Bijouterie (or et raretés) : places limitées, qu'on agrandit comme le parking
   const SAFES = [{ slots: 4, cost: 0, name: 'Petit coffre' }, { slots: 8, cost: 20000, name: 'Coffre-fort' }, { slots: 14, cost: 90000, name: 'Salle forte' }, { slots: 24, cost: 350000, name: 'Chambre forte' }];

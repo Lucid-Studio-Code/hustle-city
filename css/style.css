@@ -3330,3 +3330,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .cdm-rit .ev-emo { font-size: 18px; line-height: 26px; } #app .cdm-rit .pic .emo { font-size: 18px; }
 /* onglet verrouillé (texte blanc sur gris) : sans ombre portée ni contour */
 #app #modal .tab.tab-locked, #app #modal .tab.tab-locked .tab-lbl, #app #modal .tab.tab-locked .tab-lbl * { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
+
+/* parking : noms des véhicules au-dessus de tout, juste sous chaque véhicule */
+#app .park-scene .pk-lbls { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+#app .park-scene .pk-lbls .pk-tagc { position: absolute; transform: translate(-50%, 3px); margin: 0; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 9px; border-radius: 999px; background: rgba(42,26,16,.88); color: #fff; font: 800 10px var(--text); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
