@@ -5,7 +5,7 @@
   'use strict';
   const G = window.GAME, U = window.UI, D = window.DATA;
   const h = location.hash || '';
-  const API = window.HC_API || (location.port === '5300' ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
+  const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (location.port === '5300' ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
   const off = !API || G.TEST || /^#(neuf|admin)/.test(h);
   const ID_KEY = 'hustleCity.online';
   let id = null; try { id = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) {}
@@ -27,6 +27,8 @@
     if (Array.isArray(c.campaigns)) D.CAMPAIGNS.splice(0, D.CAMPAIGNS.length, ...c.campaigns);
     if (c.ads) Object.assign(D.ADS, c.ads);
     if (c.sixStart) D.SIX.sim = c.sixStart;
+    // objets ajoutés / modifiés au back office (js/content.js) : gardés sur l'appareil, la partie suit (nouvelles cotes)
+    if (window.CONTENT) { CONTENT.receive(c.content || {}, API); CONTENT.sync(G.st); if (U.refresh) U.refresh(); }
     Object.entries(c.values || {}).forEach(([p, v]) => { try { setPath(D, p, v); } catch (e) {} });
     // annonces : chacune une seule fois, dans le téléphone
     const seen = G.st.seenNews = G.st.seenNews || {};

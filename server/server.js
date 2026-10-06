@@ -48,11 +48,59 @@ function send(res, code, obj, type) {
   res.writeHead(code, { 'Content-Type': type || 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Cache-Control': 'no-store' });
   res.end(type ? obj : JSON.stringify(obj));
 }
-function body(req) { return new Promise(ok => { let b = ''; req.on('data', c => { b += c; if (b.length > 3e6) req.destroy(); }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (e) { ok({}); } }); }); }
+function body(req, max = 3e6) { return new Promise(ok => { let b = ''; req.on('data', c => { b += c; if (b.length > max) req.destroy(); }); req.on('end', () => { try { ok(JSON.parse(b || '{}')); } catch (e) { ok({}); } }); }); }
 // un joueur s'identifie par son pid + un secret créé par son jeu (pas de mot de passe)
 function player(b) { const p = b.pid && q1('SELECT * FROM players WHERE pid = ?', String(b.pid)); return p && p.secret === b.secret ? p : null; }
 const inboxFor = pid => q('SELECT id, t, title, text, gift FROM inbox WHERE pid = ? AND claimed = 0 ORDER BY t', pid).map(m => ({ ...m, gift: m.gift ? JSON.parse(m.gift) : null }));
 const str = (v, n) => v == null ? null : String(v).slice(0, n);
+
+// ------------------------------------------------------------------ objets du jeu ajoutés / modifiés au back office (config live « content »)
+// Les images envoyées sont rangées dans server/uploads (hors du dépôt) et servies à tous sur /media/<fichier>.
+const UPLOADS = process.env.UPLOADS || path.join(__dirname, 'uploads');
+const MEDIA_RE = /^[a-z0-9-]{1,80}\.(png|jpg|webp)$/;
+const MEDIA_TYPES = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+function imageKind(buf) {   // on regarde les premiers octets, pas le nom du fichier
+  if (buf.length > 8 && buf.readUInt32BE(0) === 0x89504e47) return 'png';
+  if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'jpg';
+  if (buf.length > 12 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') return 'webp';
+  return null;
+}
+const slug = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const isDate = v => typeof v === 'string' && v.length < 40 && !isNaN(Date.parse(v));
+// on ne garde que ce que le jeu sait afficher, avec des valeurs sûres
+function cleanContent(c) {
+  const out = { items: {} }, items = (c && c.items) || {}, cats = GAME.ITEM_CATS || {}, known = new Map((GAME.ITEMS || []).map(i => [i.id, i]));
+  const series = new Set((GAME.SERIES || []).map(x => x.id));
+  Object.entries(items).slice(0, 600).forEach(([id, e]) => {
+    if (!/^[a-z0-9-]{2,48}$/.test(id) || !e || typeof e !== 'object') return;
+    const x = {}, orig = known.get(id);
+    if (e.name != null) { const n = String(e.name).trim().slice(0, 60); if (n) x.name = n; }
+    if (e.p0 != null && +e.p0 > 0) x.p0 = Math.min(1e7, Math.max(1, Math.round(+e.p0)));
+    if (['C', 'R', 'E', 'L'].includes(e.r)) x.r = e.r;
+    if (e.hidden) x.hidden = true;
+    if (isDate(e.from)) x.from = new Date(e.from).toISOString();
+    if (isDate(e.until)) x.until = new Date(e.until).toISOString();
+    if (typeof e.img === 'string' && /^\/media\//.test(e.img) && MEDIA_RE.test(e.img.slice(7))) x.img = e.img;
+    if (typeof e.tag === 'string') x.tag = slug(e.tag).slice(0, 20);
+    if (e.new) {
+      if (orig) return;   // un nouvel objet ne remplace jamais un objet du jeu
+      if (!cats[e.cat] || e.cat === 'trophy' || !x.name || !x.p0) return;
+      Object.assign(x, { new: true, cat: e.cat, r: x.r || 'C', p0first: Math.min(1e7, Math.max(1, Math.round(+e.p0first || x.p0))), created: +e.created || now() });
+      if (e.cat === 'card') { if (!series.has(e.series)) return; x.series = e.series; }
+    } else {
+      if (!orig) return;
+      if (cats[e.cat] && orig.cat !== e.cat && !['card', 'trophy'].includes(orig.cat) && !['card', 'trophy'].includes(e.cat)) x.cat = e.cat;
+      if (orig.cat === 'card') delete x.img;   // l'image d'une carte existante ne se change pas ici
+      if (!Object.keys(x).length) return;
+    }
+    out.items[id] = x;
+  });
+  return out;
+}
+function saveLive(cfg) {
+  run("INSERT INTO config (k, v) VALUES ('live', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(cfg));
+  run("INSERT INTO config (k, v) VALUES ('live_at', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", String(now()));
+}
 
 // ------------------------------------------------------------------ API des joueurs
 const api = {
@@ -331,8 +379,26 @@ const admin = {
   },
   'GET /admin/api/config'(req, res) { send(res, 200, getCfg()); },
   async 'POST /admin/api/config'(req, res) {
-    const b = await body(req); run("INSERT INTO config (k, v) VALUES ('live', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(b));
-    run("INSERT INTO config (k, v) VALUES ('live_at', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", String(now())); log('config', b); send(res, 200, { ok: true });
+    const b = await body(req);
+    // les objets du jeu ont leur propre page : une autre page qui ne les connaît pas ne doit jamais les effacer
+    if (b.content) b.content = cleanContent(b.content); else { const cur = getCfg().content; if (cur) b.content = cur; }
+    saveLive(b); const { content, ...rest } = b; log('config', rest); send(res, 200, { ok: true });
+  },
+  async 'POST /admin/api/content'(req, res) {   // page « Objets du jeu » : remplace tout le contenu ajouté / modifié
+    const b = await body(req), cfg = getCfg(), before = (cfg.content || {}).items || {};
+    cfg.content = cleanContent(b); saveLive(cfg);
+    const ids = Object.keys(cfg.content.items), changed = ids.filter(id => JSON.stringify(before[id]) !== JSON.stringify(cfg.content.items[id])), gone = Object.keys(before).filter(id => !cfg.content.items[id]);
+    log('content', { n: ids.length, changed: changed.slice(0, 20), removed: gone.slice(0, 20) }); send(res, 200, { ok: true, content: cfg.content });
+  },
+  async 'POST /admin/api/upload'(req, res) {   // une image (PNG, JPG ou WebP, 4 Mo au plus), envoyée en base64
+    const b = await body(req, 6e6), m = /^data:image\/[a-z+]+;base64,(.+)$/s.exec(String(b.data || '')) || [null, String(b.data || '')];
+    let buf; try { buf = Buffer.from(m[1], 'base64'); } catch (e) { return send(res, 400, { err: 'Image illisible.' }); }
+    if (buf.length > 4 * 1048576) return send(res, 400, { err: 'Image trop lourde (4 Mo au plus).' });
+    const kind = imageKind(buf); if (!kind) return send(res, 400, { err: 'Il faut une image PNG, JPG ou WebP.' });
+    fs.mkdirSync(UPLOADS, { recursive: true });
+    const name = `${slug(b.name) || 'image'}-${crypto.createHash('sha1').update(buf).digest('hex').slice(0, 10)}.${kind}`;
+    fs.writeFileSync(path.join(UPLOADS, name), buf); log('upload', { name, size: buf.length });
+    send(res, 200, { ok: true, url: '/media/' + name, size: buf.length });
   },
   'GET /admin/api/events'(req, res, u) {
     const type = u.searchParams.get('type'), before = +u.searchParams.get('before') || 0;
@@ -384,6 +450,12 @@ http.createServer(async (req, res) => {
     if (u.pathname.startsWith('/admin/api/')) {
       if ((req.headers.authorization || '') !== 'Bearer ' + ADMIN_TOKEN) return send(res, 401, { err: 'Jeton du back office invalide.' });
       if (admin[key]) return await admin[key](req, res, u); return send(res, 404, { err: 'route' });
+    }
+    // images envoyées depuis le back office (objets du jeu) : publiques, jamais modifiées (le nom contient l'empreinte de l'image)
+    if (u.pathname.startsWith('/media/')) {
+      const name = u.pathname.slice(7); if (!MEDIA_RE.test(name)) return send(res, 404, '404', 'text/plain');
+      return fs.readFile(path.join(UPLOADS, name), (e, data) => { if (e) return send(res, 404, '404', 'text/plain');
+        res.writeHead(200, { 'Content-Type': MEDIA_TYPES[name.split('.').pop()], 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=31536000, immutable' }); res.end(data); });
     }
     // fichiers : le jeu (racine du projet) et le back office (/admin/ → server/admin/). Le reste de server/ n'est jamais servi.
     let p = decodeURIComponent(u.pathname);

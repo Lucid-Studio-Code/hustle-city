@@ -50,6 +50,7 @@
     };
     D.COINS.forEach(c => { st.crypto.prices[c.id] = c.p0; st.crypto.hist[c.id] = [c.p0]; st.crypto.hold[c.id] = 0; st.crypto.cost[c.id] = 0; });
     D.ITEMS.forEach(i => { st.market.prices[i.id] = i.p0; st.market.fair[i.id] = i.p0; st.market.hist[i.id] = [i.p0]; });
+    if (window.CONTENT) CONTENT.mark(st);   // objets du back office (js/content.js)
     return st;
   }
   let st = fresh();
@@ -71,6 +72,7 @@
         if (saved.mine === undefined) st.mine = starterMine(st.rig.lvl || 0, now());
         D.COINS.forEach(c => { if (st.crypto.prices[c.id] == null) { st.crypto.prices[c.id] = c.p0; st.crypto.hist[c.id] = [c.p0]; st.crypto.hold[c.id] = 0; st.crypto.cost[c.id] = 0; } });
         D.ITEMS.forEach(i => { if (st.market.prices[i.id] == null) { st.market.prices[i.id] = i.p0; st.market.fair[i.id] = i.p0; st.market.hist[i.id] = [i.p0]; } });
+        if (window.CONTENT) CONTENT.sync(st);   // prix de départ changés au back office : la cote suit
         // sorties au Club d'avant l'habitude automatique : elles ne comptaient pas, et l'habitude sautait à tort.
         // On reprend la dernière soirée connue, et on rend l'habitude à qui l'avait et y est allé il y a moins de 48 h.
         if (!saved.clubFix && st.club && st.club.start) {
@@ -599,10 +601,12 @@
   }
   // les rumeurs et les tuyaux ne parlent que d'objets utiles : un que tu as (à vendre) ou un en rayon (à acheter)
   const owns = id => !!(st.owned[id] && st.owned[id].length);
+  // objet visible / en vente : pas caché au back office, et dans ses dates s'il en a (ex. objets d'Halloween)
+  const avail = i => !!i && !i.hidden && (!i.from || now() >= Date.parse(i.from)) && (!i.until || now() < Date.parse(i.until));
   function rumorOk(i) { return i.cat !== 'trophy' && i.cat !== 'gold' &&   // l'or reste calme : pas de rumeur
     catUnlocked(i.cat) && (owns(i.id) || inStock(i.id)); }
   function rumorPool() { const L = D.ITEMS.filter(rumorOk); if (L.length) return L;
-    const M = D.ITEMS.filter(i => i.cat !== 'trophy' && i.cat !== 'gold' && catUnlocked(i.cat)); return M.length ? M : D.ITEMS.filter(i => i.cat !== 'trophy' && i.cat !== 'gold'); }
+    const M = D.ITEMS.filter(i => i.cat !== 'trophy' && i.cat !== 'gold' && avail(i) && catUnlocked(i.cat)); return M.length ? M : D.ITEMS.filter(i => i.cat !== 'trophy' && i.cat !== 'gold'); }
   function catUnlocked(cat) { return st.lvl >= D.ITEM_CATS[cat].lvl; }
   function marketTick(stepMin) {
     const mk = st.market;
@@ -673,19 +677,22 @@
   const stockLeft = () => (Math.floor(now() / (STOCK_MIN * 60000)) + 1) * STOCK_MIN * 60000 - now();
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
   // une carte joueur n'existe dans le jeu qu'une fois son illustration installée
-  const cardOk = i => !i.needArt || !window.ASSETS || window.ASSETS.includes(i.needArt);
+  // une carte cachée ou hors de ses dates n'existe plus que pour ceux qui l'ont déjà (la série reste faisable)
+  const cardOk = i => (!i.needArt || !window.ASSETS || window.ASSETS.includes(i.needArt)) && (avail(i) || owns(i.id));
   function cardStock() {
     const ed = stockEd(); if (cardStock.ed === ed) return cardStock.ids;
-    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event && cardOk(i)) /* les cartes des boosters se trouvent aussi d'occasion */, shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+    const cards = D.ITEMS.filter(i => i.cat === 'card' && !i.event && cardOk(i) && avail(i)) /* les cartes des boosters se trouvent aussi d'occasion */, shuf = L => L.map((i, k) => [seeded(ed * 97 + k * 13 + 3), i.id]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
     cardStock.ed = ed; cardStock.ids = new Set([...shuf(cards.filter(i => i.r === 'C')).slice(0, 3), ...shuf(cards.filter(i => i.r !== 'C')).slice(0, 1)]);
     return cardStock.ids;
   }
   // la liste des cartes visibles (classeur, comptes) : pareil, sans les cartes joueur encore sans image
   const cardsLive = () => D.ITEMS.filter(i => i.cat === 'card' && cardOk(i));
   function inStock(id) {
-    const it = item(id); if (it.cat === 'card') return cardStock().has(id);
+    const it = item(id); if (!avail(it)) return false;
+    if (it.custom && it.cat !== 'card') return true;   // nouveauté du back office : toujours en rayon pendant ses dates
+    if (it.cat === 'card') return cardStock().has(id);
     const g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
-    const ed = stockEd(), grp = D.ITEMS.filter(i => (i.series || i.cat) === g);
+    const ed = stockEd(), grp = D.ITEMS.filter(i => (i.series || i.cat) === g && avail(i) && !i.custom);
     return grp.map((i, k) => [seeded(ed * 131 + k * 17 + g.length * 7), i.id]).sort((a, b) => a[0] - b[0]).slice(0, n).some(x => x[1] === id);
   }
   // un contact qui n'a jamais le même visage que le joueur
@@ -1092,7 +1099,7 @@
     const rar = pickW(D.BOOSTER.colWeights);
     // pendant le tournoi, une partie des boosters donne une carte en édition limitée
     const ev = sixCardsOn() && Math.random() < D.SIX.cardChance;
-    const all = D.ITEMS.filter(i => i.series && cardOk(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
+    const all = D.ITEMS.filter(i => i.series && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
@@ -1215,7 +1222,7 @@
     const contacts = S.contacts.filter(c => !c.img.includes(st.skin + '-'));
     const ct = pick(contacts);
     const mine = Object.keys(st.owned).filter(id => st.owned[id].length && item(id).cat !== 'trophy');
-    const buyable = D.ITEMS.filter(i => !i.noBuy && i.cat !== 'trophy' && catUnlocked(i.cat) && !(st.owned[i.id] && st.owned[i.id].length) && st.market.prices[i.id] <= Math.max(150, worth() * .6));
+    const buyable = D.ITEMS.filter(i => !i.noBuy && i.cat !== 'trophy' && avail(i) && catUnlocked(i.cat) && !(st.owned[i.id] && st.owned[i.id].length) && st.market.prices[i.id] <= Math.max(150, worth() * .6));
     let deal = null;
     if (mine.length && (Math.random() < .5 || !buyable.length)) {
       const id = pick(mine), k = rnd(1.0, 1.12);
@@ -1423,7 +1430,7 @@
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
-    inStock, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
+    inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,

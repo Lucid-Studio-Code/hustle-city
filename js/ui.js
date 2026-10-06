@@ -35,11 +35,13 @@
     pc: '🖥️', trading: '📈', shop: '🛍️', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
   };
   const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', shop: 'nav-shop', bolt: 'icon-bolt' };
-  function has(name) { return IMG.has(name); }
+  // REMOTE_IMG : images envoyées depuis le back office (objets ajoutés), servies par le serveur du jeu (js/content.js)
+  const REMOTE = () => window.REMOTE_IMG || {};
+  function has(name) { return IMG.has(name) || !!REMOTE()[name]; }
   // chargé depuis internet (mise à jour auto) mais joué sur ton ordi : les images viennent de ton dossier, c'est bien plus rapide
   // (une image absente de ton dossier est reprise sur internet, voir plus bas)
   const IMG_LOCAL = /^https:\/\/cdn\.jsdelivr\.net\//.test(document.baseURI) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + '/' : '';
-  function src(name) { return `${IMG_LOCAL}assets/img/${name}.png?v=${window.ASSET_V || 1}`; }
+  function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.png?v=${window.ASSET_V || 1}`; }
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
   function pic(name, emo, cls = '') { return `<span class="pic ${cls}">${has(name) ? `<img src="${src(name)}" alt="" draggable="false">` : `<span class="emo">${emo || EMO[name] || '❔'}</span>`}</span>`; }
   // « de » + un nom propre, à la française : de Les Paniers → des Paniers, de Le Royal → du Royal, de Axion → d'Axion
@@ -65,7 +67,7 @@
   }
   function miniCard(it) {
     const sp = it.team ? it.team[0] : '', bg = sp && has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
-    const crea = (D.SERIES.find(x => x.id === it.series) || {}).col === 'crea', full = it.art && 'full-' + it.art.replace(/^art-/, '');
+    const crea = !it.custom && (D.SERIES.find(x => x.id === it.series) || {}).col === 'crea', full = it.art && 'full-' + it.art.replace(/^art-/, '');
     if (crea || !sp) { const im = crea ? 'item-' + it.id : has(full) ? full : it.art && has(it.art) ? it.art : 'item-' + it.id, nm0 = it.name.replace(/^Carte /, '').replace(/^./, c => c.toUpperCase());
       return `<span class="tcg full mini ${crea ? 'crea' : ''} r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span><span class="fa-img fa-ill"><img src="${src(im)}" alt=""></span><span class="fa-rar">${RSYM[it.r]}</span>
         <span class="fa-plate"><b class="${nm0.length > 14 ? 'xl' : ''}">${nm0}</b></span><i class="tcg-holo"></i></span></span>`; }
