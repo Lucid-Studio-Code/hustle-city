@@ -3213,3 +3213,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lg-card .lg-art .lg-tag.gift { bottom: -12px; }
 /* le style est chargé : le jeu peut s'afficher (voir le petit style dans game.html qui le cache avant) */
 #app > * { visibility: visible; }
+#cardzoom .cz-acts { flex-wrap: wrap; justify-content: center; max-width: min(92vw, 420px); } #app #cardzoom .cz-gain { flex: 0 0 100%; box-sizing: border-box; text-align: center; }

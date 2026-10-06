@@ -274,7 +274,7 @@
     gem:     { name: 'Raretés',   lvl: 7, icon: '💎', shop: 'bijou', place: 'safe' },
     car:     { name: 'Voitures',  lvl: 10, icon: '🚗', shop: 'garage', place: 'park' },
     moto:    { name: 'Motos',     lvl: 10, icon: '🏍️', shop: 'garage', place: 'park' },
-    trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true, place: 'vitrine' }   // vitrine : sans limite de place
+    trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true, place: 'shelf' }   // sur les étagères de l'appart : ils prennent une place
   };
   const ITEMS = [
     { id: 'c-rookie',   cat: 'card',    name: 'Carte rookie Ndiaye',     r: 'R', p0: 18,    vol: .05 },

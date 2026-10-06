@@ -284,7 +284,9 @@
     ].map(f => f()).filter(Boolean)[0];
     if (doable) add(...doable);
     add(10, '📰', 'Achète un tuyau au Kiosque', 'Le journal te dit quel match a le plus de chances : ça aide à bien parier.', () => questGo('kiosque'));
-    return L.sort((a, b) => b.p - a.p);
+    // un seul conseil par sujet (ex. une seule série de cartes à finir, pas deux), le plus important d'abord
+    const topic = x => ({ '📒': 'cartes', '🃏': 'cartes' })[x.ic] || x.ic, seen = new Set();
+    return L.sort((a, b) => b.p - a.p).filter(x => !seen.has(topic(x)) && seen.add(topic(x)));
   }
   // le prochain cap, toujours visible en ville : ce qui s'ouvre au niveau suivant et où on en est
   const rkImg = r => has(r.img) ? r.img : r.alt || r.img;   // image du palier (en attendant la sienne : un objet du jeu)
@@ -853,18 +855,17 @@
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
-    const owned = [], troph = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id), pl = G.placeOf(id); if (pl === 'shelf') a.forEach(() => owned.push(it)); else if (pl === 'vitrine' && a.length) troph.push(it); });
-    owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id)); troph.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
-    // les trophées s'exposent aussi sur les étagères, dans les places libres (ils ne prennent jamais la place d'un objet)
-    const onShelf = owned.slice(0, r.slots).concat(troph).slice(0, r.slots);
+    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (G.placeOf(id) === 'shelf') a.forEach(() => owned.push(it)); });   // trophées compris : ils prennent une place
+    owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
+    const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
     const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl;
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
-      if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i || RP.sel === 'shelf' ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic('item-' + it.id, D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
-      return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic('item-' + it.id, D.ITEM_CATS[it.cat].icon)}</button>` : '';
+      if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i || RP.sel === 'shelf' ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic(shImg(it), D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
+      return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic(shImg(it), D.ITEM_CATS[it.cat].icon)}</button>` : '';
     }).join('');
     // bulle de la machine : ce qu'il y a dedans (en billets) et la chaleur ; on la vide d'un geste
     const rigBubble = rig.idle ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>À l'arrêt</b><small>Choisis quoi miner</small></span></button>`
@@ -875,7 +876,7 @@
     const pcBubble = cv >= .01
       ? `<button class="obj-bubble ${diff >= 0 ? 'up' : 'down'}" data-act="pc"><span><small>Tes cryptos</small><b>${short(cv)} <em>${diff >= 0 ? '▲' : '▼'} ${short(Math.abs(diff), true)}</em></b></span></button>`
       : `<button class="obj-bubble" data-act="pc"><span><small>Mon PC</small><b>Investir</b></span></button>`;
-    const iv = owned.concat(troph).reduce((a, it) => a + G.sellPrice(it.id), 0);
+    const iv = owned.reduce((a, it) => a + G.sellPrice(it.id), 0);
     el.innerHTML = `
       <div class="room-stage">
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
@@ -1941,7 +1942,7 @@
       const it = G.item(c.id), se = D.SERIES.find(x => x.id === it.series), no = cardNo(it);
       const t = it.team ? D.TEAMS[it.team[0]][it.team[1]] : null;
       // cartes rares et plus : l'illustration remplit toute la carte, seuls le nom et la cote restent en bandeau
-      if (it.r !== 'C' || it.series === 'classics' || it.kind === 'creature') {
+      if (it.r !== 'C' || it.series === 'classics') {
         const nm = it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase());
         const full = it.art && 'full-' + it.art.replace(/^art-/, '');   // grande illustration verticale (full-k-…) quand elle existe
         const art = full && has(full) ? `<span class="fa-img fa-ill"><img src="${src(full)}" alt=""></span>` : it.art && has(it.art) && !it.img ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
@@ -1953,7 +1954,9 @@
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
-      d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
+      // créature commune : carte classique (illustration dans sa fenêtre, texte dessous), comme les communes de sport ; le full art est réservé aux rares et plus
+      if (it.kind === 'creature') d = { type: it.series, name: it.name, art: `<div class="tcg-sub ill-art crea-art"><img src="${src('item-' + it.id)}" alt=""></div>`, stat: '', ability: se.name, text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub || se.name, no };
+      else d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
         stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'staff' ? it.role : it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
     }
     return `<div class="tcg r${d.rarity} t-${d.type} ${extra}"><div class="tcg-card"><div class="tcg-in">
