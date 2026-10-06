@@ -666,8 +666,11 @@
   function roomSlots() { return D.ROOMS[st.room].slots; }
   // le Comptoir renouvelle ses rayons toutes les 30 min : seule une partie des objets est en vente à la fois
   const STOCK_MIN = 30, STOCK_N = { classics: 3, sneaker: 2, watch: 2, gold: 4, gem: 2, car: 2, moto: 2, foot: 4, basket: 3, tennis: 3, rugby: 2 };
-  const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000));
-  const stockLeft = () => (stockEd() + 1) * STOCK_MIN * 60000 - now();
+  const stockEd = () => Math.floor(now() / (STOCK_MIN * 60000)) + (st.stockSkip || 0);   // stockSkip : arrivages avancés avec des lingots
+  // faire venir l'arrivage tout de suite : 1 lingot par tranche de 6 min restantes (5 au plus)
+  const stockSkipCost = () => Math.max(1, Math.ceil(((Math.floor(now() / (STOCK_MIN * 60000)) + 1) * STOCK_MIN * 60000 - now()) / 360000));
+  function stockSkip() { const n = stockSkipCost(); if (st.lingots < n) return { err: `Il te faut ${n} lingots.` }; st.lingots -= n; st.stockSkip = (st.stockSkip || 0) + 1; cardStock.ed = null; stat('stockSkip'); emit('change'); return { ok: true, n }; }
+  const stockLeft = () => (Math.floor(now() / (STOCK_MIN * 60000)) + 1) * STOCK_MIN * 60000 - now();
   // cartes : seulement 3 communes et 1 plus rare à la fois (toutes séries confondues)
   // une carte joueur n'existe dans le jeu qu'une fois son illustration installée
   const cardOk = i => !i.needArt || !window.ASSETS || window.ASSETS.includes(i.needArt);
@@ -1418,7 +1421,7 @@
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
-    inStock, stockLeft, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
+    inStock, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,

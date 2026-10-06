@@ -3160,3 +3160,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app #noads-nudge .nn-main b { font: 400 15px var(--title); color: #2a1a10; } #app #noads-nudge .nn-main small { font: 800 11px var(--text); color: #5a4a3a; }
 #app #noads-nudge .nn-main em { font: 400 15px var(--title); font-style: normal; color: #fff; background: #45a8ec; border: 2px solid #2a1a10; border-radius: 10px; padding: 3px 8px; }
 #app #noads-nudge .nn-x { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #2a1a10; background: #fffdf6; font: 900 16px var(--text); color: #2a1a10; cursor: pointer; }
+#app .stock-chip { display: flex; align-items: center; gap: 8px; } #app .stock-chip .grow { flex: 1; min-width: 0; } #app .stock-chip .btn { flex: none; white-space: nowrap; } #app .stock-chip .btn .ic { width: 14px; height: 14px; vertical-align: -2px; }

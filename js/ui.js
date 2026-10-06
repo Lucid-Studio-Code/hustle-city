@@ -1728,7 +1728,7 @@
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : ${SHOP_PLACES[shopPlace].who} te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
-      <div class="stock-chip">${ico('ic-truck', '🚚')} Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</div>
+      <div class="stock-chip">${ico('ic-truck', '🚚')}<span class="grow">Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</span><button class="btn gold xs" data-act="stockSkip" ${s.lingots >= G.stockSkipCost() ? '' : 'disabled'}>⚡ Maintenant · ${ic('lingot')}${G.stockSkipCost()}</button></div>
       ${(pl => pl === 'safe' ? (nx => `<div class="shelf-chip ${G.safeCount() >= G.safeSlots() ? 'full' : ''}">${ico('ic-shelf', '🔐')} Ton coffre : <b>${G.safeCount()} / ${G.safeSlots()}</b> places${nx ? ` <button class="btn xs ${s.cash >= nx.cost ? 'green' : ''}" data-act="safeUp" ${s.cash >= nx.cost ? '' : 'disabled'}>${nx.name} · ${nx.slots} places · ${short(nx.cost)}</button>` : ''}</div>`)(D.SAFES[(s.safeLvl || 0) + 1])
         : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
         : pl === 'binder' ? `<div class="shelf-chip">${ico('ic-shelf', '🏠')} Les cartes vont dans ton classeur : aucune limite.</div>`
@@ -2250,6 +2250,7 @@
     rigCollect() { A.mineHarvest(); },
     rigQuick(el, e) { e.stopPropagation(); const i = G.rigInfo(); if (i.ready) return A.mineHarvest(); if (!i.idle && !i.burnt && i.heat >= 50 && i.coolLeft <= 0) return A.mineCool(); openRig(); },
     mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
+    stockSkip() { const r = G.stockSkip(); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Nouvel arrivage ! (−${r.n} lingots)`); refresh(); },
     mineSkip() { const r = G.mineSkip(); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`⚡ −${r.n} lingots`); refresh(); },
     mineCool() { const r = G.mineCool(); if (r.err) return toast(r.err, true); sfx.tap(); floatTxt('💨 −50 %'); refresh(); },
     hvSell(el) { const id = el.dataset.id, q = +el.dataset.q, h = st().crypto.hold[id] || 0; if (!(h > 0)) return toast('Plus rien à vendre.', true);
