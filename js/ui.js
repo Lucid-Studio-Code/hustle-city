@@ -462,7 +462,7 @@
   function sixTimer() {
     if (G.panneau() === 'cdm') return cdmTimer();
     const ph = G.sixPhase(), t = ph === 'before' ? G.sixKick(0) - Date.now() : G.sixEnd() - Date.now();
-    if (G.eventOff()) { const n = nextEvDays(); return n ? `Rien en cours, reviens dans ${n} j` : 'Rien en cours'; }
+    if (G.eventOff()) { const n = nextEvDays(); return n ? `Prochain dans ${n} j` : 'Bientôt'; }
     if (ph === 'over') return 'Terminé';
     const m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
     const left = d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min ${String(Math.floor(t / 1000) % 60).padStart(2, '0')}`;
@@ -1485,7 +1485,7 @@
         <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
         ${adCard()}
         <div class="lg-grid">${L.map(x => { const bonus = p && p.id === x.id && p.bonus; return `<div class="lg-card ${x.best ? 'best' : ''}">
-          <div class="lg-art">${offerArt(x)}${(() => { const tot = bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n, free = tot - Math.round(priceNum(x)) * 50; /* base : 50 lingots par euro */ return free > 0 ? `<span class="lg-tag gift">+${free.toLocaleString('fr-FR')} offerts</span>` : ''; })()}</div><b>${ic('lingot')}${(bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n).toLocaleString('fr-FR')}</b>${x.best ? `<span class="lg-best">${x.best}</span>` : `<small>${x.name}</small>`}${priceBtn(x, p)}</div>`; }).join('')}</div>
+          <div class="lg-art">${offerArt(x)}${(() => { const tot = bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n, free = tot - Math.round(priceNum(x)) * 50; /* base : 50 lingots par euro */ return free > 0 ? `<span class="lg-tag gift">${free.toLocaleString('fr-FR')} offerts</span>` : ''; })()}</div><b>${ic('lingot')}${(bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n).toLocaleString('fr-FR')}</b>${x.best ? `<span class="lg-best">${x.best}</span>` : `<small>${x.name}</small>`}${priceBtn(x, p)}</div>`; }).join('')}</div>
         <h3 class="sec">Packs</h3><div class="ip-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
           return `<div class="ip-card ${done ? 'done' : ''}" style="--ip:${PACK_COL[x.id] || '#a867e3'}"><div class="ip-art">${offerArt(x)}</div><div class="ip-info">${x.tag ? `<span class="ip-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
             ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
