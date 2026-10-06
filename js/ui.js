@@ -67,7 +67,7 @@
     const sp = it.team ? it.team[0] : '', bg = sp && has('card-bg-' + sp) ? `<img class="mc-bg" src="${src('card-bg-' + sp)}" alt="">` : '';
     const crea = (D.SERIES.find(x => x.id === it.series) || {}).col === 'crea', full = it.art && 'full-' + it.art.replace(/^art-/, '');
     if (crea || !sp) { const im = crea ? 'item-' + it.id : has(full) ? full : it.art && has(it.art) ? it.art : 'item-' + it.id, nm0 = it.name.replace(/^Carte /, '').replace(/^./, c => c.toUpperCase());
-      return `<span class="tcg full mini ${crea ? 'crea' : ''} r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span><span class="fa-img fa-ill"><img src="${src(im)}" alt=""></span>${crea ? '' : `<span class="fa-rar">${RSYM[it.r]}</span>`}
+      return `<span class="tcg full mini ${crea ? 'crea' : ''} r${it.r} t-${it.series}"><span class="tcg-card"><span class="fa-bg"></span><span class="fa-img fa-ill"><img src="${src(im)}" alt=""></span><span class="fa-rar">${RSYM[it.r]}</span>
         <span class="fa-plate"><b class="${nm0.length > 14 ? 'xl' : ''}">${nm0}</b></span><i class="tcg-holo"></i></span></span>`; }
     const art = it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : sp === 'tennis' && has(it.img) ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
     const nm = it.name.replace(/^Carte /, '');
@@ -1942,11 +1942,11 @@
         const full = it.art && 'full-' + it.art.replace(/^art-/, '');   // grande illustration verticale (full-k-…) quand elle existe
         const art = full && has(full) ? `<span class="fa-img fa-ill"><img src="${src(full)}" alt=""></span>` : it.art && has(it.art) && !it.img ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
-        // cartes Créatures : l'image EST la carte (cadre et ronds dessinés) : pas de pastilles par-dessus, le numéro va dans le bandeau
+        // cartes Créatures : seule l'illustration est gardée, le cadre est celui du jeu (le même pour toutes)
         const crea = colOf(it) === 'crea';
         return `<div class="tcg full r${it.r} t-${it.series} ${crea ? 'crea' : ''} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
-          ${crea ? '' : `<span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>`}
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${crea ? `N° ${no} · ` : ''}${RAR[it.r]} · ${priceWord(it.id)}</small></div>
+          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
       d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,

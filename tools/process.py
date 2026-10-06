@@ -91,10 +91,16 @@ def cutout(im, keep=None, debug=None, tol=60):
     bbox = alpha.point(lambda v: 255 if v > 20 else 0).getbbox()
     return im.crop(bbox) if bbox else im
 
+CREA_CROP = {'item-cr-scarabling': (.19, .16, .81, .70)}
+
 def run(name):
     im = Image.open(os.path.join(src, name + '.png'))
     kind = name.split('-')[0]
     if name in ('shop-hero', 'pop-starter'): kind = 'bg'   # images avec leur décor
+    if name.startswith('item-cr-'):   # créatures : on ne garde que l'illustration, le jeu dessine le même cadre pour toutes
+        w, h = im.size; b = CREA_CROP.get(name, (.16, .14, .84, .70))
+        im = im.convert('RGB').crop((int(w * b[0]), int(h * b[1]), int(w * b[2]), int(h * b[3]))); im.thumbnail((360, 460), Image.LANCZOS)
+        im.quantize(256, method=Image.MEDIANCUT).save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if name.endswith('-fg'):  # calque de premier plan déjà détouré : on garde la transparence
         im = im.convert('RGBA'); im.thumbnail((1080, 2160), Image.LANCZOS)
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
