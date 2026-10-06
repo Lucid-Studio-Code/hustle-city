@@ -331,6 +331,8 @@
     { id: 'o-chain', cat: 'gold', name: "Chaîne en or", r: 'R', p0: 1200, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
     { id: 'o-ring', cat: 'gold', name: "Chevalière en or", r: 'R', p0: 800, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
     { id: 'o-nugget', cat: 'gold', name: "Pépite d’or", r: 'E', p0: 3500, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'g-emerald', cat: 'gem', name: "Émeraude taillée", r: 'E', p0: 7000, vol: 0.015 },
+    { id: 'g-sapphire', cat: 'gem', name: "Saphir bleu", r: 'E', p0: 9000, vol: 0.015 },
     // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
