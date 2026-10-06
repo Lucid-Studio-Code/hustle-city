@@ -462,7 +462,10 @@ http.createServer(async (req, res) => {
     if (p.startsWith('/server/')) return send(res, 403, { err: 'interdit' });
     if (p === '/admin' || p === '/admin/') p = '/server/admin/index.html'; else if (p.startsWith('/admin/')) p = '/server/admin/' + p.slice(7);
     if (p.endsWith('/')) p += 'index.html';
-    const f = path.join(ROOT, p); if (!f.startsWith(ROOT) || f.includes('.admin-token') || /\.db(-wal|-shm)?$/.test(f)) return send(res, 403, { err: 'interdit' });
+    // sécurité : le chemin final doit rester dans le projet, hors de server/ (sauf le back office), sans fichier caché (.git, jeton…) ni base de données
+    const f = path.join(ROOT, p), rel = path.relative(ROOT, f).split(path.sep);
+    if (!f.startsWith(ROOT + path.sep) || rel.some(s => s.startsWith('.')) || (rel[0] === 'server' && rel[1] !== 'admin') || ['originals-2k', 'node_modules', 'android', 'ios'].includes(rel[0])
+      || /\.(db|db-wal|db-shm|p8|pem|key|sqlite)$/i.test(f)) return send(res, 403, { err: 'interdit' });
     fs.readFile(f, (e, data) => { if (e) return send(res, 404, '404', 'text/plain'); send(res, 200, data, types[path.extname(f)] || 'application/octet-stream'); });
   } catch (e) { console.error(e); send(res, 500, { err: String(e.message || e) }); }
 }).listen(PORT, () => console.log(`Hustle City en ligne sur http://localhost:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));
