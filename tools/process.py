@@ -94,6 +94,7 @@ def cutout(im, keep=None, debug=None, tol=60):
 def run(name):
     im = Image.open(os.path.join(src, name + '.png'))
     kind = name.split('-')[0]
+    if name in ('shop-hero', 'pop-starter'): kind = 'bg'   # images avec leur décor
     if name.endswith('-fg'):  # calque de premier plan déjà détouré : on garde la transparence
         im = im.convert('RGBA'); im.thumbnail((1080, 2160), Image.LANCZOS)
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return

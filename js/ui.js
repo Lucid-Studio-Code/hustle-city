@@ -50,7 +50,7 @@
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
   function hydrateIcons(root = document) { root.querySelectorAll('i.ic[data-icon]').forEach(el => { el.outerHTML = ic(el.dataset.icon); }); }
-  function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼'][D.SKINS.indexOf(sk)]); }
+  function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼', '👑'][D.SKINS.indexOf(sk)]); }
   // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
   function itemPic(it) {
     if (it.cat === 'card' && it.team) return `<span class="card-mini">${miniCard(it)}</span>`;
@@ -2069,6 +2069,7 @@
       ${best.length ? `<h3 class="sec">Tes plus belles pièces</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
       <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
+        if (k.iap && !has) return `<button class="card sk-iap" data-act="boutique" data-id="vip"><div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="sk-price">Exclusif · Boutique</small></button>`;
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
@@ -2138,7 +2139,7 @@
     const draw = () => {
       el.innerHTML = `<div class="logo">${logo}<div class="tagline">Deviens riche. Facilement.*<small>*ou pas</small></div></div>
         <div class="form">
-          <div class="skins">${D.SKINS.map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
+          <div class="skins">${D.SKINS.filter(k => !k.iap).map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
           <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
           <div class="name-tag">Ton blaze aura un numéro rien qu'à toi, ex. <b>#${st().tag || '????'}</b></div>
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
@@ -2311,7 +2312,7 @@
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
     colTab(el) { colTab = el.dataset.id; setBody(boostersBody()); },
-    boutique() { openBoutique(); },
+    boutique(el) { closeModal(); openBoutique(el && el.dataset && el.dataset.id || undefined); },
     valToggle(el) { const i = +el.dataset.i; valOpen.has(i) ? valOpen.delete(i) : valOpen.add(i); setBody(valuesBody()); },
     valPub() { publishLayout(); },
     admTest(el) { const t = TESTS[+el.dataset.i]; if (!t || !placing) return; const r = t[1](); toast(r || `${t[0]} : fait. Ça arrive dans quelques secondes si c'est une notification.`); refresh(); },
@@ -2323,7 +2324,7 @@
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
-    setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return;
+    setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return; if (k.iap && !own.includes(k.id)) { closeModal(); return openBoutique('vip'); }
       const cur = D.SKINS.find(x => x.id === st().skin) || {}, ag = st().agence;
       if (cur.g !== k.g && ag && ag.crew && ag.crew.length) {
         // changer de genre de look = reconversion PrivéFans : on prévient avant
@@ -2581,7 +2582,7 @@
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
-    if (!st().skin) return preload(D.SKINS.map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
+    if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
     const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>

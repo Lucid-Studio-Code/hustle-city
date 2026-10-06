@@ -12,7 +12,9 @@
     { id: 'hoodie',   name: 'Le Hoodie',    g: 'm', lvl: 1,  cost: 500,  desc: 'Sweat oversize, casquette, sacoche.' },
     { id: 'sportive', name: 'La Sportive',  g: 'f', lvl: 1,  cost: 500,  desc: 'Ensemble de sport, queue de cheval, air max.' },
     { id: 'flambeur', name: 'Le Flambeur',  g: 'm', lvl: 6,  cost: 2500,  desc: 'Chemise ouverte, chaîne en or, lunettes noires.' },
-    { id: 'boss',     name: 'La Boss',      g: 'f', lvl: 10, cost: 6000, desc: 'Tailleur, lunettes, sac de luxe.' }
+    { id: 'boss',     name: 'La Boss',      g: 'f', lvl: 10, cost: 6000, desc: 'Tailleur, lunettes, sac de luxe.' },
+    // exclusif : seulement avec le pack « Skin Gold » (achat intégré)
+    { id: 'gold',     name: 'Le Gold',      g: 'm', lvl: 1,  cost: 0, iap: 'x-gold', desc: 'Survêt en or, chaîne XXL, lunettes noires.' }
   ];
 
   // XP pour passer au niveau suivant (index = niveau actuel)
@@ -307,6 +309,16 @@
     { id: 'm-scoot',    cat: 'moto',    name: 'Scooter vintage',           r: 'C', p0: 1500,   vol: .03 },
     { id: 'm-road',     cat: 'moto',    name: 'Roadster sportif',          r: 'R', p0: 8000,   vol: .035 },
     { id: 'm-chopper',  cat: 'moto',    name: 'Chopper chromé',            r: 'E', p0: 25000,  vol: .04 },
+    // OBJETS-AJOUTES (généré par tools/add-objets.js : seulement ceux dont l'image est installée)
+    { id: 's-skate', cat: 'sneaker', name: "Skate usées", r: 'C', p0: 90, vol: 0.03 },
+    { id: 's-basket', cat: 'sneaker', name: "Montantes de playground", r: 'C', p0: 180, vol: 0.03 },
+    { id: 's-chunky', cat: 'sneaker', name: "Chunky dad shoes", r: 'R', p0: 380, vol: 0.03 },
+    { id: 's-neon', cat: 'sneaker', name: "Neon Night", r: 'R', p0: 520, vol: 0.03 },
+    { id: 's-camo', cat: 'sneaker', name: "Camo Squad", r: 'R', p0: 600, vol: 0.03 },
+    { id: 's-graff', cat: 'sneaker', name: "Graffiti custom", r: 'E', p0: 1600, vol: 0.03 },
+    { id: 's-lux', cat: 'sneaker', name: "Sneaker de luxe cuir", r: 'E', p0: 2400, vol: 0.03 },
+    { id: 's-moon', cat: 'sneaker', name: "Moon Boost", r: 'E', p0: 3200, vol: 0.03 },
+    // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
     { id: 't-combi',    cat: 'trophy',  name: 'Trophée « Combiné de fou »',     r: 'R', p0: 400, vol: .04 },
