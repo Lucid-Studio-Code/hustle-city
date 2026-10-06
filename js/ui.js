@@ -853,14 +853,16 @@
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
     const rig = G.rigInfo();
-    const owned = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id); if (G.placeOf(id) === 'shelf') a.forEach(() => owned.push(it)); });
-    owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
+    const owned = [], troph = []; Object.entries(s.owned).forEach(([id, a]) => { const it = G.item(id), pl = G.placeOf(id); if (pl === 'shelf') a.forEach(() => owned.push(it)); else if (pl === 'vitrine' && a.length) troph.push(it); });
+    owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id)); troph.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
+    // les trophées s'exposent aussi sur les étagères, dans les places libres (ils ne prennent jamais la place d'un objet)
+    const onShelf = owned.slice(0, r.slots).concat(troph).slice(0, r.slots);
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
     const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl;
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
-      const it = owned[i];
+      const it = onShelf[i];
       if (RP.on) return `<span class="shelf-item rp-slot ${RP.sel === 'slot' + i || RP.sel === 'shelf' ? 'sel' : ''}" data-rp="slot${i}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${it ? pic('item-' + it.id, D.ITEM_CATS[it.cat].icon) : `<em>${i + 1}</em>`}</span>`;
       return it ? `<button class="shelf-item" data-act="itemInfo" data-id="${it.id}" style="left:${x}%;top:${y}%;width:${L.shelf.w}%;height:${L.shelf.h}%">${pic('item-' + it.id, D.ITEM_CATS[it.cat].icon)}</button>` : '';
     }).join('');
@@ -873,12 +875,12 @@
     const pcBubble = cv >= .01
       ? `<button class="obj-bubble ${diff >= 0 ? 'up' : 'down'}" data-act="pc"><span><small>Tes cryptos</small><b>${short(cv)} <em>${diff >= 0 ? '▲' : '▼'} ${short(Math.abs(diff), true)}</em></b></span></button>`
       : `<button class="obj-bubble" data-act="pc"><span><small>Mon PC</small><b>Investir</b></span></button>`;
-    const iv = owned.reduce((a, it) => a + G.sellPrice(it.id), 0);
+    const iv = owned.concat(troph).reduce((a, it) => a + G.sellPrice(it.id), 0);
     el.innerHTML = `
       <div class="room-stage">
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
-        ${owned.length ? `<div class="bubble-at" data-for="shelf"><button class="obj-bubble shelf-b" data-act="collectionInfo"><span><small>Ta collection</small><b>${short(iv)}</b></span></button></div>` : ''}
+        ${onShelf.length ? `<div class="bubble-at" data-for="shelf"><button class="obj-bubble shelf-b" data-act="collectionInfo"><span><small>Ta collection</small><b>${short(iv)}</b></span></button></div>` : ''}
         <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" data-for="pc">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
