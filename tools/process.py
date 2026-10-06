@@ -138,7 +138,7 @@ def run(name):
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
         im.thumbnail((900, 900)) if max(im.size) > 900 else None
-        jewel = name.startswith(('item-o-', 'item-g-', 'item-w-'))   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous
+        jewel = name.startswith(('item-o-', 'item-g-', 'item-w-', 'item-m-', 'item-v-'))   # + motos et voitures : vides entre rayons, cadre, vitres   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
     m = MAX.get(kind, MAX['default'])
