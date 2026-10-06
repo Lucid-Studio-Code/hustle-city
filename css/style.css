@@ -3212,3 +3212,5 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lg-card .lg-art .lg-tag.gift { background: linear-gradient(#7ee05a, #2f9e33); color: #fff; right: -20px; bottom: -6px; font-size: 12px; padding: 2px 8px; white-space: nowrap; -webkit-text-stroke: 2.5px #2a1a10; paint-order: stroke fill; transform: rotate(-6deg); }
 #app .lg-card .lg-art { margin-bottom: 14px; }
 #app .lg-card .lg-art .lg-tag.gift { bottom: -12px; }
+/* le style est chargé : le jeu peut s'afficher (voir le petit style dans game.html qui le cache avant) */
+#app > * { visibility: visible; }
