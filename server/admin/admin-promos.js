@@ -113,8 +113,8 @@
         <aside class="pm-prev" id="pm-prev"></aside></div>`);
       const vals = () => { const L = c.kind === 'bonus' ? [10, 20, 30, 50, 75, 100] : [10, 20, 30, 40, 50, 60, 70];
         $('#pm-vals').innerHTML = L.map(v => `<button class="chip ${+c.value === v ? 'on' : ''}" data-val="${v}">${c.kind === 'bonus' ? '+' : '−'}${v} %</button>`).join('') + `<input type="number" id="pm-v" min="1" max="${c.kind === 'bonus' ? 300 : 90}" value="${esc(c.value)}" aria-label="Autre valeur">`;
-        $$('[data-val]').forEach(b => b.onclick = () => { c.value = +b.dataset.val; vals(); prev(); });
-        $('#pm-v').oninput = e => { c.value = Math.max(1, +e.target.value || 0); $$('[data-val]').forEach(b => b.classList.toggle('on', +b.dataset.val === c.value)); prev(); }; };
+        $$('[data-val]').forEach(b => b.onclick = () => { c.value = +b.dataset.val; fixVal(); vals(); prev(); });
+        $('#pm-v').oninput = e => { c.value = Math.max(1, +e.target.value || 0); fixVal(); $$('[data-val]').forEach(b => b.classList.toggle('on', +b.dataset.val === c.value)); prev(); }; };
       const prev = () => {
         const l = lookOf(c.look), x = X(c.offer), a = Date.parse(c.start), b = Date.parse(c.end), days = (b - a) / 864e5;
         $('#pm-calc').innerHTML = c.kind === 'bonus' ? `${x.n.toLocaleString('fr-FR')} lingots → <b>${Math.round(x.n * (1 + c.value / 100)).toLocaleString('fr-FR')} lingots</b> pour ${esc(x.price)}` : `${esc(x.price)} → <b>${eur(priceN(x) * (1 - c.value / 100))}</b>`;
@@ -130,16 +130,20 @@
       vals(); prev();
       $$('[data-look]').forEach(b => b.onclick = () => { const was = lookOf(c.look); c.look = b.dataset.look; if (!c.name || c.name === was.name) { c.name = lookOf(c.look).name; $('#pm-name').value = c.name; } $$('[data-look]').forEach(x => x.classList.toggle('on', x === b)); prev(); });
       $('#pm-name').oninput = e => { c.name = e.target.value; prev(); };
-      $$('[data-offer]').forEach(b => b.onclick = () => { c.offer = b.dataset.offer; const lg = X(c.offer).kind === 'lingots'; if (!lg && c.kind === 'bonus') { c.kind = 'off'; c.value = 30; }
+      $$('[data-offer]').forEach(b => b.onclick = () => { if (c.offer !== b.dataset.offer) resetTxt(); c.offer = b.dataset.offer; const lg = X(c.offer).kind === 'lingots'; if (!lg && c.kind === 'bonus') { c.kind = 'off'; c.value = 30; }
         $$('[data-offer]').forEach(x => x.classList.toggle('on', x === b)); const kb = $('[data-kind="bonus"]'); kb.disabled = !lg; $$('[data-kind]').forEach(x => x.classList.toggle('on', x.dataset.kind === c.kind));
         $('#pm-t').placeholder = autoTitle(c); $('#pm-d').placeholder = autoDesc(c); vals(); prev(); });
-      $$('[data-kind]').forEach(b => b.onclick = () => { if (b.disabled) return; c.kind = b.dataset.kind; c.value = c.kind === 'bonus' ? 30 : 30; $$('[data-kind]').forEach(x => x.classList.toggle('on', x === b)); $('#pm-t').placeholder = autoTitle(c); $('#pm-d').placeholder = autoDesc(c); vals(); prev(); });
+      $$('[data-kind]').forEach(b => b.onclick = () => { if (b.disabled) return; if (c.kind !== b.dataset.kind) resetTxt(); c.kind = b.dataset.kind; c.value = c.kind === 'bonus' ? 30 : 30; $$('[data-kind]').forEach(x => x.classList.toggle('on', x === b)); $('#pm-t').placeholder = autoTitle(c); $('#pm-d').placeholder = autoDesc(c); vals(); prev(); });
       const setDates = (a, b) => { c.start = a.toISOString(); c.end = b.toISOString(); $('#pm-s').value = toLocal(c.start); $('#pm-e').value = toLocal(c.end); prev(); };
       $$('[data-quick]').forEach(b => b.onclick = () => { const n = new Date(), q = b.dataset.quick;
         if (q === 'we') { const f = new Date(n); f.setDate(n.getDate() + ((5 - n.getDay() + 7) % 7)); f.setHours(18, 0, 0, 0); const s = new Date(f); s.setDate(f.getDate() + 2); s.setHours(23, 59, 0, 0); return setDates(f < n ? n : f, s); }
         setDates(n, new Date(n.getTime() + { '24h': 864e5, '3d': 3 * 864e5, '7d': 7 * 864e5 }[q])); });
       $('#pm-s').onchange = e => { c.start = fromLocal(e.target.value); prev(); };
       $('#pm-e').onchange = e => { c.end = fromLocal(e.target.value); prev(); };
+      // texte écrit pour une autre offre : il repart en automatique (titre et description suivent la nouvelle offre)
+      function resetTxt() { c.title = ''; c.desc = ''; $('#pm-t').value = ''; $('#pm-d').value = ''; }
+      // la remise change : on corrige le chiffre dans un titre écrit à la main (ex. « −40 % » → « −30 % »)
+      const fixVal = () => { if (c.title) { c.title = c.title.replace(/[−-]\s?\d+\s?%/, `−${c.value} %`).replace(/\+\s?\d+\s?%/, `+${c.value} %`); $('#pm-t').value = c.title; } };
       $('#pm-t').oninput = e => { c.title = e.target.value; prev(); };
       $('#pm-d').oninput = e => { c.desc = e.target.value; prev(); };
       $('#pm-back').onclick = $('#pm-cancel').onclick = () => listView();
