@@ -278,7 +278,8 @@
     config: ['bld-six', () => 'Tu as publié les <b>événements et nouveautés</b>'], broadcast: ['gift-big', d => `Message à tous : <b>${esc(d.title || '')}</b> (${fmt(d.n)} joueurs)${HC.giftTxt(d.gift || {}) ? ' · ' + esc(HC.giftTxt(d.gift)) : ''}`],
     gift: ['icon-gift', d => d.pid === '*' ? `Message à tous : <b>${esc(d.title || '')}</b>` : `Cadeau ou message à un joueur : <b>${esc(d.title || '')}</b>${HC.giftTxt(d.gift || {}) ? ' · ' + esc(HC.giftTxt(d.gift)) : ''}`],
     ban: ['icon-lock', d => `Compte suspendu : ${esc(d.reason || 'sans motif')}`], unban: ['icon-check', () => 'Compte réactivé'], restore: ['hdr-settings', () => 'Partie restaurée'],
-    reply: ['app-msg', d => `Réponse au SAV (ticket #${d.ticket}) · ${esc(d.status || '')}${d.gift ? ' · cadeau ' + esc(HC.giftTxt(d.gift)) : ''}`], notes: ['hdr-missions', () => 'Note interne modifiée']
+    reply: ['app-msg', d => `Réponse au SAV (ticket #${d.ticket}) · ${esc(d.status || '')}${d.gift ? ' · cadeau ' + esc(HC.giftTxt(d.gift)) : ''}`], notes: ['hdr-missions', () => 'Note interne modifiée'],
+    content: ['app-objets', d => `Tu as publié les <b>objets du jeu</b> (${fmt(d.n)} ajoutés ou modifiés)`], upload: ['icon-gift', () => 'Image envoyée pour un objet']
   };
   const TYPES = [['', 'Tout'], ['install', 'Installations'], ['levelup', 'Niveaux'], ['achievement', 'Succès'], ['iap_buy', 'Achats'], ['iap_click', 'Offres regardées'], ['ad', 'Pubs'], ['gift_received', 'Cadeaux reçus'], ['bet', 'Paris'], ['session', 'Connexions']];
   HC.PAGES.logs = async (P) => {

@@ -149,6 +149,7 @@
     { id: 'stats', label: 'Statistiques', icon: 'app-crypto' },
     { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
     { id: 'promos', label: 'Promos', icon: 'ic-promo' },
+    { id: 'items', label: 'Objets du jeu', icon: 'app-objets' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
     { id: 'notifs', label: 'Notifications', icon: 'app-msg' },
