@@ -2962,34 +2962,34 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lg-card .btn { width: 100%; min-height: 32px; padding: 0 4px; font-size: 13px; }
 #app .lg-tag { position: absolute; top: -9px; right: -5px; padding: 2px 6px; border: 2px solid #2a1a10; border-radius: 9px; background: #e63946; color: #fff; font: 400 12px var(--title); transform: rotate(6deg); }
 #app .lg-best { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); padding: 1px 6px; border: 2px solid #2a1a10; border-radius: 8px; background: #ff8a3d; color: #fff; font: 900 9px var(--text); white-space: nowrap; }
-#app .pk-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-#app .pk-card { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2.5px solid #2a1a10; border-radius: 18px; background: linear-gradient(110deg, color-mix(in srgb, var(--pk) 28%, #fffdf6) 0%, #fffdf6 70%); box-shadow: 0 3px 0 #2a1a10; }
-#app .pk-card.done { opacity: .6; }
-#app .pk-art { flex: 0 0 76px; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--pk) 35%, #fff); border: 2px solid #2a1a10; }
-#app .pk-art > img { width: 92%; height: 92%; object-fit: contain; }
-#app .pk-info { flex: 1; min-width: 0; }
-#app .pk-info > b { display: block; font: 400 16px/1.1 var(--title); color: #2a1a10; margin: 2px 0 5px; }
-#app .pk-tag { display: inline-block; padding: 1px 7px; border-radius: 8px; background: var(--pk); color: #fff; font: 900 10px var(--text); border: 1.5px solid #2a1a10; }
-#app .pk-card .btn { flex: none; min-width: 74px; }
-#app .pk-compo { position: relative; width: 100%; height: 100%; display: block; }
-#app .pk-compo img { position: absolute; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(42,26,16,.3)); }
-#app .pk-compo .pk-a { width: 56%; height: 70%; left: 4%; top: 6%; transform: rotate(-8deg); }
-#app .pk-compo .pk-b { width: 52%; height: 52%; right: 2%; top: 4%; }
-#app .pk-compo .pk-c { width: 54%; height: 50%; right: 8%; bottom: 2%; }
-#app .pk-compo .pk-e { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 34px; font-style: normal; }
-#app .sh2-art .pk-compo .pk-e { font-size: 50px; }
+#app .ip-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+#app .ip-card { display: flex; align-items: center; gap: 10px; padding: 10px; border: 2.5px solid #2a1a10; border-radius: 18px; background: linear-gradient(110deg, color-mix(in srgb, var(--ip) 28%, #fffdf6) 0%, #fffdf6 70%); box-shadow: 0 3px 0 #2a1a10; }
+#app .ip-card.done { opacity: .6; }
+#app .ip-art { flex: 0 0 76px; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--ip) 35%, #fff); border: 2px solid #2a1a10; }
+#app .ip-art > img { width: 92%; height: 92%; object-fit: contain; }
+#app .ip-info { flex: 1; min-width: 0; }
+#app .ip-info > b { display: block; font: 400 16px/1.1 var(--title); color: #2a1a10; margin: 2px 0 5px; }
+#app .ip-tag { display: inline-block; padding: 1px 7px; border-radius: 8px; background: var(--ip); color: #fff; font: 900 10px var(--text); border: 1.5px solid #2a1a10; }
+#app .ip-card .btn { flex: none; min-width: 74px; }
+#app .ip-compo { position: relative; width: 100%; height: 100%; display: block; }
+#app .ip-compo img { position: absolute; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(42,26,16,.3)); }
+#app .ip-compo .ip-a { width: 56%; height: 70%; left: 4%; top: 6%; transform: rotate(-8deg); }
+#app .ip-compo .ip-b { width: 52%; height: 52%; right: 2%; top: 4%; }
+#app .ip-compo .ip-c { width: 54%; height: 50%; right: 8%; bottom: 2%; }
+#app .ip-compo .ip-e { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 34px; font-style: normal; }
+#app .sh2-art .ip-compo .ip-e { font-size: 50px; }
 /* offre de bienvenue (fenêtre) */
 #app .welcome-pop { text-align: center; }
 #app .welcome-pop .wp-art { position: relative; margin: -6px auto 6px; width: 220px; height: 220px; display: grid; place-items: center; border-radius: 24px; background: radial-gradient(circle, #ffe9a0, #b48cff 65%, #6a3fd0); border: 3px solid #2a1a10; box-shadow: 0 4px 0 #2a1a10; overflow: hidden; }
 #app .welcome-pop .wp-art > img { width: 100%; height: 100%; object-fit: cover; }
-#app .welcome-pop .wp-art .pk-compo { width: 80%; height: 80%; }
+#app .welcome-pop .wp-art .ip-compo { width: 80%; height: 80%; }
 #app .welcome-pop h3 { margin: 6px 0 2px; font: 400 24px var(--title); color: #2a1a10; }
 #app .welcome-pop p { margin: 0 0 8px; font: 800 13px/1.35 var(--text); color: #5a3a20; }
 #app .welcome-pop .give-chips { justify-content: center; margin-bottom: 12px; }
 #app .welcome-pop .btn { width: 100%; }
 #app .welcome-pop .wp-later { margin-top: 6px; background: transparent; border: 0; box-shadow: none; color: #7a5a3a; font: 800 13px var(--text); text-decoration: underline; }
 #app .lg-card .lg-best { position: static; transform: none; margin: 2px 0 4px; min-height: 0; }
-#app .pk-compo.n1 img { width: 86%; height: 86%; left: 7%; top: 7%; right: auto; bottom: auto; transform: none; }
+#app .ip-compo.n1 img { width: 86%; height: 86%; left: 7%; top: 7%; right: auto; bottom: auto; transform: none; }
 #app .tcg-back.crea, .tcg-back.crea { background: url(../assets/img/card-back-crea.png) center / 100% 100% no-repeat, repeating-linear-gradient(45deg, #e6dcf5 0 8px, #d8c9ef 8px 16px); }
 /* bouton boutique : l'image seule, en grand (le texte n'apparaît que pour un compte à rebours de promo) */
 #app #btn-promo { justify-content: center; padding: 0; }

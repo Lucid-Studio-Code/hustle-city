@@ -1382,7 +1382,7 @@
       return has('shop-lingot-' + k) ? `<img src="${src('shop-lingot-' + k)}" alt="">` : `<span class="lg-stack n${Math.min(k, 4)}">${Array.from({ length: Math.min(k, 4) }, () => `<img src="${src('icon-lingot')}" alt="">`).join('')}</span>`; }
     const im = PACK_IMG[x.id]; if (im && has(im)) return `<img src="${src(im)}" alt="">`;
     const g = x.give || {}, n = [g.boosters, g.lingots, g.cash].filter(Boolean).length;
-    return `<span class="pk-compo n${n}">${g.boosters && has('booster-pack') ? `<img class="pk-a" src="${src('booster-pack')}" alt="">` : ''}${g.lingots && has('bonus-lingots') ? `<img class="pk-b" src="${src('bonus-lingots')}" alt="">` : ''}${g.cash && has('bonus-cash') ? `<img class="pk-c" src="${src('bonus-cash')}" alt="">` : ''}${g.noAds ? '<i class="pk-e">🚫</i>' : g.skin ? '<i class="pk-e">👑</i>' : ''}</span>`;
+    return `<span class="ip-compo n${n}">${g.boosters && has('booster-pack') ? `<img class="ip-a" src="${src('booster-pack')}" alt="">` : ''}${g.lingots && has('bonus-lingots') ? `<img class="ip-b" src="${src('bonus-lingots')}" alt="">` : ''}${g.cash && has('bonus-cash') ? `<img class="ip-c" src="${src('bonus-cash')}" alt="">` : ''}${g.noAds ? '<i class="ip-e">🚫</i>' : g.skin ? '<i class="ip-e">👑</i>' : ''}</span>`;
   }
   // l'offre mise en avant : choisie selon le joueur (nouveau, gros joueur de pubs, collectionneur, à court de lingots…)
   function offerFor() {
@@ -1441,8 +1441,8 @@
         <div class="lg-grid">${L.map(x => { const bonus = p && p.id === x.id && p.bonus; return `<div class="lg-card ${x.best ? 'best' : ''}">${x.tag || bonus ? `<span class="lg-tag">${bonus ? `+${bonus} %` : x.tag}</span>` : ''}
           <div class="lg-art">${offerArt(x)}</div><b>${ic('lingot')}${(bonus ? Math.round(x.n * (1 + bonus / 100)) : x.n).toLocaleString('fr-FR')}</b>${x.best ? `<span class="lg-best">${x.best}</span>` : `<small>${x.name}</small>`}${priceBtn(x, p)}</div>`; }).join('')}</div>
         ${adCard()}
-        <h3 class="sec">Packs</h3><div class="pk-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
-          return `<div class="pk-card ${done ? 'done' : ''}" style="--pk:${PACK_COL[x.id] || '#a867e3'}"><div class="pk-art">${offerArt(x)}</div><div class="pk-info">${x.tag ? `<span class="pk-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
+        <h3 class="sec">Packs</h3><div class="ip-list">${P.filter(x => !(top && top.x === x && !(x.once && owned[x.id]))).map(x => { const done = x.once && owned[x.id];
+          return `<div class="ip-card ${done ? 'done' : ''}" style="--ip:${PACK_COL[x.id] || '#a867e3'}"><div class="ip-art">${offerArt(x)}</div><div class="ip-info">${x.tag ? `<span class="ip-tag">${x.tag}</span>` : ''}<b>${x.name}</b><div class="give-chips">${giveChips(x)}</div></div>
             ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
         <p class="hint-line center">Paiement en <b>vrai argent</b> : disponible avec la version App Store et Google Play.</p>`;
     }
