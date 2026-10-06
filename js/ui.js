@@ -1487,6 +1487,14 @@
     el.className = 'on'; draw(); clearInterval(adTimer);
     adTimer = setInterval(() => { left--; draw(); if (left <= 0) clearInterval(adTimer); }, 1000);
   }
+  // après une pub imposée : un petit bandeau discret (pas une fenêtre) qui propose le pack Sans pub, 7 s puis il repart
+  function noAdsNudge() {
+    if (st().noAds) return; const x = D.IAP.find(i => i.id === 'x-noads'); if (!x) return;
+    let el = $('#noads-nudge'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="noads-nudge"></div>'); el = $('#noads-nudge'); }
+    el.innerHTML = `<button class="nn-main" data-act="noAdsGo">${has('pack-noads') ? `<img src="${src('pack-noads')}" alt="">` : '<i>🚫</i>'}<span><b>Marre des pubs ?</b><small>Pack Sans pub, pour toujours</small></span><em>${x.price}</em></button><button class="nn-x" data-act="noAdsHide" aria-label="Fermer">×</button>`;
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    clearTimeout(noAdsNudge._t); noAdsNudge._t = setTimeout(() => el.classList.remove('on'), 7000);
+  }
   // pub imposée après une montée de niveau : pas avant le niveau 5, pas plus d'une toutes les 30 min, jamais avec le pack Sans pub
   const FORCED_S = 15;
   function maybeInterstitial() {
@@ -1498,7 +1506,7 @@
       <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / FORCED_S) * 100)}%"></i></div>
       ${left > 0 ? '<p class="ad-hint">Le jeu reprend juste après</p>' : '<button class="btn green wide ad-claim" data-act="adForcedEnd">Continuer</button>'}
-      <button class="ad-noads" data-act="adNoAds">Plus de pub qui coupe ? Pack Sans pub</button>`; };
+      `; };
     el.className = 'on'; draw(); clearInterval(adTimer);
     adTimer = setInterval(() => { left--; draw(); if (left <= 0) clearInterval(adTimer); }, 1000);
   }
@@ -2378,7 +2386,9 @@
       const a = G.adState(); if (!a.left || a.wait) return;
       adShow();
     },
-    adForcedEnd() { adClose(); nextPending(); },
+    adForcedEnd() { adClose(); nextPending(); setTimeout(noAdsNudge, 600); },
+    noAdsGo() { $('#noads-nudge')?.classList.remove('on'); openBoutique('vip'); },
+    noAdsHide() { $('#noads-nudge')?.classList.remove('on'); },
     adNoAds() { if ($('#ad-layer .ad-claim')) adClose(); else return toast('Attends la fin de la pub, puis tu pourras ouvrir la boutique.'); openBoutique('vip'); },
     adClaim() { const r = G.adReward(); adClose(); if (r.err) return toast(r.err, true); sfx.coin(); rain('confetti', 16); toast(`+${r.n} lingots, merci !`); renderHud(); refresh(); },
     adQuit() { adClose(); toast('Pub interrompue : pas de lingots cette fois.', true); },
