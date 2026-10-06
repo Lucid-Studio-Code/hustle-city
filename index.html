@@ -10,7 +10,7 @@
   const REPO = 'Lucid-Studio-Code/hustle-city';
   const local = () => { location.replace('game.html' + location.hash); };
   // en ligne (GitHub Pages) le site est déjà à jour : on joue directement la page du site
-  if (/[?&]local\b/.test(location.search) || location.protocol === 'file:' || /github\.io$/.test(location.hostname)) return local();
+  if (/[?&]local\b/.test(location.search) || location.protocol === 'file:' || /github\.io$/.test(location.hostname) || !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return local();   // sur le serveur du jeu : déjà à jour
   try {
     const ctl = new AbortController(); setTimeout(() => ctl.abort(), 6000);
     const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, { signal: ctl.signal, headers: { Accept: 'application/vnd.github.sha' } });
