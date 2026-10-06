@@ -32,7 +32,7 @@ MAX = {'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
-TOL = {'cr-leila': 140}
+TOL = {'cr-leila': 140, **{n: 110 for n in ('item-w-pocket', 'item-w-unique', 'item-o-bar100', 'item-o-bar10', 'item-g-roman')}}   # liseré clair autour du trait
 
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
@@ -100,6 +100,13 @@ def cutout(im, keep=None, debug=None, tol=60, shadow=False):
                     ny, nx = y + dy, x + dx
                     if 0 <= ny < h and 0 <= nx < w and cand[ny, nx] and not bgmask[ny, nx]:
                         bgmask[ny, nx] = True; q.append((ny, nx))
+    # miettes : petits îlots détachés de l'objet (poussière, restes d'ombre) → fond
+    from scipy import ndimage
+    lab, nl = ndimage.label(~bgmask)
+    if nl > 1:
+        sizes = ndimage.sum(np.ones_like(lab), lab, range(1, nl + 1)); big = sizes.max()
+        for k, sz in enumerate(sizes, 1):
+            if sz < big * .004: bgmask[lab == k] = True
     alpha = Image.fromarray(np.where(bgmask, 0, 255).astype('uint8'))
     alpha = alpha.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.GaussianBlur(0.8))
     im.putalpha(alpha)
