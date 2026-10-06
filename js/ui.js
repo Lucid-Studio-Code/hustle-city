@@ -669,7 +669,7 @@
     ['💰 +1 000 de cash', () => G.addCash(1000)], ['🪙 +50 lingots', () => G.addLingots(50)], ['⭐ +1 niveau', () => G.addXp(Math.max(1, G.xpNeed() - st().xp))],
     ['⛏️ Finir le minage', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; m.start -= m.dur; }],
     ['🌡️ Machine à 90 %', () => { const m = st().mine; if (!m) return 'Aucun minage en cours.'; const o = D.MINE.find(x => x.id === m.id); m.cool = 0; m.start = Date.now() - Math.min(m.dur - 60000, .9 * D.RIG[m.lvl].heatMin / o.heat * 60000); }],
-    ['🎁 Offre de bienvenue', () => maybeWelcome(true)],
+    ['🎁 Offre du jour (pop-up)', () => offerToday(true)],
     ['⚡ Alerte flash', () => { const c = st().crypto; c.flash = null; c.nextFlash = 1; }],
     ['📰 Actu crypto', () => { st().crypto.nextNews = 1; }],
     ['📈 Tuyau crypto d\'un pote', () => { st().crypto.moodUntil = Date.now() + 5 * 60000; st().nextCryptoTipAt = 1; }],
@@ -1418,18 +1418,32 @@
       <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>${a.noAds ? 'Récupérer' : 'Regarder'}</button></div>`;
   }
   // offre de bienvenue : proposée régulièrement aux nouveaux joueurs (dès le niveau 3, tous les 2 jours, 5 fois au plus)
-  function maybeWelcome(force) {
-    const s = st(); if (!force && (!welcomeOk() || s.lvl < 3 || G.TEST && !force || (window.TUTO && window.TUTO.active) || !s.tutoDone)) return;
-    const w = s.welcome = s.welcome || { n: 0, at: 0 };
-    if (!force && (w.n >= 5 || Date.now() - w.at < 2 * 86400000)) return;
-    w.n++; w.at = Date.now(); G.save && G.save();
-    const x = D.IAP.find(i => i.id === 'x-start');
-    queue(() => openModal({ title: 'Offre de bienvenue', icon: 'gift', center: true, body: `<div class="welcome-pop">
-      <div class="wp-art">${has('pop-starter') ? `<img src="${src('pop-starter')}" alt="">` : offerArt(x)}</div>
-      <h3>Le pack du débutant</h3><p>Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.</p>
+  // l'offre du jour : une fenêtre par jour au plus (à la première visite du jour), avec une offre qui change d'un jour à l'autre :
+  // promo en cours, pack de départ (nouveaux joueurs), sans pub, pass, collectionneur… jamais deux fois la même de suite
+  const OFFER_TXT = {
+    'x-start': ['Le pack du débutant', 'Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.'],
+    'x-noads': ['Fini les pubs', 'Plus aucune pub, et leurs lingots tombent quand même, tout de suite. <b>Pour toujours.</b>'],
+    'x-pass': ['Le Pass Hustle', 'Des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b> pendant 30 jours.'],
+    'x-collec': ['Pour ton classeur', '<b>20 boosters</b> d\'un coup pour compléter tes séries plus vite.'],
+    'x-magnat': ['Le pack Magnat', 'Tout pour devenir le patron du quartier, skin Gold compris.']
+  };
+  function offerToday(force) {
+    const s = st(), own = s.iapOwned || {}, ok = id => { const x = D.IAP.find(i => i.id === id); return x && !(x.once && own[id]); };
+    if (!force && (G.TEST || !s.tutoDone || s.lvl < 3 || (window.TUTO && window.TUTO.active))) return;
+    const o = s.offerPop = s.offerPop || { day: '', last: '' }, day = new Date().toDateString();
+    if (!force && o.day === day) return;
+    const p = promoNow(), cands = [p && p.id, welcomeOk() && 'x-start', !G.adState().noAds && 'x-noads', !G.passOn() && 'x-pass', 'x-collec', s.lvl >= 15 && 'x-magnat'].filter(id => id && ok(id));
+    const id = cands.find(c => c !== o.last) || cands[0]; if (!id) return;
+    o.day = day; o.last = id; G.save && G.save();
+    const x = D.IAP.find(i => i.id === id), pr = p && p.id === id ? p : null, [title, txt] = pr ? [pr.title, pr.desc] : OFFER_TXT[id] || [x.name, x.desc || ''];
+    const art = id === 'x-start' && has('pop-starter') ? `<img src="${src('pop-starter')}" alt="">` : offerArt(x);
+    queue(() => openModal({ title: pr ? (pr.season ? pr.season.name : 'Promo du jour') : id === 'x-start' ? 'Offre de bienvenue' : 'L\'offre du jour', icon: 'gift', center: true, body: `<div class="welcome-pop ${id === 'x-start' ? '' : 'wp-pack'}">
+      <div class="wp-art" style="${pr && pr.season ? `--pm:${pr.season.color}` : ''}">${art}${pr ? `<span class="sh2-badge">${pr.off ? `−${pr.off} %` : `+${pr.bonus} %`}</span>` : ''}</div>
+      <h3>${title}</h3><p>${txt}</p>
       <div class="give-chips">${giveChips(x)}</div>
-      ${priceBtn(x, null, 'green big')}<button class="wp-later" data-act="closeModal">Plus tard</button></div>` }));
+      ${priceBtn(x, pr, 'green big')}<button class="wp-later" data-act="closeModal">Plus tard</button></div>` }));
   }
+  const maybeWelcome = force => offerToday(force);
   const PACK_COL = { 'x-start': '#5fc73a', 'x-noads': '#45a8ec', 'x-pass': '#a867e3', 'x-collec': '#ff8a3d', 'x-gold': '#e0a21d', 'x-magnat': '#e63946' };
   function boutiqueBody() {
     const s = st();
@@ -1901,9 +1915,11 @@
         const full = it.art && 'full-' + it.art.replace(/^art-/, '');   // grande illustration verticale (full-k-…) quand elle existe
         const art = full && has(full) ? `<span class="fa-img fa-ill"><img src="${src(full)}" alt=""></span>` : it.art && has(it.art) && !it.img ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : !it.img ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : it.art && has(it.art) ? `<span class="fa-img fa-ill"><img src="${src(it.art)}" alt=""></span>` : it.team[0] === 'tennis' ? `<span class="fa-img fa-player"><img src="${src(it.img)}" alt=""></span>` : `<span class="fa-crest">${teamCrest(it.team[0], it.team[1])}</span>`;
         const cbg = it.team && has('card-bg-' + it.team[0]) ? `<img class="mc-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : '';
-        return `<div class="tcg full r${it.r} t-${it.series} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
-          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>
-          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
+        // cartes Créatures : l'image EST la carte (cadre et ronds dessinés) : pas de pastilles par-dessus, le numéro va dans le bandeau
+        const crea = colOf(it) === 'crea';
+        return `<div class="tcg full r${it.r} t-${it.series} ${crea ? 'crea' : ''} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
+          ${crea ? '' : `<span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>`}
+          <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${crea ? `N° ${no} · ` : ''}${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
       d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
@@ -2566,7 +2582,7 @@
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
-    setTimeout(maybeWelcome, 40000);
+    setTimeout(() => offerToday(), 30000);
   }
   // fin de l'écran de chargement : on attend les images du premier écran (la barre suit), puis on l'affiche
   function preload(html, then) {

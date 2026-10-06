@@ -3144,3 +3144,9 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .sh2-art > img { animation: sh2Float 3.2s ease-in-out infinite; transform-origin: 50% 80%; will-change: transform; }
 @keyframes sh2Float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 #app .sh2-art .sh2-badge { z-index: 2; }
+/* cartes Créatures : l'image entière (cadre compris) remplit la carte, sans rognage */
+.tcg.full.crea .fa-img .pic, .tcg.full.crea .fa-img img { object-fit: fill; }
+.tcg.full.crea .fa-plate { background: linear-gradient(transparent, rgba(27,20,51,.82) 45%); padding-bottom: 4.4cqw; }
+#app .welcome-pop.wp-pack .wp-art { background: radial-gradient(circle, #fff3b0, #ffd23f 55%, #e0a21d); }
+#app .welcome-pop.wp-pack .wp-art > img { position: absolute; inset: 18px; width: calc(100% - 36px); height: calc(100% - 36px); object-fit: contain; }
+#app .welcome-pop .wp-art { position: relative; } #app .welcome-pop .wp-art .sh2-badge { top: 8px; right: 8px; }
