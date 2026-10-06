@@ -2094,10 +2094,10 @@
   const skinsOwned = () => { const s = st(); s.skinsOwned = s.skinsOwned || [s.skin]; if (s.skin && !s.skinsOwned.includes(s.skin)) s.skinsOwned.push(s.skin); return s.skinsOwned; };
   function profileBody() {
     const s = st(), S = s.stats, xpPct = isFinite(G.xpNeed()) ? Math.min(100, Math.round(s.xp / G.xpNeed() * 100)) : 100;
-    const tile = (ico, v, l) => `<div class="pf-tile">${ico}<b>${v}</b><small>${l}</small></div>`;
+    const tile = (ico, v, l) => `<div class="pf-tile"><span class="pf-ti">${ico}</span><b>${v}</b><small>${l}</small></div>`;
     const cards = G.cardsLive(), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
     const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
-    const best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat !== 'trophy').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => b.v - a.v).slice(0, 3);
+    const RK = { L: 4, E: 3, R: 2, C: 1 }, best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat === 'card').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => (RK[b.it.r] || 0) - (RK[a.it.r] || 0) || b.v - a.v).slice(0, 3);
     const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
     // seuls les trophées qui ont leur image sont exposés (les autres arrivent avec les lots succès)
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
@@ -2108,12 +2108,12 @@
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}
       <h3 class="sec">Tes chiffres</h3>
-      <div class="pf-tiles">${tile(ic('ticket'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(ico('tip-market', '🏷️'), S.itemProfit || 0, 'reventes gagnantes')}
-        ${tile(ico('hab-club', '🪩'), S.clubNights || 0, 'soirées au Club')}${tile(ico('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('slot-seven', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
-      ${best.length ? `<h3 class="sec">Tes plus belles pièces</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
+      <div class="pf-tiles">${tile(pic('nav-bets', '🎟️'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(pic(has('app-objets') ? 'app-objets' : 'tip-market', '🏷️'), S.itemProfit || 0, 'reventes gagnantes')}
+        ${tile(pic('hab-club', '🪩'), S.clubNights || 0, 'soirées au Club')}${tile(pic('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('casino-machine', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
+      ${best.length ? `<h3 class="sec">Tes cartes les plus rares</h3><div class="pf-best">${best.map((x, k) => `<div class="pf-gem ${k === 0 ? 'top' : ''}"><span class="pf-rank">${k + 1}</span><div class="pf-art">${itemPic(x.it)}</div><b>${esc(x.it.name)}</b><span class="pf-v">${short(x.v)}</span>${x.paid > 0 ? `<small class="${x.v >= x.paid ? 'up' : 'down'}">${x.v >= x.paid ? '+' : '−'}${short(Math.abs(x.v - x.paid))}</small>` : '<small class="up">cadeau</small>'}</div>`).join('')}</div>` : ''}
       <h3 class="sec">Ton style <small>· un look acheté reste à toi</small></h3>
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
-        if (k.iap && !has) return `<button class="card sk-iap" data-act="boutique" data-id="vip"><div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="sk-price">Exclusif · Boutique</small></button>`;
+        if (k.iap && !has) { const x = D.IAP.find(i => i.id === k.iap); return `<div class="card sk-iap"><div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="muted">Exclusif</small><button class="btn gold xs" data-act="iapSoon" data-id="${k.iap}">${x ? x.price : 'Boutique'}</button></div>`; }
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
@@ -2645,10 +2645,15 @@
   }
   // fin de l'écran de chargement : on attend les images du premier écran (la barre suit), puis on l'affiche
   function preload(html, then) {
-    const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(['bg-accueil', 'bg-city'].filter(has).map(src)))];
-    let n = 0; const one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / L.length); };
-    const all = Promise.all(L.map(u => new Promise(ok => { const i = new Image(); i.onload = i.onerror = () => { one(); ok(); }; i.src = u; })));
-    Promise.race([all, new Promise(ok => setTimeout(ok, 8000))]).then(() => window.HC_LOAD ? window.HC_LOAD.done(then) : then());
+    // un vrai chargement : tout ce qu'il faut pour jouer sans trou (ville, bâtiments, interface, ton perso, ton appart), polices comprises
+    const s = st(), look = s.cityLook && s.cityLook !== 'base' ? '-' + s.cityLook : '', A = window.ASSETS || [];
+    const want = n => /^(bld-|icon-|nav-|btn-|hdr-|app-|ui-|ic-promo|ic-shop|deco-|tip-|coin-|ev-)/.test(n) || ['bg-city', 'bg-city' + look, 'bg-accueil', 'booster-pack', 'card-back', 'guide', 'logo', 'phone-wall'].includes(n)
+      || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && /^room-/.test(n)) || /^(minerv|pcv|rig|pc)-/.test(n);
+    const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(want).map(src)))];
+    let n = 0; const tot = L.length + 1, one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / tot, n, tot); };
+    const fonts = (document.fonts && document.fonts.ready || Promise.resolve()).then(one);
+    const all = Promise.all([fonts, ...L.map(u => new Promise(ok => { const i = new Image(); i.onload = i.onerror = () => { one(); ok(); }; i.src = u; }))]);
+    Promise.race([all, new Promise(ok => setTimeout(ok, 25000))]).then(() => window.HC_LOAD ? window.HC_LOAD.done(then) : then());
   }
   // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
   const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`); };
