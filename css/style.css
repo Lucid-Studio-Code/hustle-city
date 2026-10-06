@@ -3209,3 +3209,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 @keyframes raysPulse { 50% { opacity: .55; } }
 #pack .pk-rays { background: radial-gradient(circle, rgba(255,255,255,.55) 0 10%, transparent 40%), repeating-conic-gradient(from 0deg, transparent 0deg, var(--ray, rgba(255,255,255,.35)) 4deg, transparent 9deg, transparent 22deg); filter: blur(.8px); }
 @media (prefers-reduced-motion: reduce) { #app .levelup .rays::before, #app .levelup .rays::after { animation: none; } }
+#app .lg-card .lg-art .lg-tag.gift { background: linear-gradient(#7ee05a, #2f9e33); color: #fff; right: -20px; bottom: -6px; font-size: 12px; padding: 2px 8px; white-space: nowrap; -webkit-text-stroke: 2.5px #2a1a10; paint-order: stroke fill; transform: rotate(-6deg); }
