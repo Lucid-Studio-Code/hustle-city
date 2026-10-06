@@ -1374,7 +1374,7 @@
     if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash, true)}</b></span>`);
     if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
     if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Plus de pub imposée</b></span>');
-    if (g.passDays) out.push(`<span class="gc">${ic('lingot')}<b>+15 / jour</b></span>`, `<span class="gc">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>+1 / jour</b></span>`, '<span class="gc gc-r"><b>🔁 Chaque mois · sans engagement</b></span>');
+    if (g.passDays) out.push(`<span class="gc">${ic('lingot')}<b>+15 / jour</b></span>`, `<span class="gc">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>+1 / jour</b></span>`);
     if (g.skin) out.push(`<span class="gc gc-s">${has('skin-' + g.skin) ? `<img src="${src('skin-' + g.skin)}" alt="">` : '👑'}<b>Skin Gold</b></span>`);
     return out.join('');
   }
