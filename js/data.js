@@ -318,6 +318,14 @@
     { id: 's-graff', cat: 'sneaker', name: "Graffiti custom", r: 'E', p0: 1600, vol: 0.03 },
     { id: 's-lux', cat: 'sneaker', name: "Sneaker de luxe cuir", r: 'E', p0: 2400, vol: 0.03 },
     { id: 's-moon', cat: 'sneaker', name: "Moon Boost", r: 'E', p0: 3200, vol: 0.03 },
+    { id: 'w-digital', cat: 'watch', name: "Montre digitale rétro", r: 'C', p0: 60, vol: 0.02 },
+    { id: 'w-field', cat: 'watch', name: "Montre de terrain", r: 'C', p0: 180, vol: 0.02 },
+    { id: 'w-steel', cat: 'watch', name: "Montre acier classique", r: 'R', p0: 900, vol: 0.02 },
+    { id: 'w-pilot', cat: 'watch', name: "Montre d’aviateur", r: 'R', p0: 1400, vol: 0.02 },
+    { id: 'w-sq', cat: 'watch', name: "Squelette mécanique", r: 'E', p0: 9000, vol: 0.02 },
+    { id: 'w-iced', cat: 'watch', name: "Montre glacée de diamants", r: 'E', p0: 22000, vol: 0.02 },
+    { id: 'w-tourb', cat: 'watch', name: "Tourbillon", r: 'E', p0: 38000, vol: 0.02 },
+    { id: 'w-pocket', cat: 'watch', name: "Montre à gousset ancienne", r: 'R', p0: 1100, vol: 0.02 },
     // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
