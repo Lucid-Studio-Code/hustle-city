@@ -29,7 +29,7 @@ POCKETS = {
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
 MAX = {'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
-NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking')   # décors : pas de détourage
+NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
 TOL = {'cr-leila': 140}

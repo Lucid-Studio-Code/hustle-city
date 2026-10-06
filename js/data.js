@@ -328,6 +328,9 @@
     { id: 'w-tourb', cat: 'watch', name: "Tourbillon", r: 'E', p0: 38000, vol: 0.02 },
     { id: 'w-pocket', cat: 'watch', name: "Montre à gousset ancienne", r: 'R', p0: 1100, vol: 0.02 },
     { id: 'w-unique', cat: 'watch', name: "Pièce unique d’horloger", r: 'L', p0: 140000, vol: 0.02 },
+    { id: 'o-chain', cat: 'gold', name: "Chaîne en or", r: 'R', p0: 1200, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'o-ring', cat: 'gold', name: "Chevalière en or", r: 'R', p0: 800, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
+    { id: 'o-nugget', cat: 'gold', name: "Pépite d’or", r: 'E', p0: 3500, vol: 0.006, drift: .000004, revert: 0, cap: 1.6 },
     // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },

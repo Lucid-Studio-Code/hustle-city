@@ -67,22 +67,57 @@
     <div id="toast"></div>
     <div id="start" class="loading">
       <style>
-        #start.loading { background: radial-gradient(circle at 50% 38%, #3a2470, #1b1433 70%); justify-content: center; gap: 26px; }
-        #start.loading .ld-logo { font: 400 54px/0.9 'Lilita One', 'Lilita', system-ui, sans-serif; color: #ffd23f; text-align: center; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; text-shadow: 0 6px 0 #2a1a10; transform: rotate(-4deg); }
-        #start.loading .ld-logo span { display: block; color: #fff; text-shadow: 0 6px 0 #2a1a10, 0 0 26px #ff3cac; }
-        #start.loading .ld-bar { width: min(76%, 300px); height: 22px; border: 3px solid #2a1a10; border-radius: 14px; background: #2b1d4f; overflow: hidden; box-shadow: 0 4px 0 #2a1a10; }
-        #start.loading .ld-fill { height: 100%; width: 0; background: linear-gradient(#8cf06a, #3fb82e); border-radius: 10px; box-shadow: inset 0 3px 0 rgba(255,255,255,.35); transition: width .15s linear; }
-        #start.loading .ld-bar { position: relative; }
-        #start.loading .ld-pct { position: absolute; inset: 0; display: grid; place-items: center; font: 900 13px system-ui, sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
-        #start.loading .ld-txt { min-height: 40px; max-width: 300px; margin: -12px 0 0; padding: 0 16px; color: #e6dcff; font: 800 14px/1.35 system-ui, sans-serif; text-align: center; transition: opacity .25s; }
+        /* écran de chargement : une grande scène du jeu en fond (tirée au hasard), le logo qui rebondit, une barre en or qui se remplit de billets */
+        #start.loading { background: #1b1433; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 26px); overflow: hidden; }
+        #start .ld-bg { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, #4a2a8a, #1b1433 72%); }
+        #start .ld-bg i { position: absolute; inset: -3%; background: var(--ld) center / cover no-repeat; opacity: 0; transition: opacity .6s; animation: ldZoom 14s ease-in-out infinite alternate; }
+        #start .ld-bg.on i { opacity: 1; }
+        #start .ld-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(27,20,51,.55), transparent 26%, transparent 55%, rgba(27,20,51,.92) 88%); }
+        @keyframes ldZoom { from { transform: scale(1); } to { transform: scale(1.07) translateY(-1%); } }
+        #start .ld-rain { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        #start .ld-rain b { position: absolute; top: -40px; width: 26px; height: 15px; border: 2px solid #1d5c2a; border-radius: 3px; background: linear-gradient(90deg, #7fd36a, #4caf50 50%, #7fd36a); animation: ldFall linear infinite; opacity: .85; }
+        #start .ld-rain b.c { width: 18px; height: 18px; border-radius: 50%; border-color: #8a5a00; background: radial-gradient(circle at 35% 35%, #fff3a0, #ffc72c 45%, #e0a21d); }
+        @keyframes ldFall { to { transform: translateY(110vh) rotate(540deg); } }
+        #start .ld-top, #start .ld-bot { position: relative; z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #start .ld-logo { width: min(84%, 360px); filter: drop-shadow(0 6px 0 rgba(42,26,16,.45)); animation: ldPop .7s cubic-bezier(.3,1.6,.5,1) both, ldWob 3s 1s ease-in-out infinite; }
+        #start .ld-logo-t { font: 400 56px/0.9 'Lilita One', system-ui, sans-serif; color: #ffd23f; text-align: center; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; text-shadow: 0 6px 0 #2a1a10; transform: rotate(-4deg); }
+        #start .ld-logo-t span { display: block; color: #fff; }
+        @keyframes ldPop { from { transform: scale(.4); opacity: 0; } }
+        @keyframes ldWob { 0%, 100% { transform: rotate(-2deg) scale(1); } 50% { transform: rotate(2deg) scale(1.03); } }
+        #start .ld-tip { display: flex; align-items: flex-end; gap: 8px; width: min(100%, 360px); margin-bottom: 14px; }
+        #start .ld-tip img { width: 62px; height: 62px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 0 rgba(42,26,16,.5)); animation: ldNod 1.6s ease-in-out infinite; }
+        @keyframes ldNod { 50% { transform: translateY(-3px) rotate(-3deg); } }
+        #start .ld-txt { position: relative; flex: 1; margin: 0 0 10px; padding: 9px 13px; border: 3px solid #2a1a10; border-radius: 16px 16px 16px 4px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10;
+          color: #2a1a10; font: 800 14px/1.3 'Nunito', system-ui, sans-serif; min-height: 22px; transition: opacity .25s; }
+        #start .ld-bar { position: relative; width: min(100%, 340px); height: 30px; padding: 4px; border: 3px solid #2a1a10; border-radius: 18px; box-shadow: 0 4px 0 #2a1a10, inset 0 2px 0 rgba(255,255,255,.5);
+          background: linear-gradient(#ffe27a, #e0a21d); }
+        #start .ld-in { position: relative; height: 100%; border-radius: 12px; background: #3a2266; box-shadow: inset 0 3px 4px rgba(0,0,0,.45); overflow: hidden; }
+        #start .ld-fill { height: 100%; width: 0; border-radius: 12px; transition: width .15s linear;
+          background: repeating-linear-gradient(90deg, #6fd35a 0 16px, #4caf50 16px 18px), #4caf50; box-shadow: inset 0 3px 0 rgba(255,255,255,.4), inset 0 -3px 0 rgba(0,0,0,.15); }
+        #start .ld-coin { position: absolute; top: 50%; left: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 3px solid #2a1a10; transition: left .15s linear;
+          background: radial-gradient(circle at 35% 35%, #fff6b8, #ffc72c 45%, #d9900f); box-shadow: 0 2px 0 #2a1a10; display: grid; place-items: center; font: 400 16px 'Lilita One', system-ui; color: #8a5a00; animation: ldSpin 1s linear infinite; z-index: 2; }
+        #start .ld-coin::after { content: 'H'; }
+        @keyframes ldSpin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.25); } }
+        #start .ld-pct { margin-top: 10px; font: 400 18px 'Lilita One', system-ui, sans-serif; color: #fff; -webkit-text-stroke: 1.2px #2a1a10; paint-order: stroke fill; text-shadow: 0 2px 0 #2a1a10; }
       </style>
-      <div class="ld-logo">HUSTLE<span>CITY</span></div>
-      <div class="ld-bar"><div class="ld-fill"></div><b class="ld-pct">0 %</b></div>
-      <p class="ld-txt"></p>
+      <div class="ld-bg"><i></i></div>
+      <div class="ld-rain"></div>
+      <div class="ld-top"><img class="ld-logo" src="assets/img/logo.png" alt="Hustle City" onerror="this.outerHTML='<div class=&quot;ld-logo-t&quot;>HUSTLE<span>CITY</span></div>'"></div>
+      <div class="ld-bot">
+        <div class="ld-tip"><img src="assets/img/guide.png" alt="" onerror="this.remove()"><p class="ld-txt"></p></div>
+        <div class="ld-bar"><div class="ld-in"><div class="ld-fill"></div></div><i class="ld-coin"></i></div>
+        <b class="ld-pct">0 %</b>
+      </div>
       <script>
       // écran de chargement : la barre avance pendant le chargement du code, puis des images (UI la termine)
       window.HC_LOAD = (function () {
-        var el = document.getElementById('start'), fill = el.querySelector('.ld-fill'), txt = el.querySelector('.ld-txt');
+        var el = document.getElementById('start'), fill = el.querySelector('.ld-fill'), txt = el.querySelector('.ld-txt'), coin = el.querySelector('.ld-coin');
+        // une scène au hasard parmi les images de chargement (celles qui existent) ; l'accueil « Continuer » garde la même
+        var NB = 8, pick = [], tryBg = function () { if (!pick.length) return; var n = pick.shift(), im = new Image();
+          im.onload = function () { var b = el.querySelector('.ld-bg'); b.style.setProperty('--ld', 'url(' + im.src + ')'); b.classList.add('on'); window.HC_BG = im.src; }; im.onerror = tryBg; im.src = 'assets/img/load-' + n + '.png'; };
+        for (var k = 1; k <= NB; k++) pick.push(k); pick.sort(function () { return Math.random() - .5; }); tryBg();
+        var rain = el.querySelector('.ld-rain'); for (var r = 0; r < 14; r++) { var b = document.createElement('b'); if (r % 3 === 0) b.className = 'c';
+          b.style.left = (Math.random() * 100) + '%'; b.style.animationDuration = (4 + Math.random() * 5) + 's'; b.style.animationDelay = (-Math.random() * 8) + 's'; rain.appendChild(b); }
         var L = ['Momo recompte les billets…', 'On chauffe la machine à crypto…', 'On graisse la roulette…', 'Négociation avec le videur…', 'On repasse le survêt…',
           'Calcul des cotes (arrondies à notre avantage)…', 'On cire les sneakers…', 'Le Kiosque imprime les tuyaux du jour…', 'On lustre les lingots…',
           'Réveil des pigeons du PigeonCoin…', 'On cache le fromage du KebabCoin…', 'Le bus est en retard, comme d\'hab…', 'On allume les néons du Lucky Palace…',
@@ -93,10 +128,10 @@
         txt.textContent = L[i++]; var rot = setInterval(say, 1600);
         var tick = setInterval(function () {
           if (!cb && !real) target += (.12 - target) * .02;   // le code se charge ; ensuite la barre suit les vraies images chargées
-          p += (target - p) * .25; fill.style.width = (p * 100).toFixed(1) + '%';
+          p += (target - p) * .25; fill.style.width = (p * 100).toFixed(1) + '%'; if (coin) coin.style.left = (p * 100).toFixed(1) + '%'; if (pct && !real) pct.textContent = Math.round(p * 100) + ' %';
           if (cb && p > .985) { clearInterval(tick); clearInterval(rot); fill.style.width = '100%'; var f = cb; cb = null; setTimeout(f, 120); }
         }, 60);
-        return { set: function (f, n, tot) { real = true; target = Math.max(target, .12 + .87 * f); if (pct && tot) pct.textContent = Math.round(f * 100) + ' %'; }, done: function (f) { target = 1; cb = f; if (pct) pct.textContent = '100 %'; } };
+        return { set: function (f, n, tot) { real = true; target = Math.max(target, .12 + .87 * f); if (pct && tot) pct.textContent = Math.round(Math.max(f, p) * 100) + ' %'; }, done: function (f) { target = 1; cb = f; if (pct) pct.textContent = '100 %'; } };
       })();
       </script>
     </div>
@@ -106,7 +141,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=311', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=312', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

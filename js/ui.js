@@ -2219,7 +2219,7 @@
 
   // ------------------------------------------------------------ accueil
   function startScreen() {
-    const el = $('#start'); el.className = has('splash') ? 'splash' : ''; startBg(el);
+    const el = $('#start'); el.className = 'first';
     const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '<div class="t1">HUSTLE</div><div class="t2">CITY</div>';
     let sel = 'survet'; if (!st().tag) st().tag = String(1000 + Math.floor(Math.random() * 9000));
     const draw = () => {
@@ -2230,6 +2230,7 @@
           <div class="name-tag">Ton blaze aura un numéro rien qu'à toi, ex. <b>#${st().tag || '????'}</b></div>
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
         </div>`;
+      startBg(el);
       el.querySelectorAll('.skin').forEach(b => b.onclick = () => { sel = b.dataset.skin; const n = $('#st-name').value; draw(); $('#st-name').value = n; });
       $('#st-go').onclick = () => {
         const n = $('#st-name').value.trim();
@@ -2673,7 +2674,10 @@
     Promise.race([all, new Promise(ok => setTimeout(ok, 25000))]).then(() => window.HC_LOAD ? window.HC_LOAD.done(then) : then());
   }
   // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
-  const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`); };
+  const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`);
+    // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville
+    const sc = window.HC_BG || (has('bg-city') ? src('bg-city') : ''); if (sc) { el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
+    if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
   function boot() {
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
@@ -2683,9 +2687,9 @@
     const el = $('#start'), s = st();
     const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>
       <div class="st-hero">${skinPic(s.skin)}</div>
-      <div class="st-bottom"><p class="st-hello stroke">Re, ${esc(s.name)} !</p><button class="btn green start-btn" id="st-go">Continuer</button>
+      <div class="st-bottom"><p class="st-hello">${has('guide') ? `<img src="${src('guide')}" alt="">` : ''}<span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
       <p class="start-note">*ou pas. Réservé aux adultes</p></div>`;
-    preload(html, () => { el.className = 'welcome'; startBg(el); el.innerHTML = html; welcomeGo(); });
+    preload(html, () => { el.className = 'welcome'; el.innerHTML = html; startBg(el); welcomeGo(); });
     const welcomeGo = () => $('#st-go').onclick = () => {
       sfx.tap(); el.classList.add('gone'); setTimeout(() => el.remove(), 400);
       boot2(false);

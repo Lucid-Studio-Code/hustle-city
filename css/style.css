@@ -3238,3 +3238,24 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* « Acheté … → repris … » : une petite étiquette centrée, jamais une barre sur toute la largeur */
 #app #cardzoom .cz-gain { flex: 0 0 100%; width: auto; margin: 0 0 4px; padding: 0; background: none; text-align: center; }
 #app #cardzoom .cz-gain .own-gain { display: inline-block; max-width: 100%; padding: 5px 14px; border-radius: 999px; background: #fff8ec; box-shadow: 0 2px 0 rgba(42,26,16,.35); }
+
+/* ---------- accueil (« Continuer » et premier lancement) : même ADN que l'écran de chargement ---------- */
+#app #start.welcome, #app #start.first { background: #1b1433; overflow: hidden; }
+#app #start > .st-fx { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+#app #start > .st-fx .st-scene { position: absolute; inset: -3%; background: var(--sc) center / cover no-repeat; animation: ldZoom 14s ease-in-out infinite alternate; }
+#app #start > .st-fx::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(27,20,51,.5), transparent 25%, transparent 50%, rgba(27,20,51,.92) 86%); }
+#app #start.first > .st-fx::after { background: linear-gradient(rgba(27,20,51,.55), rgba(27,20,51,.82) 45%, rgba(27,20,51,.94)); }
+#app #start > .st-fx .st-rays { position: absolute; left: 50%; top: 58%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; opacity: .35;
+  background: repeating-conic-gradient(from 0deg, rgba(255,226,122,.55) 0 6deg, transparent 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 38%); mask: radial-gradient(circle, #000 0, transparent 38%); animation: stRays 40s linear infinite; }
+#app #start.first > .st-fx .st-rays { display: none; }
+@keyframes stRays { to { transform: rotate(360deg); } }
+@keyframes ldZoom { from { transform: scale(1); } to { transform: scale(1.07) translateY(-1%); } }
+#app #start.welcome > :not(.st-fx), #app #start.first > :not(.st-fx) { position: relative; z-index: 1; }
+#app #start .st-logo { animation: stDrop .7s cubic-bezier(.3,1.5,.5,1) both; }
+#app #start .st-top { animation: none; } #app #start .st-top .st-logo { animation: stDrop .7s cubic-bezier(.3,1.5,.5,1) both, ldWob2 3s 1s ease-in-out infinite; }
+@keyframes ldWob2 { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) scale(1.03); } }
+#app #start .st-hero .pic { filter: drop-shadow(0 0 22px rgba(255,210,63,.55)) drop-shadow(0 8px 0 rgba(42,26,16,.35)); }
+#app #start .st-hello { display: flex; align-items: flex-end; gap: 8px; margin: 0 0 6px; max-width: 360px; font: inherit; -webkit-text-stroke: 0; }
+#app #start .st-hello img { width: 54px; height: 54px; object-fit: contain; flex: none; filter: drop-shadow(0 3px 0 rgba(42,26,16,.5)); }
+#app #start .st-hello span { margin-bottom: 8px; padding: 8px 13px; border: 3px solid #2a1a10; border-radius: 16px 16px 16px 4px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; color: #2a1a10; font: 800 15px/1.3 var(--text); }
+#app #start .st-hello b { color: #c2185b; }
