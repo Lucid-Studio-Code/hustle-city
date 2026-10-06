@@ -491,9 +491,9 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .pm-city small { position: absolute; right: 10px; bottom: 8px; color: #fff; font-weight: 800; text-shadow: 0 1px 2px #000; }
 .pm-hero { padding: 12px; border: 3px solid var(--ink); border-radius: 18px; color: #fff; background: radial-gradient(120% 90% at 20% 30%, color-mix(in srgb, var(--pm) 60%, #fff) 0%, var(--pm) 55%, color-mix(in srgb, var(--pm) 60%, #000) 100%); box-shadow: 0 4px 0 var(--ink), inset 0 0 0 3px var(--yellow); }
 .pm-for { display: inline-block; padding: 2px 9px; border: 2px solid var(--ink); border-radius: 99px; background: var(--yellow); color: var(--ink); font: 900 11px var(--text); }
-.pm-hr { display: flex; gap: 10px; align-items: center; margin-top: 8px; } .pm-hr b { display: block; font: 400 17px/1.1 var(--title); } .pm-hr small { color: #fff; opacity: .9; font-weight: 800; }
+.pm-hr { display: flex; gap: 10px; align-items: center; margin-top: 14px; } .pm-hr b { display: block; font: 400 17px/1.1 var(--title); } .pm-hr small { color: #fff; opacity: .9; font-weight: 800; }
 .pm-ha { position: relative; flex: 0 0 70px; height: 70px; display: grid; place-items: center; } .pm-ha img { width: 64px; height: 64px; object-fit: contain; }
-.pm-ha i { position: absolute; top: -6px; right: -8px; padding: 1px 6px; border: 2px solid var(--ink); border-radius: 10px; background: var(--red); font: 400 13px var(--title); font-style: normal; transform: rotate(8deg); }
+.pm-ha i { position: absolute; bottom: -4px; right: -8px; padding: 1px 6px; border: 2px solid var(--ink); border-radius: 10px; background: var(--red); font: 400 13px var(--title); font-style: normal; transform: rotate(8deg); }
 .pm-hb { margin-top: 10px; padding: 8px; border: 2px solid var(--ink); border-radius: 14px; background: var(--green); color: var(--ink); text-align: center; font: 400 19px var(--title); box-shadow: 0 3px 0 var(--ink); }
 .pm-hb s { opacity: .6; font-size: 14px; margin-right: 6px; } .pm-hl { display: block; text-align: center; margin-top: 6px; font-weight: 900; color: #fff; }
 /* ---------------------------------------------------------------- Événements (simple, un bloc = une chose) */

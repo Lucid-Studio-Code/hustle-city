@@ -122,7 +122,7 @@
         const title = c.title || autoTitle(c), desc = c.desc || autoDesc(c), price = c.kind === 'off' ? `<s>${esc(x.price)}</s> ${eur(priceN(x) * (1 - c.value / 100))}` : esc(x.price);
         $('#pm-prev').innerHTML = `<div class="prev-lbl">Ce que voit le joueur</div>
           <div class="pm-city">${img('bg-city')}<div class="pm-btn-prev big" style="--pm:${l.color}"><span>${esc((c.name || l.name).toUpperCase())}</span>${img(lookImg(l))}<i>${b - Date.now() > 1728e5 ? Math.floor((b - Date.now()) / 864e5) + ' j' : '1 j'}</i></div><small>Le bouton, en haut à gauche de la ville</small></div>
-          <div class="pm-hero" style="--pm:${l.color}"><span class="pm-for">✨ Choisie pour toi · ${esc(c.name || l.name)}</span>
+          <div class="pm-hero" style="--pm:${l.color}"><span class="pm-for">★ Spécial ${esc(c.name || l.name)}</span>
             <div class="pm-hr"><div class="pm-ha">${img(offerImg(x))}<i>${esc(remise(c).replace(' de lingots', ''))}</i></div><div><b>${esc(title)}</b><small>${esc(desc)}</small></div></div>
             <div class="pm-hb">${price}</div><small class="pm-hl">⏱ Finit dans ${days >= 2 ? Math.round(days) + ' jours' : Math.round(days * 24) + ' h'}</small></div>
           <small class="help">L'offre s'affiche en haut de la boutique, à la couleur de la promo.</small>`;
