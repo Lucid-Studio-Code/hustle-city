@@ -6,7 +6,7 @@ __pycache__/
 *.pyc
 tools/inbox/*.png
 server/hustle.db*
-server/.admin-token
+server/.admin-token*
 server/demo.db*
 server/captures/
 server/fcm-key.json
