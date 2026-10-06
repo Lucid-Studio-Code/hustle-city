@@ -91,7 +91,7 @@ def cutout(im, keep=None, debug=None, tol=60):
     bbox = alpha.point(lambda v: 255 if v > 20 else 0).getbbox()
     return im.crop(bbox) if bbox else im
 
-CREA_CROP = {'item-cr-scarabling': (.19, .16, .81, .70)}
+CREA_CROP = {'item-cr-scarabling': (.19, .16, .81, .70), 'item-cr-parrain': (.17, .19, .84, .70)}
 
 def run(name):
     im = Image.open(os.path.join(src, name + '.png'))
