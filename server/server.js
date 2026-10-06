@@ -340,8 +340,40 @@ const admin = {
     send(res, 200, q(`SELECT e.t, e.type, e.data, e.pid, p.name, p.tag, p.skin, p.avatar, p.frame FROM events e LEFT JOIN players p ON p.pid = e.pid WHERE ${w.join(' AND ')} ORDER BY e.t DESC LIMIT 200`, ...a));
   },
   'GET /admin/api/log'(req, res) { send(res, 200, q('SELECT * FROM admin_log ORDER BY t DESC LIMIT 200')); },
-  'GET /admin/api/broadcasts'(req, res) { send(res, 200, q("SELECT * FROM admin_log WHERE action = 'broadcast' OR (action = 'gift' AND data LIKE '%\"pid\":\"*\"%') ORDER BY t DESC LIMIT 30")); }
+  'GET /admin/api/broadcasts'(req, res) { send(res, 200, q("SELECT * FROM admin_log WHERE action = 'broadcast' OR (action = 'gift' AND data LIKE '%\"pid\":\"*\"%') ORDER BY t DESC LIMIT 30")); },
+  // -------- notifications sur le téléphone des joueurs (page « Notifications »)
+  'GET /admin/api/push'(req, res) {
+    send(res, 200, { on: PUSH.on, phones: PUSH.count(q('SELECT pid FROM players').map(r => r.pid)),
+      plan: q('SELECT * FROM push_plan WHERE sent = 0 ORDER BY at'), sent: q('SELECT * FROM push_plan WHERE sent = 1 ORDER BY at DESC LIMIT 30') });
+  },
+  async 'POST /admin/api/push'(req, res) {   // { title, body, filter, at? (ms), dry? }
+    const b = await body(req), pids = pushTargets(b.filter || {});
+    if (b.dry) return send(res, 200, { ok: true, n: pids.length, phones: PUSH.count(pids), on: PUSH.on });
+    const title = String(b.title || 'Hustle City').slice(0, 60), text = String(b.body || '').slice(0, 180);
+    if (!text) return send(res, 400, { err: 'texte vide' });
+    const at = +b.at > now() + 30000 ? +b.at : now();
+    const r = db.prepare('INSERT INTO push_plan (at, title, body, filter, sent, n) VALUES (?, ?, ?, ?, 0, 0)').run(at, title, text, JSON.stringify(b.filter || {}));
+    log('push-plan', { title, at, filter: b.filter }); if (at <= now()) await pushDue(); send(res, 200, { ok: true, id: Number(r.lastInsertRowid), at });
+  },
+  async 'POST /admin/api/push-cancel'(req, res) { const b = await body(req); run('DELETE FROM push_plan WHERE id = ? AND sent = 0', +b.id); log('push-cancel', b); send(res, 200, { ok: true }); }
 };
+// qui reçoit une notification : tous, ou un groupe (absents depuis N jours, actifs cette semaine, niveau minimum)
+db.exec('CREATE TABLE IF NOT EXISTS push_plan (id INTEGER PRIMARY KEY AUTOINCREMENT, at INT, title TEXT, body TEXT, filter TEXT, sent INT DEFAULT 0, n INT DEFAULT 0)');
+function pushTargets(f) {
+  const w = ['banned = 0'], a = [];
+  if (+f.away) { w.push('last_seen < ?'); a.push(now() - +f.away * DAY); }
+  if (f.active7) { w.push('last_seen >= ?'); a.push(now() - 7 * DAY); }
+  if (+f.minLvl) { w.push('lvl >= ?'); a.push(+f.minLvl); }
+  return q(`SELECT pid FROM players WHERE ${w.join(' AND ')}`, ...a).map(r => r.pid);
+}
+async function pushDue() {   // envoie les notifications programmées dont l'heure est passée
+  for (const p of q('SELECT * FROM push_plan WHERE sent = 0 AND at <= ?', now())) {
+    run('UPDATE push_plan SET sent = 1 WHERE id = ?', p.id);
+    const pids = pushTargets(JSON.parse(p.filter || '{}')), n = PUSH.on ? await PUSH.toPlayers(pids, p.title, p.body).catch(() => 0) : 0;
+    run('UPDATE push_plan SET n = ? WHERE id = ?', n, p.id); log('push', { title: p.title, n });
+  }
+}
+setInterval(() => pushDue().catch(() => {}), 60000);
 
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.json': 'application/json' };
 http.createServer(async (req, res) => {

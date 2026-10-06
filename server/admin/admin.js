@@ -151,6 +151,7 @@
     { id: 'promos', label: 'Promos', icon: 'ic-promo' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
+    { id: 'notifs', label: 'Notifications', icon: 'app-msg' },
     { id: 'logs', label: 'Journal', icon: 'hdr-missions' }
   ];
   const PARENT = { player: 'players' };
