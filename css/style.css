@@ -3328,3 +3328,5 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .cdm-final-rew { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; } #app .cdm-final-rew > small { flex-basis: 100%; text-align: center; font: 800 12px/1.3 var(--text); color: #7a5a3a; }
 #app .cdm-recap .btn.big { margin-top: 12px; }
 #app .cdm-rit .ev-emo { font-size: 18px; line-height: 26px; } #app .cdm-rit .pic .emo { font-size: 18px; }
+/* onglet verrouillé (texte blanc sur gris) : sans ombre portée ni contour */
+#app #modal .tab.tab-locked, #app #modal .tab.tab-locked .tab-lbl, #app #modal .tab.tab-locked .tab-lbl * { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
