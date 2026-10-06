@@ -156,7 +156,7 @@
     options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: opt.legend || 'right', labels: { padding: 12, font: { size: 12.5, weight: 800 } } } } } });
   // barres horizontales en HTML (avec icônes du jeu)
   HC.hbars = (rows, o = {}) => { const max = Math.max(1, ...rows.map(r => r.n)); return rows.length ? rows.map(r => `<div class="hb" ${r.click ? `data-go="${r.click}" style="cursor:pointer"` : ''}><span class="hl">${r.icon || ''}<span title="${esc(r.plain || '')}">${r.label}</span></span><span class="bar"><i style="width:${Math.max(2, r.n / max * 100)}%;${r.color || o.color ? `--bc:${r.color || o.color}` : ''}"></i></span><em>${r.v != null ? r.v : fmt(r.n)}${r.sub ? `<small>${r.sub}</small>` : ''}</em></div>`).join('') : HC.empty('Pas encore de données.'); };
-  HC.empty = (t, icon = 'guide') => `<div class="empty">${img(icon)}${t}</div>`;
+  HC.empty = (t, icon = 'guide') => `<div class="empty">${icon ? img(icon) : ''}${t}</div>`;   // icon = null : le texte seul
   HC.loading = () => `<div class="loading">${img('guide')}</div>`;
   HC.kpi = (icon, value, label, o = {}) => `<div class="kpi ${o.cls || ''} ${o.go ? 'click' : ''}" style="--kc:${o.color || 'var(--yellow)'}" ${o.go ? `data-go="${o.go}"` : ''} ${o.title ? `title="${esc(o.title)}"` : ''}><div class="ki">${o.html || img(icon)}</div><div style="min-width:0"><div class="kv">${value}${o.delta || ''}</div><div class="kl">${label}</div></div></div>`;
   HC.secTitle = (icon, t, sub, id) => `<div class="sec-title" ${id ? `id="${id}"` : ''}>${img(icon)}<h2>${t}</h2>${sub ? `<small>${sub}</small>` : ''}</div>`;
