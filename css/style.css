@@ -3188,3 +3188,6 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .sh2-for { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px 3px 4px; border: 2.5px solid #2a1a10; border-radius: 999px; background: linear-gradient(180deg, #fff3a8, #ffc933 55%, #f0a51c); box-shadow: 0 3px 0 #2a1a10, inset 0 2px 0 rgba(255,255,255,.6); font: 400 14px var(--title); color: #2a1a10; letter-spacing: .2px; }
 #app .sh2-for i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #e63946; border: 2px solid #2a1a10; color: #ffe27a; font-style: normal; font-size: 13px; line-height: 1; }
 #app .sh2-for em { font: 900 11px var(--text); font-style: normal; color: #7a4a10; padding-left: 7px; margin-left: 2px; border-left: 2px solid rgba(42,26,16,.25); }
+/* badge de bonus posé à cheval sur l'image des lingots */
+#app .lg-card .lg-art { overflow: visible; }
+#app .lg-card .lg-art .lg-tag { top: auto; bottom: -2px; right: -16px; z-index: 2; transform: rotate(-8deg); font-size: 13px; padding: 2px 7px; }
