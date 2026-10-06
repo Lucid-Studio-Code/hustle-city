@@ -476,7 +476,17 @@
       </button>`;
     }).join('') + D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
+    if (!placing) { liftPlaques(); inner.querySelectorAll('img').forEach(i => i.complete || i.addEventListener('load', liftPlaques, { once: true })); }
   }
+  // les noms des bâtiments passent toujours devant les bâtiments : on les recopie dans un calque au-dessus de toute la ville
+  function liftPlaques() {
+    const inner = $('#map-inner'); if (!inner) return; const R = inner.getBoundingClientRect(); if (!R.width) return;
+    let lay = inner.querySelector('.plq-layer'); if (!lay) { lay = document.createElement('div'); lay.className = 'plq-layer'; inner.appendChild(lay); }
+    lay.innerHTML = [...inner.querySelectorAll('.bld')].map(b => { const p = b.querySelector('.plaque'); if (!p) return ''; p.style.visibility = 'hidden'; const r = p.getBoundingClientRect();
+      const k = R.width / inner.offsetWidth || 1;   // la ville peut être zoomée : on revient à sa taille réelle
+      return `<button class="bld plq-copy ${b.classList.contains('locked') ? 'locked' : ''}" data-act="bld" data-id="${b.dataset.id}" style="left:${(r.left + r.width / 2 - R.left) / k}px;top:${(r.top - R.top) / k}px">${p.outerHTML.replace('visibility: hidden;', '')}</button>`; }).join('');
+  }
+  window.addEventListener('resize', () => setTimeout(liftPlaques, 100));
   // panneau de la ville (dessiné en attendant une image) : il affiche l'événement en cours
   function sixBoardArt() {
     const ph = G.sixPhase(), line = ph === 'before' ? 'BIENTÔT' : ph === 'on' ? 'EN COURS' : 'TERMINÉ';
@@ -887,7 +897,7 @@
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
         ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${(n => has(n) ? pic(n) : null)('bed-laptop-' + gg) || `<span class="bed-emo">💻<i>${gg === 'f' ? '💗' : '❤️'}</i></span>`}</button>
         <div class="bubble-at" data-for="light">${agBubble()}</div>` : ''}
-        <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${rig.hot ? 'hot' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
+        <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${!rig.idle && !rig.burnt && rig.heat >= 80 ? 'hot' : ''} ${rig.burnt ? 'burnt' : ''} ${rig.ready ? 'ready' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at" data-for="rig">${rigBubble}</div>
       </div>
       <div class="room-head">
@@ -1955,7 +1965,7 @@
           <i class="tcg-holo"></i></div></div>`;
       }
       // créature commune : carte classique (illustration dans sa fenêtre, texte dessous), comme les communes de sport ; le full art est réservé aux rares et plus
-      if (it.kind === 'creature') d = { type: it.series, name: it.name, art: `<div class="tcg-sub ill-art crea-art"><img src="${src('item-' + it.id)}" alt=""></div>`, stat: '', ability: se.name, text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub || se.name, no };
+      if (it.kind === 'creature') d = { type: it.series, name: it.name, art: `<div class="tcg-sub ill-art crea-art"><img class="cr-blur" src="${src('item-' + it.id)}" alt=""><img class="cr-main" src="${src('item-' + it.id)}" alt=""></div>`, stat: '', ability: se.name, text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub || se.name, no };
       else d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
         stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'staff' ? it.role : it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
     }
@@ -2542,6 +2552,7 @@
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
+  G.on('mineHot', h => notify('rig', `🌡️ Ta machine chauffe : ${h} %`, 'Elle tremble ! Refroidis-la avant 100 %, sinon ta récolte en prend un coup.'));
   G.on('mineBurnt', () => notify('rig', 'Ta machine a surchauffé', 'La récolte en prend un coup : la prochaine fois, refroidis-la avant 100 %.'));
   G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) softNotify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
   G.on('tipResult', r => {

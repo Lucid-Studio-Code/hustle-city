@@ -83,7 +83,7 @@ def cutout(im, keep=None, debug=None, tol=60):
         ys, xs = zip(*comp)
         if debug is not None: debug.append((k, sum(xs) / len(xs) / w, sum(ys) / len(ys) / h, len(comp), comp))
         cx, cy = sum(xs) / len(xs) / w, sum(ys) / len(ys) / h
-        hit = keep == 'all' or (isinstance(keep, dict) and k in keep.get('n', [])) or bool(isinstance(keep, list) and any(abs(fx - cx) < .015 and abs(fy - cy) < .015 for fx, fy in keep))
+        hit = (keep == 'sides' and (cx < .34 or cx > .66)) or keep == 'all' or (isinstance(keep, dict) and k in keep.get('n', [])) or bool(isinstance(keep, list) and any(abs(fx - cx) < .015 and abs(fy - cy) < .015 for fx, fy in keep))
         if hit: bgmask[list(ys), list(xs)] = True
     alpha = Image.fromarray(np.where(bgmask, 0, 255).astype('uint8'))
     alpha = alpha.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.GaussianBlur(0.8))
@@ -91,14 +91,24 @@ def cutout(im, keep=None, debug=None, tol=60):
     bbox = alpha.point(lambda v: 255 if v > 20 else 0).getbbox()
     return im.crop(bbox) if bbox else im
 
-CREA_CROP = {'item-cr-scarabling': (.19, .16, .81, .70), 'item-cr-parrain': (.17, .19, .84, .70), 'item-cr-louperiph': (.16, .19, .84, .74)}
+CREA_CROP = {   # fenêtre de l'illustration dans chaque carte générée (gauche, haut, droite, bas), mesurée à la main
+    'betonnard': (.12, .11, .88, .73), 'biscotto': (.14, .13, .86, .74), 'bitumouche': (.13, .11, .86, .73), 'canardo': (.12, .11, .88, .76),
+    'chenillette': (.12, .11, .88, .76), 'cosmo': (.11, .09, .89, .80), 'crocodalle': (.13, .10, .86, .72), 'electrochat': (.14, .14, .86, .77),
+    'escargoat': (.12, .10, .88, .71), 'fenekko': (.12, .10, .90, .76), 'flamenkoh': (.16, .12, .88, .77), 'fourmidable': (.15, .15, .85, .72),
+    'golemneon': (.09, .10, .92, .80), 'gorilleur': (.11, .12, .92, .78), 'grenouf': (.12, .12, .89, .78), 'herissnik': (.14, .13, .89, .74),
+    'hiboss': (.13, .14, .86, .80), 'kaiju': (.11, .13, .89, .76), 'kebabzor': (.12, .10, .88, .71), 'kraken': (.11, .14, .89, .75),
+    'licornette': (.09, .13, .91, .78), 'liontours': (.11, .10, .91, .77), 'louperiph': (.12, .16, .89, .78), 'matouz': (.13, .12, .89, .73),
+    'moustikass': (.12, .10, .88, .74), 'pandagrillz': (.12, .12, .89, .77), 'parrain': (.14, .14, .86, .76), 'phenix': (.09, .14, .91, .80),
+    'pigeonnard': (.12, .10, .88, .76), 'poubellou': (.12, .10, .88, .75), 'ratchou': (.11, .10, .90, .80), 'requinoir': (.12, .10, .89, .77),
+    'scarabling': (.14, .17, .86, .69), 'serpentdor': (.11, .12, .90, .80), 'taupecash': (.12, .10, .88, .73), 'tigresko': (.11, .10, .90, .84),
+    'trotilezard': (.12, .10, .88, .73), 'yetiz': (.09, .13, .92, .80) }
 
 def run(name):
     im = Image.open(os.path.join(src, name + '.png'))
     kind = name.split('-')[0]
     if name in ('shop-hero', 'pop-starter'): kind = 'bg'   # images avec leur décor
     if name.startswith('item-cr-'):   # créatures : on ne garde que l'illustration, le jeu dessine le même cadre pour toutes
-        w, h = im.size; b = CREA_CROP.get(name, (.16, .14, .84, .70))
+        w, h = im.size; b = CREA_CROP.get(name[8:], (.12, .11, .88, .75))
         im = im.convert('RGB').crop((int(w * b[0]), int(h * b[1]), int(w * b[2]), int(h * b[3]))); im.thumbnail((360, 460), Image.LANCZOS)
         im.quantize(256, method=Image.MEDIANCUT).save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if name.endswith('-fg'):  # calque de premier plan déjà détouré : on garde la transparence
@@ -106,7 +116,7 @@ def run(name):
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
         im.thumbnail((900, 900)) if max(im.size) > 900 else None
-        im = cutout(im, POCKETS.get(name), tol=TOL.get(name, 60))
+        im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else None), tol=TOL.get(name, 60))   # trophées : on vide le creux des anses
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in NOCUT:

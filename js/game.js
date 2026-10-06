@@ -282,7 +282,7 @@
     const r = D.RIG[st.rig.lvl], m = st.mine, perHour = powerH();
     if (!m) return { r, idle: true, hot: true, ready: false, value: 0, mined: 0, pct: 0, left: 0, heat: 0, perHour, heatMs: 0 };
     const t = now(), end = m.start + m.dur, ready = t >= end, pct = Math.max(0, Math.min(1, (t - m.start) / m.dur));
-    const heat = mineHeat(m, t); if (heat >= 100 && !m.burnt) { m.burnt = true; emit('mineBurnt'); }
+    const heat = mineHeat(m, t); if (heat >= 100 && !m.burnt) { m.burnt = true; emit('mineBurnt'); } else if (heat >= 80 && !m.burnt && !m.warned) { m.warned = true; emit('mineHot', Math.round(heat)); }
     // la récolte vaut un montant en billets fixé au départ : on reçoit la quantité de crypto correspondante au cours de la récolte
     const full = m.val != null ? m.val : m.amt * st.crypto.prices[m.id];
     return { r, run: m, opt: mineOpt(m.id), idle: false, ready, hot: ready, value: full * pct, full, mined: full * pct / st.crypto.prices[m.id], pct, left: Math.max(0, end - t), heat, burnt: !!m.burnt,

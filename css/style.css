@@ -3214,3 +3214,27 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* le style est chargé : le jeu peut s'afficher (voir le petit style dans game.html qui le cache avant) */
 #app > * { visibility: visible; }
 #cardzoom .cz-acts { flex-wrap: wrap; justify-content: center; max-width: min(92vw, 420px); } #app #cardzoom .cz-gain { flex: 0 0 100%; box-sizing: border-box; text-align: center; }
+
+/* noms des bâtiments : calque au-dessus de toute la ville (jamais cachés par un autre bâtiment) */
+#app .plq-layer { position: absolute; inset: 0; z-index: 15; pointer-events: none; }
+#app .plq-layer .plq-copy { position: absolute; width: auto; transform: translateX(-50%); pointer-events: auto; }
+#app .plq-layer .plq-copy .plaque { margin: 0; visibility: visible !important; }
+#app .plq-layer .plq-copy:active { transform: translateX(-50%) scale(.97); }
+
+/* machine à miner : elle tremble et fume quand elle chauffe (80 % et plus), rebondit quand la récolte est prête */
+#app .room-stage .room-obj.hot .pic { animation: rigShake .18s linear infinite; filter: drop-shadow(0 0 10px rgba(255,80,40,.75)); }
+#app .room-stage .room-obj.burnt .pic { filter: grayscale(.5) brightness(.8) drop-shadow(0 0 8px rgba(60,60,60,.8)); }
+#app .room-stage .room-obj.hot::after, #app .room-stage .room-obj.burnt::after { content: ''; position: absolute; left: 50%; top: 0; width: 60%; height: 40%; transform: translate(-50%, -60%); pointer-events: none;
+  background: radial-gradient(circle at 30% 70%, rgba(120,120,120,.55) 0 18%, transparent 19%), radial-gradient(circle at 60% 40%, rgba(150,150,150,.45) 0 22%, transparent 23%), radial-gradient(circle at 45% 15%, rgba(170,170,170,.35) 0 16%, transparent 17%);
+  animation: rigSmoke 1.6s ease-out infinite; }
+#app .room-stage .room-obj.ready:not(.hot) .pic { animation: rigBounce 1.2s ease-in-out infinite; }
+@keyframes rigShake { 0% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(-1.5px, 1px) rotate(-1.2deg); } 50% { transform: translate(1.5px, -1px) rotate(1.2deg); } 75% { transform: translate(-1px, -1px) rotate(-.6deg); } 100% { transform: translate(0, 0) rotate(0); } }
+@keyframes rigSmoke { 0% { opacity: 0; transform: translate(-50%, -40%) scale(.7); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -120%) scale(1.3); } }
+@keyframes rigBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5%); } }
+
+/* créature commune : l'illustration entière (rien de coupé), le fond flouté remplit les côtés */
+.tcg .tcg-sub.crea-art img.cr-blur { position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(10px) saturate(1.2) brightness(.85); }
+.tcg .tcg-sub.crea-art img.cr-main { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; object-position: center; }
+/* « Acheté … → repris … » : une petite étiquette centrée, jamais une barre sur toute la largeur */
+#app #cardzoom .cz-gain { flex: 0 0 100%; width: auto; margin: 0 0 4px; padding: 0; background: none; text-align: center; }
+#app #cardzoom .cz-gain .own-gain { display: inline-block; max-width: 100%; padding: 5px 14px; border-radius: 999px; background: #fff8ec; box-shadow: 0 2px 0 rgba(42,26,16,.35); }
