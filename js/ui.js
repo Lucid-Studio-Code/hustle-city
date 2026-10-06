@@ -1370,7 +1370,7 @@
     if (g.boosters) out.push(`<span class="gc gc-b">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>×${g.boosters}</b></span>`);
     if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash)}</b></span>`);
     if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
-    if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Zéro pub</b></span>');
+    if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Plus de pub imposée</b></span>');
     if (g.passDays) out.push(`<span class="gc gc-p"><b>Chaque jour : +15</b>${ic('lingot')}<b>+1 booster</b></span>`);
     if (g.skin) out.push(`<span class="gc gc-s">${has('skin-' + g.skin) ? `<img src="${src('skin-' + g.skin)}" alt="">` : '👑'}<b>Skin Gold</b></span>`);
     return out.join('');
@@ -1389,7 +1389,7 @@
     const s = st(), own = s.iapOwned || {}, p = promoNow(), X = id => D.IAP.find(i => i.id === id);
     if (p && X(p.id)) return { x: X(p.id), p, why: p.season ? `Spécial ${p.season.name}` : 'Offre du jour' };
     if (welcomeOk()) return { x: X('x-start'), why: 'Offre de bienvenue', sub: 'Une seule fois, pour bien démarrer.' };
-    if (!G.adState().noAds && s.ads && s.ads.n >= 3) return { x: X('x-noads'), why: 'Tu regardes beaucoup de pubs', sub: 'Garde les lingots, oublie les pubs.' };
+    if (!G.adState().noAds && (s.adsSeen || 0) >= 3) return { x: X('x-noads'), why: 'Marre des pubs ?', sub: 'Plus aucune pub qui coupe ton jeu.' };
     const cards = D.ITEMS.filter(i => i.cat === 'card' && (s.owned[i.id] || []).length).length;
     if (cards >= 12) return { x: X('x-collec'), why: 'Pour ton classeur', sub: `Tu as déjà ${cards} cartes : complète tes séries.` };
     if (s.lingots < 40) return { x: X('l-600'), why: 'Recharge tes lingots', sub: 'De quoi t\'offrir boosters et décos.' };
@@ -1413,16 +1413,16 @@
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
     const a = G.adState(), ready = a.left && !a.wait;
-    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>${a.noAds ? 'Lingots gratuits' : 'Regarde une pub'} : +${a.reward} ${ic('lingot')}</b>
-      <small>${a.noAds ? 'Pack Sans pub : pas de pub à regarder, appuie pour récupérer. ' : ''}${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
-      <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>${a.noAds ? 'Récupérer' : 'Regarder'}</button></div>`;
+    return `<div class="card ad-card"><span class="ad-ic">▶</span><div class="grow"><b>Regarde une pub : +${a.reward} ${ic('lingot')}</b>
+      <small>${a.left ? `Encore ${a.left} aujourd'hui${a.wait ? ` · prochaine dans ${mmss(a.wait)}` : ''}` : 'C\'est tout pour aujourd\'hui, reviens demain.'}</small></div>
+      <button class="btn green sm" data-act="adWatch" ${ready ? '' : 'disabled'}>Regarder</button></div>`;
   }
   // offre de bienvenue : proposée régulièrement aux nouveaux joueurs (dès le niveau 3, tous les 2 jours, 5 fois au plus)
   // l'offre du jour : une fenêtre par jour au plus (à la première visite du jour), avec une offre qui change d'un jour à l'autre :
   // promo en cours, pack de départ (nouveaux joueurs), sans pub, pass, collectionneur… jamais deux fois la même de suite
   const OFFER_TXT = {
     'x-start': ['Le pack du débutant', 'Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.'],
-    'x-noads': ['Fini les pubs', 'Plus aucune pub dans le jeu, <b>pour toujours</b>. Et les lingots que tu gagnais en regardant une pub ? Tu les reçois quand même, d\'un simple appui, sans regarder la pub.'],
+    'x-noads': ['Fini les pubs', 'Plus aucune pub qui coupe ton jeu (après tes montées de niveau), <b>pour toujours</b>. Tu peux toujours regarder une pub quand tu veux pour gagner des lingots.'],
     'x-pass': ['Le Pass Hustle', 'Des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b> pendant 30 jours.'],
     'x-collec': ['Pour ton classeur', '<b>20 boosters</b> d\'un coup pour compléter tes séries plus vite.'],
     'x-magnat': ['Le pack Magnat', 'Tout pour devenir le patron du quartier, skin Gold compris.']
@@ -1484,6 +1484,21 @@
       <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / D.ADS.watchS) * 100)}%"></i></div>
       ${left > 0 ? `<p class="ad-hint">Encore ${left} s pour gagner tes ${D.ADS.reward} lingots</p>` : `<button class="btn green wide ad-claim" data-act="adClaim">Récupérer +${D.ADS.reward} lingots</button>`}`; };
+    el.className = 'on'; draw(); clearInterval(adTimer);
+    adTimer = setInterval(() => { left--; draw(); if (left <= 0) clearInterval(adTimer); }, 1000);
+  }
+  // pub imposée après une montée de niveau : pas avant le niveau 5, pas plus d'une toutes les 30 min, jamais avec le pack Sans pub
+  const FORCED_S = 15;
+  function maybeInterstitial() {
+    const s = st(); if (G.TEST || s.noAds || s.lvl < 5 || Date.now() - (s.adForcedAt || 0) < 30 * 60000) return nextPending();
+    s.adForcedAt = Date.now(); s.adsSeen = (s.adsSeen || 0) + 1; window.ONLINE && ONLINE.ev && ONLINE.ev('ad_forced', { lvl: s.lvl });
+    let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
+    let left = FORCED_S;
+    const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}</div>
+      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-bar"><i style="width:${Math.round((1 - left / FORCED_S) * 100)}%"></i></div>
+      ${left > 0 ? '<p class="ad-hint">Le jeu reprend juste après</p>' : '<button class="btn green wide ad-claim" data-act="adForcedEnd">Continuer</button>'}
+      <button class="ad-noads" data-act="adNoAds">Plus de pub qui coupe ? Pack Sans pub</button>`; };
     el.className = 'on'; draw(); clearInterval(adTimer);
     adTimer = setInterval(() => { left--; draw(); if (left <= 0) clearInterval(adTimer); }, 1000);
   }
@@ -1649,12 +1664,13 @@
   // « Achetée » seulement si on vient de l'acheter dans cet arrivage ; une carte qu'on a depuis longtemps est « Possédée »
   const boughtNow = id => { const a = st().owned[id] || [], e = a[a.length - 1]; return !!e && e.paid > 0 && e.t >= Date.now() - (30 * 60000 - G.stockLeft()); };
   let shopPlace = 'comptoir';
+  const shopOfItem = id => { const it = id && G.item(id); return (it && D.ITEM_CATS[it.cat] || {}).shop || 'comptoir'; };
   const SHOP_PLACES = { comptoir: { title: 'Le Comptoir', icon: 'trophy', who: 'le Comptoir' }, bijou: { title: 'Bijouterie Diamant', icon: 'bld-bijou', who: 'la Bijouterie' }, garage: { title: 'Garage Prestige', icon: 'bld-garage', who: 'le Garage' } };
   function openShop(tab, place) {
     if (place) shopPlace = place; else if (!tab || (D.ITEM_CATS[tab] && D.ITEM_CATS[tab].shop !== shopPlace)) shopPlace = tab && D.ITEM_CATS[tab] ? D.ITEM_CATS[tab].shop : 'comptoir';
     if (tab) shopTab = tab;
     const tabs = Object.entries(D.ITEM_CATS).filter(([k, c]) => !c.noBuy && c.shop === shopPlace).map(([k, c]) => ({ id: k, label: `${ico('cat-' + k, '')}${c.name}`, locked: !G.catUnlocked(k), lvl: c.lvl }));
-    if (shopPlace === 'comptoir') tabs.push({ id: 'news', label: 'Actus' });
+    tabs.push({ id: 'news', label: 'Actus' });   // chaque boutique a ses actus : celles de ses propres objets
     if (!tabs.find(t => t.id === shopTab) || tabs.find(t => t.id === shopTab).locked) shopTab = (tabs.find(t => !t.locked) || tabs[0]).id;
     const P = SHOP_PLACES[shopPlace];
     openModal({ title: P.title, icon: P.icon, full: true, tabs, tab: shopTab, body: shopBody(), refresh: () => setBody(shopBody()), onTab: id => { shopTab = id; setBody(shopBody()); } });
@@ -1663,7 +1679,7 @@
     const s = st();
     if (shopTab === 'news') {
       // chaque rumeur avec l'objet concerné, sa cote, et de quoi agir tout de suite
-      const n = s.market.news;
+      const n = s.market.news.filter(x => x.item && shopOfItem(x.item) === shopPlace);
       return `<p class="hint-line">Les rumeurs font bouger les prix. <b>Ça monte ?</b> Achète vite. <b>Ça chute ?</b> Revends avant que ça baisse encore.</p>` +
         (n.length ? n.map(x => {
           const it = x.item && G.item(x.item); if (!it) return '';
@@ -2186,7 +2202,7 @@
     if (id === 'agence') return window.AGENCE ? AGENCE.open() : toast('L\'agence ouvre très bientôt.');
     if (id === 'binder') return openBoosters('col');
     if (id === 'settings') return openSettings();
-    if (id === 'shopNews') return st().lvl >= 2 ? openShop('news') : null;
+    if (id === 'shopNews') { const last = (st().market.news || [])[0]; return st().lvl >= 2 ? openShop('news', shopOfItem(last && last.item)) : null; }
     if (id === 'deal') return openPhone('msg');
     if (id === 'rig') { setScene('appart'); return openRig(); }
     if (id === 'gift') return openDaily();
@@ -2360,9 +2376,10 @@
     },
     adWatch() {
       const a = G.adState(); if (!a.left || a.wait) return;
-      if (a.noAds) { const r = G.adReward(); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${r.n} lingots`); return refresh(); }
       adShow();
     },
+    adForcedEnd() { adClose(); nextPending(); },
+    adNoAds() { if ($('#ad-layer .ad-claim')) adClose(); else return toast('Attends la fin de la pub, puis tu pourras ouvrir la boutique.'); openBoutique('vip'); },
     adClaim() { const r = G.adReward(); adClose(); if (r.err) return toast(r.err, true); sfx.coin(); rain('confetti', 16); toast(`+${r.n} lingots, merci !`); renderHud(); refresh(); },
     adQuit() { adClose(); toast('Pub interrompue : pas de lingots cette fois.', true); },
     supportOpen() { openModal({ title: 'Support', icon: 'star', center: true, body: `<p class="hint-line">Explique ton souci : la réponse arrive dans ton téléphone, dans les messages.</p><textarea id="sup-txt" class="sup-txt" maxlength="2000" placeholder="Ton message…"></textarea><button class="btn green wide" data-act="supportSend">Envoyer</button>` }); },
@@ -2412,7 +2429,7 @@
       }
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
       if (a.act === 'crypto') { closePhone(); setScene('appart'); return openCrypto(a.id); }
-      if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news') : toast('Le Comptoir ouvre au niveau 2.'); }
+      if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news', shopOfItem(a.id)) : toast('Le Comptoir ouvre au niveau 2.'); }
       if (a.act === 'ag' && window.AGENCE) { const r = AGENCE.choose(a.d, a.k); setTimeout(() => chatPush(c.name, null, { from: 'them', txt: r }), 900); refresh(); return drawPhone(); }
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
       drawPhone();
@@ -2469,7 +2486,7 @@
     el.querySelector('button').onclick = () => location.reload();
     document.body.appendChild(el);
   });
-  G.on('levelup', e => { queue(() => showLevelUp(e)); renderCity(); });
+  G.on('levelup', e => { queue(() => showLevelUp(e)); queue(maybeInterstitial); renderCity(); });
   // mini-événement : annoncé par Momo en bas de l'écran (rien ne cache le haut du jeu), la pastille reste en haut
   G.on('event', ev => { notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });
   G.on('deal', d => {

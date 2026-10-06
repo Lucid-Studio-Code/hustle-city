@@ -772,7 +772,7 @@
     { id: 'x-start',  kind: 'pack', once: true, name: 'Pack de départ', price: '2,99 €', tag: 'Une seule fois', give: { lingots: 300, boosters: 5, cash: 2000, rig: 1 },
       desc: '300 lingots, 5 boosters, 2 000 de cash et ta machine passe au niveau 2' },
     { id: 'x-noads',  kind: 'pack', once: true, name: 'Sans pub', price: '3,99 €', tag: 'Pour toujours', give: { lingots: 100, noAds: true },
-      desc: 'Plus aucune pub, pour toujours. Les lingots des pubs se récupèrent d\'un appui, sans regarder. +100 lingots offerts' },
+      desc: 'Plus aucune pub qui coupe ton jeu, pour toujours (les pubs pour gagner des lingots restent au choix). +100 lingots offerts' },
     { id: 'x-pass',   kind: 'pack', name: 'Pass Hustle 30 jours', price: '4,99 €', tag: 'Meilleur rapport', give: { lingots: 150, passDays: 30 },
       desc: '150 lingots tout de suite, puis 15 lingots et 1 booster offerts chaque jour pendant 30 jours' },
     { id: 'x-collec', kind: 'pack', name: 'Pack Collectionneur', price: '9,99 €', give: { boosters: 20, lingots: 150 },

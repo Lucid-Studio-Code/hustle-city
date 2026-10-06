@@ -3150,3 +3150,4 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .welcome-pop.wp-pack .wp-art { background: radial-gradient(circle, #fff3b0, #ffd23f 55%, #e0a21d); }
 #app .welcome-pop.wp-pack .wp-art > img { position: absolute; inset: 18px; width: calc(100% - 36px); height: calc(100% - 36px); object-fit: contain; }
 #app .welcome-pop .wp-art { position: relative; } #app .welcome-pop .wp-art .sh2-badge { top: 8px; right: 8px; }
+#ad-layer .ad-noads { margin-top: 10px; background: transparent; border: 0; color: rgba(255,255,255,.8); font: 800 13px var(--text); text-decoration: underline; cursor: pointer; }
