@@ -198,7 +198,6 @@
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
     const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
-    $('#pill-lingots .plus').classList.toggle('ready', G.dailyReady());
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
@@ -2389,7 +2388,7 @@
     admTest(el) { const t = TESTS[+el.dataset.i]; if (!t || !placing) return; const r = t[1](); toast(r || `${t[0]} : fait. Ça arrive dans quelques secondes si c'est une notification.`); refresh(); },
     valReset() { if (!confirm('Annuler tous tes changements de valeurs pas encore publiés ?')) return; try { localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); },
     welcomeTest() { maybeWelcome(true); },
-    promo() { openBoutique(promoMode === 'ville' ? 'deco' : 'vip'); },
+    promo(el) { openBoutique(el && el.dataset && el.dataset.id === 'vip' ? 'vip' : promoMode === 'ville' ? 'deco' : 'vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },

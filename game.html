@@ -26,7 +26,7 @@
           <div class="xpbar"><div class="xpfill" id="xpfill"></div><span id="xptext"></span></div>
         </div>
         <div class="pill" id="pill-cash"><i class="ic" data-icon="cash"></i><span id="cash">0</span></div>
-        <div class="pill gold" id="pill-lingots"><i class="ic" data-icon="lingot"></i><span id="lingots">0</span><button class="plus" data-act="daily" aria-label="Cadeau du jour"></button></div>
+        <div class="pill gold" id="pill-lingots"><i class="ic" data-icon="lingot"></i><span id="lingots">0</span><button class="plus" data-act="promo" data-id="vip" aria-label="Acheter des lingots"></button></div>
         <button class="round" data-act="settings" aria-label="Réglages"><i class="ic" data-icon="gear"></i></button>
       </div>
       <div class="hud-row2">
@@ -100,7 +100,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=288', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=289', FILES = ['js/layout.js', 'js/data.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');
