@@ -412,7 +412,7 @@
   ];
   // ---------------------------------------------------------------- événement : le Tournoi des 6 Quartiers (rugby)
   // Calqué sur le vrai calendrier du tournoi 2027 (heures en temps universel). Les équipes sont inventées : une par quartier.
-  // Pronos gratuits (3 points par bon prono), classement avec d'autres joueurs, cartes en édition limitée dans les boosters.
+  // Pronos gratuits (3 points par bon prono), classement en ligne avec les vrais joueurs (serveur, /api/six), cartes en édition limitée dans les boosters.
   // prochain événement annoncé sur le Panneau quand rien n'est en cours (date à changer quand on prépare le suivant ; null = « bientôt »)
   const NEXT_EVENT = { at: '2026-11-07T18:00:00+01:00' };
   const SIX = {
@@ -453,16 +453,74 @@
       { id: 'dc-trophy', kind: 'deco', name: 'Statue du trophée', emo: '🏆', desc: 'Pour les vrais fans.', x: 9, y: 54, w: 8, lingots: 30 }
     ],
     // classement final : récompenses selon la place
-    rewards: [{ top: 1, lingots: 60, boosters: 3 }, { top: 3, lingots: 35, boosters: 2 }, { top: 10, lingots: 20, boosters: 1 }, { top: 999, lingots: 8, boosters: 0 }],
-    // les autres joueurs du classement (en attendant un vrai classement en ligne) : pseudo et taux de bons pronos
-    rivals: [['Kenzo93', .66], ['LaFouine', .58], ['Mamadou_R', .62], ['Lina.b', .55], ['TiboRugby', .71], ['Sarah_lsc', .6], ['Yanis.zr', .52], ['Big_Moussa', .64],
-      ['Chloé77', .57], ['Nono_du_13', .5], ['K-Rim', .61], ['Jojo_la_frite', .48], ['Ines_dz', .63], ['Matteo.p', .56], ['Ryad', .59], ['Lucie_b', .54],
-      ['Djibril', .68], ['Momo_officiel', .53], ['Zoé.k', .6], ['Bilal95', .65], ['Emma_r', .51], ['Sofiane', .62], ['Léo_xv', .69], ['Nadia', .57]]
+    rewards: [{ top: 1, lingots: 60, boosters: 3 }, { top: 3, lingots: 35, boosters: 2 }, { top: 10, lingots: 20, boosters: 1 }, { top: 999, lingots: 8, boosters: 0 }]
   };
   TEAMS.rugby = SIX.teams;
   // cartes du tournoi : édition limitée, dans les boosters seulement pendant l'événement
   SIX.teams.forEach((t, i) => ITEMS.push({ id: `k-r${i + 1}`, cat: 'card', series: 'rugby', event: 'six', noBuy: true, name: t[0], r: t[1] >= 86 ? 'E' : 'R',
     p0: Math.round(CARD_P0[t[1] >= 86 ? 'E' : 'R'] * (0.85 + (t[1] % 7) / 20)), vol: .06, img: 'crest-r' + (i + 1), team: ['rugby', i] }));
+
+  // ---------------------------------------------------------------- événement : la Coupe des Morts (Halloween)
+  // 4 équipes de monstres. Le joueur choisit son camp (une fois par édition) et gagne des points pour son équipe en jouant normalement.
+  // Dates réglables au back office (config « cdm » : on, start, end, ed, prio). « ed » = l'édition : changer d'édition remet tout à zéro.
+  // Pendant ses dates, la Coupe passe AVANT le tournoi sur le Panneau (sauf si le back office choisit prio = 'six').
+  const CDM = {
+    name: 'La Coupe des Morts', short: 'Coupe des Morts', on: true, prio: 'cdm', ed: '',
+    start: '2026-10-24T10:00:00+02:00', end: '2026-11-02T23:59:00+01:00',
+    teams: [
+      { id: 'zombies',  name: 'Zombies',  color: '#5bbf3a', dark: '#1d4a12', emo: '🧟', motto: 'On lâche rien, même mort.' },
+      { id: 'vampires', name: 'Vampires', color: '#b0243a', dark: '#4a0814', emo: '🧛', motto: 'On sort la nuit, on rentre riches.' },
+      { id: 'demons',   name: 'Démons',   color: '#ff7a1a', dark: '#6a2400', emo: '😈', motto: 'On met le feu au quartier.' },
+      { id: 'fantomes', name: 'Fantômes', color: '#8fc8ff', dark: '#24406a', emo: '👻', motto: 'Tu nous vois pas, mais on est partout.' }
+    ],
+    // points pour ton équipe : [points par action, plafond de points par jour pour cette action] (les plafonds évitent le « farm » à 1 billet)
+    pts: {
+      bets: [3, 45], betsWon: [12, 180], combiWon: [20, 100], scratch: [3, 45], spins: [1, 60], roulette: [2, 40], bigWin: [40, 80],
+      boosters: [10, 100], rigCollect: [15, 120], rigCool: [3, 15], tips: [5, 25], itemBuy: [6, 60], itemProfit: [8, 80], cryptoBuy: [3, 30], cryptoProfit: [8, 80],
+      deals: [10, 50], clubNights: [25, 50], clubSpots: [5, 30], series: [60, 120], agActs: [4, 40],
+      quest: [25, 250], chal: [20, 60], week: [40, 160], daily: [30, 30]
+    },
+    perCandy: 10,           // 1 bonbon tous les 10 points
+    minReward: 50,          // il faut au moins 50 points pour toucher la récompense d'équipe
+    // défis de la nuit : 3 par jour, tirés au sort (ils changent à minuit)
+    nightPts: 80, nightBonus: { pts: 100, candy: 5 },
+    nights: [
+      { k: 'betsWon', g: 2, t: 'Gagne 2 paris' }, { k: 'bets', g: 3, t: 'Place 3 paris au Royal' }, { k: 'boosters', g: 1, t: 'Ouvre un booster' },
+      { k: 'spins', g: 20, t: 'Fais 20 tours au casino', lvl: 3 }, { k: 'scratch', g: 3, t: 'Gratte 3 tickets' }, { k: 'rigCollect', g: 1, t: 'Récolte ta machine' },
+      { k: 'rigCool', g: 1, t: 'Refroidis ta machine' }, { k: 'tips', g: 1, t: 'Achète un tuyau au Kiosque' }, { k: 'cryptoBuy', g: 2, t: 'Achète de la crypto 2 fois' },
+      { k: 'itemBuy', g: 1, t: 'Achète un objet au Comptoir', lvl: 2 }, { k: 'roulette', g: 5, t: 'Joue 5 fois à la roulette', lvl: 7 },
+      { k: 'clubNights', g: 1, t: 'Passe une soirée au Club', lvl: 6 }, { k: 'cryptoProfit', g: 1, t: 'Vends une crypto en bénéfice' }
+    ],
+    // paliers perso : récompenses à réclamer (cash, lingots, boosters, objets de la boutique de la Coupe)
+    steps: [
+      { n: 100, cash: 500 }, { n: 300, lingots: 10 }, { n: 600, boosters: 1, pin: true }, { n: 1000, cash: 1500, lingots: 15 },
+      { n: 1500, item: 'dc-citrouilles' }, { n: 2500, item: 'fr-cdm', boosters: 2 }, { n: 4000, lingots: 30, item: 'dc-tombe' }, { n: 6000, boosters: 3, lingots: 50 }
+    ],
+    // à la fin : récompense selon la place de TON équipe (+ la Coupe des Morts en trophée pour tous ceux qui ont joué)
+    rewards: [
+      { place: 1, cash: 5000, lingots: 50, boosters: 3, item: 'pn-cdm-gold', chest: true },
+      { place: 2, cash: 2500, lingots: 30, boosters: 2 }, { place: 3, cash: 1500, lingots: 20, boosters: 1 }, { place: 4, cash: 800, lingots: 12, boosters: 1 }
+    ],
+    // boutique (en bonbons) : décos de la ville, pin's, cadre, boosters. Achetés pour toujours, en vente seulement pendant la Coupe.
+    shop: [
+      { id: 'pn-zombies', kind: 'avatar', cdm: 'zombies', name: 'Pin\'s Zombies', candy: 30 },
+      { id: 'pn-vampires', kind: 'avatar', cdm: 'vampires', name: 'Pin\'s Vampires', candy: 30 },
+      { id: 'pn-demons', kind: 'avatar', cdm: 'demons', name: 'Pin\'s Démons', candy: 30 },
+      { id: 'pn-fantomes', kind: 'avatar', cdm: 'fantomes', name: 'Pin\'s Fantômes', candy: 30 },
+      { id: 'pn-cdm-gold', kind: 'avatar', cdm: 'gold', name: 'Pin\'s des champions', noSale: true },
+      { id: 'fr-cdm', kind: 'frame', name: 'Cadre « Coupe des Morts »', emo: '🎃', colors: ['#ff7a1a', '#3a1458'], candy: 150 },
+      { id: 'dc-citrouilles', kind: 'deco', img: 'deco-citrouilles', name: 'Tas de citrouilles', emo: '🎃', desc: 'Elles sourient. Un peu trop.', x: 33, y: 60, w: 8, candy: 40 },
+      { id: 'dc-toiles', kind: 'deco', img: 'deco-toiles', name: 'Toiles d\'araignée', emo: '🕸️', desc: 'Accrochées au lampadaire.', x: 70, y: 44, w: 8, candy: 50 },
+      { id: 'dc-tombe', kind: 'deco', img: 'deco-tombe', name: 'Pierre tombale', emo: '🪦', desc: '« Ici repose ma série de défaites. »', x: 12, y: 78, w: 7, candy: 60 },
+      { id: 'dc-chaudron', kind: 'deco', img: 'deco-chaudron', name: 'Chaudron qui bouillonne', emo: '🧪', desc: 'Personne ne sait ce qu\'il y a dedans.', x: 47, y: 74, w: 8, candy: 120 },
+      { id: 'bo-cdm-1', kind: 'booster', n: 1, name: '1 booster', candy: 25, max: 6 },
+      { id: 'bo-cdm-3', kind: 'booster', n: 3, name: '3 boosters', candy: 65, max: 3 }
+    ]
+  };
+  // la Coupe des Morts : un trophée à exposer sur tes étagères (une fois)
+  ITEMS.push({ id: 't-cdm', cat: 'trophy', name: 'La Coupe des Morts', r: 'E', p0: 666, vol: .03, img: 'ev-cdm-cup' });
+  // la Coupe passe d'abord, le tournoi garde sa boutique : les deux boutiques ensemble (photo de profil, cadres, décos de la ville)
+  const EV_SHOP = SIX.shop.concat(CDM.shop);
 
   const BUY_MARKUP = .05, SELL_FEE = .10;
   // Rumeurs : de temps en temps, un objet s'envole ou s'effondre
@@ -845,7 +903,7 @@
   // placements publiés depuis le back-office (js/layout.js) : ils remplacent les valeurs ci-dessus
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
-  Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = SIX.shop.concat(CITY_SHOP).find(x => x.id === id); if (d) Object.assign(d, p); });
+  Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = EV_SHOP.concat(CITY_SHOP).find(x => x.id === id); if (d) Object.assign(d, p); });
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   if (LY.slot) Object.assign(SLOT.ui, LY.slot);
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
@@ -862,6 +920,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

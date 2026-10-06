@@ -57,7 +57,7 @@
   };
 
   // ------------------------------------------------------------ la photo de profil d'un joueur, comme dans le jeu (skin + cadre + pin's)
-  const SHOP = (D.SIX && D.SIX.shop) || [];
+  const SHOP = D.EV_SHOP || (D.SIX && D.SIX.shop) || [];
   HC.skinImg = skin => { const s = (D.SKINS || []).some(x => x.id === skin) ? skin : 'survet'; return first(`skin-${s}-bust`, `skin-${s}`, 'skin-survet-bust'); };
   HC.frameOf = id => SHOP.find(x => x.id === id && x.kind === 'frame') || null;
   HC.pinOf = id => SHOP.find(x => x.id === id && x.kind === 'avatar') || null;
@@ -65,13 +65,16 @@
   HC.crest = team => { const n = 'crest-r' + ((+team || 0) + 1); if (has(n)) return `<img src="${src(n)}" alt="">`;
     const t = (D.SIX && D.SIX.teams || [])[team] || ['?', 0, '#9b5de5', '#fff', '?'];
     return `<svg viewBox="0 0 60 66"><path d="M30 3 L55 11 V33 C55 49 43 59 30 63 C17 59 5 49 5 33 V11 Z" fill="${t[2]}" stroke="#2a1a10" stroke-width="4"/><path d="M30 10 L48 16 V33 C48 45 40 52 30 56 Z" fill="${t[3]}" opacity=".85"/></svg>`; };
+  // Coupe des Morts : la mascotte d'une équipe (image team-<id>), sinon son emoji sur sa couleur
+  HC.cdmCrest = id => { const t = ((D.CDM && D.CDM.teams) || []).find(x => x.id === id) || { emo: '🏆', color: '#ffd23f' }, n = id === 'gold' ? 'ev-cdm-cup' : 'team-' + id;
+    return has(n) ? `<img src="${src(n)}" alt="">` : `<span class="cdm-dot" style="background:${t.color}">${t.emo}</span>`; };
   HC.isOnline = p => p && (p.online || (p.last_seen && Date.now() - p.last_seen < 150000));
   HC.avatar = (p, size = 44, opt = {}) => {
     p = p || {}; const fr = HC.frameOf(p.frame), pin = HC.pinOf(p.avatar), fi = HC.frameImg(fr), ring = fr && !fi;
     return `<span class="av ${ring ? 'ring' : ''}" style="--s:${size}px;${ring ? `--f1:${fr.colors[0]};--f2:${fr.colors[1]}` : ''}" title="${esc(p.name || '')}">`
       + `<span class="av-in"><img src="${src(HC.skinImg(p.skin))}" alt="" loading="lazy"></span>`
       + (fi ? `<img class="av-fr" src="${src(fi)}" alt="">` : '')
-      + (pin ? `<span class="av-pin">${HC.crest(pin.team)}</span>` : '')
+      + (pin ? `<span class="av-pin">${pin.cdm ? HC.cdmCrest(pin.cdm) : HC.crest(pin.team)}</span>` : '')
       + (opt.online !== false && HC.isOnline(p) ? '<i class="av-on"></i>' : '') + (p.banned ? '<i class="av-ban"></i>' : '') + '</span>';
   };
   HC.who = (p, size = 40, sub) => `<span class="who">${HC.avatar(p, size)}<div><b>${esc(p.name || '(sans nom)')}</b><small>${sub != null ? sub : `#${esc(p.tag || '')}${p.city ? ' · ' + flag(p.cc) + ' ' + esc(p.city) : ''}`}</small></div></span>`;

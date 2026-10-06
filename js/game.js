@@ -985,17 +985,23 @@
     sixSt().picks[i] = p; emit('change'); return { ok: true };
   }
   function sixPoints() { return sixMatches().reduce((a, m) => a + (m.ok ? D.SIX.pts : 0), 0); }
-  // les autres joueurs : chacun a son taux de bons pronos, tiré une fois pour toutes
-  function sixBoard() {
-    const salt = sixSalt(), done = sixMatches().filter(m => m.state === 'done');
-    const rows = D.SIX.rivals.map(([name, acc], b) => ({ name, pts: done.reduce((p, m) => p + (seeded(b * 101 + m.i * 7 + salt) < acc ? D.SIX.pts : 0), 0) }));
-    rows.push({ name: st.name, pts: sixPoints(), me: true });
-    rows.sort((x, y) => y.pts - x.pts || (x.me ? -1 : y.me ? 1 : 0));
-    rows.forEach(r => { r.rank = 1 + rows.filter(o => o.pts > r.pts).length; });
-    return rows;
+  // classement des joueurs : les vrais joueurs, d'après le serveur (js/online.js : /api/six). Hors ligne : toi seul, sans place.
+  let sixNet = null;
+  function sixNetSet(d) { if (d && Array.isArray(d.top)) { sixNet = Object.assign({ at: now(), ed: sixEd() }, d); emit('sixNet'); } }
+  const sixGood = () => sixMatches().filter(m => m.ok).length;
+  const sixOut = () => ({ ed: sixEd() + (sixTest() ? '-test' : ''), pts: sixPoints(), good: sixGood(), played: sixMatches().some(m => m.pick != null) });
+  // { rows: [{ name, pts, rank, me }], total, online } : le top 10, puis toi et tes voisins si tu n'es pas dedans
+  function sixBoardInfo() {
+    const net = sixNet && sixNet.ed === sixEd() ? sixNet : null, mine = sixPoints();
+    if (!net) return { rows: [{ name: st.name, pts: mine, rank: 0, me: true }], total: 1, online: false };
+    const strip = (r, rank) => ({ name: r.name, skin: r.skin, pts: r.me ? Math.max(mine, r.pts) : r.pts, rank, me: !!r.me });
+    const top = net.top.map((r, k) => strip(r, 1 + net.top.filter(o => o.pts > r.pts).length));
+    const rows = top.some(r => r.me) ? top : top.concat((net.around || []).map((r, k) => strip(r, r.me ? net.rank : (net.aroundStart || net.rank) + k)));
+    return { rows, total: net.total || rows.length, online: true };
   }
-  const sixRank = () => sixBoard().find(r => r.me).rank;
-  const sixReward = rank => D.SIX.rewards.find(r => rank <= r.top);
+  const sixBoard = () => sixBoardInfo().rows;
+  const sixRank = () => (sixBoard().find(r => r.me) || {}).rank || 0;   // 0 = inconnue (hors ligne)
+  const sixReward = rank => D.SIX.rewards.find(r => rank && rank <= r.top) || D.SIX.rewards[D.SIX.rewards.length - 1];   // place inconnue = « tous les autres »
   const sixCardsOn = () => sixPhase() === 'on';
   function simSix(offline) {
     const S = sixSt();
@@ -1004,7 +1010,9 @@
       if (m.state === 'soon' && m.pick == null && !S.remind[m.i] && m.kickoff - now() < (sixTest() ? 180000 : 3600000)) { S.remind[m.i] = true; if (!offline) emit('sixRemind', m); }
       if (m.state === 'done' && m.pick != null && !S.paid[m.i]) { S.paid[m.i] = true; if (m.ok) addLingots(D.SIX.lingotPerGood); emit('sixResult', m); }
     });
-    if (sixPhase() === 'over' && !S.final) { const rank = sixRank(), played = sixMatches().some(m => m.pick != null);
+    // fin : en ligne, on attend le classement à jour du serveur (10 min au plus) avant de figer la place
+    const waitNet = window.ONLINE && window.ONLINE.on && !(sixNet && sixNet.ed === sixEd() && sixNet.at > sixEnd() + 30000) && now() - sixEnd() < 10 * 60000;
+    if (sixPhase() === 'over' && !S.final && !waitNet) { const rank = sixRank(), played = sixMatches().some(m => m.pick != null);
       // pas joué du tout : rien à récapituler, le Panneau redevient normal
       S.final = { rank, claimed: !played, seen: played ? 0 : now(), played }; if (played) emit('sixEnd', S.final); }
     // récompense jamais récupérée 7 jours après la fin : versée d'office (le Panneau redevient un panneau normal, sans rien à réclamer)
@@ -1058,7 +1066,7 @@
   // 4 équipes de monstres. On choisit son camp (une fois par édition), on gagne des points pour son équipe en jouant normalement
   // (table D.CDM.pts, plafonnée par jour), plus 3 défis de la nuit par jour. 1 bonbon tous les 10 points, à dépenser dans la boutique.
   // Mode test : #test-cdm (partie test) ou #cdm-test → la Coupe a commencé il y a 3 h ; ajouter « -fin » (#test-cdm-fin) → elle finit 3 min après l'ouverture.
-  const cdmTest = () => /cdm-test|test-cdm/.test(location.hash);
+  const cdmTest = () => DEV && /cdm-test|test-cdm/.test(location.hash);
   const cdmFast = () => /cdm-fin|cdm-test-fin/.test(location.hash);
   let cdmBase = 0, cdmNet = null, cdmCache = null;
   function cdmT() {
@@ -1143,45 +1151,26 @@
     else { grantEv(id); if (x.kind === 'avatar') st.avatar = id; if (x.kind === 'frame') st.frame = id; }
     addXp(5); emit('change'); return { x };
   }
-  // ---- classement des équipes. En ligne : les vrais totaux du serveur (js/online.js). Sinon : des équipes simulées, les mêmes pour tout le monde.
-  const cdmSalt = () => [...cdmEd()].reduce((a, c) => a + c.charCodeAt(0) * 7, 0);
-  const cdmActive = hr => hr < 7 ? .15 : hr < 12 ? .55 : hr < 18 ? .8 : 1.15;   // on joue surtout le soir
-  function cdmSimTotals(t) {
-    const [a, b] = cdmT(), C = D.CDM, salt = cdmSalt(), H = Math.max(0, Math.min(b, t) - a) / 3600000, full = Math.floor(H);
-    return C.teams.map((tm, i) => { let s = 0;
-      for (let h = 0; h <= full; h++) { const w = h < full ? 1 : H - full; if (w <= 0) continue;
-        const hr = new Date(a + h * 3600000).getHours(), r = .6 + .8 * seeded(h * 7 + i * 131 + salt), mo = 1 + .3 * Math.sin(h / 26 + i * 1.7 + salt % 10);
-        s += w * C.sim.players[i] * C.sim.perH * cdmActive(hr) * r * mo; }
-      return Math.round(s); });
-  }
-  // les joueurs simulés d'une équipe : quelques gros joueurs, beaucoup de petits
-  function cdmSimMembers(i, total) {
-    const N = D.CDM.sim.players[i], w = m => 1 / Math.pow(m + 4, .9); let W = 0; for (let m = 0; m < N; m++) W += w(m);
-    return { N, pts: m => Math.round(total * w(m) / W), name: m => D.CDM.names[(m + i * 8 + cdmSalt()) % D.CDM.names.length] };
-  }
+  // ---- classement des équipes : seulement les vrais joueurs, d'après le serveur (js/online.js). Hors ligne : juste tes points.
   function cdmNetSet(d) { if (d && d.totals) { cdmNet = Object.assign({ at: now() }, d); cdmCache = null; emit('cdmNet'); } }
   function cdmBoard() {
-    if (cdmCache && now() - cdmCache.t < 5000) return cdmCache.b;
-    const S = cdmSt(), C = D.CDM, t = now(), net = cdmNet && t - cdmNet.at < 10 * 60000 ? cdmNet : null;
-    const sim = net ? null : cdmSimTotals(t);
+    if (cdmCache && now() - cdmCache.t < 3000) return cdmCache.b;
+    const S = cdmSt(), C = D.CDM, net = cdmNet && (now() - cdmNet.at < 15 * 60000 || cdmPhase() === 'over') ? cdmNet : null;
     const teams = C.teams.map((tm, i) => ({ id: tm.id, i, name: tm.name, color: tm.color, emo: tm.emo,
-      total: net ? (+net.totals[tm.id] || 0) + (S.team === tm.id ? S.unsent || 0 : 0) : sim[i] + (S.team === tm.id ? S.pts : 0),
-      players: net ? (+(net.count || {})[tm.id] || 0) : C.sim.players[i] + (S.team === tm.id ? 1 : 0) }));
+      total: (net ? +net.totals[tm.id] || 0 : 0) + (S.team === tm.id ? (net ? S.unsent || 0 : S.pts) : 0),
+      players: net ? +(net.count || {})[tm.id] || 0 : S.team === tm.id ? 1 : 0 }));
     [...teams].sort((x, y) => y.total - x.total).forEach((x, k) => { x.rank = k + 1; });
     let top = [], rank = 0, of = 0;
     if (S.team) {
-      const i = C.teams.findIndex(x => x.id === S.team);
-      if (net) { top = ((net.top || {})[S.team] || []).slice(0, 5); rank = (net.me && net.me.rank) || 1; of = teams[i].players || 1;
-        if (!top.some(r => r.me) && rank <= 5) top.push({ name: st.name, pts: S.pts, me: true }); }
-      else { const M = cdmSimMembers(i, sim[i]); let above = 0; for (let m = 0; m < M.N; m++) if (M.pts(m) > S.pts) above++;
-        rank = above + 1; of = M.N + 1;
-        for (let m = 0; m < 5; m++) top.push({ name: M.name(m), pts: M.pts(m) });
-        top.push({ name: st.name, pts: S.pts, me: true }); top.sort((x, y) => y.pts - x.pts || (x.me ? -1 : 1)); top = top.slice(0, 5); }
+      const me = teams.find(x => x.id === S.team);
+      if (net) { top = ((net.top || {})[S.team] || []).slice(0, 5).map(r => Object.assign({}, r)); rank = (net.me && net.me.rank) || 1; of = Math.max(1, me.players);
+        const mine = top.find(r => r.me); if (mine) mine.pts = Math.max(mine.pts, S.pts); else if (rank <= 5) top.splice(rank - 1, 0, { name: st.name, pts: S.pts, me: true }); top = top.sort((x, y) => y.pts - x.pts).slice(0, 5); }
+      else { top = [{ name: st.name, pts: S.pts, me: true }]; rank = 1; of = 1; }
     }
     const b = { teams, top, rank, of, online: !!net, players: teams.reduce((s, x) => s + x.players, 0) };
     cdmCache = { t: now(), b }; return b;
   }
-  const cdmReward = place => D.CDM.rewards.find(r => r.place === place) || D.CDM.rewards[D.CDM.rewards.length - 1];
+  const cdmReward = place => D.CDM.rewards.find(r => r.place === place) || D.CDM.rewards[D.CDM.rewards.length - 1];   // place inconnue (hors ligne) = la dernière
   function cdmClaim() {
     const S = cdmSt(), f = S.final; if (!f || f.claimed) return { err: 'Rien à récupérer.' };
     f.claimed = true; const r = f.ok ? cdmReward(f.place) : null; if (r) cdmGive(r);
@@ -1202,10 +1191,10 @@
       // Momo annonce la Coupe (une fois par édition), dès que le Panneau est ouvert au joueur
       const lvl = (D.BUILDINGS.find(b => b.id === 'six') || {}).lvl || 1;
       if (!offline && !S.announced && st.tutoDone && st.lvl >= lvl) { S.announced = true; emit('cdmStart'); }
-      // ton équipe se fait doubler : une notif (pas plus d'une toutes les 2 h)
+      // ton équipe se fait doubler (seulement avec le vrai classement) : une notif (pas plus d'une toutes les 2 h)
       if (!offline && S.team && now() - cdmTick > 60000) { cdmTick = now();
         const B = cdmBoard(), me = B.teams.find(x => x.id === S.team);
-        if (S.lastRank && me.rank > S.lastRank && now() - (S.passAt || 0) > 2 * 3600000) { S.passAt = now(); emit('cdmPassed', { by: B.teams.find(x => x.rank === me.rank - 1), me }); }
+        if (B.online && S.lastRank && me.rank > S.lastRank && now() - (S.passAt || 0) > 2 * 3600000) { S.passAt = now(); emit('cdmPassed', { by: B.teams.find(x => x.rank === me.rank - 1), me }); }
         S.lastRank = me.rank; }
       return;
     }
@@ -1213,9 +1202,10 @@
     if (S.team && !S.final) {
       const end = cdmT()[1];
       if (window.ONLINE && window.ONLINE.on && !(cdmNet && cdmNet.at > end + 30000) && now() - end < 10 * 60000) return;
-      cdmCache = null; if (cdmNet && cdmNet.at < end) cdmNet = null;
+      cdmCache = null; if (cdmNet && cdmNet.at < end - 3600000) cdmNet = null;   // des totaux trop vieux ne valent pas un classement final
       const B = cdmBoard(), me = B.teams.find(x => x.id === S.team);
-      S.final = { place: me.rank, order: [...B.teams].sort((x, y) => x.rank - y.rank).map(x => ({ id: x.id, total: x.total })), pts: S.pts, rank: B.rank, of: B.of, ok: S.pts >= D.CDM.minReward, claimed: false, seen: 0 };
+      // hors ligne : pas de classement final (place inconnue) → la récompense de participation (celle de la 4e place)
+      S.final = { place: B.online ? me.rank : 0, order: B.online ? [...B.teams].sort((x, y) => x.rank - y.rank).map(x => ({ id: x.id, total: x.total })) : [], pts: S.pts, rank: B.online ? B.rank : 0, of: B.of, ok: S.pts >= D.CDM.minReward, claimed: false, seen: 0 };
       emit('cdmEnd', S.final);
     }
     if (S.final && !S.final.claimed && now() - cdmT()[1] > 7 * 86400000) cdmClaim();
@@ -1605,7 +1595,7 @@
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     cdmPhase, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
-    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,

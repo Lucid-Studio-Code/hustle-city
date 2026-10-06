@@ -9,15 +9,18 @@
   const longDay = d => d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   const shortDt = t => new Date(t).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const SIX = D.SIX || { matches: [], name: 'Tournoi' };
+  const CDM = D.CDM || { teams: [], start: '', end: '' };
+  // date pour un champ « date et heure » (heure de Paris, celle de son ordinateur)
+  const dtl = v => { const d = new Date(v); return isNaN(d) ? '' : `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
   // les 5 journées du tournoi à partir du jour 1 (une journée par jour, aux heures du vrai calendrier)
   const sixDays = start => { const d0 = new Date(start + 'T12:00'); return [1, 2, 3, 4, 5].map(j => { const d = new Date(d0); d.setDate(d0.getDate() + j - 1); return d; }); };
 
   HC.PAGES.live = async () => {
-    let c = await HC.api('/admin/api/config');
+    let c = await HC.api('/admin/api/config'), cdmLive = await HC.api('/admin/api/cdm').catch(() => ({}));
     async function patch(p, msg) {
       c = await HC.api('/admin/api/config');   // toujours repartir de la dernière version (pour ne rien écraser)
       c = { ...c, ...p }; await HC.api('/admin/api/config', c);
-      HC.toast(msg || 'Enregistré : les joueurs le voient dans la minute', 'icon-check'); render();
+      HC.toast(msg || 'Enregistré : les joueurs le voient dans la minute', 'icon-check'); cdmLive = await HC.api('/admin/api/cdm').catch(() => cdmLive); render();
     }
     let newsForm = false;
 
@@ -25,6 +28,8 @@
       const m = c.maintenance || {}, news = (c.news || []).filter(n => !n.until || Date.parse(n.until) > Date.now()), old = (c.news || []).length - news.length;
       const six = c.sixStart || SIX.sim || '', days = six ? sixDays(six) : [], end = days[4], now = new Date();
       const sixState = !six ? 'none' : now < days[0] ? 'soon' : now <= new Date(end).setHours(23, 59) ? 'live' : 'done';
+      const cdm = { on: CDM.on !== false, start: CDM.start, end: CDM.end, prio: CDM.prio || 'cdm', ...(c.cdm || {}) }, cdmPrio = cdm.prio;
+      const cdmState = !cdm.on ? 'off' : Date.now() < Date.parse(cdm.start) ? 'soon' : Date.now() < Date.parse(cdm.end) ? 'live' : 'done';
       const promo = (c.campaigns || []).find(x => x.on !== false && Date.parse(x.start) <= Date.now() && Date.now() < Date.parse(x.end));
       const ads = { reward: 3, perDay: 5, ...(D.ADS || {}), ...(c.ads || {}) };
       HC.main(`<div class="page-head"><div><h1>Événements et nouveautés</h1><div class="sub">Une chose à la fois. Chaque bloc s'enregistre tout seul et arrive dans le jeu dans la minute.</div></div></div>
@@ -33,6 +38,7 @@
           <div class="ev-chip ${m.on ? 'ko' : 'ok'}">${img('hdr-settings')}<span><small>Le jeu</small><b>${m.on ? 'En maintenance' : 'Ouvert'}</b></span></div>
           <div class="ev-chip">${img('app-missions')}<span><small>Annonces</small><b>${news.length ? news.length + ' en cours' : 'Aucune'}</b></span></div>
           <div class="ev-chip ${sixState === 'live' ? 'ok' : ''}">${img('bld-six')}<span><small>Tournoi</small><b>${sixState === 'live' ? 'En cours' : sixState === 'soon' ? 'Le ' + days[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : sixState === 'done' ? 'Terminé' : 'Pas prévu'}</b></span></div>
+          <div class="ev-chip ${cdmState === 'live' ? 'ok' : ''}">${img(HC.has('ic-ev-cdm') ? 'ic-ev-cdm' : 'ic-promo-halloween')}<span><small>Coupe des Morts</small><b>${cdmState === 'live' ? 'En cours' : cdmState === 'soon' ? 'Le ' + new Date(cdm.start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : cdmState === 'done' ? 'Terminée' : 'Éteinte'}</b></span></div>
           <div class="ev-chip ${promo ? 'ok' : ''}" data-go="promos">${img('ic-promo')}<span><small>Promo</small><b>${promo ? esc(promo.name || 'En cours') : 'Aucune'}</b></span></div>
         </div>
 
@@ -51,6 +57,26 @@
           ${news.length ? `<div class="ev-list">${news.map(n => `<div class="ev-row">${img('app-missions')}<div class="ev-rm"><b>${esc(n.title || '(sans titre)')}</b><p>${esc(n.text || '')}</p><small>${n.until ? 'Jusqu\'au ' + shortDt(n.until) : 'Sans fin'}</small></div><button class="btn sm ghost" data-del-news="${esc(n.id)}">Retirer</button></div>`).join('')}</div>`
             : newsForm ? '' : '<p class="help ev-empty">Aucune annonce en cours.</p>'}
           ${old ? `<p class="help">${old} ancienne${old > 1 ? 's' : ''} annonce${old > 1 ? 's' : ''} terminée${old > 1 ? 's' : ''} (plus envoyée${old > 1 ? 's' : ''}).</p>` : ''}
+        </section>
+
+        <section class="card ev-blk ${cdmState === 'live' ? 'live' : ''}"><div class="ev-bh">${img(HC.has('ic-ev-cdm') ? 'ic-ev-cdm' : 'ic-promo-halloween')}<div><h2>La Coupe des Morts</h2><p class="help">L'événement d'Halloween : 4 équipes (Zombies, Vampires, Démons, Fantômes). Chaque joueur choisit son camp et gagne des points en jouant. Pendant ses dates, le Panneau de la place montre la Coupe.</p></div>
+            <button class="btn ${cdm.on ? 'green' : 'ghost'}" id="cd-on">${cdm.on ? 'Allumée' : 'Éteinte'}</button></div>
+          <div class="ev-six">
+            <div class="ev-fl">
+              <div class="fld"><label for="cd-s">Elle commence le</label><input type="datetime-local" id="cd-s" value="${esc(dtl(cdm.start))}"></div>
+              <div class="fld"><label for="cd-e">Elle finit le</label><input type="datetime-local" id="cd-e" value="${esc(dtl(cdm.end))}"></div>
+              <div class="chips">${[['Halloween', 'hw'], ['Dès maintenant', 'now'], ['Durée 3 jours', 'd3'], ['Durée 1 semaine', 'd7'], ['Durée 10 jours', 'd10']].map(([l, k]) => `<button class="chip" data-cd="${k}">${l}</button>`).join('')}</div>
+              <div class="fld"><div class="lb">Si le tournoi de rugby tombe en même temps, le Panneau montre</div><div class="chips" id="cd-p">${[['La Coupe des Morts', 'cdm'], ['Le tournoi', 'six']].map(([l, k]) => `<button class="chip ${cdmPrio === k ? 'on' : ''}" data-prio="${k}">${l}</button>`).join('')}</div></div>
+              <p class="help" id="cd-info"></p>
+              <div class="ev-act"><button class="btn ghost" id="cd-reset">Repartir de zéro</button><button class="btn lg green" id="cd-go">Enregistrer</button></div>
+            </div>
+            <div class="cd-live"><div class="lb">En direct <small>· édition ${esc(cdmLive.ed || '')}</small></div>
+              <div class="cd-kpis"><span><b>${(cdmLive.players || 0).toLocaleString('fr-FR')}</b><small>joueurs dans une équipe</small></span><span><b>${Object.values(cdmLive.totals || {}).reduce((a, b) => a + b, 0).toLocaleString('fr-FR')}</b><small>points en tout</small></span></div>
+              ${HC.hbars(CDM.teams.map(t => ({ label: `${esc(t.name)} <small>(${(cdmLive.count || {})[t.id] || 0})</small>`, plain: t.name, icon: HC.cdmCrest(t.id), n: (cdmLive.totals || {})[t.id] || 0, v: ((cdmLive.totals || {})[t.id] || 0).toLocaleString('fr-FR'), color: t.color })).sort((a, b) => b.n - a.n))}
+              <div class="lb" style="margin-top:12px">Les meilleurs joueurs</div>
+              ${(cdmLive.best || []).length ? `<div class="ev-list">${cdmLive.best.map((p, i) => { const t = CDM.teams.find(x => x.id === p.team) || {}; return `<div class="ev-row cd-best"><b class="cd-rk">${i + 1}</b>${HC.who(p, 34, `<span style="color:${t.color}">${esc(t.name || '')}</span>`)}<b class="cd-pts">${(p.pts || 0).toLocaleString('fr-FR')} pts</b></div>`; }).join('')}</div>` : '<p class="help ev-empty">Personne n\'a encore rejoint d\'équipe.</p>'}
+            </div>
+          </div>
         </section>
 
         <section class="card ev-blk"><div class="ev-bh">${img('bld-six')}<div><h2>Le prochain tournoi</h2><p class="help">${esc(SIX.name || 'Le tournoi')} : 5 journées de pronos, une par jour. Le Panneau de la place l'annonce avec la date.</p></div></div>
@@ -79,10 +105,28 @@
           <div id="vals">${Object.entries(c.values || {}).map(([k, v]) => `<div class="val-row"><input data-k value="${esc(k)}"><input data-v value="${esc(JSON.stringify(v))}"></div>`).join('')}</div>
           <div class="ev-act"><button class="btn sm ghost" id="val-add">+ Réglage</button><button class="btn sm" id="val-go">Enregistrer</button></div>
         </details>`);
-      wire(ads);
+      wire(ads, cdm);
     }
 
-    function wire(ads) {
+    function wire(ads, cdm) {
+      // Coupe des Morts : allumer / éteindre, dates, priorité sur le Panneau, nouvelle édition
+      let cd = { ...cdm };
+      const cdInfo = () => { const s = Date.parse($('#cd-s').value), e = Date.parse($('#cd-e').value);
+        $('#cd-info').innerHTML = !(s < e) ? '<b>La fin doit être après le début.</b>' : !cd.on ? 'La Coupe est <b>éteinte</b> : le Panneau ne la montre pas.'
+          : Date.now() < s ? `Elle commence <b>${longDay(new Date(s))}</b> et dure <b>${Math.round((e - s) / DAY)} jours</b>. En attendant, le Panneau annonce la date.`
+          : Date.now() < e ? `<b>En cours</b> jusqu'au ${longDay(new Date(e))}.` : 'Ces dates sont passées : la Coupe est finie.'; };
+      $('#cd-s').oninput = $('#cd-e').oninput = cdInfo; cdInfo();
+      $('#cd-on').onclick = async () => { cd.on = !cd.on; await patch({ cdm: { ...(c.cdm || {}), on: cd.on } }, cd.on ? 'Coupe des Morts allumée' : 'Coupe des Morts éteinte'); };
+      $$('[data-prio]').forEach(b => b.onclick = () => { cd.prio = b.dataset.prio; $$('[data-prio]').forEach(x => x.classList.toggle('on', x === b)); });
+      $$('[data-cd]').forEach(b => b.onclick = () => { const k = b.dataset.cd, s0 = Date.parse($('#cd-s').value) || Date.now();
+        if (k === 'hw') { $('#cd-s').value = dtl(CDM.start); $('#cd-e').value = dtl(CDM.end); }
+        else if (k === 'now') { const d = new Date(); d.setSeconds(0, 0); $('#cd-s').value = dtl(d); if (!(Date.parse($('#cd-e').value) > d)) $('#cd-e').value = dtl(new Date(+d + 7 * DAY)); }
+        else { const e = new Date(s0 + +k.slice(1) * DAY); e.setHours(23, 59, 0, 0); $('#cd-e').value = dtl(e); }
+        cdInfo(); });
+      $('#cd-go').onclick = async () => { const s = new Date($('#cd-s').value), e = new Date($('#cd-e').value); if (!(s < e)) return HC.toast('La fin doit être après le début', null, true);
+        await patch({ cdm: { ...(c.cdm || {}), on: cd.on, start: s.toISOString(), end: e.toISOString(), prio: cd.prio } }, 'Coupe des Morts enregistrée'); };
+      $('#cd-reset').onclick = async () => { if (!(await HC.confirm('Repartir de zéro ?', 'Une nouvelle Coupe commence : équipes, points, paliers et bonbons repartent de zéro pour tous les joueurs. Les objets déjà gagnés restent à eux.', 'Repartir de zéro', 'red'))) return;
+        await patch({ cdm: { ...(c.cdm || {}), ed: new Date(Date.parse($('#cd-s').value) || Date.now()).getFullYear() + '-' + Date.now().toString(36) } }, 'Nouvelle Coupe : tout repart de zéro'); };
       // maintenance
       if ($('#mt-on')) $('#mt-on').onclick = async () => { const text = $('#mt-txt').value.trim(); if (!(await HC.confirm('Mettre le jeu en maintenance ?', 'Les joueurs voient ton message à la place du jeu, dans la minute, jusqu\'à ce que tu le rouvres.', 'Mettre en maintenance', 'red'))) return; await patch({ maintenance: { on: true, text } }, 'Le jeu est en maintenance'); };
       if ($('#mt-off')) $('#mt-off').onclick = () => patch({ maintenance: { ...(c.maintenance || {}), on: false } }, 'Le jeu est rouvert');

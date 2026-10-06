@@ -31,7 +31,7 @@
   // ------------------------------------------------------------ images (repli emoji tant que le visuel n'existe pas)
   const EMO = { 'bld-parking': '🅿️',
     cash: '💵', lingot: '🪙', gear: '⚙️', wallet: '💼', chart: '📈', dice: '🎲', ticket: '🎟️', trophy: '🏆', home: '🏠', city: '🏙️', lock: '🔒', check: '✅', star: '⭐', gift: '🎁',
-    'bld-appart': '🏢', 'bld-balto': '🍺', 'bld-casino': '🎰', 'bld-shop': '🛍️', 'bld-club': '🎉', 'bld-kiosque': '📰', 'bld-bijou': '💍', 'bld-garage': '🏎️', 'bld-tour': '🏙️',
+    'ic-ev-cdm': '🎃', 'bld-appart': '🏢', 'bld-balto': '🍺', 'bld-casino': '🎰', 'bld-shop': '🛍️', 'bld-club': '🎉', 'bld-kiosque': '📰', 'bld-bijou': '💍', 'bld-garage': '🏎️', 'bld-tour': '🏙️',
     pc: '🖥️', trading: '📈', shop: '🛍️', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
   };
   const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', shop: 'nav-shop', bolt: 'icon-bolt' };
@@ -51,6 +51,9 @@
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
+  const decoImg = x => x.img || 'deco-' + x.id;
+  // pin's de la photo de profil : écusson d'une équipe du tournoi, ou pin's d'un camp de la Coupe des Morts
+  const pinArt = x => !x ? '' : x.cdm ? (has('pin-' + x.cdm) ? `<span class="crest"><img src="${src('pin-' + x.cdm)}" alt="" draggable="false"></span>` : cdmCrest(x.cdm, 'pin')) : teamCrest('rugby', x.team);
   function hydrateIcons(root = document) { root.querySelectorAll('i.ic[data-icon]').forEach(el => { el.outerHTML = ic(el.dataset.icon); }); }
   function skinPic(id, bust) { const sk = D.SKINS.find(s => s.id === id) || D.SKINS[0]; const n = `skin-${sk.id}${bust ? '-bust' : ''}`; return pic(has(n) ? n : `skin-${sk.id}`, ['🧑🏽', '👩🏾', '🧑🏻', '👱🏽‍♀️', '😎', '👩🏼‍💼', '👑'][D.SKINS.indexOf(sk)]); }
   // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
@@ -190,11 +193,11 @@
     const need = G.xpNeed(); $('#xpfill').style.width = (need === Infinity ? 100 : Math.min(100, s.xp / need * 100)) + '%';
     $('#xptext').textContent = need === Infinity ? 'MAX' : `${s.xp}/${need}`;
     $('#worth-v').innerHTML = short(G.worth());
-    const av = s.avatar && D.SIX.shop.find(x => x.id === s.avatar), fr = s.frame && D.SIX.shop.find(x => x.id === s.frame);
+    const av = s.avatar && D.EV_SHOP.find(x => x.id === s.avatar), fr = s.frame && D.EV_SHOP.find(x => x.id === s.frame);
     const avKey = (s.avatar || s.skin) + '|' + (s.frame || '');
     if ($('#avatar-img').dataset.k !== avKey) {
       $('#avatar-img').dataset.k = avKey;
-      $('#avatar-img').innerHTML = (s.skin ? skinPic(s.skin, true) : '') + (av ? `<span class="av-pin">${teamCrest('rugby', av.team)}</span>` : '');
+      $('#avatar-img').innerHTML = (s.skin ? skinPic(s.skin, true) : '') + (av ? `<span class="av-pin">${pinArt(av)}</span>` : '');
       $('#avatar-img').classList.remove('crest-av');
       const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr && !frameImg(fr) ? fr.emo : ''; a.classList.toggle('framed-img', !!frameImg(fr)); a.querySelector('.av-frame-img')?.remove(); if (frameImg(fr)) a.insertAdjacentHTML('beforeend', `<img class="av-frame-img" src="${src(frameImg(fr))}" alt="">`);
     }
@@ -212,7 +215,7 @@
     gift.classList.toggle('glow', dr); gift.querySelector('.badge').classList.toggle('hidden', !dr);
     renderNextBtn();
     promoUi(); renderCap();
-    $('.six-badge')?.classList.toggle('hidden', G.eventOff() || !G.sixBadge());
+    $('.six-badge')?.classList.toggle('hidden', G.panneau() === 'cdm' ? !G.cdmBadge() : G.eventOff() || !G.sixBadge());
     renderQuest(); renderBuffs(); renderDealBtn(); renderPhoneBtn();
     renderTicker();
   }
@@ -247,7 +250,13 @@
     if (window.AGENCE && AGENCE.offer()) add(84, '📩', 'Une de tes créatrices hésite à partir', 'Une agence rivale lui fait les yeux doux : décide vite.', () => AGENCE.open(), true);
     if (window.AGENCE && AGENCE.pending() >= 30 + s.lvl * 10) add(76, '📸', `${short(AGENCE.pending())} de commission t'attendent`, 'Tes créatrices ont bossé : encaisse ta part sur PrivéFans.', () => AGENCE.open(), true);
     if (G.boosterCount()) add(85, '🃏', `${G.boosterCount()} booster${G.boosterCount() > 1 ? 's' : ''} à ouvrir`, 'Des cartes à collectionner et des récompenses.', () => openBoosters('open'), true);
-    if (G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
+    if (G.panneau() === 'cdm') { const S = G.cdmState(), T = G.cdmTeam(S.team);
+      if (S.final && !S.final.seen) add(83, '🎃', 'La Coupe des Morts est finie', 'Va voir le classement final et récupérer tes récompenses au Panneau.', () => goCdm(), true);
+      else if (G.cdmPhase() === 'on' && !T) add(82, '🎃', 'La Coupe des Morts a commencé', 'Zombies, Vampires, Démons ou Fantômes : choisis ton camp au Panneau.', () => goCdm(), true);
+      else if (G.cdmPhase() === 'on') { const n = G.cdmNightReady(), k = G.cdmStepsReady();
+        if (n || k) add(83, '🎃', n ? `${n} défi${n > 1 ? 's' : ''} de la nuit réussi${n > 1 ? 's' : ''}` : 'Un palier de la Coupe est atteint', 'Récupère tes points et tes récompenses au Panneau.', () => goCdm(n ? 'nights' : 'steps'), true);
+        else add(42, '🎃', `Fais gagner les ${T.name}`, 'Paris, boosters, récoltes, défis de la nuit : tout rapporte des points à ton équipe.', () => goCdm('nights')); } }
+    if (G.panneau() === 'six' && G.sixBadge()) add(80, '🏉', 'Le tournoi t\'attend', 'Fais tes pronos du jour : c\'est gratuit et ça rapporte des lingots.', () => openSix(), true);
     if (s.deal && Date.now() < s.deal.end) add(78, '💬', `${s.deal.name} te propose une affaire`, 'L\'offre ne dure pas : regarde vite.', () => openPhone('msg'), true);
     const up = G.upgradeReady();
     if (up) add(75, '🛠️', { pc: 'Tu peux te payer un meilleur PC', rig: 'Tu peux améliorer ta machine', room: 'Tu peux déménager' }[up], { pc: 'Moins de frais sur la crypto.', rig: 'Elle minera plus vite.', room: 'Plus de place pour tes objets.' }[up], () => openUpgrades(), true);
@@ -447,10 +456,11 @@
   function focusMap(yPct) { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -(cam.h * yPct / 100 - map.clientHeight * .55); clampCam(); applyCam(); }
   // enseigne d'un lieu : couleur et picto propres à chaque endroit (le style d'ensemble se règle en CSS via data-sign sur #app)
   const SIGN = { six: ['#e63946', 'star'], casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
-  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.id === 'six' && G.eventOff() ? 'Le Panneau' : b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
+  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.id === 'six' ? (G.panneau() === 'cdm' ? D.CDM.short : G.eventOff() ? 'Le Panneau' : b.name) : b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
   // compte à rebours de l'événement, sous le nom du Tournoi sur la carte
   const nextEvDays = () => { const t = G.nextEventAt(); return t ? Math.max(1, Math.ceil((t - Date.now()) / 86400000)) : 0; };
   function sixTimer() {
+    if (G.panneau() === 'cdm') return cdmTimer();
     const ph = G.sixPhase(), t = ph === 'before' ? G.sixKick(0) - Date.now() : G.sixEnd() - Date.now();
     if (G.eventOff()) { const n = nextEvDays(); return n ? `Rien en cours, reviens dans ${n} j` : 'Rien en cours'; }
     if (ph === 'over') return 'Terminé';
@@ -469,12 +479,12 @@
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl;
-      const img = b.id === 'six' && G.eventOff() ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
+      const img = b.id === 'six' && G.panneau() === 'cdm' ? (has('ev-cdm-board') ? pic('ev-cdm-board') : cdmBoardArt()) : b.id === 'six' && G.eventOff() ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('') + D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<i>${x.emo}</i>`}</span>`).join('');
+    }).join('') + D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has(decoImg(x)) ? pic(decoImg(x)) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
     if (!placing) { liftPlaques(); inner.querySelectorAll('img').forEach(i => i.complete || i.addEventListener('load', liftPlaques, { once: true })); }
   }
@@ -562,7 +572,7 @@
     try { if (!localStorage.getItem('hustleCity.admFix2')) { localStorage.removeItem(ADM_KEY); localStorage.setItem('hustleCity.admFix2', '1'); } } catch (e) {}
     const sv = admSaved(), old = (() => { try { return JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) { return {}; } })();
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
-    const decos = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
+    const decos = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
     if (sv.slot) Object.assign(D.SLOT.ui, sv.slot);
     Object.entries(localVals()).forEach(([p, v]) => { try { setVal(p, v); } catch (e) {} });
@@ -696,6 +706,9 @@
     ['🎉 Mini-événement', () => { st().event = null; st().nextEventAt = 0; }],
     ['📩 Dilemme PrivéFans', () => { const a = st().agence; if (!a || !a.crew.length) return 'Lance d\'abord PrivéFans (niveau 6).'; a.dil = null; a.nextDil = 1; window.AGENCE && AGENCE.sim(); }],
     ['🔁 Perso garçon / fille', () => { const g = (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g; st().skin = g === 'f' ? 'survet' : 'doudoune'; renderHud(); }],
+    ['🎃 Coupe : +200 points', () => { if (G.cdmPhase() !== 'on') return 'La Coupe des Morts n\'est pas en cours (dates au back office, ou #cdm-test).'; if (!G.cdmState().team) return 'Choisis d\'abord ton camp au Panneau.'; G.cdmAdd(200, 'test'); }],
+    ['🎃 Coupe : défis de la nuit réussis', () => { if (G.cdmPhase() !== 'on' || !G.cdmState().team) return 'Coupe pas en cours, ou camp pas choisi.'; G.cdmNight().list.forEach(c => { c.base = (st().stats[c.k] || 0) - c.goal; }); }],
+    ['🎃 Coupe : revoir le choix du camp', () => { const S = G.cdmState(); S.team = null; S.night = null; }],
     ['🎓 Revoir le tutoriel', () => { if (!confirm('Relancer le tutoriel depuis le début ?')) return 'Annulé.'; st().tutoDone = false; st().tutoStep = 0; st().bldTuto = {}; G.save(); location.hash = ''; location.reload(); }]
   ];
   function testsBody() { return `<p class="hint-line">Pour essayer chaque fonction sans attendre. Ça ne touche que <b>ta</b> partie, rien n'est publié.</p><div class="grid2 tests">${TESTS.map((t, i) => `<button class="btn blue sm" data-act="admTest" data-i="${i}">${t[0]}</button>`).join('')}</div>`; }
@@ -707,7 +720,7 @@
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
     // on publie TOUJOURS l'état complet (ce qui est affiché), jamais seulement ce que ce navigateur a retenu :
     // sinon une publication faite depuis la chambre envoyait « aucune déco » et tout revenait à sa place d'origine
-    const decoAll = D.SIX.shop.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
+    const decoAll = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
@@ -1130,7 +1143,7 @@
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
   const appIcon = (a, cls = '') => `<i class="ph-ic ${cls}" style="--bg:${a.bg}">${has(a.img) ? `<img src="${src(a.img)}" alt="">` : a.emo}</i>`;
-  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: '' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: '' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: '' } };
+  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: '' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: '' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: '' } };
   const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: '' });
   const notifs = () => (st().notifs = st().notifs || []);
   function notify(app, title, txt, act, quiet, thread, img) {
@@ -1578,18 +1591,18 @@
   const fHour = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   function untilTxt(ms) { const d = Math.floor(ms / 86400000), h = Math.floor(ms / 3600000) % 24; return d >= 1 ? `${d} j ${h} h` : mmss(ms); }
   function sixBody() {
-    const s = st(), S = D.SIX, ph = G.sixPhase(), ms = G.sixMatches(), pts = G.sixPoints(), rank = G.sixRank(), n = S.rivals.length + 1;
+    const s = st(), S = D.SIX, ph = G.sixPhase(), ms = G.sixMatches(), pts = G.sixPoints(), rank = G.sixRank(), info = G.sixBoardInfo(), n = info.total;
     const next = ms.find(m => m.state === 'soon');
     const head = `<div class="six-hero"><div class="sh-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><b>${S.name}</b><small>${ph === 'before' ? `Coup d'envoi le ${fDay(G.sixKick(0))} · dans <strong>${untilTxt(G.sixKick(0) - Date.now())}</strong>` : ph === 'on' ? `En cours · journée ${(next || ms[ms.length - 1]).day} / 5` : 'Tournoi terminé'}${G.sixTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
-      <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
+      <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank ? `${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}` : '–'}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
     if (sixTab === 'board') {
-      const rows = G.sixBoard(), me = rows.find(r => r.me), top = rows.slice(0, 10);
-      const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${r.rank}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${r.pts} pts</b></div>`;
+      const rows = info.rows, me = rows.find(r => r.me), top = rows.filter(r => r.rank && r.rank <= 10 && rows.indexOf(r) < 10);
+      const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${r.rank || '–'}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${r.pts} pts</b></div>`;
       const fin = G.sixState().final;
-      return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
+      return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>${fin.rank ? `Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !` : 'Tournoi terminé !'}</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
         `<h3 class="sec">Les équipes</h3><div class="six-board-list">${G.sixTable().map((t, k) => `<div class="sb-row"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}</span><small class="muted">${t.j} m · ${t.diff >= 0 ? '+' : ''}${t.diff}</small><b>${t.pts} pts</b></div>`).join('')}</div>
         <p class="hint-line sx-pts-note">4 points la victoire, 2 le nul, 1 point de bonus si on perd de 7 points ou moins.</p>
-        <h3 class="sec">Les joueurs</h3><p class="hint-line">${S.pts} points par bon prono.</p><div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${row(me)}`}</div>
+        <h3 class="sec">Les joueurs${info.online ? ` <small>· ${n.toLocaleString('fr-FR')} joueur${n > 1 ? 's' : ''}</small>` : ''}</h3><p class="hint-line">${S.pts} points par bon prono.</p>${info.online ? `<div class="six-board-list">${top.map(row).join('')}${top.includes(me) ? '' : `<div class="sb-gap">…</div>${rows.filter(r => !top.includes(r)).map(row).join('')}`}</div>` : `<div class="six-board-list">${row(me)}</div><p class="hint-line center offline-line">Classement en direct indisponible hors ligne.</p>`}
         <h3 class="sec">À la fin du tournoi</h3><div class="six-rew">${S.rewards.map((r, i) => `<div><small>${r.top === 1 ? '1<sup>er</sup>' : r.top === 999 ? 'Tous les autres' : `Top ${r.top}`}</small>${chips(0, r.lingots, r.boosters ? `<span class="need">${packArt(true)}${r.boosters}</span>` : '')}</div>`).join('')}</div>`;
     }
     if (sixTab === 'shop') {
@@ -1655,26 +1668,28 @@
     openModal({ title: 'Le Panneau', icon: 'star', center: true, body: `<div class="panneau-off">
       <div class="po-board">${has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`}</div>
       <b class="po-title">Pas d'événement en cours</b>
+      ${G.cdmPhase() === 'before' && G.cdmT()[0] === t ? `<p class="center po-cdm">🎃 <b>${D.CDM.name}</b> arrive pour Halloween : Zombies, Vampires, Démons ou Fantômes, tu choisiras ton camp !</p>` : ''}
       <p class="center">${t ? `Reviens dans <b>${n} jour${n > 1 ? 's' : ''}</b> : le prochain commence le <b>${when}</b>.` : 'Le prochain arrive bientôt : il sera annoncé ici.'}</p>
       <p class="hint-line center">Tes pin's et tes cadres restent dans ton profil.</p></div>` });
   }
   // fin du tournoi : un récap (scores, ta place, tes récompenses), puis le Panneau redevient normal
   function openSixRecap() {
-    const S = D.SIX, fin = G.sixState().final, ms = G.sixMatches(), rows = G.sixBoard(), me = rows.find(r => r.me), tab = G.sixTable(), champ = tab[0];
+    const S = D.SIX, fin = G.sixState().final, ms = G.sixMatches(), info = G.sixBoardInfo(), rows = info.rows, me = rows.find(r => r.me) || {}, tab = G.sixTable(), champ = tab[0];
     const good = ms.filter(m => m.ok).length, played = ms.filter(m => m.pick != null).length, rw = G.sixReward(fin.rank);
     const cards = D.ITEMS.filter(i => i.event === 'six'), got = cards.filter(i => (st().owned[i.id] || []).length).length;
     const sup = r => r === 1 ? 'er' : 'e';
-    const podium = rows.slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${['🥇', '🥈', '🥉'][k]}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
+    const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${['🥇', '🥈', '🥉'][k]}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
     openModal({ title: 'Tournoi terminé', icon: 'star', center: true, body: `<div class="six-recap">
-      <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${rows.length}</b></div></div>
+      <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>${fin.rank ? `Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${info.total.toLocaleString('fr-FR')}` : `${G.sixPoints()} points`}</b></div></div>
       <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
-      <h3 class="sec">Le podium des joueurs</h3><div class="rc-podium">${podium}</div>${me.rank > 3 ? `<p class="hint-line center">Toi : ${me.rank}<sup>${sup(me.rank)}</sup> avec ${me.pts} points.</p>` : ''}
+      ${info.online ? `<h3 class="sec">Le podium des joueurs</h3><div class="rc-podium">${podium}</div>` : '<p class="hint-line center offline-line">Classement en direct indisponible hors ligne.</p>'}${me.rank > 3 ? `<p class="hint-line center">Toi : ${me.rank}<sup>${sup(me.rank)}</sup> avec ${me.pts} points.</p>` : ''}
       <h3 class="sec">Le classement des équipes</h3><div class="six-board-list">${tab.map((t, k) => `<div class="sb-row ${k === 0 ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}${k === 0 ? ' 🏆' : ''}</span><b>${t.pts} pts</b></div>`).join('')}</div>
       <h3 class="sec">Tes récompenses</h3><div class="rc-rew">${chips(0, rw.lingots + good * S.lingotPerGood, rw.boosters ? `<span class="need">${packArt(true)}${rw.boosters}</span>` : '')}<small>dont ${good * S.lingotPerGood} lingot${good > 1 ? 's' : ''} déjà gagnés avec tes bons pronos</small></div>
       <button class="btn green wide big" data-act="sixRecapOk">${fin.claimed ? 'Super !' : 'Récupérer mes récompenses'}</button>
       <p class="hint-line center">${champ ? `${champ.name} remporte le tournoi. ` : ''}Rendez-vous au prochain événement, sur le Panneau !</p></div>` });
   }
   function openSix(tab) {
+    if (G.panneau() === 'cdm') return openCdm(tab === 'pronos' ? null : tab);
     const fin = G.sixState().final;
     if (G.sixPhase() === 'over' && fin && !G.eventOff()) return openSixRecap();
     if (G.eventOff()) return openPanneau();
@@ -1682,6 +1697,142 @@
     G.sixSeenNow(); renderHud();
     openModal({ title: D.SIX.name, icon: 'star', full: true, tabs: [{ id: 'pronos', label: 'Pronos' }, { id: 'board', label: 'Classement' }, { id: 'cards', label: 'Cartes' }, { id: 'shop', label: 'Boutique' }], tab: sixTab,
       body: sixBody(), onTab: id => { sixTab = id; setBody(sixBody()); }, refresh: () => setBody(sixBody()) });
+  }
+
+  // ------------------------------------------------------------ La Coupe des Morts (Halloween) : 4 équipes, des points pour ton camp, défis de la nuit, bonbons
+  // Le Panneau de la place l'affiche pendant ses dates (avant le tournoi). Images à venir : team-<équipe>, ev-cdm-*, pin-<équipe>, frame-cdm, deco-* (repli emoji en attendant).
+  let cdmTab = 'team', cdmHowOpen = false;
+  const fmtN = n => Math.round(n).toLocaleString('fr-FR');
+  const candyIc = () => has('ev-cdm-candy') ? `<img class="cdm-ci" src="${src('ev-cdm-candy')}" alt="">` : '<i class="cdm-ce">🍬</i>';
+  const candy = n => `<span class="cdm-candy">${candyIc()}<b>${n}</b></span>`;
+  // écusson d'une équipe (mascotte) : l'image si elle existe, sinon l'emoji sur un rond à sa couleur
+  function cdmCrest(id, cls = '') {
+    const T = G.cdmTeam(id) || { emo: '🏆', color: '#ffd23f', dark: '#7a5a00' }, n = id === 'gold' ? 'ev-cdm-cup' : 'team-' + id;
+    return `<span class="cdm-crest ${cls} ${has(n) ? 'img' : ''}" style="--tc:${T.color};--td:${T.dark}">${has(n) ? `<img src="${src(n)}" alt="" draggable="false">` : `<i>${T.emo}</i>`}</span>`;
+  }
+  const cdmCup = () => has('ev-cdm-cup') ? `<img src="${src('ev-cdm-cup')}" alt="">` : '<i>🏆</i>';
+  function cdmTimer() {
+    if (G.cdmPhase() !== 'on') return 'Terminée';
+    const t = G.cdmT()[1] - Date.now(), m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
+    return `🎃 Encore ${d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min`}`;
+  }
+  // le Panneau habillé pour Halloween (dessiné en attendant l'image ev-cdm-board)
+  function cdmBoardArt() {
+    return `<span class="six-board cdm-board"><svg viewBox="0 0 160 130"><rect x="22" y="70" width="10" height="58" rx="3" fill="#3a2a1e" stroke="#120a06" stroke-width="3"/><rect x="128" y="70" width="10" height="58" rx="3" fill="#3a2a1e" stroke="#120a06" stroke-width="3"/>
+      <rect x="6" y="6" width="148" height="82" rx="12" fill="#2a1048" stroke="#120a06" stroke-width="4"/><rect x="13" y="13" width="134" height="68" rx="8" fill="#170a2a" stroke="#ff7a1a" stroke-width="2"/>
+      <circle cx="33" cy="48" r="14" fill="#ff7a1a" stroke="#120a06" stroke-width="2.5"/><path d="M26 45 l4 -3 l2 4 Z M36 45 l4 -3 l1 4 Z M25 53 q8 6 16 0" stroke="#120a06" stroke-width="2" fill="#120a06"/><rect x="31" y="31" width="4" height="6" rx="1" fill="#3d7a1e"/>
+      <text x="96" y="35" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="14" fill="#c9a4ff">LA COUPE</text><text x="96" y="57" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="19" fill="#ff7a1a">DES MORTS</text>
+      <rect x="62" y="63" width="68" height="13" rx="6.5" fill="#5bbf3a"/><text x="96" y="73" text-anchor="middle" font-family="Lilita One, sans-serif" font-size="9.5" fill="#120a06">${G.cdmPhase() === 'on' ? 'EN COURS' : 'TERMINÉE'}</text></svg></span>`;
+  }
+  // haut de la fenêtre : la Coupe, le temps qui reste, tes points, tes bonbons, ta place dans ton équipe
+  function cdmHero() {
+    const S = G.cdmState(), B = G.cdmBoard(), bg = has('ev-cdm-bg') ? ` style="--bg:url('${new URL(src('ev-cdm-bg'), location.href).href}')"` : '';
+    return `<div class="cdm-hero ${bg ? 'has-bg' : ''}"${bg}><div class="ch-top"><span class="ch-cup">${cdmCup()}</span><div><b>${D.CDM.name}</b><small>${G.cdmPhase() === 'on' ? `Fin dans <strong>${untilTxt(G.cdmT()[1] - Date.now())}</strong>` : 'Terminée'}${G.cdmTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
+      ${S.team ? `<div class="sh-chips"><span><small>Tes points</small><b>${fmtN(S.pts)}</b></span><span><small>Bonbons</small><b class="ch-candy">${candyIc()}${S.candy}</b></span><span><small>Dans ton équipe</small><b>${B.online ? `${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup>` : '–'}</b></span></div>` : ''}</div>`;
+  }
+  const offLine = () => '<p class="hint-line center offline-line">Classement en direct indisponible hors ligne.</p>';
+  // la course des 4 équipes
+  function cdmRace(B, mine) {
+    const max = Math.max(1, ...B.teams.map(t => t.total));
+    return `<div class="cdm-race ${B.online ? '' : 'off'}">${[...B.teams].sort((a, b) => a.rank - b.rank).map(t => `<div class="cdm-lane ${t.id === mine ? 'me' : ''}" style="--tc:${t.color}">
+      <span class="cl-rk">${B.online ? t.rank : ''}</span>${cdmCrest(t.id, 'mini')}<span class="cl-mid"><b>${t.name}${t.id === mine ? ' <em>ton équipe</em>' : ''}</b>${B.online ? `<span class="cl-bar"><i style="width:${Math.max(3, t.total / max * 100)}%"></i></span>` : ''}</span>
+      <b class="cl-pts">${B.online || t.id === mine ? fmtN(t.total) : '–'}</b></div>`).join('')}</div>${B.online ? '' : offLine()}`;
+  }
+  // ce que donne une récompense (palier ou fin de Coupe)
+  function cdmRew(x, team) {
+    const S = G.cdmState(), id = x.pin ? 'pn-' + (team || S.team) : x.item, it = id && D.EV_SHOP.find(o => o.id === id);
+    return chips(x.cash || 0, x.lingots || 0, (x.boosters ? `<span class="need">${packArt(true)}${x.boosters}</span>` : '') + (it ? `<span class="need cdm-rit" title="${esc(it.name)}">${evArt(it, true)}</span>` : ''));
+  }
+  // image d'un objet de la boutique (pin's, cadre, déco, booster)
+  function evArt(x, mini) {
+    if (x.kind === 'avatar') return mini ? pinArt(x) : `<span class="ev-avpin">${skinPic(st().skin, true)}<span class="av-pin">${pinArt(x)}</span></span>`;
+    if (x.kind === 'frame') return frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : mini ? `<i class="cdm-emo">${x.emo}</i>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(st().skin, true)}<em>${x.emo}</em></span>`;
+    if (x.kind === 'booster') return mini ? packArt(true) : `<span class="cdm-pack">${packArt()}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`;
+    return has(decoImg(x)) ? pic(decoImg(x)) : `<span class="ev-emo">${x.emo}</span>`;
+  }
+  const CDM_LBL = { bets: 'Placer un pari', betsWon: 'Gagner un pari', combiWon: 'Gagner un combiné', scratch: 'Gratter un ticket', spins: 'Un tour de machine à sous', roulette: 'Un tour de roulette',
+    bigWin: 'Un gain ×100 au casino', boosters: 'Ouvrir un booster', rigCollect: 'Récolter ta machine', rigCool: 'Refroidir ta machine', tips: 'Acheter un tuyau', itemBuy: 'Acheter un objet',
+    itemProfit: 'Revendre un objet en bénéfice', cryptoBuy: 'Acheter de la crypto', cryptoProfit: 'Vendre une crypto en bénéfice', deals: 'Accepter un bon plan', clubNights: 'Une soirée au Club',
+    clubSpots: 'Un coin du Club', series: 'Finir une série de cartes', agActs: 'Une activité PrivéFans', quest: 'Réussir une mission', chal: 'Réussir un défi du jour', week: 'Réussir un objectif de la semaine', daily: 'Prendre ton cadeau du jour' };
+  function cdmBody() {
+    const S = G.cdmState(), C = D.CDM, T = G.cdmTeam(S.team), B = G.cdmBoard(), on = G.cdmPhase() === 'on', head = cdmHero();
+    if (cdmTab === 'nights') {
+      const N = G.cdmNight(), Bn = C.nightBonus, by = (S.day && S.day.d === N.d && S.day.by) || {};
+      const rows = N.list.map((c, i) => { const v = Math.min(c.goal, G.chalValue(c)), done = v >= c.goal;
+        return `<div class="card cdm-night ${c.got ? 'got' : done ? 'ready' : ''}"><div class="cn-l"><b>${c.t}</b><span class="cn-bar"><i style="width:${v / c.goal * 100}%"></i></span><small>${v} / ${c.goal}</small></div>
+          ${c.got ? '<span class="cn-ok">✓</span>' : done && on ? `<button class="btn xs green" data-act="cdmNight" data-i="${i}">+${C.nightPts} pts</button>` : `<span class="cn-pts">+${C.nightPts} pts</span>`}</div>`; }).join('');
+      const how = Object.entries(C.pts).map(([k, p]) => `<div class="sb-row"><span class="sb-nm">${CDM_LBL[k] || k}</span><small class="muted">${by[k] || 0} / ${p[1]} aujourd'hui</small><b>+${p[0]}</b></div>`).join('');
+      return head + `<h3 class="sec">Les défis de la nuit <small>· nouveaux à minuit</small></h3>${rows}
+        <p class="hint-line center">Les 3 réussis : <b>+${Bn.pts} pts</b> et <b>${Bn.candy}</b> ${candyIc()} en bonus${N.bonus ? ' <b class="up">✓</b>' : ''}.</p>
+        <button class="sx-how" data-act="cdmHow">${cdmHowOpen ? '▾' : '▸'} Comment gagner des points ?</button>
+        ${cdmHowOpen ? `<p class="hint-line">Tout ce que tu fais dans le jeu rapporte des points à ton équipe, avec un maximum par jour pour chaque action. <b>${C.perCandy} points = 1 bonbon</b>.</p><div class="six-board-list cdm-how">${how}</div>` : ''}`;
+    }
+    if (cdmTab === 'steps') {
+      return head + `<p class="hint-line">Tes points perso débloquent des récompenses. Elles restent à récupérer jusqu'à la fin de la Coupe.</p>` + C.steps.map((x, i) => { const got = S.steps[i], ok = S.pts >= x.n;
+        return `<div class="card cdm-step ${got ? 'got' : ok ? 'ready' : ''}"><span class="cs-n"><b>${fmtN(x.n)}</b><small>points</small></span><span class="cs-rew">${cdmRew(x)}</span>
+          ${got ? '<span class="cn-ok">✓</span>' : ok ? `<button class="btn xs green" data-act="cdmStep" data-i="${i}">Récupérer</button>` : `<span class="cs-left">encore ${fmtN(x.n - S.pts)}</span>`}</div>`; }).join('');
+    }
+    if (cdmTab === 'shop') {
+      const item = x => { const own = x.kind !== 'booster' && G.evOwned(x.id), used = own && G.evUsed(x.id), left = x.kind === 'booster' ? x.max - (S.bought[x.id] || 0) : 1;
+        const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="cdmUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
+          : !on ? '<button class="btn xs" disabled>Fermé</button>' : left <= 0 ? '<button class="btn xs" disabled>Épuisé</button>'
+          : `<button class="btn xs gold cdm-buy" data-act="cdmBuy" data-id="${x.id}" ${S.candy >= x.candy ? '' : 'disabled'}>${candyIc()}${x.candy}</button>`;
+        return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${evArt(x)}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Utilisé' : 'À toi'}</small>` : x.kind === 'booster' ? `<small class="muted">Encore ${left} en stock</small>` : x.desc ? `<small class="muted">${x.desc}</small>` : ''}${btn}</div>`; };
+      const grp = (k, t, sub) => `<h3 class="sec">${t} <small>· ${sub}</small></h3><div class="grid2 ev-grid">${C.shop.filter(x => x.kind === k && !x.noSale).map(item).join('')}</div>`;
+      return head + `<p class="hint-line">Tu payes en <b>bonbons</b> ${candyIc()} : 1 bonbon tous les ${C.perCandy} points. Tes objets restent à toi pour toujours.${on ? '' : ' <b>La boutique est fermée.</b>'}</p>` +
+        grp('deco', 'Pour la ville', 'posés sur la carte') + grp('avatar', 'Pin\'s', 'sur ta photo de profil') + grp('frame', 'Cadre', 'autour de ta photo') + grp('booster', 'Boosters', 'des cartes en plus');
+    }
+    // l'équipe : la course, ta part, le top 5, les récompenses de fin
+    const top = B.top.map((r, k) => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${B.online ? k + 1 : '–'}</span><span class="sb-nm">${esc(r.me ? `${r.name} (toi)` : r.name)}</span><b>${fmtN(r.pts)} pts</b></div>`).join('');
+    const meRow = B.online && !B.top.some(r => r.me) ? `<div class="sb-gap">…</div><div class="sb-row me"><span class="sb-rk">${B.rank}</span><span class="sb-nm">${esc(st().name)} (toi)</span><b>${fmtN(S.pts)} pts</b></div>` : '';
+    return head + `<h3 class="sec">La course des équipes${B.online ? ` <small>· ${fmtN(B.players)} joueur${B.players > 1 ? 's' : ''}</small>` : ''}</h3>${cdmRace(B, S.team)}
+      <div class="card cdm-mine" style="--tc:${T.color};--td:${T.dark}">${cdmCrest(T.id)}<div><b>${T.name}</b><small>« ${T.motto} »</small><p>Ta part : <b>${fmtN(S.pts)} pts</b>${B.online ? ` · ${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup> sur ${fmtN(B.of)}` : ''}</p></div></div>
+      <h3 class="sec">Le top 5 des ${T.name}</h3><div class="six-board-list">${top}${meRow}</div>
+      <h3 class="sec">À la fin de la Coupe</h3><div class="six-rew cdm-rew">${C.rewards.map(r => `<div><small>${r.place === 1 ? '1<sup>re</sup> équipe' : `${r.place}<sup>e</sup>`}</small>${r.chest && has('ev-cdm-chest') ? `<img class="cdm-chest" src="${src('ev-cdm-chest')}" alt="">` : ''}${cdmRew(r)}</div>`).join('')}</div>
+      <p class="hint-line center">Et pour tous : <b>la Coupe des Morts</b> en trophée, à poser sur tes étagères. Récompense d'équipe dès <b>${C.minReward} points</b>.</p>`;
+  }
+  // avant de rejoindre : les 4 camps en grand
+  function cdmChooseBody() {
+    const B = G.cdmBoard();
+    return cdmHero() + `<p class="hint-line center">Choisis ton camp ! Tout ce que tu fais dans le jeu rapporte des points à ton équipe. <b>Ton choix est définitif</b> jusqu'à la fin de la Coupe.</p>
+      <div class="grid2 cdm-pick">${D.CDM.teams.map(t => { const b = B.teams.find(x => x.id === t.id);
+        return `<button class="cdm-tcard" style="--tc:${t.color};--td:${t.dark}" data-act="cdmPick" data-id="${t.id}">${cdmCrest(t.id, 'big')}<b>${t.name}</b><small>« ${t.motto} »</small>${B.online ? `<em>${b.rank}<sup>${b.rank === 1 ? 're' : 'e'}</sup> · ${fmtN(b.total)} pts · ${fmtN(b.players)} joueur${b.players > 1 ? 's' : ''}</em>` : ''}</button>`; }).join('')}</div>${B.online ? '' : offLine()}`;
+  }
+  function cdmTabs() { const n = G.cdmNightReady(), k = G.cdmStepsReady(), dot = x => x ? ` <i class="tab-dot">${x}</i>` : '';
+    return [{ id: 'team', label: 'Équipes' }, { id: 'nights', label: 'Défis' + dot(n) }, { id: 'steps', label: 'Paliers' + dot(k) }, { id: 'shop', label: 'Boutique' }]; }
+  function openCdm(tab) {
+    const S = G.cdmState(), ph = G.cdmPhase();
+    if (S.final && !S.final.seen) return openCdmRecap();
+    G.cdmSeenNow(); renderHud(); if (window.ONLINE && ONLINE.cdmSync) ONLINE.cdmSync();
+    if (!S.team) {
+      if (ph !== 'on') return openPanneau();
+      return openModal({ title: D.CDM.name, icon: 'ic-ev-cdm', full: true, theme: 'cdm', body: cdmChooseBody(), refresh: () => { if (!G.cdmState().team) setBody(cdmChooseBody()); } });
+    }
+    if (tab) cdmTab = tab;
+    openModal({ title: D.CDM.name, icon: 'ic-ev-cdm', full: true, theme: 'cdm', tabs: cdmTabs(), tab: cdmTab,
+      body: cdmBody(), onTab: id => { cdmTab = id; setBody(cdmBody()); }, refresh: () => { setBody(cdmBody()); document.querySelectorAll('#modal .tab').forEach((b, i) => { const l = b.querySelector('.tab-lbl'), t = cdmTabs()[i]; if (l && t && l.innerHTML !== t.label) l.innerHTML = t.label; }); } });
+  }
+  // on y va depuis Momo, une notif ou le téléphone : la ville, centrée sur le Panneau
+  function goCdm(tab) { closeModal(); setScene('city'); focusBld('six'); openCdm(tab); }
+  function cdmConfirm(id) {
+    const t = G.cdmTeam(id); if (!t) return;
+    openModal({ title: 'Ton camp', icon: 'ic-ev-cdm', center: true, theme: 'cdm', body: `<div class="cdm-confirm" style="--tc:${t.color};--td:${t.dark}">${cdmCrest(t.id, 'big')}
+      <b>Rejoindre les ${t.name} ?</b><small>« ${t.motto} »</small><p class="hint-line center">C'est pour toute la Coupe : tu ne pourras plus changer de camp.</p>
+      <div class="grid2"><button class="btn" data-act="cdmBack">Je réfléchis</button><button class="btn green" data-act="cdmJoin" data-id="${t.id}">Je les rejoins !</button></div></div>` });
+  }
+  // fin de la Coupe : le classement final, ta part, tes récompenses ; ensuite le Panneau redevient normal
+  function openCdmRecap() {
+    const S = G.cdmState(), f = S.final, T = G.cdmTeam(S.team), r = f.ok ? G.cdmReward(f.place) : null, sup = n => n === 1 ? 're' : 'e';
+    const order = f.order.length ? `<h3 class="sec">Le classement final</h3><div class="six-board-list">${f.order.map((t, k) => { const x = G.cdmTeam(t.id);
+      return `<div class="sb-row ${t.id === S.team ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${cdmCrest(t.id, 'mini')}<span class="sb-nm">${x.name}${k === 0 ? ' 🏆' : ''}</span><b>${fmtN(t.total)} pts</b></div>`; }).join('')}</div>` : offLine();
+    openModal({ title: 'Coupe des Morts terminée', icon: 'ic-ev-cdm', center: true, theme: 'cdm', body: `<div class="cdm-recap">
+      <div class="rc-top"><span class="ch-cup">${f.place === 1 && has('ev-cdm-chest') ? `<img src="${src('ev-cdm-chest')}" alt="">` : cdmCup()}</span><div><small>${D.CDM.name}</small><b>${f.place ? `Les ${T.name} finissent ${f.place}<sup>${sup(f.place)}</sup> !` : `Merci d'avoir défendu les ${T.name} !`}</b></div></div>
+      <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${fmtN(f.pts)}</b></span><span><small>Dans ton équipe</small><b>${f.rank ? `${f.rank}<sup>${f.rank === 1 ? 'er' : 'e'}</sup>` : '–'}</b></span><span><small>Bonbons gagnés</small><b>${S.candyAll}</b></span></div>
+      ${order}
+      <h3 class="sec">Tes récompenses</h3><div class="rc-rew cdm-final-rew">${r ? cdmRew(r) : ''}<span class="rw-chips"><span class="need cdm-rit" title="La Coupe des Morts (trophée)">${cdmCup()}</span></span>
+        <small>${r ? `${f.place ? `Récompense de la ${f.place}<sup>${sup(f.place)}</sup> équipe` : 'Récompense de participation'}, plus la Coupe des Morts pour tes étagères.` : `La Coupe des Morts pour tes étagères (récompense d'équipe dès ${D.CDM.minReward} points).`}</small></div>
+      <button class="btn green wide big" data-act="cdmRecapOk">${f.claimed ? 'Super !' : 'Récupérer mes récompenses'}</button>
+      <p class="hint-line center">Rendez-vous l'an prochain pour une nouvelle Coupe !</p></div>` });
   }
 
   // ------------------------------------------------------------ Le Comptoir (objets de collection)
@@ -2158,15 +2309,15 @@
   }
   // pin's et cadres achetés : on choisit ici lequel porter (ou aucun), même après la fin de l'événement
   function photoLooks() {
-    const s = st(), mine = k => D.SIX.shop.filter(x => x.kind === k && G.evOwned(x.id));
-    const pins = mine('avatar'), frames = mine('frame'), curFr = s.frame && D.SIX.shop.find(x => x.id === s.frame);
+    const s = st(), mine = k => D.EV_SHOP.filter(x => x.kind === k && G.evOwned(x.id));
+    const pins = mine('avatar'), frames = mine('frame'), curFr = s.frame && D.EV_SHOP.find(x => x.id === s.frame);
     if (!pins.length && !frames.length) return `<h3 class="sec">Ta photo de profil</h3><p class="hint-line">Les <b>pin's</b> et les <b>cadres</b> s'achètent pendant les événements, au Panneau de la place. Ici, tu choisiras lequel porter.</p>`;
     const chip = (k, id, on, art, name) => `<button class="pf-chip ${on ? 'on' : ''}" data-act="pfLook" data-k="${k}" data-id="${id || ''}" title="${esc(name)}" aria-label="${esc(name)}">${art}</button>`;
     const none = k => chip(k, '', !s[k], '<span class="pf-none">∅</span>', 'Aucun');
     const frArt = x => frameImg(x) ? `<img src="${src(frameImg(x))}" alt="">` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}"><em>${x.emo}</em></span>`;
     const line = (t, k, L, art) => L.length ? `<div class="pf-line"><small>${t}</small><div class="pf-chips">${none(k)}${L.map(x => chip(k, x.id, s[k] === x.id, art(x), x.name.replace(/^Photo : /, ''))).join('')}</div></div>` : '';
-    return `<div class="card pf-photo-row"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${teamCrest('rugby', (D.SIX.shop.find(x => x.id === s.avatar) || {}).team)}</span>` : ''}</span>
-      <div class="pf-pick"><b>Ta photo de profil</b>${line("Pin's", 'avatar', pins, x => teamCrest('rugby', x.team))}${line('Cadre', 'frame', frames, frArt)}</div></div>`;
+    return `<div class="card pf-photo-row"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${pinArt(D.EV_SHOP.find(x => x.id === s.avatar))}</span>` : ''}</span>
+      <div class="pf-pick"><b>Ta photo de profil</b>${line("Pin's", 'avatar', pins, x => pinArt(x))}${line('Cadre', 'frame', frames, frArt)}</div></div>`;
   }
   function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
   // réglages façon jeu mobile : conseils qui défilent, son, affichage, notifications, compte et sauvegarde, aide
@@ -2255,6 +2406,7 @@
     if (id === 'rig') { setScene('appart'); return openRig(); }
     if (id === 'gift') return openDaily();
     if (id === 'six') { closeModal(); setScene('city'); focusBld('six'); return openSix('pronos'); }
+    if (id === 'cdm') return goCdm();
   }
   // « Y aller » : mène à l'endroit où se fait la mission
   function questGo(go) {
@@ -2328,6 +2480,16 @@
     quests: () => openRewards(),
     rewards: () => openRewards(),
     nextBuy: () => goNextBuy(),
+    cdmPick(el) { sfx.tap(); cdmConfirm(el.dataset.id); },
+    cdmBack() { sfx.tap(); openCdm(); },
+    cdmGo() { goCdm(); },
+    cdmJoin(el) { const r = G.cdmJoin(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 50); cdmTab = 'team'; openCdm('team'); renderHud(); toast(`Bienvenue chez les ${r.T.name} ! ${r.T.motto}`); },
+    cdmNight(el) { const r = G.cdmNightClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', r.bonus ? 40 : 15); setBody(cdmBody()); renderHud(); },
+    cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmHow() { cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },
+    cdmRecapOk() { const claimed = G.cdmState().final.claimed; G.cdmRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 60); } closeModal(); renderCity(); renderHud(); },
     sixPast(el) { const d = +el.dataset.d; sixPastOpen.has(d) ? sixPastOpen.delete(d) : sixPastOpen.add(d); setBody(sixBody()); },
     sixHow() { sixHowOpen = !sixHowOpen; setBody(sixBody()); },
     coachGo(el) { const c = coachList[+el.dataset.i]; closeModal(); if (c) setTimeout(c.go, 60); },
@@ -2464,7 +2626,7 @@
     phoneHome() { phoneApp = 'home'; drawPhone(); },
     phoneClose: () => closePhone(),
     phoneClear() { st().notifs = []; drawPhone(); renderPhoneBtn(); },
-    phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift', six: 'six' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
+    phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift', six: 'six', cdm: 'cdm' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
     phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg') { phoneApp = id; drawPhone(); } else { closePhone(); phoneGo(id); } },
     chatOpen(el) { openChat(el.dataset.n); },
     chatAct(el) {
@@ -2584,9 +2746,15 @@
     }
     softNotify(n.txt.includes('effondre') ? 'crypto' : 'news', n.bad ? 'Ça baisse !' : 'Ça monte !', n.txt);
   });
+  // Coupe des Morts : Momo l'annonce, les gros gains de points s'affichent, une notif si ton équipe se fait doubler
+  G.on('cdmStart', () => { notify('cdm', '🎃 La Coupe des Morts a commencé', 'Zombies, Vampires, Démons ou Fantômes : choisis ton camp au Panneau et fais gagner ton équipe !');
+    setTimeout(() => toast('🎃 La Coupe des Morts a commencé ! Choisis ton camp au Panneau, sur la place.', false, 'cdmGo'), 1500); });
+  G.on('cdmPts', e => { if (e.n >= 10 && !document.hidden) floatTxt(`+${e.n} pts 🎃`); });
+  G.on('cdmPassed', e => e.by && notify('cdm', '🎃 Ton équipe a besoin de toi', `Les ${e.by.name} passent devant ! Gagne des points pour que les ${e.me.name} repassent.`));
+  G.on('cdmEnd', f => { const T = G.cdmTeam(G.cdmState().team); notify('cdm', '🏆 La Coupe des Morts est finie', `${f.place && T ? `Les ${T.name} finissent ${f.place}${f.place === 1 ? 're' : 'e'} ! ` : ''}Va chercher tes récompenses au Panneau, sur la place.`); renderCity(); });
   G.on('sixRemind', m => notify('six', '🏉 Pense à ton prono', `${m.home} – ${m.away} commence bientôt. C'est gratuit !`));
-  G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} Tu es ${G.sixRank()}e au classement.`));
-  G.on('sixEnd', f => notify('six', '🏆 Tournoi terminé', `Tu finis ${f.rank}${f.rank === 1 ? 'er' : 'e'} ! Va récupérer ta récompense au Panneau, sur la place.`));
+  G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} ${G.sixRank() ? ` Tu es ${G.sixRank()}e au classement.` : ''}`));
+  G.on('sixEnd', f => notify('six', '🏆 Tournoi terminé', `${f.rank ? `Tu finis ${f.rank}${f.rank === 1 ? 'er' : 'e'} ! ` : ''}Va récupérer ta récompense au Panneau, sur la place.`));
   // trophée gagné : même fête que le passage de niveau (rayons, confettis), avec le trophée au centre
   function showTrophy(it) {
     sfx.level(); rain('confetti', 50);
@@ -2626,11 +2794,12 @@
       if (G.boosterFree()) notify('boosters', 'Booster gratuit disponible', 'Ton booster du jour est prêt à être ouvert.');
     }
   }
-  let lastParked = null;
+  let lastParked = null, lastPn = null;
   function loop() {
     G.simulate(false); dailyNotifs();
     // le parking apparaît / disparaît de la ville selon qu'on a un véhicule
     { const pk = G.parkedCount() > 0; if (pk !== lastParked) { lastParked = pk; renderCity(); } }
+    { const pn = G.panneau(); if (pn !== lastPn) { lastPn = pn; renderCity(); } }
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
     renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.textContent !== v) e.textContent = v; });
     if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();

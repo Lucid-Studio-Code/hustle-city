@@ -38,6 +38,14 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Résultats tirés de façon fixe (identiques pour tout le monde). Tester sans attendre : ajouter `#tournoi-test` à l'adresse (un match toutes les 4 min).
 - Boutique de l'événement (`SIX.shop`) : photos de profil (écussons), cadres, décos posées dans la ville (x/y en %). Images à venir : `deco-<id>`. Achetés pour toujours, en vente seulement pendant l'événement.
 
+## La Coupe des Morts (Halloween, 06/10)
+- `CDM` dans data.js : 4 équipes (Zombies, Vampires, Démons, Fantômes), dates par défaut 24 oct. 10 h → 2 nov. 23 h 59. Back office (Événements) : allumer/éteindre, dates, priorité sur le Panneau si le tournoi tombe en même temps, « Repartir de zéro » (nouvelle édition `ed`) ; config live `cdm` { on, start, end, ed, prio }. Édition par défaut = l'année.
+- Pendant ses dates le Panneau (bâtiment `six`) montre la Coupe (`G.panneau()` = 'cdm'), puis le récap tant qu'il n'est pas vu. Avant : « Rien en cours » + annonce de la Coupe.
+- Points : chaque `stat()` de la table `CDM.pts` [points, plafond par jour], + missions, défis, objectifs de la semaine, cadeau du jour ; 3 défis de la nuit par jour (80 pts, +100 et 5 bonbons les 3) ; 1 bonbon / 10 pts (boutique en bonbons) ; paliers perso `CDM.steps` ; fin = récompense selon la place de l'équipe (≥ 50 pts) + trophée `t-cdm` (image `ev-cdm-cup`).
+- Classement : VRAIS joueurs seulement (serveur `POST /api/cdm`, table `cdm_pts`, 600 pts/min et 4 000/jour au plus). Hors ligne : tes points seuls + « Classement en direct indisponible hors ligne ». Le Tournoi aussi : `POST /api/six` (table `six_pts`), plus de faux joueurs.
+- Tester : `#test-cdm` (partie test, la Coupe a commencé il y a 3 h), `#test-cdm-fin` (elle finit 3 min après), boutons 🎃 du panneau Tests. Hors `#test`, le jeu peut parler au serveur de démo (`hc.api`).
+- Images attendues (repli emoji) : `team-<équipe>`, `pin-<équipe>`, `ev-cdm-board`, `ev-cdm-bg`, `ev-cdm-cup`, `ev-cdm-chest`, `ev-cdm-candy`, `ic-ev-cdm`, `frame-cdm`, `deco-citrouilles`, `deco-tombe`, `deco-toiles`, `deco-chaudron` (les décos de la Coupe ont un champ `img`). Leurs places en ville sont provisoires : à régler au back office.
+
 ## Pièges connus
 - `.cur` = l'icône billet, et `.money` est déjà pris : ne jamais les utiliser comme classes d'état.
 - `pic()` rend un `<span class="pic">` : une règle `span` dans un flex l'étire.

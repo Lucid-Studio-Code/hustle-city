@@ -27,6 +27,8 @@
     if (Array.isArray(c.campaigns)) D.CAMPAIGNS.splice(0, D.CAMPAIGNS.length, ...c.campaigns);
     if (c.ads) Object.assign(D.ADS, c.ads);
     if (c.sixStart) D.SIX.sim = c.sixStart;
+    // la Coupe des Morts : allumée / éteinte, dates, édition, priorité sur le Panneau (page Événements du back office)
+    if (c.cdm && D.CDM) ['on', 'start', 'end', 'ed', 'prio'].forEach(k => { if (c.cdm[k] != null && c.cdm[k] !== '') D.CDM[k] = c.cdm[k]; });
     // objets ajoutés / modifiés au back office (js/content.js) : gardés sur l'appareil, la partie suit (nouvelles cotes)
     if (window.CONTENT) { CONTENT.receive(c.content || {}, API); CONTENT.sync(G.st); if (U.refresh) U.refresh(); }
     Object.entries(c.values || {}).forEach(([p, v]) => { try { setPath(D, p, v); } catch (e) {} });
@@ -102,6 +104,27 @@
   ONLINE.code = () => id.pid + '.' + id.secret;
   ONLINE.restore = async code => { const [pid, secret] = String(code).trim().split('.'); const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, secret }) }).then(x => x.json());
     if (!r.ok || !r.save) throw new Error(r.err || 'Code inconnu.'); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };
+
+  // ---------------------------------------------------------- classements des événements (vrais joueurs) : Coupe des Morts et Tournoi
+  // Coupe : toutes les 30 s pendant l'événement, on envoie les points gagnés depuis la dernière fois et on reçoit les totaux des équipes.
+  let cdmBusy = false, cdmLast = 0, sixBusy = false, sixLast = 0, sixSent = '';
+  async function cdmSync(force) {
+    if (off || !ONLINE.on || cdmBusy || !G.cdmOut) return; const o = G.cdmOut();
+    if (!o.show && !o.on) return; if (!force && Date.now() - cdmLast < 30000) return;
+    cdmBusy = true; cdmLast = Date.now(); const add = o.on ? o.add : 0;
+    try { const r = await post('/api/cdm', { ed: o.ed, team: o.team, add }); if (r && r.totals) { G.cdmSent(Math.min(add, +r.took || 0)); G.cdmNetSet(r); } } catch (e) {} cdmBusy = false;
+  }
+  // Tournoi : à chaque changement de points, et toutes les minutes pendant le tournoi (pour voir bouger le classement)
+  async function sixSync(force) {
+    if (off || !ONLINE.on || sixBusy || !G.sixOut) return; const ph = G.sixPhase(); if (ph === 'before' || (G.eventOff() && !force)) return;
+    const o = G.sixOut(), k = JSON.stringify(o); if (!force && k === sixSent && Date.now() - sixLast < 60000) return;
+    sixBusy = true; sixLast = Date.now();
+    try { const r = await post('/api/six', o); if (r && r.top) { sixSent = k; G.sixNetSet(r); } } catch (e) {} sixBusy = false;
+  }
+  setInterval(() => { cdmSync(); sixSync(); }, 5000);
+  G.on('cdmJoin', () => setTimeout(() => cdmSync(true), 300));
+  G.on('sixResult', () => setTimeout(() => sixSync(true), 300));
+  ONLINE.cdmSync = () => cdmSync(true); ONLINE.sixSync = () => sixSync(true);
 
   setTimeout(hello, 1500);
 })();

@@ -102,6 +102,39 @@ function saveLive(cfg) {
   run("INSERT INTO config (k, v) VALUES ('live_at', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", String(now()));
 }
 
+// ------------------------------------------------------------------ classements des événements (Tournoi, Coupe des Morts)
+db.exec(`CREATE TABLE IF NOT EXISTS six_pts (ed TEXT, pid TEXT, pts INT, good INT, t INT, PRIMARY KEY (ed, pid));
+  CREATE TABLE IF NOT EXISTS cdm_pts (ed TEXT, pid TEXT, team TEXT, pts INT, t INT, win INT, win_n INT, day TEXT, day_n INT DEFAULT 0, PRIMARY KEY (ed, pid));
+  CREATE INDEX IF NOT EXISTS cdm_team ON cdm_pts(ed, team, pts);`);
+{ const have = new Set(db.prepare('PRAGMA table_info(cdm_pts)').all().map(c => c.name)); if (!have.has('day')) db.exec('ALTER TABLE cdm_pts ADD COLUMN day TEXT; ALTER TABLE cdm_pts ADD COLUMN day_n INT DEFAULT 0;'); }
+const ED_RE = /^[\w-]{1,24}$/, CDM_CAP = 600, CDM_DAY = 4000;   // anti-triche : 600 points par minute, 4 000 par jour au plus (un joueur très actif en fait ~1 500)
+// réglages de la Coupe : ceux du back office (config « cdm »), sinon ceux de js/data.js
+function cdmCfg() {
+  const G = GAME.CDM || {}, c = getCfg().cdm || {}, start = Date.parse(c.start || G.start), end = Date.parse(c.end || G.end);
+  return { on: c.on != null ? !!c.on : G.on !== false, start, end, prio: c.prio || G.prio || 'cdm', ed: String(c.ed || G.ed || new Date(start).getFullYear()) };
+}
+const pubRow = (r, pid) => ({ name: r.name || 'Joueur', skin: r.skin, avatar: r.avatar, frame: r.frame, pts: r.pts, me: r.pid === pid });
+function sixBoard(ed, pid) {
+  const W = "s.ed = ? AND p.banned = 0", J = 'FROM six_pts s JOIN players p ON p.pid = s.pid';
+  const top = q(`SELECT s.pid, s.pts, p.name, p.skin, p.avatar, p.frame ${J} WHERE ${W} ORDER BY s.pts DESC, s.t ASC LIMIT 10`, ed);
+  const total = q1(`SELECT COUNT(*) n ${J} WHERE ${W}`, ed).n, me = pid && q1(`SELECT s.pid, s.pts, s.t, p.name, p.skin, p.avatar, p.frame ${J} WHERE ${W} AND s.pid = ?`, ed, pid);
+  if (!me) return { top: top.map(r => pubRow(r, pid)), total, rank: 0, around: [], aroundStart: 0 };
+  const rank = 1 + q1(`SELECT COUNT(*) n ${J} WHERE ${W} AND s.pts > ?`, ed, me.pts).n;
+  const above = q(`SELECT s.pid, s.pts, p.name, p.skin, p.avatar, p.frame ${J} WHERE ${W} AND s.pts > ? ORDER BY s.pts ASC LIMIT 2`, ed, me.pts).reverse();
+  const below = q(`SELECT s.pid, s.pts, p.name, p.skin, p.avatar, p.frame ${J} WHERE ${W} AND s.pts <= ? AND s.pid != ? ORDER BY s.pts DESC, s.t ASC LIMIT 2`, ed, me.pts, pid);
+  return { top: top.map(r => pubRow(r, pid)), total, rank, around: [...above, me, ...below].map(r => pubRow(r, pid)), aroundStart: rank - above.length };
+}
+function cdmBoard(ed, pid, n = 5) {
+  const J = 'FROM cdm_pts c JOIN players p ON p.pid = c.pid', W = 'c.ed = ? AND p.banned = 0';
+  const totals = {}, count = {}, top = {};
+  q(`SELECT c.team, SUM(c.pts) s, COUNT(*) n ${J} WHERE ${W} GROUP BY c.team`, ed).forEach(r => { totals[r.team] = r.s; count[r.team] = r.n; });
+  ((GAME.CDM && GAME.CDM.teams) || []).forEach(t => { totals[t.id] = totals[t.id] || 0; count[t.id] = count[t.id] || 0;
+    top[t.id] = q(`SELECT c.pid, c.pts, p.name, p.skin, p.avatar, p.frame ${J} WHERE ${W} AND c.team = ? ORDER BY c.pts DESC, c.t ASC LIMIT ?`, ed, t.id, n).map(r => pubRow(r, pid)); });
+  const mine = pid && q1('SELECT team, pts FROM cdm_pts WHERE ed = ? AND pid = ?', ed, pid);
+  const me = mine ? { team: mine.team, pts: mine.pts, rank: 1 + q1(`SELECT COUNT(*) n ${J} WHERE ${W} AND c.team = ? AND c.pts > ?`, ed, mine.team, mine.pts).n } : null;
+  return { totals, count, top, me };
+}
+
 // ------------------------------------------------------------------ API des joueurs
 const api = {
   async 'POST /api/leaderboard'(req, res) {   // classement des fortunes : le top 10, puis le joueur et ses voisins
@@ -166,7 +199,35 @@ const api = {
   },
   async 'POST /api/restore'(req, res) {   // récupérer sa partie sur un nouvel appareil : pid + secret (le « code de récupération »)
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'Code inconnu.' }); send(res, 200, { ok: true, save: p.save });
+  },
+  // -------- événements : classements en ligne (vrais joueurs seulement)
+  async 'POST /api/six'(req, res) {   // Tournoi des 6 Quartiers : { ed, pts, good, played } → le top 10, ta place et tes voisins
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    const ed = String(b.ed || ''); if (!ED_RE.test(ed)) return send(res, 400, { err: 'ed' });
+    const max = 3 * ((GAME.SIX && GAME.SIX.matches) || []).length || 45, pts = Math.max(0, Math.min(max, Math.round(+b.pts || 0)));
+    if (b.played || pts) run('INSERT INTO six_pts (ed, pid, pts, good, t) VALUES (?, ?, ?, ?, ?) ON CONFLICT(ed, pid) DO UPDATE SET t = CASE WHEN excluded.pts != pts THEN excluded.t ELSE t END, pts = excluded.pts, good = excluded.good',
+      ed, p.pid, pts, Math.max(0, Math.min(15, +b.good || 0)), now());
+    send(res, 200, sixBoard(ed, p.pid));
+  },
+  async 'POST /api/cdm'(req, res) {   // Coupe des Morts : { ed, team, add } → totaux des 4 équipes, top 5 de ton équipe, ta place
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    const ed = String(b.ed || ''), C = cdmCfg(), test = /^test-\d+$/.test(ed); if (!ED_RE.test(ed)) return send(res, 400, { err: 'ed' });
+    let row = q1('SELECT * FROM cdm_pts WHERE ed = ? AND pid = ?', ed, p.pid), took = 0;
+    const team = (GAME.CDM && GAME.CDM.teams || []).some(t => t.id === b.team) ? b.team : null;
+    // on accepte les points seulement pendant la Coupe (5 min de marge à la fin), pour l'édition en cours (ou une édition de test)
+    const open = test || (ed === C.ed && C.on && now() >= C.start && now() <= C.end + 300000);
+    if (team && open && !row) { run('INSERT INTO cdm_pts (ed, pid, team, pts, t, win, win_n) VALUES (?, ?, ?, 0, ?, ?, 0)', ed, p.pid, team, now(), now()); row = q1('SELECT * FROM cdm_pts WHERE ed = ? AND pid = ?', ed, p.pid); }
+    const add = Math.max(0, Math.round(+b.add || 0));
+    if (row && open && add) {
+      // anti-triche : 600 points par minute et 4 000 par jour au plus (le surplus de la minute est renvoyé plus tard par le jeu, celui du jour est perdu)
+      const fresh = now() - row.win > 60000, used = fresh ? 0 : row.win_n, dk = dkey(now()), dn = row.day === dk ? row.day_n || 0 : 0;
+      took = Math.max(0, Math.min(add, CDM_CAP - used, CDM_DAY - dn));
+      run('UPDATE cdm_pts SET pts = pts + ?, t = ?, win = ?, win_n = ?, day = ?, day_n = ? WHERE ed = ? AND pid = ?', took, now(), fresh ? now() : row.win, used + took, dk, dn + took, ed, p.pid);
+      if (dn + took >= CDM_DAY) took = add;   // plafond du jour atteint : le jeu n'a pas à renvoyer le reste
+    }
+    send(res, 200, { ...cdmBoard(ed, p.pid), took, team: row ? row.team : null });
   }
+
 };
 
 // ------------------------------------------------------------------ outils de calcul
@@ -378,6 +439,11 @@ const admin = {
     log('reply', { ticket: t.id, pid: t.pid, status: b.status || 'en attente', gift: gift ? JSON.parse(gift) : null }); send(res, 200, { ok: true });
   },
   'GET /admin/api/config'(req, res) { send(res, 200, getCfg()); },
+  'GET /admin/api/cdm'(req, res) {   // Coupe des Morts : totaux des équipes, nombre de joueurs, meilleurs joueurs (édition en cours)
+    const C = cdmCfg(), B = cdmBoard(C.ed, null, 3);
+    const best = q('SELECT c.pid, c.team, c.pts, p.name, p.tag, p.skin, p.avatar, p.frame FROM cdm_pts c JOIN players p ON p.pid = c.pid WHERE c.ed = ? AND p.banned = 0 ORDER BY c.pts DESC LIMIT 10', C.ed);
+    send(res, 200, { ...C, ...B, best, players: Object.values(B.count).reduce((a, b) => a + b, 0) });
+  },
   async 'POST /admin/api/config'(req, res) {
     const b = await body(req);
     // les objets du jeu ont leur propre page : une autre page qui ne les connaît pas ne doit jamais les effacer
