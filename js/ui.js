@@ -54,7 +54,7 @@
   // une carte de sport s'affiche TOUJOURS comme une vraie carte (format carte, cadre selon la rareté), jamais comme un simple écusson
   function itemPic(it) {
     if (it.cat === 'card') return `<span class="card-mini">${miniCard(it)}</span>`;   // toutes les cartes au même format
-    return it.img ? (has(it.img) ? pic(it.img) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon);
+    return it.img ? (has(it.img) || !it.team ? pic(it.img, D.ITEM_CATS[it.cat].icon) : teamCrest(it.team[0], it.team[1])) : pic(`item-${it.id}`, D.ITEM_CATS[it.cat].icon);
   }
   // « Joueuse de l'Union Graffiti », « Joueur du FC Bitume », « Joueur des Night Hoopers »
   function playerOf(it) {
@@ -2097,7 +2097,7 @@
     const cards = G.cardsLive(), haveCards = cards.filter(i => (s.owned[i.id] || []).length).length;
     const winRate = S.bets ? Math.round((S.betsWon || 0) / S.bets * 100) : 0;
     const RK = { L: 4, E: 3, R: 2, C: 1 }, best = Object.keys(s.owned).filter(id => s.owned[id].length && G.item(id).cat === 'card').map(id => ({ it: G.item(id), v: G.sellPrice(id), paid: s.owned[id][0].paid })).sort((a, b) => (RK[b.it.r] || 0) - (RK[a.it.r] || 0) || b.v - a.v).slice(0, 3);
-    const trophies = D.ITEMS.filter(i => i.cat === 'trophy').map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
+    const trophies = D.ITEMS.filter(i => i.cat === 'trophy' && !i.ach).map(t => ({ t, has: (s.owned[t.id] || []).length, q: D.QUESTS.find(q => q.trophy === t.id) }));
     // seuls les trophées qui ont leur image sont exposés (les autres arrivent avec les lots succès)
     const achs = D.ACHIEVEMENTS.filter(a => has('ach-' + a.id)).map(a => ({ a, done: !!(s.ach && s.ach[a.id]), v: Math.min(a.n, G.achValue(a)) }));
     const own = skinsOwned();

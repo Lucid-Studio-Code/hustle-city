@@ -274,7 +274,7 @@
     gem:     { name: 'Raretés',   lvl: 7, icon: '💎', shop: 'bijou', place: 'safe' },
     car:     { name: 'Voitures',  lvl: 10, icon: '🚗', shop: 'garage', place: 'park' },
     moto:    { name: 'Motos',     lvl: 10, icon: '🏍️', shop: 'garage', place: 'park' },
-    trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true }
+    trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true, place: 'vitrine' }   // vitrine : sans limite de place
   };
   const ITEMS = [
     { id: 'c-rookie',   cat: 'card',    name: 'Carte rookie Ndiaye',     r: 'R', p0: 18,    vol: .05 },
@@ -719,6 +719,8 @@
     {"id": "w10m", "name": "Multimillionnaire", "txt": "Atteins 10 M de patrimoine.", "stat": "worth", "n": 10000000, "lingots": 40, "art": "a golden skyscraper"},
     {"id": "lvl21", "name": "Au sommet", "txt": "Atteins le niveau maximum (40).", "stat": "!lvl", "n": 40, "lingots": 30, "art": "a golden crown on a cushion"}
   ];
+  // chaque succès gagné donne sa statuette : un objet de collection qui a une cote et se revend (comme les trophées des missions)
+  ACHIEVEMENTS.forEach(a => ITEMS.push({ id: 'a-' + a.id, cat: 'trophy', ach: a.id, name: a.name, r: a.lingots >= 25 ? 'E' : a.lingots >= 10 ? 'R' : 'C', p0: 20 + a.lingots * 18, vol: .04, img: 'ach-' + a.id }));
   const TIPS = [
     'Un tuyau du Kiosque, c\'est un avis, pas une prophétie. Même le journaliste parie mal.',
     'Momo dit qu\'il a déjà gagné un ×100 à la machine. Momo dit beaucoup de choses.',

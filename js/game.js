@@ -708,7 +708,6 @@
     emit('change'); return { p };
   }
   function sellItem(id) {
-    if (item(id) && item(id).cat === 'trophy') return { err: 'Un trophée ne se vend pas.' };
     const a = st.owned[id]; if (!a || !a.length) return { err: 'Tu n\'en as pas.' };
     const e = a.shift(); if (!a.length) delete st.owned[id];
     const p = sellPrice(id); addCash(p);
@@ -1267,6 +1266,9 @@
     const first = !st.ach, got = st.ach = st.ach || {}, bulk = [];
     const fresh = [];
     D.ACHIEVEMENTS.forEach(a => { if (!got[a.id] && achValue(a) >= a.n) { got[a.id] = now(); addLingots(a.lingots); fresh.push(a); } });
+    // sa statuette arrive dans ta collection (une seule fois : revendue, elle ne revient pas)
+    const gi = st.achItem = st.achItem || {};
+    D.ACHIEVEMENTS.forEach(a => { if (got[a.id] && !gi[a.id] && (!window.ASSETS || window.ASSETS.includes('ach-' + a.id))) { gi[a.id] = now(); (st.owned['a-' + a.id] = st.owned['a-' + a.id] || []).push({ paid: 0, t: now() }); } });
     // plus de 2 d'un coup (nouveaux trophées ajoutés au jeu) : une seule fenêtre récap au lieu d'une cascade
     if (first || fresh.length > 2) { if (fresh.length) emit('achBulk', fresh); } else fresh.forEach(a => emit('achievement', a));
   }
