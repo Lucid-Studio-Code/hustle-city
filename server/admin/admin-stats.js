@@ -7,7 +7,7 @@
   HC.offerIcon = id => OFFER_ICON[id] || 'icon-treasure';
   const retColor = v => v == null ? '' : `background:hsl(${Math.round(260 - Math.min(1, v / 60) * 115)}, ${55 + Math.min(30, v / 2)}%, ${22 + Math.min(1, v / 60) * 20}%)`;
   const SECTIONS = [['audience', 'Audience', 'nav-city'], ['retention', 'Rétention', 'hdr-levelup'], ['sessions', 'Sessions et horaires', 'ev-xp'], ['progression', 'Progression', 'icon-star'],
-    ['economie', 'Économie', 'icon-cash'], ['argent', 'Argent', 'icon-treasure'], ['usage', 'Ce qu\'ils font', 'icon-bolt'], ['repartition', 'Qui sont-ils', 'skin-doudoune-bust'], ['sav', 'SAV', 'app-msg']];
+    ['economie', 'Économie', 'icon-cash'], ['argent', 'Argent', 'icon-treasure'], ['usage', 'Ce qu\'ils font', 'icon-bolt'], ['repartition', 'Qui sont-ils', 'skin-doudoune-bust']];
 
   HC.PAGES.stats = async (P) => {
     const o = await HC.api('/admin/api/overview?days=' + HC.period); { const top = Math.min(o.levels.length, Math.max(5, ...o.levels.filter(l => l.n).map(l => l.lvl)) + 1); o.levels = o.levels.slice(0, top); o.churn = o.churn.slice(0, top); }
@@ -115,18 +115,8 @@
         <div class="card"><div class="card-h">${img('bld-tour')}Villes</div>${HC.hbars(o.cities.map(x => { const [c, cc] = x.k.split('|'); return { label: esc(c), icon: `<span class="flag">${flag(cc)}</span>`, n: x.n }; }), { color: 'var(--cyan)' })}</div>
         <div class="card"><div class="card-h">${img('app-msg')}Langue du téléphone</div>${HC.hbars(o.langs.map(x => ({ label: esc(LANGS[x.k] || x.k), n: x.n, sub: pct(x.n / k.players * 100) })), { color: 'var(--purple)' })}</div>
         <div class="card"><div class="card-h">${img('icon-lock')}Comptes</div><div class="kv"><span>Joueurs en tout</span><b>${fmt(k.players)}</b><span>Suspendus</span><b>${fmt(k.banned)}</b><span>Payeurs</span><b>${fmt(m.payersAll)}</b><span>Inactifs depuis 7 j</span><b>${fmt(o.goneCount)}</b></div></div>
-      </div>
+      </div>`);
 
-      ${HC.secTitle('app-msg', 'SAV', 'les messages des joueurs', 'sav')}
-      <div class="kpis k6">
-        ${HC.kpi('app-msg', fmt(o.support.open), 'tickets à traiter', { color: 'var(--red)', go: 'support' })}
-        ${HC.kpi('ev-xp', fmt(o.support.waiting), 'en attente du joueur', { color: 'var(--yellow)' })}
-        ${HC.kpi('icon-check', fmt(o.support.closed), 'réglés', { color: 'var(--green)' })}
-        ${HC.kpi('ev-boost', fmt(o.support.newInPeriod), 'nouveaux sur la période', { color: 'var(--pink)' })}
-        ${HC.kpi('hdr-daily', minTxt(o.support.avgRespMin), 'pour répondre (moyenne)', { color: 'var(--blue)' })}
-        ${HC.kpi('icon-star', minTxt(o.support.medRespMin), 'pour répondre (médiane)', { color: 'var(--purple)' })}
-      </div>
-      <div class="card" style="margin-top:16px"><div class="card-h">${img('app-msg')}Nouveaux tickets par jour</div><div class="chart sm"><canvas id="s-tk"></canvas></div></div>`);
 
     // ---- graphiques
     HC.line('s-dau', lab, [{ label: 'Par jour', data: s.map(x => x.dau), color: HC.COL.yellow }, { label: 'Sur 7 jours', data: s.map(x => x.wau), color: HC.COL.blue, fill: false, borderDash: [6, 4], borderWidth: 2 }, { label: 'Sur 30 jours', data: s.map(x => x.mau), color: HC.COL.purple, fill: false, borderWidth: 2 }]);
@@ -143,7 +133,6 @@
     HC.bars('s-worth', e.buckets.map(b => b.k), [{ label: 'Joueurs', data: e.buckets.map(b => b.n), color: HC.COL.green }]);
     HC.bars('s-rev', lab, [{ label: 'Achats', data: s.map(x => x.revenue), color: HC.COL.green }, { label: 'Pubs', data: s.map(x => x.adRevenue), color: HC.COL.blue }], { stacked: true, yfmt: v => v + ' €' });
     HC.donut('s-plat', o.platforms.map(p => p.k), o.platforms.map(p => p.n));
-    HC.bars('s-tk', o.support.perDay.map(x => dlabel(x.d)), [{ label: 'Tickets', data: o.support.perDay.map(x => x.n), color: HC.COL.red }], { border: false });
     void lvAt; void sumS;
     HC.$$('[data-scroll]').forEach(b => b.onclick = () => { const el = document.getElementById(b.dataset.scroll); if (el) el.scrollIntoView({ behavior: 'smooth' }); });
     const sec = P.get('s'); if (sec) setTimeout(() => { const el = document.getElementById(sec); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 120);

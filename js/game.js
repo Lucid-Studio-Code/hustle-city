@@ -886,10 +886,14 @@
     return sixBase + i * 240000;
   }
   const sixLive = () => sixTest() ? 120000 : D.SIX.liveMin * 60000;
-  const sixSt = () => { const k = sixTest() ? 'sixTest' : 'six'; return st[k] = st[k] || { picks: {}, paid: {}, remind: {}, final: null }; };
+  // chaque édition du tournoi (date de départ choisie dans le back office) repart de zéro : pronos, classement, récap
+  const sixEd = () => String(D.SIX.sim || 'real');
+  const sixSt = () => { const k = sixTest() ? 'sixTest' : 'six'; let S = st[k];
+    if (!S || (S.ed && S.ed !== sixEd()) || (!S.ed && S.final && S.final.seen && sixPhase() !== 'over')) { S = st[k] = { ed: sixEd(), picks: {}, paid: {}, remind: {}, final: null }; if (k === 'six') st.sixRaised = false; }
+    S.ed = S.ed || sixEd(); return S; };
   // tirage déterministe : le même résultat pour tout le monde (prêt pour un vrai classement en ligne plus tard)
   const seeded = n => { const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return x - Math.floor(x); };
-  const sixSalt = () => sixTest() ? 7 : 2027;
+  const sixSalt = () => sixTest() ? 7 : D.SIX.sim ? [...String(D.SIX.sim)].reduce((a, c) => a + c.charCodeAt(0) * 7, 0) : 2027;   // résultats différents à chaque édition
   // chances « officielles » (force des équipes + avantage du terrain), sans tenir compte des rumeurs
   function sixOdds(i) {
     const [, , h, a] = D.SIX.matches[i], T = D.SIX.teams, pH = 1 / (1 + Math.exp(-(T[h][1] - T[a][1] + 3) / 6));

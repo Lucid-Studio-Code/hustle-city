@@ -2107,8 +2107,7 @@
       <h3 class="sec">Aide</h3><div class="card set-card">
         <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
-        ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="supportOpen"><span><b>Contacter le support</b><small>Un souci, une question : on te répond dans ton téléphone</small></span><em>›</em></button>
-        <button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
+        ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
       ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>

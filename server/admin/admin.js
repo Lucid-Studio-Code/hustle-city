@@ -148,7 +148,6 @@
     { id: 'map', label: 'Carte des joueurs', icon: 'nav-city' },
     { id: 'stats', label: 'Statistiques', icon: 'app-crypto' },
     { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
-    { id: 'support', label: 'SAV', icon: 'app-msg', badge: 'nb-tk' },
     { id: 'promos', label: 'Promos', icon: 'ic-promo' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
@@ -186,7 +185,7 @@
   // ------------------------------------------------------------ en direct : compteur « en ligne » + badge SAV (toutes les 20 s)
   async function pollLive() {
     if (!TOKEN || $('#app').classList.contains('hidden')) return;
-    try { const L = await HC.api('/admin/api/live'); HC.live = L; $('#live-n').textContent = L.online.length; $('#live-n2').textContent = L.online.length; $('#nb-tk').textContent = L.openTickets || ''; if (HC.onLive) HC.onLive(L); } catch (e) {}
+    try { const L = await HC.api('/admin/api/live'); HC.live = L; $('#live-n').textContent = L.online.length; $('#live-n2').textContent = L.online.length;  if (HC.onLive) HC.onLive(L); } catch (e) {}
   }
   setInterval(pollLive, 20000);
 
@@ -230,9 +229,6 @@
       </div>
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('hdr-levelup')}Jusqu'où ils montent<small><a href="#page=stats&s=progression">détails</a></small></div>${funnelHtml(o.funnel)}</div>
-        <div class="card"><div class="card-h">${img('app-msg')}SAV<small><a href="#page=support">ouvrir la messagerie</a></small></div>
-          <div class="kpis" style="grid-template-columns:repeat(3,minmax(0,1fr))">${HC.kpi(null, fmt(o.support.open), 'à traiter', { color: 'var(--red)', html: img('app-msg'), go: 'support' })}${HC.kpi(null, fmt(o.support.waiting), 'en attente du joueur', { color: 'var(--yellow)', html: img('ev-xp') })}${HC.kpi(null, minTxt(o.support.medRespMin), 'pour répondre', { color: 'var(--green)', html: img('icon-check') })}</div>
-          <div class="chart sm" style="margin-top:12px"><canvas id="c-tk"></canvas></div></div>
       </div>`);
     const lab = s.map(x => dlabel(x.d));
     const ch = HC.chart('c-dau', { type: 'bar', data: { labels: lab, datasets: [
@@ -242,7 +238,6 @@
       options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } }, y: { beginAtZero: true, ticks: { precision: 0 } } } } });
     void ch;
     HC.bars('c-rev', lab, [{ label: 'Achats', data: s.map(x => x.revenue), color: HC.COL.green }, { label: 'Pubs', data: s.map(x => x.adRevenue), color: HC.COL.blue }], { stacked: true, yfmt: v => v + ' €' });
-    HC.bars('c-tk', o.support.perDay.map(x => dlabel(x.d)), [{ label: 'Nouveaux tickets', data: o.support.perDay.map(x => x.n), color: HC.COL.red }], { border: false });
     const drawNow = L2 => {
       $('#now-n').textContent = L2.online.length; $('#k-on').textContent = L2.online.length;
       const cities = new Set(L2.online.map(p => p.city).filter(Boolean)); $('#now-sub').textContent = cities.size ? `dans ${cities.size} ville${cities.size > 1 ? 's' : ''}` : '';
