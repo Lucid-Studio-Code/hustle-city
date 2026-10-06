@@ -1410,7 +1410,7 @@
     return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
       ${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
       <span class="sh2-for">✨ Choisie pour toi · ${o.why}</span>
-      <div class="sh2-row"><div class="sh2-art">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
+      <div class="sh2-row"><div class="sh2-art" style="--ad:-${Date.now() % 3200}ms">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
         <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
       <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
   }
