@@ -4,6 +4,7 @@
   const HC = window.HC, { esc, img, fmt, cash, lingots, eur, pct, minTxt, flag, dlabel, delta } = HC;
   const OFFER_ICON = { 'l-50': 'icon-lingot', 'l-280': 'icon-lingot', 'l-600': 'icon-lingot', 'l-1300': 'icon-treasure', 'l-3500': 'icon-treasure', 'l-7500': 'icon-treasure',
     'x-start': 'gift-big', 'x-noads': 'ic-promo', 'x-pass': 'hdr-daily', 'x-collec': 'booster-pack', 'x-gold': 'skin-flambeur-bust', 'x-magnat': 'gift-open' };
+  const bare = v => String(v).replace(/<i class="(cur|lgt|bst)"><\/i>/g, '');   // la grande icône de la carte dit déjà la monnaie
   HC.offerIcon = id => OFFER_ICON[id] || 'icon-treasure';
   const retColor = v => v == null ? '' : `background:hsl(${Math.round(260 - Math.min(1, v / 60) * 115)}, ${55 + Math.min(30, v / 2)}%, ${22 + Math.min(1, v / 60) * 20}%)`;
   const SECTIONS = [['audience', 'Audience', 'nav-city'], ['retention', 'Rétention', 'hdr-levelup'], ['sessions', 'Sessions et horaires', 'ev-xp'], ['progression', 'Progression', 'icon-star'],
@@ -71,11 +72,11 @@
 
       ${HC.secTitle('icon-cash', 'Économie', 'l\'argent du jeu (pas du vrai)', 'economie')}
       <div class="kpis k6">
-        ${HC.kpi('icon-cash', cash(e.cash), 'cash en circulation', { color: 'var(--green)' })}
-        ${HC.kpi('icon-lingot', lingots(e.lingots), 'lingots en circulation', { color: 'var(--yellow)' })}
+        ${HC.kpi('icon-cash', bare(cash(e.cash)), 'cash en circulation', { color: 'var(--green)' })}
+        ${HC.kpi('icon-lingot', bare(lingots(e.lingots)), 'lingots en circulation', { color: 'var(--yellow)' })}
         ${HC.kpi('booster-pack', fmt(e.boosters), 'boosters pas encore ouverts', { color: 'var(--pink)' })}
-        ${HC.kpi('icon-treasure', cash(e.avgWorth), 'patrimoine moyen', { color: 'var(--orange)' })}
-        ${HC.kpi('app-bank', cash(e.medWorth), 'patrimoine « typique » (médiane)', { color: 'var(--blue)', title: 'La moitié des joueurs a moins que ça' })}
+        ${HC.kpi('icon-treasure', bare(cash(e.avgWorth)), 'patrimoine moyen', { color: 'var(--orange)' })}
+        ${HC.kpi('app-bank', bare(cash(e.medWorth)), 'patrimoine « typique » (médiane)', { color: 'var(--blue)', title: 'La moitié des joueurs a moins que ça' })}
         ${HC.kpi('icon-lingot', fmt(e.avgLingots), 'lingots en poche en moyenne', { color: 'var(--yellow)' })}
       </div>
       <div class="grid g2" style="margin-top:16px">
