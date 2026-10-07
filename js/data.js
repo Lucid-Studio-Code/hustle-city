@@ -478,7 +478,7 @@
   TEAMS.rugby = SIX.teams;
   // cartes du tournoi : édition limitée, dans les boosters seulement pendant l'événement
   SIX.teams.forEach((t, i) => ITEMS.push({ id: `k-r${i + 1}`, cat: 'card', series: 'rugby', event: 'six', noBuy: true, name: t[0], r: t[1] >= 86 ? 'E' : 'R',
-    p0: Math.round(CARD_P0[t[1] >= 86 ? 'E' : 'R'] * (0.85 + (t[1] % 7) / 20)), vol: .06, img: 'crest-r' + (i + 1), team: ['rugby', i] }));
+    p0: Math.round(CARD_P0[t[1] >= 86 ? 'E' : 'R'] * (0.85 + (t[1] % 7) / 20)), vol: .06, img: 'crest-r' + (i + 1), art: 'art-k-r' + (i + 1), team: ['rugby', i] }));   // illustration du joueur en action (le blason tant qu'elle manque)
 
   // ---------------------------------------------------------------- événement : la Coupe des Morts (Halloween)
   // 4 équipes de monstres. Le joueur choisit son camp (une fois par édition) et gagne des points pour son équipe en jouant normalement.
