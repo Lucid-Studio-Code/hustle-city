@@ -250,9 +250,9 @@
   // ------------------------------------------------------------ l'écran (app du téléphone)
   function body() {
     const s = st();
-    if (!unlocked()) return `<div class="ag-lock">${'📸'}<b>PrivéFans</b><p>Deviens manager de créatrices de contenu : tu les recrutes, tu organises leur semaine, et tu touches ta part de leurs abonnements.</p><div class="explain center">🔒 Débloqué au niveau ${A.lvl}</div></div>`;
+    if (!unlocked()) return `<div class="ag-lock">${U.has('app-agence') ? `<img class="ag-lock-ic" src="${U.src('app-agence')}" alt="">` : '📸'}<b>PrivéFans</b><p>Deviens manager de créatrices de contenu : tu les recrutes, tu organises leur semaine, et tu touches ta part de leurs abonnements.</p><div class="explain center">🔒 Débloqué au niveau ${A.lvl}</div></div>`;
     sim();
-    if (solo() && !ag().crew.length) return `<div class="ag-lock">📸<b>Ta page PrivéFans</b><p>Lance ta page de créatrice : tes fans s'abonnent, tu postes du contenu, et tu gardes tout… sauf les 20 % de la plateforme.</p></div>
+    if (solo() && !ag().crew.length) return `<div class="ag-lock">${U.has('app-agence') ? `<img class="ag-lock-ic" src="${U.src('app-agence')}" alt="">` : '📸'}<b>Ta page PrivéFans</b><p>Lance ta page de créatrice : tes fans s'abonnent, tu postes du contenu, et tu gardes tout… sauf les 20 % de la plateforme.</p></div>
       <h3 class="sec">Choisis ta spécialité</h3><div class="ag-niches">${NICHES.map(n => `<button class="ag-niche" data-act="agStart" data-n="${n}">${U.has('niche-' + nslug(n)) ? `<img src="${U.src('niche-' + nslug(n))}" alt="">` : ''}<b>${n}</b></button>`).join('')}</div>
       <p class="hint-line">Ta spécialité compte : certaines tenues et certains objets rapportent deux fois plus quand ils collent à ta niche.</p>`;
     const a = ag(), pend = a.crew.reduce((x, m) => x + (m.pend || 0), 0), hourly = a.crew.reduce((x, m) => x + perHour(m), 0);
