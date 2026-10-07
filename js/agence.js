@@ -66,7 +66,10 @@
   function actGain(m, x) {
     const p = prof(m.id), subs = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
     const tips = x.cash ? Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)) : 0, L = [];
-    if (subs >= 1) L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo && m.id !== 'me') L.push('<span class="g-up">pour les deux</span>');
+    // collab : chacune gagne des abonnés selon SA taille (la plus grosse gagne plus) ; on affiche les deux chiffres
+    const mate = x.duo && m.id !== 'me' && m.act && m.act.k === x.id && m.act.with && ag().crew.find(o => o.id === m.act.with);
+    if (mate) { const ms = mate.subs * x.subs * (prof(mate.id).cha / 3); L.push(`<span class="g-up">+${fmtSubs(subs)} pour elle</span>`); if (ms >= 1) L.push(`<span class="g-up">+${fmtSubs(ms)} pour ${U.esc(prof(mate.id).name)}</span>`); }
+    else if (subs >= 1) { L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo && m.id !== 'me') L.push('<span class="g-up">et l\'autre en gagne aussi</span>'); }
     if (tips) L.push(`<span class="g-up">+${U.short(tips)} pourboires</span>`);
     if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">${m.id === 'me' ? 'énergie' : 'moral'} ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
     return `<em class="ag-gain">${L.join('')}</em>`;
