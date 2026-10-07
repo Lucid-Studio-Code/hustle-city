@@ -3142,7 +3142,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .lg-art > img, #app .ip-art > img, #app .sh2-art > img { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: contain; }
 #app .sh2-art { overflow: visible; animation: none; }
 #app .sh2-art > img { animation: sh2Float 3.2s ease-in-out infinite; transform-origin: 50% 80%; will-change: transform; }
-@keyframes sh2Float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes sh2Float { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -5px, 0); } }
 #app .sh2-art .sh2-badge { z-index: 2; }
 /* cartes Créatures : illustration recadrée (sans le cadre généré), cadre du jeu identique pour toutes */
 .tcg.full.crea .fa-ill img { object-position: center 40%; }

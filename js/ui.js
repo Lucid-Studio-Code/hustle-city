@@ -1469,7 +1469,7 @@
     return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
       ${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
       ${p && p.season ? `<span class="sh2-for"><i>${ico('icon-star', '★')}</i>Spécial ${p.season.name}</span>` : `<span class="sh2-for"><i>${ico('icon-star', '★')}</i>Rien que pour toi<em>${o.why}</em></span>`}
-      <div class="sh2-row"><div class="sh2-art" style="--ad:-${Date.now() % 3200}ms">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
+      <div class="sh2-row"><div class="sh2-art" >${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
         <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
       <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>${ico('ic-timer', '⏱')} Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
   }
@@ -1537,7 +1537,7 @@
       // look en vente limitée : un compte à rebours à la place de « Spécial » ; passé la date, il n'est plus en vente (ceux qui l'ont le gardent)
       const left = L.until ? Date.parse(L.until) - Date.now() : 0, gone = L.until && left <= 0 && !has_;
       if (gone) return '';
-      const tag = L.until && !has_ ? `<span class="lk-tag">${ico('ic-timer', '⏱')}<b>${left > 864e5 ? `${Math.ceil(left / 864e5)} j` : `${Math.max(1, Math.ceil(left / 36e5))} h`}</b><small>pour l'avoir</small></span>` : '';
+      const tag = L.until && !has_ ? `<span class="lk-tag">${ico('ic-timer', '⏱')}<small>Encore</small><b>${left > 864e5 ? `${Math.ceil(left / 864e5)} j` : `${Math.max(1, Math.ceil(left / 36e5))} h`}</b></span>` : '';
       return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}"><div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})">${tag}</div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
     return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
       <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
