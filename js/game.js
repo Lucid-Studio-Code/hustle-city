@@ -979,7 +979,7 @@
   const sixEnd = () => sixKick(D.SIX.matches.length - 1) + sixLive();
   // plus d'événement en cours : tournoi fini et récompense touchée (ou fini depuis plus de 7 jours)
   // après la fin, le Panneau garde le tournoi (avec une notif) tant que le joueur n'a pas vu le récap ; ensuite il redevient un panneau normal
-  function eventOff() { if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || !!S.final.seen || (S.final.claimed && S.final.seen === undefined) || now() - sixEnd() > 30 * 86400000; }
+  function eventOff() { if (sixPhase() === 'before') return !sixTest() && sixKick(0) - now() > 14 * 86400000;   /* le Tournoi n'apparaît que 2 semaines avant son coup d'envoi */ if (sixPhase() !== 'over') return false; const S = sixSt(); return !S.final || !!S.final.seen || (S.final.claimed && S.final.seen === undefined) || now() - sixEnd() > 30 * 86400000; }
   function sixRecapSeen() { const S = sixSt(); if (S.final) { if (!S.final.claimed) claimSix(); S.final.seen = now(); emit('change'); } }
   function nextEventAt() { const t = D.NEXT_EVENT && D.NEXT_EVENT.at && Date.parse(D.NEXT_EVENT.at), c = cdmPhase() === 'before' ? cdmT()[0] : 0;
     const L = [t, c].filter(x => x && x > now()); return L.length ? Math.min(...L) : null; }

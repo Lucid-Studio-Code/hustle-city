@@ -289,7 +289,7 @@
     const up = G.upgradeReady();
     if (up) add(75, '🛠️', { pc: 'Tu peux te payer un meilleur PC', rig: 'Tu peux améliorer ta machine', room: 'Tu peux déménager' }[up], { pc: 'Moins de frais sur la crypto.', rig: 'Elle minera plus vite.', room: 'Plus de place pour tes objets.' }[up], () => openUpgrades(), true);
     // une série presque finie, avec la carte qui manque en rayon
-    if (G.catUnlocked('card')) D.SERIES.filter(x => !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).forEach(se => {
+    if (G.catUnlocked('card')) D.SERIES.filter(x => seriesOn(x) && cardsNow(x) && !s.colClaimed[x.id] && G.seriesHave(x.id) > 0).forEach(se => {
       const all = G.seriesCards(se.id), left = all.length - G.seriesHave(se.id);
       if (left > 2) return;
       if (G.seriesDone && G.seriesDone(se.id)) return add(88, '📒', `Série « ${se.name} » complète !`, `Réclame ta prime de ${short(se.reward.cash)}.`, () => openBoosters('col'), true);
@@ -2247,6 +2247,10 @@
   function packArt(mini) { return mini ? `<i class="bst-mini">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}</i>` : `<div class="bst-pack">${pic('booster-pack', '🃏')}<i class="bst-gloss"></i></div>`; }
   const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
   // numéro d'une carte dans SA collection (sport ou créatures) : 03/98
+  // la série du Tournoi n'existe pour les joueurs qu'une fois le tournoi commencé (février 2027)
+  const seriesOn = se => se.id !== 'rugby' || !G.sixPhase || G.sixPhase() !== 'before' || G.TEST;
+  // cartes d'événement : on ne relance le joueur que pendant l'événement (avant ou après, il ne peut plus les avoir)
+  const cardsNow = se => se.id !== 'rugby' || G.sixPhase() === 'on' || G.TEST;
   const colOf = c => (D.SERIES.find(x => x.id === c.series) || {}).col || 'sport';
   const colCards = c => CARD_ALL.filter(x => colOf(x) === colOf(c));
   const cardNo = c => `${String(colCards(c).indexOf(c) + 1).padStart(2, '0')}/${colCards(c).length}`;
@@ -2314,7 +2318,7 @@
       <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
       <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>
       ${colTab === 'crea' && nCrea < 10 ? '<p class="hint-line"><b>Nouvelles créatures en route :</b> elles arrivent dans les boosters au fil des mises à jour.</p>' : ''}`;
-    for (const se of D.SERIES.filter(x => (x.col || 'sport') === colTab)) {
+    for (const se of D.SERIES.filter(x => seriesOn(x) && (x.col || 'sport') === colTab)) {
       const cards = G.seriesCards(se.id), have = G.seriesHave(se.id), done = G.seriesDone(se.id), claimed = s.colClaimed[se.id];
       if (!cards.length) continue;
       body += `<div class="col-set"><div class="col-head"><b>${se.name}</b><small>${have}/${cards.length}</small></div>
