@@ -868,7 +868,7 @@
   // Publier : bâtiments + objets de la ville + disposition des 3 chambres + textes, pour tout le monde
   async function publishLayout(clashes) {
     const bad = clashes ? clashes() : [];
-    if (bad.length) return toast(`Pas publié : ${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'}. Décale-les d'abord.`, true);
+    if (bad.length && !confirm(`${[...new Set(bad)].join(', ')} ${bad.length > 1 ? 'se chevauchent' : 'chevauche quelque chose'} (dans le look affiché). Publier quand même ?`)) return toast('Pas publié : décale d\'abord les objets en rouge.', true);
     const sv = admSaved(), rooms = D.ROOMS.map((_, i) => roomLayout(i));
     // on publie TOUJOURS l'état complet (ce qui est affiché), jamais seulement ce que ce navigateur a retenu :
     // sinon une publication faite depuis la chambre envoyait « aucune déco » et tout revenait à sa place d'origine
