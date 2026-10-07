@@ -158,7 +158,10 @@
     if (step.before) step.before();
     el.say.innerHTML = `<div class="who">${U.pic('guide', '🧢')}</div><div class="bubble"><button class="tuto-skip" id="tuto-skip">Passer</button><span class="nm">Momo</span>${step.say(U.esc(st().name))}${step.btn ? `<div style="text-align:right;margin-top:8px"><button class="btn green sm" id="tuto-next">${step.btn}</button></div>` : ''}</div>`;
     const nb = $('#tuto-next'); if (nb) nb.onclick = () => next();
-    $('#tuto-skip').onclick = () => skip();
+    $('#tuto-skip').onclick = () => {   // passer : celui-ci seulement, ou tous les tutos (réactivables dans les Réglages)
+      const b = el.say.querySelector('.bubble'); if (!b || b.querySelector('.tuto-skipbox')) return;
+      b.insertAdjacentHTML('beforeend', `<div class="tuto-skipbox"><button class="btn xs" id="tuto-skip1">${bld ? 'Passer celui-ci' : 'Passer le tuto'}</button><button class="btn xs red" id="tuto-skipall">Plus aucun tuto</button></div>`);
+      $('#tuto-skip1').onclick = () => skip(); $('#tuto-skipall').onclick = () => skipAll(); };
     el.spot.classList.toggle('dim', !!step.target);
     setTimeout(place, 60);
   }
@@ -183,6 +186,8 @@
     show(); clearInterval(timer); timer = setInterval(tick, 300);
   }
   function skip() { finish(); }
+  // coupe tous les tutos : le principal et ceux des lieux à venir (Réglages → « Tutos de Momo » pour les remettre)
+  function skipAll() { const s0 = st(); s0.noTuto = true; s0.tutoDone = true; finish(); Object.keys(BLD).forEach(k => seen()[k] = true); G.save(); U.toast && U.toast('Tutos coupés. Tu peux les remettre dans les Réglages.'); }
   function startBld(id) {
     bld = id; STEPS = BLD[id]; idx = 0;
     show(); clearInterval(timer); timer = setInterval(tick, 300);
@@ -196,7 +201,7 @@
     Object.keys(FEAT_LVL).forEach(k => { if (k !== 'parking' && s.lvl >= FEAT_LVL[k]()) seen()[k] = true; }); if (G.parkedCount() > 0) seen().parking = true; }
   setInterval(() => {
     featFix();
-    const s = st(); if (!s || !s.tutoDone || timer || !s.skin) { calm = 0; return; }
+    const s = st(); if (!s || !s.tutoDone || s.noTuto || timer || !s.skin) { calm = 0; return; }
     const busy = modalOpen() || U.pending > 0 || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
     calm = busy ? 0 : calm + 1;
     if (calm < 3) return;
@@ -204,5 +209,5 @@
     if (id) { calm = 0; startBld(id); }
   }, 1000);
 
-  window.TUTO = { start, skip, startBld, get active() { return !!timer; }, get step() { const x = STEPS[idx]; return x && { target: x.target, btn: !!x.btn, bld, idx }; } };   // step : pour les tests automatiques
+  window.TUTO = { start, skip, skipAll, startBld, get active() { return !!timer; }, get step() { const x = STEPS[idx]; return x && { target: x.target, btn: !!x.btn, bld, idx }; } };   // step : pour les tests automatiques
 })();

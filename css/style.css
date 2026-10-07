@@ -3388,3 +3388,5 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .sp-chip span img.ico { width: 18px; height: 18px; vertical-align: -4px; }
 #app .col-tabs button img.ico { width: 18px; height: 18px; vertical-align: middle; }
 #app .club-timer img.ico, #app .pq-timer img.ico { width: 1.3em; height: 1.3em; vertical-align: -0.3em; }
+
+#app .tuto-skipbox { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }

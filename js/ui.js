@@ -2353,6 +2353,7 @@
       <h3 class="sec">Aide</h3><div class="card set-card">
         <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
+        <div class="set-row"><span><b>Tutos de Momo</b><small>${st().noTuto ? 'Coupés : plus d\'explications quand un lieu s\'ouvre' : 'Momo t\'explique chaque nouveau lieu'}</small></span><button class="btn xs ${st().noTuto ? 'green' : ''}" data-act="tutoToggle">${st().noTuto ? 'Remettre' : 'Couper'}</button></div>
         ${isStandalone() ? '' : `<button class="set-row" data-act="installHelp"><span><b>Mettre le jeu sur mon écran d'accueil</b><small>Comme une appli, en plein écran</small></span><em>›</em></button>`}
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
@@ -2570,6 +2571,7 @@
         localStorage.setItem('hustleCity.v1', raw); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
     installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
+    tutoToggle() { const s = st(); s.noTuto = !s.noTuto; if (s.noTuto) { s.tutoDone = true; if (window.TUTO && TUTO.active) TUTO.skip(); } else { s.bldTuto = {}; s.featTutoFix = 0; }   /* seuls les lieux pas encore atteints auront leur tuto */ G.save(); toast(s.noTuto ? 'Tutos coupés.' : 'Tutos remis : Momo t\'expliquera les prochains lieux.'); setBody(settingsBody()); },
     installHelp() { openInstall(); },
     legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55"><b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans Hustle City : ils ne s'échangent pas contre de l'argent réel.<br><br><b>Tes données</b> : ta partie est enregistrée sur ton appareil. Rien n'est envoyé ailleurs tant que tu ne te connectes pas (bientôt).<br><br><b>Jeux d'argent</b> : les paris, casinos et tickets du jeu sont fictifs. Les vrais sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13.</div>` }); },
     trading() { openCrypto(); },
