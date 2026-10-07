@@ -2856,7 +2856,7 @@
   // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
   const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`);
     // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville (adresse complète : la variable CSS est lue depuis css/)
-    const sc = window.HC_BG || (has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : ''); if (sc) { el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
+    const sc = has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : ''; if (sc) {   /* accueil : la ville (la scène du chargement passait derrière ton perso) */ el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
     if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
   // déménagement : l'ancienne adresse (GitHub) envoie la partie vers le nouveau site, dans l'adresse (#import=…, jamais envoyée à un serveur)
   const NEW_SITE = 'https://hustle.lucidstudio.fr/';
@@ -2913,7 +2913,7 @@
     const el = $('#start'), s = st();
     const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>
       <div class="st-hero">${skinPic(s.skin)}</div>
-      <div class="st-bottom"><p class="st-hello">${has('guide') ? `<img src="${src('guide')}" alt="">` : ''}<span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
+      <div class="st-bottom"><p class="st-hello"><span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
       <p class="start-note">*ou pas. Réservé aux adultes</p></div>`;
     preload(html, () => { el.className = 'welcome'; el.innerHTML = html; startBg(el); welcomeGo(); if (window.__imported) $('#st-go').click(); });   // partie ramenée : on entre direct dans le jeu
     const welcomeGo = () => $('#st-go').onclick = () => {
