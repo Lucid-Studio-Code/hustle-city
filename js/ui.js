@@ -51,6 +51,7 @@
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
+  const rpPcs = () => ['pcv-0', 'pcv-1', 'pcv-2', 'pcv-r1', 'pcv-r2', 'pcv-r3', 'pcv-r4'].filter(has);   // tous les PC du jeu, pour l'outil de placement
   const pcLook = () => { const r = st().rig ? st().rig.lvl : 0; return r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0'; };
   // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
   const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
@@ -861,13 +862,13 @@
     if (!window.HC_DEV || (!force && location.hash !== '#placer-appart')) return;
     if (RP.on || !st().skin) return;
     closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); RP.sel = RP.sel || 'pc';
-    RP.pv = RP.pv || { pc: G.pcLvl(), rig: st().rig.lvl }; setScene('appart');
+    RP.pv = RP.pv || { pc: Math.max(0, rpPcs().indexOf(pcLook())), rig: st().rig.lvl }; setScene('appart');
     const objs = () => ['pc', 'rig', 'light', 'shelf', ...RP.L.slots.slice(0, D.ROOMS[RP.room].slots).map((_, i) => 'slot' + i)];
     $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''} ${RP.more ? 'more' : ''}">
       <div class="rp-row"><select id="rp-sel"></select><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
         <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔</button><button class="btn xs purple" id="rp-more">⋯</button></div>
       <div class="rp-row rp-x"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<button class="btn xs purple" id="rp-g"></button>
-        <small>PC</small>${D.PCS.map((x, i) => `<button class="btn xs rp-pv" data-k="pc" data-i="${i}">${i + 1}</button>`).join('')}<small>Mach.</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
+        <small>PC</small>${rpPcs().map((x, i) => `<button class="btn xs rp-pv" data-k="pc" data-i="${i}">${i + 1}</button>`).join('')}<small>Mach.</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
       <div class="rp-row rp-x"><span id="rp-cur"></span><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
       <div class="rp-row rp-x"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><button class="btn xs red" id="rp-reset">↺ Chambre</button><button class="btn xs" id="rp-move" title="Haut / bas">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <textarea id="rp-out" readonly></textarea></div>`);
@@ -1001,7 +1002,7 @@
     const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? (rl > 0 && has('pcv-r' + Math.min(rl, 4)) ? 'pcv-r' + Math.min(rl, 4) : has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl) : pcLook();   /* même PC que dans le jeu : il suit la machine */
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? rpPcs()[pl] || 'pc-0' : pcLook();
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
