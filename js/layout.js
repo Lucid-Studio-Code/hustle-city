@@ -663,5 +663,31 @@ window.LAYOUT = {
    30.5
   ]
  },
- "values": {}
+ "values": {},
+ "looks": {
+  "neon": {
+   "buildings": {
+    "parking": {
+     "x": 29,
+     "y": 75.5,
+     "w": 13,
+     "flip": false
+    }
+   },
+   "decos": {
+    "dc-flags": {
+     "x": 43.5,
+     "y": 75.5,
+     "w": 8,
+     "flip": false
+    },
+    "dc-car": {
+     "x": 12,
+     "y": 72.5,
+     "w": 21.5,
+     "flip": true
+    }
+   }
+  }
+ }
 };
