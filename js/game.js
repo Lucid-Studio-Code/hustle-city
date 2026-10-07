@@ -489,6 +489,7 @@
     const lucky = !free && !st.luckyUsed && !st.tutoDone && legs.length === 1; if (lucky) st.luckyUsed = true;   // le pari du tuto gagne
     st.bets.unshift({ lucky, id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
     if (st.bets.length > 30) st.bets.length = 30;
+    if (lucky) { const m0 = match(legs[0].m); if (m0 && m0.res != null) { m0.res = null; playMatch(m0); } }   // résultat déjà tiré (tuyau) : on le retire pour ce pari
     stat('bets'); if (serious(stake) || free) gameXp(4 + Math.min(xpCap(40), stake / 4)); else gameXp(stake / 4);
     emit('change'); return { ok: true, odds };
   }
