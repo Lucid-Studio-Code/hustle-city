@@ -1925,11 +1925,9 @@
       const rows = N.list.map((c, i) => { const v = Math.min(c.goal, G.chalValue(c)), done = v >= c.goal;
         return `<div class="card cdm-night ${c.got ? 'got' : done ? 'ready' : ''}"><div class="cn-l"><b>${c.t}</b><span class="cn-bar"><i style="width:${v / c.goal * 100}%"></i></span><small>${v} / ${c.goal}</small></div>
           ${c.got ? '<span class="cn-ok">✓</span>' : done && on ? `<button class="btn xs green" data-act="cdmNight" data-i="${i}">+${C.nightPts} pts</button>` : `<span class="cn-pts">+${C.nightPts} pts</span>`}</div>`; }).join('');
-      const how = Object.entries(C.pts).map(([k, p]) => `<div class="sb-row"><span class="sb-nm">${CDM_LBL[k] || k}</span><small class="muted">${by[k] || 0} / ${p[1]} aujourd'hui</small><b>+${p[0]}</b></div>`).join('');
       return head + `<h3 class="sec">Les défis de la nuit <small>· nouveaux à minuit</small></h3>${rows}
         <p class="hint-line center">Les 3 réussis : <b>+${Bn.pts} pts</b> et <b>${Bn.candy}</b> ${candyIc()} en bonus${N.bonus ? ' <b class="up">✓</b>' : ''}.</p>
-        <button class="sx-how" data-act="cdmHow">${cdmHowOpen ? '▾' : '▸'} Comment gagner des points ?</button>
-        ${cdmHowOpen ? `<p class="hint-line">Tout ce que tu fais dans le jeu rapporte des points à ton équipe, avec un maximum par jour pour chaque action. <b>${C.perCandy} points = 1 bonbon</b>.</p><div class="six-board-list cdm-how">${how}</div>` : ''}`;
+`;
     }
     if (cdmTab === 'steps') {
       return head + `<p class="hint-line">Tes points perso débloquent des récompenses. Elles restent à récupérer jusqu'à la fin de la Coupe.</p>` + C.steps.map((x, i) => { const got = S.steps[i], ok = S.pts >= x.n;
@@ -1951,6 +1949,8 @@
     const meRow = B.online && !B.top.some(r => r.me) ? `<div class="sb-gap">…</div><div class="sb-row me"><span class="sb-rk">${B.rank}</span><span class="sb-nm">${esc(st().name)} (toi)</span><b>${fmtN(S.pts)} pts</b></div>` : '';
     return head + `<h3 class="sec">La course des équipes${B.online ? ` <small>· ${fmtN(B.players)} joueur${B.players > 1 ? 's' : ''}</small>` : ''}</h3>${cdmRace(B, S.team)}
       <div class="card cdm-mine" style="--tc:${T.color};--td:${T.dark}">${cdmCrest(T.id)}<div><b>${T.name}</b><small>« ${T.motto} »</small><p>Ta part : <b>${fmtN(S.pts)} pts</b>${B.online ? ` · ${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup> sur ${fmtN(B.of)}` : ''}</p></div></div>
+      ${(() => { const by = (S.day && S.day.d === G.cdmNight().d && S.day.by) || (S.day && S.day.by) || {}, how = Object.entries(C.pts).map(([k, p]) => `<div class="sb-row"><span class="sb-nm">${CDM_LBL[k] || k}</span><small class="muted">${by[k] || 0} / ${p[1]} aujourd'hui</small><b>+${p[0]}</b></div>`).join('');
+        return `<details class="howto-crypto cdm-howto" ${cdmHowOpen ? 'open' : ''}><summary data-act="cdmHow">Comment gagner des points ?</summary><p>Tout ce que tu fais dans le jeu rapporte des points à ton équipe, avec un maximum par jour pour chaque action. <b>${C.perCandy} points = 1 bonbon</b>.${S.boost ? ` Toi, en outsider : <b>+${Math.round((S.boost - 1) * 100)} %</b> sur tout.` : ''}</p><div class="six-board-list cdm-how">${how}</div></details>`; })()}
       <h3 class="sec">Le top 5 des ${T.name}</h3><div class="six-board-list">${top}${meRow}</div>
       <h3 class="sec">À la fin de la Coupe</h3><div class="six-rew cdm-rew">${C.rewards.map(r => `<div><small>${r.place === 1 ? '1<sup>re</sup> équipe' : `${r.place}<sup>e</sup> équipe`}</small><span class="cr-art">${(m => has(m) ? `<img src="${src(m)}" alt="">` : '')(r.chest ? 'ev-cdm-chest' : ['', '', 'medal-silver', 'medal-bronze', 'ev-cdm-candy'][r.place])}</span><span class="cr-chips">${cdmRew(r)}</span></div>`).join('')}</div>
       <p class="hint-line center">Et pour tous : <b>la Coupe des Morts</b> en trophée, à poser sur tes étagères. Récompense d'équipe dès <b>${C.minReward} points</b>.</p>`;
@@ -1960,7 +1960,7 @@
     const B = G.cdmBoard();
     return cdmHero() + `<p class="hint-line center">Choisis ton camp ! Tout ce que tu fais dans le jeu rapporte des points à ton équipe. <b>Ton choix est définitif</b> jusqu'à la fin de la Coupe.</p>
       <div class="grid2 cdm-pick">${D.CDM.teams.map(t => { const b = B.teams.find(x => x.id === t.id);
-        return `<button class="cdm-tcard" style="--tc:${t.color};--td:${t.dark}" data-act="cdmPick" data-id="${t.id}">${cdmCrest(t.id, 'big')}<b>${t.name}</b><small>« ${t.motto} »</small>${B.online ? `<em>${b.rank}<sup>${b.rank === 1 ? 're' : 'e'}</sup> · ${fmtN(b.total)} pts · ${fmtN(b.players)} joueur${b.players > 1 ? 's' : ''}</em>` : ''}</button>`; }).join('')}</div>${B.online ? '' : offLine()}`;
+        return `<button class="cdm-tcard" style="--tc:${t.color};--td:${t.dark}" data-act="cdmPick" data-id="${t.id}">${G.cdmUnderdog() === t.id ? `<span class="cdm-under">Outsider · +${Math.round((D.CDM.outsider - 1) * 100)} % de points</span>` : ''}${cdmCrest(t.id, 'big')}<b>${t.name}</b><small>« ${t.motto} »</small>${B.online ? `<em>${b.rank}<sup>${b.rank === 1 ? 're' : 'e'}</sup> · ${fmtN(b.total)} pts · ${fmtN(b.players)} joueur${b.players > 1 ? 's' : ''}</em>` : ''}</button>`; }).join('')}</div>${B.online ? '' : offLine()}`;
   }
   function cdmTabs() { const n = G.cdmNightReady(), k = G.cdmStepsReady(), dot = x => x ? ` <i class="tab-dot">${x}</i>` : '';
     return [{ id: 'team', label: 'Équipes' }, { id: 'nights', label: 'Défis' + dot(n) }, { id: 'steps', label: 'Paliers' + dot(k) }, { id: 'shop', label: 'Boutique' }]; }
@@ -1981,7 +1981,7 @@
   function cdmConfirm(id) {
     const t = G.cdmTeam(id); if (!t) return;
     openModal({ title: 'Ton camp', icon: 'ic-ev-cdm', center: true, theme: 'cdm', body: `<div class="cdm-confirm" style="--tc:${t.color};--td:${t.dark}">${cdmCrest(t.id, 'big')}
-      <b>Rejoindre les ${t.name} ?</b><small>« ${t.motto} »</small><p class="hint-line center">C'est pour toute la Coupe : tu ne pourras plus changer de camp.</p>
+      <b>Rejoindre les ${t.name} ?</b><small>« ${t.motto} »</small>${G.cdmUnderdog() === t.id ? `<p class="cdm-under-p">Équipe en sous-nombre : tous tes points comptent <b>+${Math.round((D.CDM.outsider - 1) * 100)} %</b> pendant toute la Coupe.</p>` : ''}<p class="hint-line center">C'est pour toute la Coupe : tu ne pourras plus changer de camp.</p>
       <div class="grid2"><button class="btn" data-act="cdmBack">Je réfléchis</button><button class="btn green" data-act="cdmJoin" data-id="${t.id}">Je les rejoins !</button></div></div>` });
   }
   // fin de la Coupe : le classement final, ta part, tes récompenses ; ensuite le Panneau redevient normal
@@ -2681,7 +2681,7 @@
     cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(cdmBody()); renderCity(); renderHud(); },
-    cdmHow() { cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },
+    cdmHow(el, e) { e && e.preventDefault(); cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },
     cdmRecapOk() { const claimed = G.cdmState().final.claimed; G.cdmRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 60); } closeModal(); renderCity(); renderHud(); },
     sixPast(el) { const d = +el.dataset.d; sixPastOpen.has(d) ? sixPastOpen.delete(d) : sixPastOpen.add(d); setBody(sixBody()); },
     sixHow() { sixHowOpen = !sixHowOpen; setBody(sixBody()); },
@@ -2712,7 +2712,7 @@
     boosters: () => openBoosters('open'),
     collection: () => openBoosters('col'),
     boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); sfx.tear(); packOpening(r.cards); renderHud(); },
-    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
+    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); A.boosterOpen(); },   // acheté = ouvert tout de suite
     packDone() { const el = $('#pack'); el.className = ''; el.innerHTML = ''; refresh(); nextPending(); },
     goDefis: () => openRewards('defis'),
     claimSeries(el) { const r = G.claimSeries(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('bill', 40); toast(`Série « ${r.se.name} » complète : +${eur(r.se.reward.cash)} et ${r.se.reward.lingots} lingots !`); refresh(); },

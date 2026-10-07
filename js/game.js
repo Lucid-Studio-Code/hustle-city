@@ -1115,7 +1115,7 @@
   // ce qu'affiche le Panneau : la Coupe passe avant le tournoi (sauf choix contraire au back office pendant un tournoi en cours)
   const panneau = () => cdmShow() && !(D.CDM.prio === 'six' && sixPhase() === 'on') ? 'cdm' : 'six';
   function cdmAdd(n, why) {
-    const S = cdmSt(), before = S.pts; n = Math.round(n); if (n <= 0) return 0;
+    const S = cdmSt(), before = S.pts; n = Math.round(n * (S.boost || 1)); if (n <= 0) return 0;
     S.pts += n; S.unsent = (S.unsent || 0) + n; cdmCache = null;
     const c = Math.floor(S.pts / D.CDM.perCandy) - Math.floor(before / D.CDM.perCandy);
     if (c > 0) { S.candy += c; S.candyAll += c; }
@@ -1129,10 +1129,16 @@
     const got = S.day.by[k] || 0, n = Math.max(0, Math.min(P[0] * count, P[1] - got)); if (!n) return 0;
     S.day.by[k] = got + n; return cdmAdd(n, k);
   }
+  // l'outsider : l'équipe nettement la moins nombreuse (en ligne seulement), celle qui donne +20 % à ceux qui la rejoignent
+  function cdmUnderdog() {
+    const B = cdmBoard(); if (!B.online) return null;
+    const L = B.teams.slice().sort((a, b) => a.players - b.players), max = L[L.length - 1].players;
+    return max >= 3 && L[0].players < max * .8 && L[0].players < L[1].players ? L[0].id : null;
+  }
   function cdmJoin(id) {
     if (!cdmOn()) return { err: 'La Coupe des Morts n\'est pas ouverte.' };
     const S = cdmSt(), T = cdmTeam(id); if (S.team) return { err: 'Tu as déjà choisi ton camp.' }; if (!T) return { err: 'Équipe inconnue.' };
-    S.team = id; S.joinedAt = now(); cdmNight(); addXp(10); emit('cdmJoin', T); emit('change'); return { T };
+    S.team = id; S.joinedAt = now(); if (id === cdmUnderdog()) S.boost = D.CDM.outsider; cdmNight(); addXp(10); emit('cdmJoin', T); emit('change'); return { T };
   }
   // défis de la nuit : 3 par jour, tirés au sort (comme les défis du jour)
   function cdmNight() {
@@ -1634,7 +1640,7 @@
     scratchDraw, scratchPay, scratchRtp, spin, slotRtp, roulette, rouletteWins,
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
-    cdmPhase, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
+    cdmPhase, cdmUnderdog, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
     vintageOn, eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,

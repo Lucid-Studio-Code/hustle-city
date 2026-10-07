@@ -508,6 +508,7 @@
       deals: [10, 50], clubNights: [25, 50], clubSpots: [5, 30], series: [60, 120], agActs: [4, 40],
       quest: [25, 250], chal: [20, 60], week: [40, 160], daily: [30, 30]
     },
+    outsider: 1.2,          // l'équipe qui a le moins de joueurs : +20 % de points pour ceux qui la rejoignent (rééquilibre les camps)
     perCandy: 10,           // 1 bonbon tous les 10 points
     minReward: 50,          // il faut au moins 50 points pour toucher la récompense d'équipe
     // défis de la nuit : 3 par jour, tirés au sort (ils changent à minuit)

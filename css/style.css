@@ -3482,3 +3482,10 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .cdm-pack { position: relative; display: inline-grid; place-items: center; height: 84px; }
 #app .cdm-pack img, #app .cdm-pack .pic { height: 84px; width: auto; object-fit: contain; animation: none; transform: none; position: static; }
 #app .cdm-pack em { position: absolute; right: -14px; bottom: 2px; font: 400 18px var(--title); color: #fff; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; font-style: normal; }
+/* bas des fenêtres : le dernier texte ne colle jamais au cadre */
+#app .sheet-body > :last-child { margin-bottom: 22px; }
+/* Coupe des Morts : « Comment gagner des points ? » comme « C'est quoi, une crypto ? » ; badge outsider */
+#app .cdm-howto { margin: 12px 0; } #app .cdm-howto .six-board-list { margin-top: 8px; }
+#app .cdm-tcard { position: relative; }
+#app .cdm-under { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: #ffd34d; color: #2a1a10; border: 2px solid #2a1a10; border-radius: 999px; padding: 2px 8px; font: 400 11px var(--title); z-index: 2; }
+#app .cdm-under-p { margin: 4px 0; padding: 8px 10px; border-radius: 12px; background: #fff3c4; border: 2px solid #e8b923; font: 800 13px/1.35 var(--text); color: #3b2412; text-align: center; }
