@@ -52,6 +52,8 @@
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
   const pcLook = () => { const r = st().rig ? st().rig.lvl : 0; return r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0'; };
+  // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
+  const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
   const decoImg = x => x.img || 'deco-' + x.id;
   // pin's de la photo de profil : écusson d'une équipe du tournoi, ou pin's d'un camp de la Coupe des Morts
@@ -2132,7 +2134,7 @@
           <i class="tcg-holo"></i></div></div>`;
       }
       // créature commune : carte classique (illustration dans sa fenêtre, texte dessous), comme les communes de sport ; le full art est réservé aux rares et plus
-      if (it.kind === 'creature') d = { type: it.series, name: it.name, art: `<div class="tcg-sub ill-art crea-art"><img class="cr-blur" src="${src('item-' + it.id)}" alt=""><img class="cr-main" src="${src('item-' + it.id)}" alt=""></div>`, stat: '', ability: se.name, text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub || se.name, no };
+      if (it.kind === 'creature') d = { type: it.series, name: it.name, art: `<div class="tcg-sub ill-art crea-art"><img class="cr-blur" src="${src('item-' + it.id)}" alt=""><img class="cr-main" src="${src('item-' + it.id)}" alt="" style="--fy:${CREA_FY[it.id] ?? 38}%"></div>`, stat: '', ability: se.name, text: priceSentence(it.id), flav: se.name, rarity: it.r, label: se.sub || se.name, no };
       else d = { type: it.series, name: it.name.replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), art: it.img ? `${has('card-bg-' + it.team[0]) ? `<img class="art-bg" src="${src('card-bg-' + it.team[0])}" alt="">` : ''}${it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub crest-art">${teamCrest(it.team[0], it.team[1])}</div>`}` : it.art && has(it.art) ? `<div class="tcg-sub ill-art"><img src="${src(it.art)}" alt=""></div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
         stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (it.team[0] === 'tennis' ? 'Classement' : 'Force') : 'Collector', text: priceSentence(it.id), flav: se.name, rarity: it.r, label: it.kind === 'staff' ? it.role : it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub, no };
     }
