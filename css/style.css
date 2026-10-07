@@ -3474,3 +3474,11 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app #btn-upg:not(.upg-room) .upg-ic img { padding: 3px 4px; box-sizing: border-box; }
 #app .vint-h { color: #b8860b; }
 #app .grid2.vint > * { box-shadow: 0 0 0 3px #ffd34d, 0 0 18px rgba(255, 200, 40, .6); border-radius: 18px; }
+/* récompenses de fin de Coupe : 4 cases identiques (titre, image, gains centrés) */
+#app .cdm-rew > div { justify-content: flex-start; padding: 10px 6px; }
+#app .cdm-rew .cr-art { height: 52px; display: grid; place-items: center; }
+#app .cdm-rew .cr-art img { max-height: 52px; max-width: 64px; object-fit: contain; }
+#app .cdm-rew .cr-chips, #app .cdm-rew .cr-chips .rw-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+#app .cdm-pack { position: relative; display: inline-grid; place-items: center; height: 84px; }
+#app .cdm-pack img, #app .cdm-pack .pic { height: 84px; width: auto; object-fit: contain; animation: none; transform: none; position: static; }
+#app .cdm-pack em { position: absolute; right: -14px; bottom: 2px; font: 400 18px var(--title); color: #fff; -webkit-text-stroke: 3px #2a1a10; paint-order: stroke fill; font-style: normal; }

@@ -1911,7 +1911,7 @@
   function evArt(x, mini) {
     if (x.kind === 'avatar') return mini ? pinArt(x) : `<span class="ev-avpin">${skinPic(st().skin, true)}<span class="av-pin">${pinArt(x)}</span></span>`;
     if (x.kind === 'frame') return frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : mini ? `<i class="cdm-emo">${x.emo}</i>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(st().skin, true)}<em>${x.emo}</em></span>`;
-    if (x.kind === 'booster') return mini ? packArt(true) : `<span class="cdm-pack">${packArt()}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`;
+    if (x.kind === 'booster') return mini ? packArt(true) : `<span class="cdm-pack">${pic('booster-pack', '🃏')}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`;
     return has(decoImg(x)) ? pic(decoImg(x)) : `<span class="ev-emo">${x.emo}</span>`;
   }
   const CDM_LBL = { bets: 'Placer un pari', betsWon: 'Gagner un pari', combiWon: 'Gagner un combiné', scratch: 'Gratter un ticket', spins: 'Un tour de machine à sous', roulette: 'Un tour de roulette',
@@ -1952,7 +1952,7 @@
     return head + `<h3 class="sec">La course des équipes${B.online ? ` <small>· ${fmtN(B.players)} joueur${B.players > 1 ? 's' : ''}</small>` : ''}</h3>${cdmRace(B, S.team)}
       <div class="card cdm-mine" style="--tc:${T.color};--td:${T.dark}">${cdmCrest(T.id)}<div><b>${T.name}</b><small>« ${T.motto} »</small><p>Ta part : <b>${fmtN(S.pts)} pts</b>${B.online ? ` · ${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup> sur ${fmtN(B.of)}` : ''}</p></div></div>
       <h3 class="sec">Le top 5 des ${T.name}</h3><div class="six-board-list">${top}${meRow}</div>
-      <h3 class="sec">À la fin de la Coupe</h3><div class="six-rew cdm-rew">${C.rewards.map(r => `<div><small>${r.place === 1 ? '1<sup>re</sup> équipe' : `${r.place}<sup>e</sup>`}</small>${r.chest && has('ev-cdm-chest') ? `<img class="cdm-chest" src="${src('ev-cdm-chest')}" alt="">` : ''}${cdmRew(r)}</div>`).join('')}</div>
+      <h3 class="sec">À la fin de la Coupe</h3><div class="six-rew cdm-rew">${C.rewards.map(r => `<div><small>${r.place === 1 ? '1<sup>re</sup> équipe' : `${r.place}<sup>e</sup> équipe`}</small><span class="cr-art">${(m => has(m) ? `<img src="${src(m)}" alt="">` : '')(r.chest ? 'ev-cdm-chest' : ['', '', 'medal-silver', 'medal-bronze', 'ev-cdm-candy'][r.place])}</span><span class="cr-chips">${cdmRew(r)}</span></div>`).join('')}</div>
       <p class="hint-line center">Et pour tous : <b>la Coupe des Morts</b> en trophée, à poser sur tes étagères. Récompense d'équipe dès <b>${C.minReward} points</b>.</p>`;
   }
   // avant de rejoindre : les 4 camps en grand
