@@ -1001,7 +1001,7 @@
     const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? (has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl) : pcLook();
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? (rl > 0 && has('pcv-r' + Math.min(rl, 4)) ? 'pcv-r' + Math.min(rl, 4) : has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl) : pcLook();   /* même PC que dans le jeu : il suit la machine */
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
