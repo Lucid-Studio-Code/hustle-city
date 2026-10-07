@@ -54,6 +54,23 @@
   const pcLook = () => { const r = st().rig ? st().rig.lvl : 0; return r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0'; };
   // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
   const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
+  // mise à jour sans tout redessiner : on ne touche que ce qui a changé (les images déjà affichées restent en place).
+  // Évite le clignotement des écrans rafraîchis chaque seconde (appart, téléphone), surtout sur Android / Samsung.
+  function morph(el, html) {
+    const t = document.createElement('template'); t.innerHTML = html; patch(el, t.content);
+    function patch(a, b) {
+      const A = [...a.childNodes], B = [...b.childNodes];
+      B.forEach((nb, i) => { const na = A[i];
+        if (!na) return a.appendChild(nb.cloneNode(true));
+        if (na.nodeType !== nb.nodeType || na.nodeName !== nb.nodeName) return a.replaceChild(nb.cloneNode(true), na);
+        if (nb.nodeType === 3) { if (na.nodeValue !== nb.nodeValue) na.nodeValue = nb.nodeValue; return; }
+        if (nb.nodeType !== 1) return;
+        for (const at of [...na.attributes]) if (!nb.hasAttribute(at.name)) na.removeAttribute(at.name);
+        for (const at of [...nb.attributes]) if (na.getAttribute(at.name) !== at.value) na.setAttribute(at.name, at.value);
+        patch(na, nb); });
+      for (let i = A.length - 1; i >= B.length; i--) A[i].remove();
+    }
+  }
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
   const decoImg = x => x.img || 'deco-' + x.id;
   // pin's de la photo de profil : écusson d'une équipe du tournoi, ou pin's d'un camp de la Coupe des Morts
@@ -912,7 +929,7 @@
       ? `<button class="obj-bubble ${diff >= 0 ? 'up' : 'down'}" data-act="pc"><span><small>Tes cryptos</small><b>${short(cv)} <em>${diff >= 0 ? '▲' : '▼'} ${short(Math.abs(diff), true)}</em></b></span></button>`
       : `<button class="obj-bubble" data-act="pc"><span><small>Mon PC</small><b>Investir</b></span></button>`;
     const iv = owned.reduce((a, it) => a + G.sellPrice(it.id), 0);
-    el.innerHTML = `
+    morph(el, `
       <div class="room-stage">
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
@@ -927,7 +944,7 @@
       </div>
       <div class="room-head">
         <div class="rt-row"><div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div><button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button></div>
-      </div>`;
+      </div>`);
     placeBubbles(); el.querySelectorAll('img').forEach(i => { if (!i.complete) i.addEventListener('load', placeBubbles, { once: true }); });
   }
   function openRoomHelp() {
@@ -1276,7 +1293,7 @@
   }
   function openChat(name) { const c = chats()[name]; if (!c) return openPhone('msg'); chatOpen = name; c.unread = 0; if (!phoneOpen()) openPhone('chat'); else { phoneApp = 'chat'; drawPhone(); } const sc = $('#phone-layer .ph-scroll'); if (sc) sc.scrollTop = sc.scrollHeight; }
   // redessine le téléphone en gardant la position de lecture (fil de discussion, listes)
-  function drawPhone() { const p = $('#phone-layer .phone'); if (!p) return; const sc = p.querySelector('.ph-scroll'), y = sc ? sc.scrollTop : 0, same = p.dataset.view === phoneApp + (chatOpen || ''); p.innerHTML = phoneBody(); p.dataset.view = phoneApp + (chatOpen || ''); const n = p.querySelector('.ph-scroll'); if (n && same) n.scrollTop = y; }
+  function drawPhone() { const p = $('#phone-layer .phone'); if (!p) return; const sc = p.querySelector('.ph-scroll'), y = sc ? sc.scrollTop : 0, same = p.dataset.view === phoneApp + (chatOpen || ''); if (same) morph(p, phoneBody()); else p.innerHTML = phoneBody(); p.dataset.view = phoneApp + (chatOpen || ''); const n = p.querySelector('.ph-scroll'); if (n && same) n.scrollTop = y; }
   function openPhone(app) {
     let el = $('#phone-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="phone-layer"><div class="phone"></div></div>'); el = $('#phone-layer'); el.addEventListener('click', e => { if (e.target === el) closePhone(); }); }
     phoneApp = app || 'home'; notifs().forEach(n => n.seen = true); renderPhoneBtn(); $('#ph-banner')?.classList.remove('show');
