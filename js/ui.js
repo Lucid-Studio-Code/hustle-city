@@ -1934,7 +1934,7 @@
     const paid = a.length ? a[0].paid : 0, sp = G.sellPrice(id), diff = sp - paid;
     openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, body: `<div class="center">
       <div class="item-big">${itemPic(it)}</div><div class="big" style="font-size:20px">${it.name}</div>
-      <span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span></div>
+      <span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}</div>
       <div class="card chart-card"><div class="cc-line"><span>Il y a 2 h</span><b>${trend(s.market.prices[id], h[0])}</b><span>Maintenant</span></div>${chartSvg(h)}</div>
       <div class="pos-card ${paid ? (diff >= 0 ? 'up' : 'down') : 'up'}"><small>Ce qu'il vaut</small>
         <div class="pos-line"><span>${paid ? 'Tu l\'as payé' : 'Gagné'}<b>${paid ? short(paid) : 'gratuit'}</b></span><i>→</i><span>Tu le revends<b>${short(sp)}</b></span><span class="pos-diff">${diff >= 0 ? 'Gagné' : 'Perdu'}<b>${diff >= 0 ? '+' : '−'}${short(Math.abs(diff))}</b></span></div>
@@ -2195,7 +2195,7 @@
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
     el.onpointermove = e => {
-      const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      const r = card.getBoundingClientRect(), cl = v => Math.max(-.5, Math.min(.5, v)), x = cl((e.clientX - r.left) / r.width - .5), y = cl((e.clientY - r.top) / r.height - .5);   // doigt hors de la carte : on reste au bord (sinon le reflet se coupait)
       card.classList.add('touched'); card.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 22).toFixed(1)}deg)`;
       card.style.setProperty('--hx', `${((x + .5) * 100).toFixed(0)}%`); card.style.setProperty('--hy', `${((y + .5) * 100).toFixed(0)}%`);
     };
@@ -2302,8 +2302,8 @@
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
-      <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? '✓ Gagné, gardé à vie' : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
-        ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ Gagné, +${x.a.lingots} lingots` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
+      <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
+        ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
         .sort((p, q) => q.done - p.done).map(x => x.html).join('')}</div>
       ${leaderHtml()}`;
   }
@@ -2785,16 +2785,25 @@
   G.on('sixResult', m => notify('six', m.ok ? '🏉 Bon prono !' : '🏉 Prono raté', `${m.home} ${m.sh} - ${m.sa} ${m.away}.${m.ok ? ` +${D.SIX.pts} points et +${D.SIX.lingotPerGood} lingot.` : ''} ${G.sixRank() ? ` Tu es ${G.sixRank()}e au classement.` : ''}`));
   G.on('sixEnd', f => notify('six', '🏆 Tournoi terminé', `${f.rank ? `Tu finis ${f.rank}${f.rank === 1 ? 'er' : 'e'} ! ` : ''}Va récupérer ta récompense au Panneau, sur la place.`));
   // trophée gagné : même fête que le passage de niveau (rayons, confettis), avec le trophée au centre
+  // comment un trophée s'obtient (succès, mission, événement) : affiché quand on le gagne et quand on le regarde
+  function trophyHow(it) {
+    if (!it || it.cat !== 'trophy') return '';
+    const a = it.ach && (D.ACHIEVEMENTS || []).find(x => x.id === it.ach); if (a) return `Succès « ${a.name} » : ${a.txt}`;
+    const q = (D.QUESTS || []).find(x => x.trophy === it.id); if (q) return `Mission réussie : ${q.txt}.`;
+    if (it.id === 't-cdm') return 'Tu as participé à la Coupe des Morts (Halloween).';
+    return '';
+  }
   function showTrophy(it) {
     sfx.level(); rain('confetti', 50);
     openModal({ title: 'Trophée gagné !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${itemPic(it)}</div>
       <div class="lv-big stroke">${it.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</div>
-      <p class="hint-line center">Il rejoint ta collection, dans ton appart. Celui-là, personne ne te le reprendra.</p>
+      ${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}
+      <p class="hint-line center">Il rejoint tes étagères, dans ton appart.</p>
       <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
   }
   G.on('achievement', a => queue(() => { sfx.win(); rain('confetti', 40);
     openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏆</span>`}</div>
-      <div class="lv-big stroke">${a.name}</div><p class="hint-line center">${a.txt}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
+      <div class="lv-big stroke">${a.name}</div><p class="trophy-how">${ico('icon-trophy', '🏆')} Gagné en réussissant : ${esc(a.txt)}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
   G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveaux <b>trophées</b> ! Tu viens d'en débloquer <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
   G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });

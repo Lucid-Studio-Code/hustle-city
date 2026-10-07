@@ -3395,3 +3395,9 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 .tcg .tcg-sub.crea-art img.cr-blur { display: none; }
 /* plus de petites étoiles sur les cartes (épiques et légendaires) */
 .tcg.rE .tcg-card::before, .tcg.rL .tcg-card::before { content: none !important; display: none !important; }
+/* holo des épiques : plus de coupure nette (le dégradé ne se répète plus, il couvre toujours toute la carte) ; plus de paillettes */
+.tcg.rE .tcg-holo { background-repeat: no-repeat !important; }
+.tcg.rL .tcg-holo::before, .tcg.rE .tcg-holo::before { content: none !important; display: none !important; }
+
+#app .trophy-how { margin: 8px auto 4px; max-width: 320px; padding: 7px 12px; border-radius: 14px; background: #fff6d6; border: 2px solid #e8c873; color: #5a3d14; font: 800 13px/1.35 var(--text); text-align: center; }
+#app .trophy-how .ico { width: 18px; height: 18px; vertical-align: -4px; object-fit: contain; }
