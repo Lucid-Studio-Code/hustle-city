@@ -664,7 +664,7 @@
     }
     emit('prices');
   }
-  function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .9 : 1)); }
+  function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .9 : 1) * (vintageOn() && st.vintage.id === id ? D.VINTAGE.markup : 1)); }
   function sellPrice(id) { return Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)); }
   // les cartes vont dans le classeur : elles ne prennent pas de place sur les étagères
   // les cartes vont toutes dans le classeur : elles ne prennent jamais de place chez toi (une seule de chaque)
@@ -713,6 +713,7 @@
   // la liste des cartes visibles (classeur, comptes) : pareil, sans les cartes joueur encore sans image
   const cardsLive = () => D.ITEMS.filter(i => i.cat === 'card' && cardOk(i));
   function inStock(id) {
+    if (vintageOn() && st.vintage.id === id) return true;   // carte exclusive d'un ancien événement, en vente quelques heures
     const it = item(id); if (!avail(it)) return false;
     if (it.custom && it.cat !== 'card') return true;   // nouveauté du back office : toujours en rayon pendant ses dates
     if (it.cat === 'card') return cardStock().has(id);
@@ -1403,6 +1404,20 @@
     const ct = pick(D.DEALS.contacts.filter(x => !x.img.includes(st.skin + '-')));
     emit('cryptoTip', { name: ct.name, img: ct.img, coin: c.id, up, min: Math.max(1, Math.round(left / 60000)) });
   }
+  // de temps en temps, le Comptoir remet en vente UNE carte d'un événement terminé, qui manque au joueur : un pote prévient
+  const EV_OVER = { rugby: () => sixPhase() === 'over', cdm: () => cdmPhase() === 'over' };
+  const vintageOn = () => !!(st.vintage && now() < st.vintage.until);
+  function simVintage(offline) {
+    const V = D.VINTAGE; if (offline || !st.tutoDone || st.lvl < V.lvl || vintageOn()) return;
+    if (!st.nextVintage) { st.nextVintage = now() + rnd(...V.firstH) * 3600000; return; }
+    if (now() < st.nextVintage) return;
+    st.nextVintage = now() + rnd(...V.everyH) * 3600000;
+    const se = D.SERIES.filter(x => EV_OVER[x.id] && EV_OVER[x.id]()), miss = D.ITEMS.filter(i => i.cat === 'card' && se.some(x => x.id === i.series) && !(st.owned[i.id] || []).length && st.market.prices[i.id]);
+    if (!miss.length) return;
+    const it = pick(miss), ct = pick(D.DEALS.contacts.filter(c => !c.img.includes(st.skin + '-')));
+    st.vintage = { id: it.id, until: now() + V.hours * 3600000 };
+    emit('vintage', { id: it.id, name: ct.name, img: ct.img, serie: (D.SERIES.find(x => x.id === it.series) || {}).name, h: V.hours });
+  }
   function simDeal(offline) {
     const S = D.DEALS;
     if (st.deal && now() > st.deal.end) { st.deal = null; st.nextDealAt = now() + rnd(...S.every) * 500; emit('dealGone'); }
@@ -1588,7 +1603,7 @@
     simHabits();
     simRigBoost();
     simEvent(offline);
-    simDeal(offline);
+    simDeal(offline); simVintage(offline);
     simSix(offline);
     simCdm(offline);
     simFriendTip(offline); simCryptoTip(offline); simPc(offline); simBourse(offline);
@@ -1620,7 +1635,7 @@
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     cdmPhase, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
-    eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    vintageOn, eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,

@@ -2042,14 +2042,15 @@
         <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} ${boughtNow(it.id) ? 'Achetée' : 'Possédée'}</span></div></div>`;
       return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
-        <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (cote + 5 %)`}</small>
+        <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (${G.vintageOn() && st().vintage.id === it.id ? 'exclusivité : cote + 50 %' : 'cote + 5 %'})`}</small>
         <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
           : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
     };
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
       ? (() => { const R = { C: 0, R: 1, E: 2, L: 3 }, shelf = items.filter(i => G.inStock(i.id)).sort((a, b) => R[a.r] - R[b.r]), mine = items.filter(i => (s.owned[i.id] || []).length);
-          return `<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.map(i => card(i, true)).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
+          const vi = G.vintageOn() && shelf.find(i => i.id === st().vintage.id);   // l'exclusivité d'un ancien événement passe en tête
+          return `${vi ? `<h3 class="sec vint-h">${ico('icon-star', '⭐')} Exclusif · ancien événement <small>· part dans ${mmss(st().vintage.until - Date.now())}</small></h3><div class="grid2 vint">${card(vi, true)}</div>` : ''}<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.filter(i => i !== vi).map(i => card(i, true)).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
             (mine.length ? `<h3 class="sec">Tes cartes <small>· à revendre</small></h3><div class="grid2">${mine.map(i => card(i)).join('')}</div>` : ''); })()
       : `<div class="grid2">${items.map(i => card(i)).join('')}</div>`;
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
@@ -2861,6 +2862,7 @@
       }
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
       if (a.act === 'crypto') { closePhone(); setScene('appart'); return openCrypto(a.id); }
+      if (a.act === 'vintage') { closePhone(); return G.vintageOn() ? openShop('card', 'comptoir') : toast('Trop tard : elle est partie.', true); }
       if (a.act === 'shop') { closePhone(); return st().lvl >= 2 ? openShop('news', shopOfItem(a.id)) : toast('Le Comptoir ouvre au niveau 2.'); }
       if (a.act === 'ag' && window.AGENCE) { const r = AGENCE.choose(a.d, a.k); setTimeout(() => chatPush(c.name, null, { from: 'them', txt: r }), 900); refresh(); return drawPhone(); }
       setTimeout(() => chatPush(c.name, null, { from: 'them', txt: pick(['Tant pis pour toi 😏', 'Ok, comme tu veux.', 'Tu me remercieras pas alors !', 'Ça marche, la prochaine fois.']) }), 900);
@@ -2921,6 +2923,11 @@
   G.on('levelup', e => { queue(() => showLevelUp(e)); queue(maybeInterstitial); renderCity(); });
   // mini-événement : annoncé par Momo en bas de l'écran (rien ne cache le haut du jeu), la pastille reste en haut
   G.on('event', ev => { notify('missions', `⚡ ${ev.name} pendant ${Math.round(D.EVENTS.time / 60)} min`, ev.desc); });
+  G.on('vintage', v => {
+    const it = G.item(v.id);
+    chatPush(v.name, v.img, { from: 'them', txt: `Fonce au Comptoir ! Ils viennent de sortir une carte exclusive de « ${v.serie} » : ${it.name}. Il n'y en a qu'une, et elle part dans ${v.h} h.`, acts: [{ label: 'J\'y vais', act: 'vintage', id: v.id }, { label: 'Pas pour moi', act: 'no' }] });
+    notify('msg', v.name, `Carte exclusive au Comptoir : ${it.name} (« ${v.serie} »), seulement ${v.h} h !`, null, false, v.name);
+  });
   G.on('deal', d => {
     chatPush(d.name, d.img, { from: 'them', kind: 'deal', txt: d.line, offer: { id: d.id, type: d.type, price: d.price }, acts: [{ label: d.type === 'sell' ? 'J\'achète' : 'Je vends', act: 'dealOk' }, { label: 'Non merci', act: 'dealNo' }] });
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);

@@ -649,6 +649,9 @@
       { name: 'La Boss', img: 'skin-boss-bust', lines: { sell: ['Mon fonds se sépare de quelques pièces.', 'Je simplifie mon portefeuille.'], buy: ['Je diversifie. Ton objet m\'intéresse.', 'Offre ferme, valable dix minutes.'] } }
     ] };
 
+  // cartes d'anciens événements : de temps en temps, le Comptoir en remet UNE en vente quelques heures (plus chère), un pote prévient
+  const VINTAGE = { lvl: 5, firstH: [12, 36], everyH: [48, 96], hours: 3, markup: 1.5 };
+
   // ---------------------------------------------------------------- récompenses de niveau
   const LEVEL_REWARD = L => ({ cash: L * 40, lingots: 2 + Math.floor(L / 5), boosters: 1 });
 
@@ -948,6 +951,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();
