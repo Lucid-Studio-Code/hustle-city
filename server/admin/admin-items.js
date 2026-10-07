@@ -40,9 +40,82 @@
   function picOf(it) {   // l'image de l'objet (adresse)
     if (it.img && /^\/media\//.test(it.img)) return it.img;
     if (it.cat === 'card') { const full = it.art && 'full-' + it.art.replace(/^art-/, ''); const n = [full, it.art, 'item-' + it.id, it.img].find(x => x && has(x)); return n ? src(n) : null; }
-    return has('item-' + it.id) ? src('item-' + it.id) : null;
+    const n = [it.img, 'item-' + it.id].find(x => x && has(x)); return n ? src(n) : null;   // trophées, etc. : leur image est dans it.img (ach-…), pas item-<id>
   }
   const picHtml = (it, cls = '') => { const u = picOf(it); return u ? `<img class="${cls}" src="${esc(u)}" alt="" loading="lazy">` : `<span class="ob-emo ${cls}">${(CATS[it.cat] || {}).icon || '❔'}</span>`; };
+  // ------------------------------------------------------------ la carte telle qu'elle est dans le classeur du jeu
+  // Même HTML que tcgCard() de js/ui.js ; les styles sont ceux de css/style.css, relus au chargement et rangés sous .hc-card (cardCss).
+  const RSYM = { C: '●', R: '◆', E: '★', L: '✦' }, RARF = { C: 'Commune', R: 'Rare', E: 'Épique', L: 'Légendaire' };
+  const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };   // copie de ui.js
+  const colOf = it => (SERIES.find(x => x.id === it.series) || {}).col || 'sport';
+  const cardNo = it => { const L = [...ORIG.values()].filter(x => x.series && inGame(x) && colOf(x) === colOf(it)), k = L.findIndex(x => x.id === it.id);
+    return `${String(k < 0 ? L.length + 1 : k + 1).padStart(2, '0')}/${k < 0 ? L.length + 1 : L.length}`; };
+  function playerOf(it) {
+    const c = it.club, who = it.f ? 'Joueuse' : 'Joueur';
+    if (/^Les /.test(c)) return `${who} des ${c.slice(4)}`;
+    if (it.team && it.team[0] === 'basket') return `${who} des ${c}`;
+    return /^[AEIOUÉÈÂ]/i.test(c) ? `${who} de l'${c}` : `${who} du ${c}`;
+  }
+  function teamCrest(sport, i) {
+    const t = D.TEAMS[sport][i], n = (D.SPORTS[sport] || D.SIX).img + (i + 1);
+    if (has(n)) return `<span class="crest ${sport}"><img src="${src(n)}" alt="" draggable="false"></span>`;
+    const ini = t[0].replace(/^(FC|AS|US|Les|Stade|Racing|Sporting|Real|Inter|Dynamo|Atlético|Olympique)\s/i, '').split(/[\s.]+/).filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return `<span class="crest ${sport}"><svg viewBox="0 0 60 66"><path d="M30 3 L55 11 V33 C55 49 43 59 30 63 C17 59 5 49 5 33 V11 Z" fill="${t[2]}" stroke="#2a1a10" stroke-width="4"/><path d="M30 10 L48 16 V33 C48 45 40 52 30 56 Z" fill="${t[3]}" opacity=".85"/><text x="30" y="40" text-anchor="middle" font-family="Lilita One" font-size="${t[4] ? 24 : 20}" fill="#fff" stroke="#2a1a10" stroke-width="3" paint-order="stroke">${t[4] || ini}</text></svg></span>`;
+  }
+  // it : l'objet (fusionné) ; up : image pas encore envoyée (aperçu de l'éditeur) ; mini : format du classeur
+  function cardHtml(it, up, mini = true) {
+    const R = {}, med = up || (it.img && /^\/media\//.test(it.img) ? it.img : null), own = it.custom || !!up;
+    if (med) R['item-' + it.id] = R['art-' + it.id] = med;
+    const ok = n => !!n && (!!R[n] || has(n)), u = n => esc(R[n] || src(n)), im = n => `<img src="${u(n)}" alt="">`;
+    const pic = (n, e) => `<span class="pic">${ok(n) ? im(n) : `<span class="emo">${e}</span>`}</span>`;
+    const art0 = own ? 'art-' + it.id : it.art, img0 = own ? null : it.img, sp = it.team ? it.team[0] : '';
+    const se = SERIES.find(x => x.id === it.series) || {}, no = cardNo(it), t = it.team ? D.TEAMS[sp][it.team[1]] : null, p = short(it.p0);
+    const nm = String(it.name || 'Nom de la carte').replace(/^Carte /, '').replace(/^./, ch => ch.toUpperCase()), x = mini ? 'mini' : '';
+    if (it.r !== 'C' || it.series === 'classics') {   // rares et plus : illustration pleine carte (fa-*)
+      const full = art0 && 'full-' + art0.replace(/^art-/, ''), fa = n => `<span class="fa-img fa-ill">${im(n)}</span>`;
+      const art = ok(full) ? fa(full) : ok(art0) && !img0 ? fa(art0) : !img0 ? `<span class="fa-img">${pic('item-' + it.id, '🃏')}</span>` : ok(art0) ? fa(art0)
+        : sp === 'tennis' ? `<span class="fa-img fa-player">${im(img0)}</span>` : `<span class="fa-crest">${teamCrest(sp, it.team[1])}</span>`;
+      const cbg = sp && ok('card-bg-' + sp) ? `<img class="mc-bg" src="${u('card-bg-' + sp)}" alt="">` : '';
+      return `<div class="tcg full r${it.r} t-${it.series} ${colOf(it) === 'crea' ? 'crea' : ''} ${x}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
+        <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>
+        <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${esc(nm)}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RARF[it.r]} · cote ${p}<i class="cur"></i></small></div>
+        <i class="tcg-holo"></i></div></div>`;
+    }
+    const txt = `Cote du jour : ${p}<i class="cur"></i>.`;
+    let d;
+    if (it.kind === 'creature') d = { type: it.series, name: nm, art: `<div class="tcg-sub ill-art crea-art"><img class="cr-blur" src="${u('item-' + it.id)}" alt=""><img class="cr-main" src="${u('item-' + it.id)}" alt="" style="--fy:${CREA_FY[it.id] ?? 38}%"></div>`, stat: '', ability: se.name || '', label: se.sub || se.name || '' };
+    else d = { type: it.series, name: nm, art: img0 ? `${ok('card-bg-' + sp) ? `<img class="art-bg" src="${u('card-bg-' + sp)}" alt="">` : ''}${ok(art0) ? `<div class="tcg-sub ill-art">${im(art0)}</div>` : `<div class="tcg-sub crest-art">${teamCrest(sp, it.team[1])}</div>`}` : ok(art0) ? `<div class="tcg-sub ill-art">${im(art0)}</div>` : `<div class="tcg-sub item">${pic('item-' + it.id, '🃏')}</div>`,
+      stat: t ? `${t[1]}` : '', ability: it.club ? playerOf(it) : t ? (sp === 'tennis' ? 'Classement' : 'Force') : 'Collector', label: it.kind === 'staff' ? it.role : it.kind === 'player' ? (it.f ? 'Joueuse' : 'Joueur') : it.kind === 'team' ? 'Équipe' : se.sub || '' };
+    return `<div class="tcg r${it.r} t-${d.type} ${x}"><div class="tcg-card"><div class="tcg-in">
+      <div class="tcg-top"><b class="tcg-name ${d.name.length > 16 ? 'xl' : d.name.length > 11 ? 'l' : ''}">${esc(d.name)}</b>${d.stat ? `<span class="tcg-stat">${d.stat}</span>` : ''}</div>
+      <div class="tcg-art">${d.art}</div>
+      <div class="tcg-line">${d.label}</div>
+      <div class="tcg-txt"><b>${d.ability}</b><p>${txt}</p></div>
+      <div class="tcg-foot"><span class="tcg-rsym">${RSYM[it.r]}</span><span>${RARF[it.r]}</span><span class="tcg-no">${no}</span></div>
+      </div><i class="tcg-holo"></i></div></div>`;
+  }
+  // les règles des cartes de css/style.css, rangées sous .hc-card (#app devient :is(.hc-card,#hc-x) pour garder le même poids) : suit le jeu tout seul
+  let cssP = null;
+  function cardCss() {
+    return cssP = cssP || fetch('/css/style.css?v=' + (window.ASSET_V || 1)).then(r => r.text()).then(txt => {
+      // découpage du texte brut (pas le CSSOM : il réécrit mal « font: … var(--text) » suivi d'un font-style)
+      const blocks = t => { const L = []; let i = 0; while (i < t.length) { const o = t.indexOf('{', i); if (o < 0) break; let d = 1, j = o + 1;
+        while (j < t.length && d) { const ch = t[j++]; if (ch === '{') d++; else if (ch === '}') d--; else if (ch === '"' || ch === "'") { const e = t.indexOf(ch, j); j = e < 0 ? t.length : e + 1; } }
+        L.push([t.slice(i, o).trim(), t.slice(o + 1, j - 1)]); i = j; } return L; };
+      const KEEP = /tcg|\.fa-|crest|mc-bg|\.cr-|crea-art|art-bg|ill-art/, out = [], kf = {};
+      const sel = s => s.split(',').map(x => x.trim()).filter(x => KEEP.test(x) && !/^(html|body|:root)/.test(x) && !/#(?!app\b)/.test(x))
+        .map(x => /^#app\b/.test(x) ? x.replace(/^#app\b/, ':is(.hc-card,#hc-x)') : '.hc-card ' + x).join(', ');
+      const walk = (t, acc) => { for (const [pre, body] of blocks(t)) {
+        if (/^@(-webkit-)?keyframes/.test(pre)) kf[pre.split(/\s+/)[1]] = `${pre} {${body}}`;
+        else if (/^@media/.test(pre)) { if (/min-width|height/.test(pre)) continue;   // le classeur se regarde sur téléphone : règles « petit écran » gardées telles quelles
+          if (/max-width/.test(pre)) walk(body, acc); else { const a = []; walk(body, a); if (a.length) acc.push(`${pre} { ${a.join('\n')} }`); } }
+        else if (pre[0] !== '@') { const s = sel(pre); if (s) acc.push(`${s} {${body}}`); } } };
+      walk(txt.replace(/\/\*[\s\S]*?\*\//g, ''), out);
+      const body = out.join('\n'); Object.entries(kf).forEach(([k, v]) => { if (body.includes(k)) out.push(v); });
+      const el = document.createElement('style'); el.id = 'hc-card-css'; el.textContent = out.join('\n'); document.head.appendChild(el);
+    }).catch(() => { cssP = null; });
+  }
+
   const nowIn = it => { const t = Date.now(); return !it.hidden && (!it.from || t >= Date.parse(it.from)) && (!it.until || t < Date.parse(it.until)); };
   function stateTag(it) {
     if (it.hidden) return '<span class="tag ko">Caché</span>';
@@ -55,6 +128,7 @@
     const cfg = await HC.api('/admin/api/config');
     let items = JSON.parse(JSON.stringify(((cfg.content || {}).items) || {}));
     const view = { f: HC.lsGet('hc.items.f') || 'all', q: '' };
+    await cardCss();
     const merged = o => { const e = items[o.id]; return e ? { ...o, ...e, _mod: true } : { ...o }; };
     const all = () => [...[...ORIG.values()].filter(inGame).map(merged), ...Object.entries(items).filter(([id, e]) => e.new).map(([id, e]) => ({ id, ...e, custom: true }))];
 
@@ -85,7 +159,7 @@
     function tile(it) {
       const sh = whereTxt(it);
       return `<button class="ob-tile ${nowIn(it) ? '' : 'dim'}" data-it="${esc(it.id)}"><span class="ob-r r${esc(it.r)}">${RAR[it.r] || ''}</span>
-        <span class="ob-pic">${picHtml(it)}</span><b>${esc(it.name)}</b><span class="ob-p">${short(it.p0)}<i class="cur"></i></span>
+        ${it.cat === 'card' ? `<span class="ob-pic tc"><span class="hc-card">${cardHtml(it)}</span></span>` : `<span class="ob-pic">${picHtml(it)}</span>`}<b>${esc(it.name)}</b><span class="ob-p">${short(it.p0)}<i class="cur"></i></span>
         <small>${esc(sh)}</small><span class="ob-tags">${it.custom ? '<span class="tag pink">Ajouté</span>' : it._mod ? '<span class="tag warn">Modifié</span>' : ''}${stateTag(it)}</span></button>`;
     }
 
@@ -199,10 +273,11 @@
         const pic = u ? `<img src="${esc(u)}" alt="">` : `<span class="ob-emo">${(CATS[c.cat] || {}).icon || '❔'}</span>`, p = Math.max(1, +c.p0 || 0);
         const where = isCard() ? 'Boosters et Comptoir' : c.cat === 'trophy' ? 'Vitrine' : c.cat ? (SHOPS[CATS[c.cat].shop] || {}).name : 'Choisis où il se vend (étape 2)';
         const icon = isCard() ? 'booster-pack' : c.cat && CATS[c.cat] ? (SHOPS[CATS[c.cat].shop] || {}).icon : 'nav-shop';
+        const up = pending ? u : null, cit = { ...c, id: c.id || 'n-new', p0: p, series: c.series || 'classics', kind: c.custom ? (/^crea-/.test(c.series || '') ? 'creature' : null) : (base || {}).kind };   // la carte comme dans le jeu
         const visible = c.mode === 'always' || (c.mode === 'dates' && c.from && c.until && Date.now() >= Date.parse(c.from) && Date.now() < Date.parse(c.until));
         $('#ob-prev').innerHTML = `<div class="prev-lbl">Ce que voit le joueur</div>
           <div class="ob-phone"><div class="ob-ph-h">${img(icon)}<b>${esc(where)}</b></div>
-            ${isCard() ? `<div class="ob-tcg r${esc(c.r)}"><span class="ob-tcg-img">${pic}</span><span class="ob-tcg-r">${{ C: '●', R: '◆', E: '★', L: '♛' }[c.r]}</span><b>${esc(c.name || 'Nom de la carte')}</b></div>
+            ${isCard() ? `<div class="ob-cprev"><div class="hc-card">${cardHtml(cit, up, false)}</div><small>Dans le classeur</small><div class="hc-card ob-cmini">${cardHtml(cit, up)}</div></div>
               <div class="ob-tcg-p"><small>Cote</small> ${short(p)}<i class="cur"></i></div>`
             : `<div class="ob-icard"><span class="ob-rtag r${esc(c.r)}">${RAR[c.r] || ''}</span><span class="ob-ipic">${pic}</span><h4>${esc(c.name || 'Nom de l\'objet')}</h4>
               <div class="ob-ip"><small>Cote</small>${short(p)}<i class="cur"></i></div><small class="ob-im">Vendu ${short(Math.ceil(p * 1.05))} (cote + 5 %)</small>
