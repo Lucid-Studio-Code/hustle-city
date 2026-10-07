@@ -3390,6 +3390,6 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .club-timer img.ico, #app .pq-timer img.ico { width: 1.3em; height: 1.3em; vertical-align: -0.3em; }
 
 #app .tuto-skipbox { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
-/* créature commune : le dessin entier, jamais rogné (fenêtre plus haute, image contenue) */
-.tcg .tcg-art:has(.crea-art) { aspect-ratio: 1 / 1; height: auto; }
-.tcg .tcg-sub.crea-art img.cr-main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* créature commune : même fenêtre que les autres communes ; le dessin est un peu dézoomé pour garder le perso ET ce qu'il fait
+   (on coupe un peu en haut et en bas, les côtés sont complétés par le fond flouté) */
+.tcg .tcg-sub.crea-art img.cr-main { position: absolute; left: 50%; top: calc(-28% * var(--fy, .55)); width: auto; height: 128%; max-width: none; object-fit: contain; transform: translateX(-50%); }
