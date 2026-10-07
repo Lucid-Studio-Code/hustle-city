@@ -483,7 +483,7 @@
   function focusMap(yPct) { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -(cam.h * yPct / 100 - map.clientHeight * .55); clampCam(); applyCam(); }
   // enseigne d'un lieu : couleur et picto propres à chaque endroit (le style d'ensemble se règle en CSS via data-sign sur #app)
   const SIGN = { six: ['#e63946', 'star'], casino: ['#ff3cac', 'dice'], appart: ['#4fb3f0', 'home'], shop: ['#ffc933', 'trophy'], balto: ['#3ddc84', 'ticket'], kiosque: ['#ff8a3d', 'booster-pack'], club: ['#16b8c8', 'star'], bus: ['#a867e3', 'city'] };
-  const plaque = (b, locked) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.id === 'six' ? (G.panneau() === 'cdm' ? D.CDM.short : G.eventOff() ? 'Le Panneau' : b.name) : b.name}</b>${locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
+  const plaque = (b, locked, noCar) => `<span class="plaque" style="--sc:${(SIGN[b.id] || [])[0] || '#4fb3f0'}"><i class="pq-ic">${ic((SIGN[b.id] || [])[1] || 'star')}</i><b>${b.id === 'six' ? (G.panneau() === 'cdm' ? D.CDM.short : G.eventOff() ? 'Le Panneau' : b.name) : b.name}</b>${noCar ? `<small>${ic('lock')}Achète une voiture</small>` : locked ? `<small>${ic('lock')}Niveau ${b.lvl}</small>` : b.id === 'six' ? `<small class="pq-timer">${sixTimer()}</small>` : ''}</span>`;
   // compte à rebours de l'événement, sous le nom du Tournoi sur la carte
   const nextEvDays = () => { const t = G.nextEventAt(); return t ? Math.max(1, Math.ceil((t - Date.now()) / 86400000)) : 0; };
   function sixTimer() {
@@ -507,14 +507,14 @@
     // enseigne : plaque de rue émaillée posée au-dessus du toit (ne recouvre jamais le bâtiment d'en dessous)
     inner.innerHTML = bg + D.BUILDINGS.map(b0 => {
       const b = posOf(b0, 'buildings', look);
-      if (b.needVehicle && !placing && !G.parkedCount()) return '';
+      const noCar = b.needVehicle && !placing && !G.parkedCount() && s.lvl >= b.lvl;   // parking : visible dès le début, ouvert seulement avec un premier véhicule
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
-      const locked = s.lvl < b.lvl;
+      const locked = s.lvl < b.lvl || noCar;
       const img = b.id === 'six' && G.panneau() === 'cdm' ? (has('ev-cdm-board') ? pic('ev-cdm-board') : cdmBoardArt()) : b.id === 'six' && G.eventOff() && !(['neon', 'hiver'].includes(look) && has(`bld-six-${look}`))   /* le Panneau rénové montre le rugby : hors événement, panneau d'affichage neutre */ ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       const k = (has(`bld-${b.id}-${look}`) && (D.BLD_SCALE || {})[`bld-${b.id}-${look}`]) || 1;   // le skin de la ville ne change pas la taille du bâtiment
       return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${(b.w * k).toFixed(2)}%">
-        ${plaque(b, locked)}
+        ${plaque(b, locked, noCar)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
     }).join('') + D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x0 => posOf(x0, 'decos', look)).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has(decoImg(x)) ? pic(decoImg(x)) : `<i>${x.emo}</i>`}</span>`).join('');
@@ -937,7 +937,7 @@
     if (id === 'six') return openSix();
     if (id === 'kiosque') return openKiosk();
     if (id === 'bus') return openBus();
-    if (id === 'parking') return openParking();
+    if (id === 'parking') { const b = D.BUILDINGS.find(x => x.id === id); if (st().lvl < b.lvl) return; if (!G.parkedCount()) { toast('Achète ta première voiture ou moto au Garage Prestige : ton parking s\'ouvrira.'); return A.goPlace({ dataset: { id: 'garage' } }); } return openParking(); }
     if (id === 'club' && st().lvl >= D.CLUB.lvl) return openClub();
     const b = D.BUILDINGS.find(x => x.id === id);
     if (st().lvl < b.lvl) return;   // la plaque du bâtiment affiche déjà le niveau
