@@ -33,7 +33,7 @@
     { id: 'six',     name: 'Tournoi des 6 Quartiers', lvl: 3,  x: 21, y: 64, w: 12, tag: 'Événements spéciaux' },
     { id: 'bus',     name: 'Arrêt de bus',        lvl: 1,  x: 69, y: 75, w: 22, spot: true, tag: 'Vers les autres quartiers' },
     // apparaît dans la ville dès qu'on possède une voiture ou une moto (Garage Prestige)
-    { id: 'parking', name: 'Mon parking',        lvl: 10, x: 88, y: 80, w: 20, needVehicle: true, tag: 'Tes voitures et motos' }
+    { id: 'parking', name: 'Mon parking',        lvl: 10, x: 89, y: 81, w: 13, needVehicle: true, tag: 'Tes voitures et motos' }
   ];
   // quartiers où mène le bus (pas encore ouverts : on les montre pour donner envie)
   // les places dessinées sur l'image parking-bg (x = centre, y = bas de la voiture, w = largeur, en %), 7 places au maximum
@@ -920,6 +920,8 @@
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   if (LY.slot) Object.assign(SLOT.ui, LY.slot);
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
+  // places du parking réglées au back-office (#placer-parking) : [x, y, w, miroir], sinon celles ci-dessus
+  if (LY.parking) { ['car', 'moto'].forEach(k => (LY.parking[k] || []).forEach((p, i) => { if (p && PARK_SLOTS[k][i]) PARK_SLOTS[k][i] = p; })); if (LY.parking.big) PARK_SLOTS.big = LY.parking.big; }
   const TABLES = { CITY_SHOP, IAP, PROMOS, AGENCE, CLUB, RIG, PCS, ROOMS };
   Object.entries(LY.values || {}).forEach(([path, v]) => {
     try {

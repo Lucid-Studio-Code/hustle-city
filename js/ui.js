@@ -571,16 +571,102 @@
   function parkingBody() {
     const s = st(), cars = Object.keys(s.owned).flatMap(id => G.placeOf(id) === 'park' ? s.owned[id].map(() => G.item(id)) : []), n = G.garageSlots();
     // les voitures sur les places en épi, les motos sur la grande place du milieu : jamais l'une à la place de l'autre (sauf s'il n'y a plus de place du bon type)
-    const P = D.PARK_SLOTS, motos = cars.filter(c => c.cat === 'moto'), autos = cars.filter(c => c.cat !== 'moto');
+    const P = parkSlots(), motos = cars.filter(c => c.cat === 'moto'), autos = cars.filter(c => c.cat !== 'moto');
     const carSpots = P.car.concat(motos.length ? [] : [P.big]), motoSpots = P.moto.slice(0, motos.length ? P.moto.length : 0);
     const placed = autos.map((c, i) => [c, carSpots[i]]).concat(motos.map((m, i) => [m, motoSpots[i] || P.car[autos.length + i - motoSpots.length]]));
-    const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w]]) =>
-      `<button class="pk-car" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
+    const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, f]]) =>
+      `<button class="pk-car${f ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
     // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
     return `<div class="park-full"><div class="pk-stage">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
       <div class="pk-foot"><span class="pk-count">${cars.length} / ${n} places</span><button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button></div></div>`;
   }
   function openParking() { openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
+  // ------------------------------------------------------------ placement des places du parking (back-office, #placer-parking)
+  // Toutes les places sont montrées avec un véhicule d'essai : on les fait glisser, − / + pour la taille, ↔ Miroir.
+  // Gardé dans ce navigateur (hustleCity.parkPlacer) jusqu'à « Publier », qui l'écrit dans js/layout.js (parking).
+  const PK_KEY = 'hustleCity.parkPlacer';
+  const pkSaved = () => { try { return JSON.parse(localStorage.getItem(PK_KEY) || 'null'); } catch (e) { return null; } };
+  const pkCopy = P => ({ car: P.car.map(p => p.slice()), moto: P.moto.map(p => p.slice()), big: P.big.slice() });
+  // places utilisées par le jeu : celles publiées (data.js), ou celles réglées à la main sur ce Mac pas encore publiées
+  function parkSlots() {
+    const P = pkCopy(D.PARK_SLOTS), sv = window.HC_DEV && pkSaved();
+    if (sv) { ['car', 'moto'].forEach(k => (sv[k] || []).forEach((p, i) => { if (p && P[k][i]) P[k][i] = p; })); if (sv.big) P.big = sv.big; }
+    return P;
+  }
+  const PKP = { on: false, sel: 'car:0', pv: {}, empty: false, top: true, auto: null, drag: null };
+  const pkName = k => { const [t, i] = k.split(':'); return t === 'big' ? 'Grande' : (t === 'car' ? 'C' : 'M') + (+i + 1); };
+  const pkSpot = k => { const [t, i] = k.split(':'); return t === 'big' ? PKP.L.big : PKP.L[t][+i]; };
+  const pkKeys = () => PKP.L.car.map((_, i) => 'car:' + i).concat(PKP.L.moto.map((_, i) => 'moto:' + i), ['big']);
+  const pkVehs = k => D.ITEMS.filter(i => i.cat === (k.startsWith('moto') ? 'moto' : 'car'));
+  // véhicule d'essai d'une place : celui choisi, sinon un différent par place
+  const pkVeh = k => { const l = pkVehs(k), i = k === 'big' ? 6 : +k.split(':')[1]; return l.find(x => x.id === PKP.pv[k]) || l[i % l.length]; };
+  function pkStage() {
+    const spots = pkKeys().map(k => { const [x, y, w, f] = pkSpot(k), it = pkVeh(k), t = k.split(':')[0];
+      return [t === 'big' ? -1 : y, `<div class="pk-car pkp-spot pkp-${t}${k === PKP.sel ? ' sel' : ''}${f ? ' flip' : ''}${PKP.empty || !it ? ' empty' : ''}" data-pk="${k}" style="left:${x}%;top:${y}%;width:${w}%">${PKP.empty || !it ? '' : itemPic(it)}<em>${pkName(k)}</em></div>`]; });
+    return `<div class="park-full pkp-on"><div class="pk-stage">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="" draggable="false">` : ''}${spots.sort((a, b) => a[0] - b[0]).map(x => x[1]).join('')}</div></div>`;
+  }
+  function parkPlacer() {
+    if (!window.HC_DEV || PKP.on) return;
+    closeModal(); PKP.on = true; PKP.L = parkSlots();
+    openModal({ title: 'Places du parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: pkStage(), onClose: () => pkClose(true) });
+    $('#app').insertAdjacentHTML('beforeend', `<div id="pkplacer" class="${PKP.top ? 'top' : ''}">
+      <div class="rp-row"><select id="pkp-spot"></select><span id="pkp-cur"></span><button class="btn xs" id="pkp-one" title="Remettre cette place">⟲</button></div>
+      <div class="rp-row"><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
+        <button class="btn xs" id="pkp-minus">−</button><button class="btn xs" id="pkp-plus">+</button><button class="btn xs" id="pkp-flip">↔ Miroir</button></div>
+      <div class="rp-row"><button class="btn xs" id="pkp-prev">‹</button><select id="pkp-veh"></select><button class="btn xs" id="pkp-next">›</button><button class="btn xs purple" id="pkp-auto">Toutes ici</button><button class="btn xs blue" id="pkp-all" title="Mettre ce véhicule sur toutes les places du même type">Partout</button></div>
+      <div class="rp-row"><button class="btn xs yellow" id="pkp-fill"></button><button class="btn xs" id="pkp-move" title="Haut / bas">⇅</button><span class="rp-sep"></span><button class="btn xs red" id="pkp-reset">Réinitialiser</button><button class="btn xs green" id="pkp-pub">Publier</button><button class="btn xs blue" id="pkp-close">Fermer</button></div></div>`);
+    const save = () => { try { localStorage.setItem(PK_KEY, JSON.stringify(PKP.L)); } catch (e) {} };
+    const out = () => {
+      const [x, y, w, f] = pkSpot(PKP.sel), l = pkVehs(PKP.sel), it = pkVeh(PKP.sel);
+      $('#pkp-spot').innerHTML = pkKeys().map(k => `<option value="${k}" ${k === PKP.sel ? 'selected' : ''}>${pkName(k)} · ${k.startsWith('moto') ? 'moto' : 'voiture'}</option>`).join('');
+      $('#pkp-cur').textContent = `x ${x} · y ${y} · taille ${w}${f ? ' · miroir' : ''}`;
+      $('#pkp-veh').innerHTML = l.map(v => `<option value="${v.id}" ${it && v.id === it.id ? 'selected' : ''}>${esc(v.name)}</option>`).join('');
+      $('#pkp-flip').classList.toggle('yellow', !!f); $('#pkp-auto').classList.toggle('green', !!PKP.auto);
+      $('#pkp-fill').textContent = PKP.empty ? 'Tout remplir' : 'Vider';
+    };
+    const redraw = () => { setBody(pkStage()); out(); };
+    PKP.redraw = redraw; redraw();
+    const nudge = (dx, dy) => { const p = pkSpot(PKP.sel); p[0] = Math.round((p[0] + dx * .5) * 2) / 2; p[1] = Math.round((p[1] + dy * .5) * 2) / 2; save(); redraw(); };
+    document.querySelectorAll('#pkplacer [data-n]').forEach(b => b.onclick = () => { const [dx, dy] = b.dataset.n.split(',').map(Number); nudge(dx, dy); });
+    const size = d => { const p = pkSpot(PKP.sel); p[2] = Math.max(3, Math.min(60, Math.round((p[2] + d) * 2) / 2)); save(); redraw(); };
+    $('#pkp-minus').onclick = () => size(-.5); $('#pkp-plus').onclick = () => size(.5);
+    $('#pkp-flip').onclick = () => { const p = pkSpot(PKP.sel); if (p[3]) p.length = 3; else p[3] = 1; save(); redraw(); };
+    const step = d => { const l = pkVehs(PKP.sel), i = l.indexOf(pkVeh(PKP.sel)); PKP.pv[PKP.sel] = l[(i + d + l.length) % l.length].id; PKP.empty = false; redraw(); };
+    $('#pkp-prev').onclick = () => step(-1); $('#pkp-next').onclick = () => step(1);
+    $('#pkp-spot').onchange = e => { PKP.sel = e.target.value; redraw(); };
+    $('#pkp-veh').onchange = e => { PKP.pv[PKP.sel] = e.target.value; PKP.empty = false; redraw(); };
+    // « Toutes ici » : chaque véhicule du bon type défile sur la place choisie (re-toucher pour arrêter)
+    $('#pkp-auto').onclick = () => { if (PKP.auto) { clearInterval(PKP.auto); PKP.auto = null; } else { PKP.auto = setInterval(() => step(1), 1200); step(1); } out(); };
+    $('#pkp-all').onclick = () => { const it = pkVeh(PKP.sel), t = PKP.sel.startsWith('moto') ? 'moto' : 'car'; pkKeys().forEach(k => { if ((k.startsWith('moto') ? 'moto' : 'car') === t) PKP.pv[k] = it.id; }); PKP.empty = false; redraw(); };
+    $('#pkp-fill').onclick = () => { PKP.empty = !PKP.empty; redraw(); };
+    $('#pkp-move').onclick = () => { PKP.top = !PKP.top; $('#pkplacer').classList.toggle('top', PKP.top); };
+    $('#pkp-one').onclick = () => { const k = PKP.sel, [t, i] = k.split(':'), base = t === 'big' ? D.PARK_SLOTS.big : D.PARK_SLOTS[t][+i];
+      if (t === 'big') PKP.L.big = base.slice(); else PKP.L[t][+i] = base.slice(); save(); redraw(); };
+    $('#pkp-reset').onclick = () => { if (!confirm('Remettre toutes les places comme la dernière publication ?')) return; try { localStorage.removeItem(PK_KEY); } catch (e) {} PKP.L = parkSlots(); redraw(); };
+    $('#pkp-pub').onclick = () => publishLayout();
+    $('#pkp-close').onclick = () => closeModal();
+    if (PKP.bound) return; PKP.bound = true;
+    const stage = () => $('#modal .pkp-on .pk-stage');
+    // glisser une place au doigt (y = bas du véhicule, comme dans le jeu)
+    $('#modal').addEventListener('pointerdown', e => {
+      const t = e.target.closest('.pkp-spot'); if (!t || !PKP.on) return;
+      e.preventDefault(); PKP.sel = t.dataset.pk;
+      const r = stage().getBoundingClientRect(), p = pkSpot(PKP.sel);
+      PKP.drag = { r, dx: p[0] - (e.clientX - r.left) / r.width * 100, dy: p[1] - (e.clientY - r.top) / r.height * 100 };
+      $('#pkplacer').classList.add('ghost'); redraw();
+    });
+  }
+  window.addEventListener('pointermove', e => {
+    if (!PKP.drag) return; const { r, dx, dy } = PKP.drag, p = pkSpot(PKP.sel);
+    p[0] = Math.round(((e.clientX - r.left) / r.width * 100 + dx) * 2) / 2; p[1] = Math.round(((e.clientY - r.top) / r.height * 100 + dy) * 2) / 2;
+    const el = $(`#modal .pkp-spot[data-pk="${PKP.sel}"]`); if (el) { el.style.left = p[0] + '%'; el.style.top = p[1] + '%'; }
+    $('#pkp-cur').textContent = `x ${p[0]} · y ${p[1]} · taille ${p[2]}${p[3] ? ' · miroir' : ''}`;
+  });
+  window.addEventListener('pointerup', () => { if (!PKP.drag) return; PKP.drag = null; try { localStorage.setItem(PK_KEY, JSON.stringify(PKP.L)); } catch (e) {} $('#pkplacer')?.classList.remove('ghost'); PKP.redraw(); });
+  function pkClose() {
+    if (!PKP.on) return; PKP.on = false; PKP.drag = null; if (PKP.auto) { clearInterval(PKP.auto); PKP.auto = null; }
+    $('#pkplacer')?.remove(); if (location.hash === '#placer-parking') history.replaceState(null, '', location.href.split('#')[0]);
+  }
   function openBus() {
     const s = st();
     openModal({ title: 'Arrêt de bus', icon: has('ic-bus') ? 'ic-bus' : 'city', body: `<p class="hint-line">Le bus t'emmène dans les autres quartiers de la ville. Ils ouvriront au fur et à mesure que tu montes en niveau.</p>` +
@@ -610,7 +696,7 @@
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button><button class="btn xs yellow" id="pl-flip">⇋ Miroir</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-park">Parking</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -642,6 +728,7 @@
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5); $('#pl-flip').onclick = flip;
     $('#pl-room').onclick = () => setScene('appart');
     $('#pl-club').onclick = () => openClub();
+    $('#pl-park').onclick = () => parkPlacer();
     $('#pl-val').onclick = () => openValues();
     $('#pl-test').onclick = () => openModal({ title: 'Tests', icon: 'gear', body: testsBody() });
     $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
@@ -649,7 +736,7 @@
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.href.split('#')[0]); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
-    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); };
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
   }
   // ------------------------------------------------------------ textes modifiables (back-office, bouton ✏️ Textes)
@@ -751,20 +838,21 @@
     // on publie TOUJOURS l'état complet (ce qui est affiché), jamais seulement ce que ce navigateur a retenu :
     // sinon une publication faite depuis la chambre envoyait « aucune déco » et tout revenait à sa place d'origine
     const decoAll = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
-    const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), texts: allTexts() };
+    const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), parking: PKP.on ? PKP.L : parkSlots(), texts: allTexts() };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
       const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
       if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
-      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); } catch (e) {}
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {}
       if (window.LAYOUT) { window.LAYOUT.texts = body.texts; window.LAYOUT.values = body.values; }
+      Object.assign(D.PARK_SLOTS, pkCopy(body.parking));   // la partie en cours garde les places publiées
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
   }
   // mode placement de la chambre : adresse du jeu + #placer-appart. On fait glisser le PC, la machine et les places des étagères.
   // on peut l'ouvrir de 3 façons : l'adresse avec #placer-appart, un changement d'adresse sans recharger, ou les Réglages
-  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer' || location.hash === '#admin' || location.hash === '#test' || location.hash === '#neuf' || G.TEST || placing) location.reload(); });
+  window.addEventListener('hashchange', () => { if (location.hash === '#placer-appart') roomPlacer(true); else if (location.hash === '#placer-parking') parkPlacer(); else if (location.hash === '#placer' || location.hash === '#admin' || location.hash === '#test' || location.hash === '#neuf' || G.TEST || placing) location.reload(); });
   // ------------------------------------------------------------ éditeur de chambre (back-office) : les 3 chambres, chaque objet
   // déplacer (doigt ou flèches), taille, miroir, aperçu de chaque niveau de PC / machine, copie vers les autres chambres, publier
   const curG = () => (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g;
@@ -999,7 +1087,7 @@
         const lock = !G.coinUnlocked(k), hh = s.crypto.hist[k.id], p = s.crypto.prices[k.id], hv = G.holdValue(k.id);
         return `<button class="coin-card ${lock ? 'locked' : ''}" data-act="${lock ? 'noop' : 'coinSel'}" data-id="${k.id}">
           ${coinIco(k)}<div class="cc-mid"><b>${k.name}</b>${lock ? `<small>${ic('lock')}Niveau ${k.lvl}</small>` : riskTag(k)}
-          ${hv >= .01 ? `<small class="cc-own">Tu en as pour <b>${short(hv)}</b> · ${(d => d >= 0 ? `<span class="up">+${short(d)} de gagné</span>` : `<span class="down">−${short(-d)} de perdu</span>`)(hv - s.crypto.cost[k.id])}</small>` : ''}</div>
+          ${hv >= .01 ? `<small class="cc-own">Acheté <b>${short(s.crypto.cost[k.id])}</b> → vaut <b>${short(hv)}</b> · ${(d => d >= 0 ? `<span class="up">+${short(d)} de gagné</span>` : `<span class="down">−${short(-d)} de perdu</span>`)(hv - s.crypto.cost[k.id])}</small>` : ''}</div>
           ${lock ? '' : `<div class="cc-right">${sparkSvg(hh.slice(-60), 64, 26)}<small>${trend(p, hh[Math.max(0, hh.length - 60)])}<em>5 min</em></small></div>`}</button>`;
       }).join('');
       return `${weather}${tipBox}
@@ -1418,7 +1506,7 @@
       const fb = { shop: ic('lingot'), ville: pic('deco-dc-bench', '🏙️'), welcome: pic('booster-pack', '🎁') }[mode] || ic('lingot');
       b.className = 'pm-' + (p && p.season ? 'season' : mode) + ' pm-flip'; b.style.setProperty('--pm', p && p.season ? p.season.color : '');
       b.querySelector('.pr-rib').textContent = p && p.season ? p.season.name.toUpperCase() : p ? 'PROMO' : { shop: 'BOUTIQUE', ville: 'BOUTIQUE', welcome: 'BIENVENUE' }[mode];
-      b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : fb;
+      b.querySelector('.pr-ic').innerHTML = has(img) ? `<img src="${src(img)}" alt="" onerror="this.onerror=null;setTimeout(()=>{this.src=this.src.split('#')[0]+'#r'},1500)">` : has('ic-promo') && p ? `<img src="${src('ic-promo')}" alt="">` : fb;
       setTimeout(() => b.classList.remove('pm-flip'), 450);
     }
     const t = $('#promo-t'); if (t) { if (!p) t.textContent = ''; else { const ms = promoLeft(), h = Math.floor(ms / 3600000); t.textContent = h >= 48 ? `${Math.floor(h / 24)} j` : h >= 1 ? `${h} h` : mmss(ms); } }
@@ -2378,6 +2466,7 @@
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
       ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
+        <button class="set-row" onclick="location.hash='#placer-parking'"><span><b>Places du parking</b><small>Placer chaque voiture et moto</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#neuf'"><span><b>Nouvelle partie d'essai</b><small>Depuis le début, avec le tuto</small></span><em>›</em></button></div>` : ''}
       <button class="btn red wide" style="margin-top:12px" data-act="resetAsk">Recommencer à zéro</button>
@@ -2873,7 +2962,7 @@
     if (G.TEST || (window.HC_DEV && /^#neuf/.test(location.hash))) $('#app').insertAdjacentHTML('afterbegin', '<div id="test-banner">' + (G.TEST ? 'PARTIE TEST' : 'PARTIE D\'ESSAI') + ' <button data-act="leaveTest">Quitter</button></div>');
     promoUi();
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
-    layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer();
+    layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer(); if (window.HC_DEV && location.hash === '#placer-parking') parkPlacer();
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
     setTimeout(() => offerToday(), 30000);

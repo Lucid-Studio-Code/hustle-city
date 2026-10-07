@@ -3419,3 +3419,23 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .lk-card .lk-tag .ico { width: 16px; height: 16px; object-fit: contain; }
 #app .lk-card .lk-tag b { font: 400 15px/1 var(--title); }
 #app .lk-card .lk-tag small { min-height: 0; font: 800 10px/1 var(--text); color: #5a3d14; }
+/* parking : véhicule en miroir (réglé place par place au back-office) */
+#app .pk-car.flip .pic img, #app .pk-car.flip > img, #app .pk-car.flip .emo { transform: scaleX(-1); }
+/* placement des places du parking (#placer-parking) : chaque place encadrée, C = voiture (bleu), M = moto (orange), Grande (violet) */
+#app .park-full.pkp-on, #app .park-full.pkp-on * { touch-action: none; user-select: none; -webkit-user-select: none; }
+#app .pkp-spot { cursor: grab; --pk: #45a8ec; } #app .pkp-spot.pkp-moto { --pk: #ff8c1a; } #app .pkp-spot.pkp-big { --pk: #b06bff; } #app .pkp-spot.sel { --pk: #ffd23f; z-index: 3; }
+#app .pkp-spot .pic img, #app .pkp-spot.empty { outline: 2px dashed var(--pk); outline-offset: 1px; }
+#app .pkp-spot.sel .pic img, #app .pkp-spot.sel.empty { outline: 3px solid var(--pk); }
+#app .pkp-spot.empty { aspect-ratio: 2 / 1; transform: translate(-50%, 0); background: rgba(255,255,255,.18); }
+#app .pkp-spot em { position: absolute; z-index: 2; left: 50%; top: 0; transform: translate(-50%, -50%); padding: 1px 6px; border-radius: 999px; background: #45a8ec; color: #fff; font: 900 10px var(--text); font-style: normal; white-space: nowrap; pointer-events: none; }
+#app .pkp-spot.pkp-moto em { background: #ff8c1a; } #app .pkp-spot.pkp-big em { background: #b06bff; } #app .pkp-spot.sel em { background: #ffd23f; color: #2a1a10; }
+#pkplacer { position: absolute; z-index: 66; left: 6px; right: 6px; bottom: 6px; display: flex; flex-direction: column; gap: 3px; padding: 5px 6px; border: 2px solid #2a1a10; border-radius: 12px; background: rgba(255,248,236,.94); box-shadow: 0 3px 0 #2a1a10; transition: opacity .15s; }
+#pkplacer.top { bottom: auto; top: 6px; }
+#pkplacer.ghost { opacity: .12; pointer-events: none; }
+#pkplacer .rp-row { display: flex; align-items: center; gap: 3px; }
+#pkplacer .rp-sep { flex: 1; }
+#pkplacer b { font: 400 14px var(--title); color: #c62828; white-space: nowrap; }
+#pkplacer #pkp-cur { flex: 1; text-align: right; font: 800 10.5px var(--text); color: #6a5a4a; }
+#pkplacer .btn.xs { min-height: 28px; padding: 1px 8px 3px; font-size: 12px; }
+#pkplacer select { flex: 1 1 auto; max-width: 60%; min-width: 0; padding: 4px 6px; border: 2px solid #2a1a10; border-radius: 10px; background: #fff; font: 800 12px var(--text); color: #2a1a10; }
+#app:has(#pkplacer) #placer, #app:has(#pkplacer) #admin-banner { display: none; }
