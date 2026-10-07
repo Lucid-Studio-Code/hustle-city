@@ -3456,3 +3456,9 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 .age-card p { font-size: 15px; line-height: 1.45; margin: 0 0 16px; }
 .age-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .age-btns .btn { min-width: 240px; }
+/* défi du trader : icône en haut à gauche, compteur et gain sur une seule ligne */
+#app .trader { align-items: flex-start; padding: 12px 14px; }
+#app .trader .tr-ic { flex: none; margin-top: 2px; }
+#app .trader .tr-ic img.ico { width: 40px; height: 40px; }
+#app .trader .tr-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+#app .trader .tr-foot .rw-get { margin: 0; }

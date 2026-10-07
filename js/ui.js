@@ -380,7 +380,7 @@
       : `<div class="card center"><b>Machine à crypto</b><p>Au maximum. Respect.</p></div>`;
     const rp = nr && G.cost(nr.cost), full = G.ownedCount() >= G.roomSlots();
     const flat = nr ? `<div class="card up-card ${s.cash >= rp ? 'ready' : ''}"><div class="up-img up-room" style="background-image:url(${src(room(s.room + 1))})"></div><div class="up-info"><small class="muted">Ton appart${full ? ' · étagères pleines !' : ''}</small><b>${nr.name}</b>
-        <p>${nr.desc} <b>${nr.slots} places</b> pour ta collection (tu en as ${D.ROOMS[s.room].slots}).</p>
+        <p>${nr.desc}<br><b>${nr.slots} places</b> pour ta collection (tu en as ${D.ROOMS[s.room].slots}).</p>
         <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
       : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
     const pn = G.pcNext(), fpc = f => (f * 100).toFixed(1).replace('.', ',').replace(',0', '') + ' %';
@@ -1059,7 +1059,7 @@
       <div class="help-row">${pic(has('minerv-' + st().rig.lvl) ? 'minerv-' + st().rig.lvl : 'rig-0', EMO.rig)}<div><b>La machine à crypto</b><p>Elle fabrique de l'argent toute seule, même quand tu n'es pas là. Elle chauffe et s'arrête au bout d'un moment : touche sa bulle pour encaisser, ça la relance.</p></div></div>
       <div class="help-row">${pic(pcLook(), EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
       <div class="help-row"><span class="pic help-phone"><i class="ph-mini"><i></i></i></span><div><b>Ton téléphone</b><p>Pour déménager (appli Appart'Immo), voir ta banque, tes paris et les messages de tes contacts.</p></div></div>
-      <div class="help-row">${pic('item-c-holo', '🃏')}<div><b>Tes étagères</b><p>Tes objets de collection s'y exposent. Leur prix bouge aussi : touche un objet pour voir combien il vaut et le revendre.</p></div></div>
+      <div class="help-row">${pic('item-w-grail', '⌚')}<div><b>Tes étagères</b><p>Tes objets de collection s'y exposent. Leur prix bouge aussi : touche un objet pour voir combien il vaut et le revendre.</p></div></div>
       <button class="btn green wide" data-act="closeModal">Compris</button>` });
   }
 
@@ -1157,8 +1157,8 @@
   function traderCard() {
     const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal, n = D.PCX.trader.lingots + Math.floor(st().lvl / 3);
     return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">${ico('ic-target', '🎯')}</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
-      ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div><small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}
-      <p class="rw-get">Tu gagnes ${chips(0, n)}</p></div>
+      ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div>`}
+      <div class="tr-foot">${tr.claimed ? '' : `<small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}<p class="rw-get">Tu gagnes ${chips(0, n)}</p></div></div>
       ${tr.claimed ? '<span class="rw-done">✓ Déjà récupéré</span>' : done ? '<button class="btn green sm" data-act="traderClaim">Réclamer</button>' : ''}</div>`;
   }
   function flashBanner() {
