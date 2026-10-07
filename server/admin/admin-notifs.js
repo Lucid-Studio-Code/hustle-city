@@ -84,8 +84,8 @@
       $('#nf-n').innerHTML = `<b>${r.n.toLocaleString('fr-FR')} joueur${r.n > 1 ? 's' : ''}</b> dans ce groupe${r.on ? `, dont ${r.phones} avec l'application et les notifications acceptées` : ''}.`; };
     const plan = async () => {
       const s = await HC.api('/admin/api/push');
-      $('#nf-plan').innerHTML = (s.plan.length ? `<h3 class="nf-h3">Programmées</h3>${s.plan.map(p => `<div class="card nf-row"><div><b>${esc(p.title)}</b><p>${esc(p.body)}</p><small>${esc(when(p.at))} · ${esc(fdesc(p.filter))}</small></div><button class="btn sm red" data-cancel="${p.id}">Annuler</button></div>`).join('')}` : '')
-        + (s.sent.length ? `<details class="nf-sent"><summary>Déjà envoyées (${s.sent.length})</summary>${s.sent.map(p => `<div class="card nf-row done"><div><b>${esc(p.title)}</b><p>${esc(p.body)}</p><small>${esc(when(p.at))} · ${esc(fdesc(p.filter))} · ${s.on ? `reçue sur ${p.n} téléphone${p.n > 1 ? 's' : ''}` : 'pas envoyée (pas encore branché)'}</small></div></div>`).join('')}</details>` : '');
+      $('#nf-plan').innerHTML = (s.plan.length ? `<h3 class="nf-h3">Programmées</h3>${s.plan.map(p => `<div class="card nf-row"><div><b>${esc(p.title)}</b><p>${esc(p.body)}</p><small>${esc(when(p.at))} · ${esc(fdesc(p.filter))}</small></div><button class="btn sm red" data-cancel="${esc(p.id)}">Annuler</button></div>`).join('')}` : '')
+        + (s.sent.length ? `<details class="nf-sent"><summary>Déjà envoyées (${s.sent.length})</summary>${s.sent.map(p => `<div class="card nf-row done"><div><b>${esc(p.title)}</b><p>${esc(p.body)}</p><small>${esc(when(p.at))} · ${esc(fdesc(p.filter))} · ${s.on ? `reçue sur ${+p.n || 0} téléphone${p.n > 1 ? 's' : ''}` : 'pas envoyée (pas encore branché)'}</small></div></div>`).join('')}</details>` : '');
       $$('[data-cancel]').forEach(b => b.onclick = async () => { if (!(await HC.confirm('Annuler cette notification ?', 'Elle ne partira pas.', 'Annuler la notification', 'red'))) return; await HC.api('/admin/api/push-cancel', { id: +b.dataset.cancel }); HC.toast('Notification annulée', 'icon-check'); plan(); });
     };
 
@@ -100,7 +100,7 @@
     $('#nf-go').onclick = async () => {
       if (!m.title.trim() || !m.body.trim()) return HC.toast('Écris un titre et un texte', 'ev-boost');
       if (m.at && m.at < Date.now()) return HC.toast('Cette date est déjà passée', 'ev-boost');
-      if (!m.at && !(await HC.confirm('Envoyer maintenant ?', `« ${m.title} » part tout de suite chez ${fdesc(filter())}.`, 'Envoyer', 'green'))) return;
+      if (!m.at && !(await HC.confirm('Envoyer maintenant ?', `« ${esc(m.title)} » part tout de suite chez ${esc(fdesc(filter()))}.`, 'Envoyer', 'green'))) return;
       await HC.api('/admin/api/push', { title: m.title.trim(), body: m.body.trim(), filter: filter(), at: m.at || 0 });
       HC.toast(m.at ? 'Notification programmée' : st.on ? 'Notification envoyée' : 'Enregistrée : elle n\'a pas pu partir, ce n\'est pas encore branché', 'icon-check');
       m.title = m.body = ''; $('#nf-t').value = $('#nf-b').value = ''; prev(); plan();

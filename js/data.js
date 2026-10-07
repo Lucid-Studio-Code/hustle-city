@@ -572,6 +572,8 @@
   // ---------------------------------------------------------------- boosters (comme Mama Kana)
   // Un booster gratuit par jour, un à chaque niveau, un pour les 3 défis du jour ; on en achète aussi (lingots ou au Kiosque).
   // Contenu : 3 cartes récompense + 1 carte de collection (une vraie carte avec une cote, qui va dans ton classeur).
+  // mentions légales (Réglages → Mentions légales) : l'éditrice du jeu
+  const LEGAL = { editeur: 'LUCID STUDIO', rcs: 'RCS Nanterre 950 806 182', tva: 'FR86950806182', adresse: '1 rue Jeanne Paquin, 93450 L\'Île-Saint-Denis, France', email: 'contact@lucidstudio.fr', directeur: 'LUCID STUDIO' };
   const BOOSTER = {
     cost: 12,                                   // en lingots
     weights: { C: 58, R: 30, E: 10, L: 2 },     // cartes récompense, en %
@@ -936,6 +938,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

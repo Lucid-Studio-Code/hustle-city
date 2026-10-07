@@ -3443,3 +3443,16 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 /* tuto : appui hors de la case montrée → la case clignote pour la montrer */
 #tuto-spot.nudge { animation: tutoNudge .45s ease-in-out 2; }
 @keyframes tutoNudge { 50% { transform: scale(1.08); border-color: #fff; } }
+.bst-prob { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; text-align: left; }
+.bst-prob .bst-odds { margin: 0; justify-content: flex-start; }
+.bst-prob small.muted { font-size: 11px; line-height: 1.35; }
+.legal-txt { font-size: 13px; line-height: 1.55; display: flex; flex-direction: column; gap: 4px; }
+.legal-txt b { display: block; margin-top: 8px; }
+.legal-txt b:first-child { margin-top: 0; }
+.legal-txt ul { margin: 2px 0 2px 18px; padding: 0; }
+#start.age { justify-content: center; gap: 24px; }
+.age-card { margin: 0 16px; max-width: 420px; background: #fffaf0; border: 3px solid #2b1a0e; border-radius: 22px; padding: 22px 20px; text-align: center; box-shadow: 0 6px 0 #2b1a0e; color: #2b1a0e; }
+.age-card b { font-size: 26px; font-family: var(--title); font-weight: 400; display: block; margin-bottom: 8px; }
+.age-card p { font-size: 15px; line-height: 1.45; margin: 0 0 16px; }
+.age-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.age-btns .btn { min-width: 240px; }

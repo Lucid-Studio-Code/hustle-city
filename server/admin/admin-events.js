@@ -71,10 +71,10 @@
               <div class="ev-act"><button class="btn ghost" id="cd-reset">Repartir de zéro</button><button class="btn lg green" id="cd-go">Enregistrer</button></div>
             </div>
             <div class="cd-live"><div class="lb">En direct <small>· édition ${esc(cdmLive.ed || '')}</small></div>
-              <div class="cd-kpis"><span><b>${(cdmLive.players || 0).toLocaleString('fr-FR')}</b><small>joueurs dans une équipe</small></span><span><b>${Object.values(cdmLive.totals || {}).reduce((a, b) => a + b, 0).toLocaleString('fr-FR')}</b><small>points en tout</small></span></div>
-              ${HC.hbars(CDM.teams.map(t => ({ label: `${esc(t.name)} <small>(${(cdmLive.count || {})[t.id] || 0})</small>`, plain: t.name, icon: HC.cdmCrest(t.id), n: (cdmLive.totals || {})[t.id] || 0, v: ((cdmLive.totals || {})[t.id] || 0).toLocaleString('fr-FR'), color: t.color })).sort((a, b) => b.n - a.n))}
+              <div class="cd-kpis"><span><b>${(+cdmLive.players || 0).toLocaleString('fr-FR')}</b><small>joueurs dans une équipe</small></span><span><b>${Object.values(cdmLive.totals || {}).reduce((a, b) => a + (+b || 0), 0).toLocaleString('fr-FR')}</b><small>points en tout</small></span></div>
+              ${HC.hbars(CDM.teams.map(t => ({ label: `${esc(t.name)} <small>(${+(cdmLive.count || {})[t.id] || 0})</small>`, plain: t.name, icon: HC.cdmCrest(t.id), n: +(cdmLive.totals || {})[t.id] || 0, v: (+(cdmLive.totals || {})[t.id] || 0).toLocaleString('fr-FR'), color: t.color })).sort((a, b) => b.n - a.n))}
               <div class="lb" style="margin-top:12px">Les meilleurs joueurs</div>
-              ${(cdmLive.best || []).length ? `<div class="ev-list">${cdmLive.best.map((p, i) => { const t = CDM.teams.find(x => x.id === p.team) || {}; return `<div class="ev-row cd-best"><b class="cd-rk">${i + 1}</b>${HC.who(p, 34, `<span style="color:${t.color}">${esc(t.name || '')}</span>`)}<b class="cd-pts">${(p.pts || 0).toLocaleString('fr-FR')} pts</b></div>`; }).join('')}</div>` : '<p class="help ev-empty">Personne n\'a encore rejoint d\'équipe.</p>'}
+              ${(cdmLive.best || []).length ? `<div class="ev-list">${cdmLive.best.map((p, i) => { const t = CDM.teams.find(x => x.id === p.team) || {}; return `<div class="ev-row cd-best"><b class="cd-rk">${i + 1}</b>${HC.who(p, 34, `<span style="color:${t.color}">${esc(t.name || '')}</span>`)}<b class="cd-pts">${(+p.pts || 0).toLocaleString('fr-FR')} pts</b></div>`; }).join('')}</div>` : '<p class="help ev-empty">Personne n\'a encore rejoint d\'équipe.</p>'}
             </div>
           </div>
         </section>
@@ -93,8 +93,8 @@
 
         <section class="card ev-blk"><div class="ev-bh">${img('bonus-lingots')}<div><h2>Pubs récompensées</h2><p class="help">Ce que gagne un joueur en regardant une pub jusqu'au bout, dans la boutique.</p></div></div>
           <div class="ev-ads">
-            <div class="ev-step"><span>Lingots par pub</span><div><button class="btn sm ghost" data-st="reward:-1">−</button><b id="ad-r">${ads.reward}</b><button class="btn sm ghost" data-st="reward:1">+</button></div></div>
-            <div class="ev-step"><span>Pubs par jour</span><div><button class="btn sm ghost" data-st="perDay:-1">−</button><b id="ad-n">${ads.perDay}</b><button class="btn sm ghost" data-st="perDay:1">+</button></div></div>
+            <div class="ev-step"><span>Lingots par pub</span><div><button class="btn sm ghost" data-st="reward:-1">−</button><b id="ad-r">${esc(ads.reward)}</b><button class="btn sm ghost" data-st="reward:1">+</button></div></div>
+            <div class="ev-step"><span>Pubs par jour</span><div><button class="btn sm ghost" data-st="perDay:-1">−</button><b id="ad-n">${esc(ads.perDay)}</b><button class="btn sm ghost" data-st="perDay:1">+</button></div></div>
             <p class="help" id="ad-sum"></p>
             <div class="ev-act"><button class="btn green" id="ad-go">Enregistrer</button></div>
           </div>

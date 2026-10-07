@@ -16,7 +16,7 @@
   ];
   const GESTES = [['+10', { lingots: 10 }, 'lgt'], ['+25', { lingots: 25 }, 'lgt'], ['+2', { boosters: 2 }, 'bst'], ['+1 000', { cash: 1000 }, 'cur']];
   const ST = { status: 'ouvert', q: '' };
-  const stTag = s => `<span class="tag ${s === 'ouvert' ? 'ko' : s === 'fermé' ? 'ok' : 'warn'}">${s === 'ouvert' ? 'à traiter' : s}</span>`;
+  const stTag = s => `<span class="tag ${s === 'ouvert' ? 'ko' : s === 'fermé' ? 'ok' : 'warn'}">${s === 'ouvert' ? 'à traiter' : esc(s)}</span>`;
   const giftOf = txt => { const m = /\s*\[cadeau : ([^\]]+)\]$/.exec(txt || ''); return m ? [txt.slice(0, m.index), m[1]] : [txt, null]; };
   const giftHtml = g => g.split(',').map(x => { const [n, k] = x.trim().split(' '); return `${fmt(+n)}${k === 'lingots' ? '<i class="lgt"></i>' : k === 'cash' ? '<i class="cur"></i>' : k === 'boosters' ? '<i class="bst"></i>' : ' ' + esc(k)}`; }).join(' ');
 
@@ -33,7 +33,7 @@
       const r = await HC.api(`/admin/api/tickets?status=${encodeURIComponent(ST.status)}&q=${encodeURIComponent(ST.q)}`); list = r.list;
       $('#sv-st').innerHTML = [['ouvert', 'À traiter', r.counts['ouvert']], ['en attente', 'En attente', r.counts['en attente']], ['fermé', 'Fermés', r.counts['fermé']], ['tous', 'Tous', null]].map(([k, l, n]) => `<button class="chip ${ST.status === k ? 'on' : ''}" data-st="${k}">${l}${n != null ? `<b>${n}</b>` : ''}</button>`).join('');
       $$('#sv-st [data-st]').forEach(b => b.onclick = () => { ST.status = b.dataset.st; loadList(); });
-      $('#sv-items').innerHTML = list.map(t => { const l = t.last || {}; return `<div class="conv ${t.id === sel ? 'on' : ''} ${t.status === 'ouvert' && l && !l.from_admin ? 'unread' : ''}" data-tk="${t.id}">${HC.avatar(t, 44)}<div class="cv-b"><div class="cv-top"><b>${esc(t.name || '?')}</b><time>${ago(l.t || t.t)}</time></div><div class="cv-s">${esc(t.subject)}</div><div class="cv-l">${l.from_admin ? 'Toi : ' : ''}${esc(giftOf(l.text || '')[0])}</div></div></div>`; }).join('') || HC.empty(ST.status === 'ouvert' ? 'Rien à traiter, bravo !' : 'Aucune conversation.', 'icon-check');
+      $('#sv-items').innerHTML = list.map(t => { const l = t.last || {}; return `<div class="conv ${t.id === sel ? 'on' : ''} ${t.status === 'ouvert' && l && !l.from_admin ? 'unread' : ''}" data-tk="${esc(t.id)}">${HC.avatar(t, 44)}<div class="cv-b"><div class="cv-top"><b>${esc(t.name || '?')}</b><time>${ago(l.t || t.t)}</time></div><div class="cv-s">${esc(t.subject)}</div><div class="cv-l">${l.from_admin ? 'Toi : ' : ''}${esc(giftOf(l.text || '')[0])}</div></div></div>`; }).join('') || HC.empty(ST.status === 'ouvert' ? 'Rien à traiter, bravo !' : 'Aucune conversation.', 'icon-check');
       $$('#sv-items [data-tk]').forEach(c => c.onclick = () => open(+c.dataset.tk));
     }
     async function open(id) {
@@ -60,10 +60,10 @@
       $('#sv-txt').onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send('en attente'); };
       $('#sv-side').innerHTML = `${HC.avatar(p, 90)}<h3>${esc(p.name || '?')} <small class="mut">#${esc(p.tag || '')}</small></h3>
         <div style="text-align:center">${p.online ? '<span class="tag ok">en ligne</span>' : `<span class="tag">vu ${ago(p.last_seen)}</span>`} ${p.banned ? '<span class="tag ko">suspendu</span>' : ''}</div>
-        <div class="kv"><span>Niveau</span><b>${p.lvl || 1}</b><span>Cash</span><b>${cash(p.cash)}</b><span>Lingots</span><b>${fmt(p.lingots)}<i class="lgt"></i></b><span>Patrimoine</span><b>${cash(p.worth)}</b><span>Ville</span><b>${p.city ? flag(p.cc) + ' ' + esc(p.city) : '–'}</b><span>Appareil</span><b>${esc(HC.platform(p.platform))}</b><span>Inscrit</span><b>${dt(p.created, { day: 'numeric', month: 'short' })}</b></div>
+        <div class="kv"><span>Niveau</span><b>${esc(p.lvl || 1)}</b><span>Cash</span><b>${cash(p.cash)}</b><span>Lingots</span><b>${fmt(p.lingots)}<i class="lgt"></i></b><span>Patrimoine</span><b>${cash(p.worth)}</b><span>Ville</span><b>${p.city ? flag(p.cc) + ' ' + esc(p.city) : '–'}</b><span>Appareil</span><b>${esc(HC.platform(p.platform))}</b><span>Inscrit</span><b>${dt(p.created, { day: 'numeric', month: 'short' })}</b></div>
         <button class="btn sm" data-pid="${esc(p.pid)}">Voir sa fiche complète</button>
         ${p.notes ? `<div class="note">${esc(p.notes)}</div>` : ''}
-        ${t.others.length ? `<div><div class="card-h" style="font-size:14px">Autres demandes</div>${t.others.map(o => `<div class="hist-row" style="cursor:pointer" data-tk2="${o.id}"><span>${esc(o.subject)}<br><small>${ago(o.t)}</small></span>${stTag(o.status)}</div>`).join('')}</div>` : ''}`;
+        ${t.others.length ? `<div><div class="card-h" style="font-size:14px">Autres demandes</div>${t.others.map(o => `<div class="hist-row" style="cursor:pointer" data-tk2="${esc(o.id)}"><span>${esc(o.subject)}<br><small>${ago(o.t)}</small></span>${stTag(o.status)}</div>`).join('')}</div>` : ''}`;
       $$('#sv-side [data-tk2]').forEach(b => b.onclick = () => open(+b.dataset.tk2));
     }
     let tmr; $('#sv-q').oninput = () => { clearTimeout(tmr); tmr = setTimeout(() => { ST.q = $('#sv-q').value.trim(); loadList(); }, 250); };
@@ -86,9 +86,9 @@
   function offerCard(deal, color, rib) {
     const o = iap(deal.id), base = euro(o.price), off = +deal.off || 0, bonus = +deal.bonus || 0;
     const price = off ? `<s>${esc(o.price || '')}</s>${eur(Math.max(.49, base * (1 - off / 100)))}` : esc(o.price || '');
-    return `<div class="offer-card" style="--pc:${color || 'var(--pink)'}"><span class="oc-rib">${esc(rib || 'PROMO')}</span><h4>${esc(deal.title || o.name || 'Offre')}</h4><p>${esc(deal.desc || o.desc || '')}${bonus && o.n ? `<br><b>${fmt(Math.round(o.n * (1 + bonus / 100)))} lingots au lieu de ${fmt(o.n)}</b>` : ''}</p><div class="price">${price}</div><span class="oc-btn">Voir l'offre</span></div>`;
+    return `<div class="offer-card" style="--pc:${esc(color || 'var(--pink)')}"><span class="oc-rib">${esc(rib || 'PROMO')}</span><h4>${esc(deal.title || o.name || 'Offre')}</h4><p>${esc(deal.desc || o.desc || '')}${bonus && o.n ? `<br><b>${fmt(Math.round(o.n * (1 + bonus / 100)))} lingots au lieu de ${fmt(o.n)}</b>` : ''}</p><div class="price">${price}</div><span class="oc-btn">Voir l'offre</span></div>`;
   }
-  const promoBtn = (imgName, color, tag, name) => `<div class="promo-btn" style="--pc:${color || 'var(--pink)'}"><span class="pb-bg"></span>${img(has(imgName) ? imgName : 'ic-promo')}${tag ? `<span class="pb-tag">${esc(tag)}</span>` : ''}${name ? `<span class="pb-name">${esc(name)}</span>` : ''}</div>`;
+  const promoBtn = (imgName, color, tag, name) => `<div class="promo-btn" style="--pc:${esc(color || 'var(--pink)')}"><span class="pb-bg"></span>${img(has(imgName) ? imgName : 'ic-promo')}${tag ? `<span class="pb-tag">${esc(tag)}</span>` : ''}${name ? `<span class="pb-name">${esc(name)}</span>` : ''}</div>`;
   const dealTag = d => (d || {}).off ? '−' + d.off + ' %' : (d || {}).bonus ? '+' + d.bonus + ' %' : '';
 
   HC.PAGES.live = async () => {
@@ -278,7 +278,7 @@
     config: ['bld-six', () => 'Tu as publié les <b>événements et nouveautés</b>'], broadcast: ['gift-big', d => `Message à tous : <b>${esc(d.title || '')}</b> (${fmt(d.n)} joueurs)${HC.giftTxt(d.gift || {}) ? ' · ' + esc(HC.giftTxt(d.gift)) : ''}`],
     gift: ['icon-gift', d => d.pid === '*' ? `Message à tous : <b>${esc(d.title || '')}</b>` : `Cadeau ou message à un joueur : <b>${esc(d.title || '')}</b>${HC.giftTxt(d.gift || {}) ? ' · ' + esc(HC.giftTxt(d.gift)) : ''}`],
     ban: ['icon-lock', d => `Compte suspendu : ${esc(d.reason || 'sans motif')}`], unban: ['icon-check', () => 'Compte réactivé'], restore: ['hdr-settings', () => 'Partie restaurée'],
-    reply: ['app-msg', d => `Réponse au SAV (ticket #${d.ticket}) · ${esc(d.status || '')}${d.gift ? ' · cadeau ' + esc(HC.giftTxt(d.gift)) : ''}`], notes: ['hdr-missions', () => 'Note interne modifiée'],
+    reply: ['app-msg', d => `Réponse au SAV (ticket #${esc(d.ticket)}) · ${esc(d.status || '')}${d.gift ? ' · cadeau ' + esc(HC.giftTxt(d.gift)) : ''}`], notes: ['hdr-missions', () => 'Note interne modifiée'],
     content: ['app-objets', d => `Tu as publié les <b>objets du jeu</b> (${fmt(d.n)} ajoutés ou modifiés)`], upload: ['icon-gift', () => 'Image envoyée pour un objet']
   };
   const TYPES = [['', 'Tout'], ['install', 'Installations'], ['levelup', 'Niveaux'], ['achievement', 'Succès'], ['iap_buy', 'Achats'], ['iap_click', 'Offres regardées'], ['ad', 'Pubs'], ['gift_received', 'Cadeaux reçus'], ['bet', 'Paris'], ['session', 'Connexions']];

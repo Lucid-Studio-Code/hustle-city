@@ -84,7 +84,7 @@
     }
     function tile(it) {
       const sh = whereTxt(it);
-      return `<button class="ob-tile ${nowIn(it) ? '' : 'dim'}" data-it="${esc(it.id)}"><span class="ob-r r${it.r}">${RAR[it.r] || ''}</span>
+      return `<button class="ob-tile ${nowIn(it) ? '' : 'dim'}" data-it="${esc(it.id)}"><span class="ob-r r${esc(it.r)}">${RAR[it.r] || ''}</span>
         <span class="ob-pic">${picHtml(it)}</span><b>${esc(it.name)}</b><span class="ob-p">${short(it.p0)}<i class="cur"></i></span>
         <small>${esc(sh)}</small><span class="ob-tags">${it.custom ? '<span class="tag pink">Ajouté</span>' : it._mod ? '<span class="tag warn">Modifié</span>' : ''}${stateTag(it)}</span></button>`;
     }
@@ -202,9 +202,9 @@
         const visible = c.mode === 'always' || (c.mode === 'dates' && c.from && c.until && Date.now() >= Date.parse(c.from) && Date.now() < Date.parse(c.until));
         $('#ob-prev').innerHTML = `<div class="prev-lbl">Ce que voit le joueur</div>
           <div class="ob-phone"><div class="ob-ph-h">${img(icon)}<b>${esc(where)}</b></div>
-            ${isCard() ? `<div class="ob-tcg r${c.r}"><span class="ob-tcg-img">${pic}</span><span class="ob-tcg-r">${{ C: '●', R: '◆', E: '★', L: '♛' }[c.r]}</span><b>${esc(c.name || 'Nom de la carte')}</b></div>
+            ${isCard() ? `<div class="ob-tcg r${esc(c.r)}"><span class="ob-tcg-img">${pic}</span><span class="ob-tcg-r">${{ C: '●', R: '◆', E: '★', L: '♛' }[c.r]}</span><b>${esc(c.name || 'Nom de la carte')}</b></div>
               <div class="ob-tcg-p"><small>Cote</small> ${short(p)}<i class="cur"></i></div>`
-            : `<div class="ob-icard"><span class="ob-rtag r${c.r}">${RAR[c.r]}</span><span class="ob-ipic">${pic}</span><h4>${esc(c.name || 'Nom de l\'objet')}</h4>
+            : `<div class="ob-icard"><span class="ob-rtag r${esc(c.r)}">${RAR[c.r] || ''}</span><span class="ob-ipic">${pic}</span><h4>${esc(c.name || 'Nom de l\'objet')}</h4>
               <div class="ob-ip"><small>Cote</small>${short(p)}<i class="cur"></i></div><small class="ob-im">Vendu ${short(Math.ceil(p * 1.05))} (cote + 5 %)</small>
               <span class="ob-buy">Acheter ${short(Math.ceil(p * 1.05))}<i class="cur"></i></span></div>`}
           </div>

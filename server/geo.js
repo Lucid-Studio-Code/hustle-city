@@ -33,11 +33,12 @@ const COUNTRY_FR = { FR: 'France', BE: 'Belgique', CH: 'Suisse', LU: 'Luxembourg
   CI: "Côte d'Ivoire", RE: 'La Réunion', GP: 'Guadeloupe', MQ: 'Martinique', GF: 'Guyane', GB: 'Royaume-Uni', ES: 'Espagne', DE: 'Allemagne', IT: 'Italie',
   PT: 'Portugal', NL: 'Pays-Bas', US: 'États-Unis' };
 
+// X-Forwarded-For n'est cru que s'il vient de Caddy (même machine) : sinon n'importe qui pourrait choisir son IP (et contourner les limites)
 function clientIp(req) {
-  const xf = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  let ip = xf || req.headers['x-real-ip'] || (req.socket && req.socket.remoteAddress) || '';
-  ip = String(ip).replace(/^::ffff:/, '');
-  return ip;
+  const peer = String((req.socket && req.socket.remoteAddress) || '').replace(/^::ffff:/, '');
+  if (!/^(127\.0\.0\.1|::1)$/.test(peer)) return peer;
+  const xf = String(req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean).pop();   // la dernière = celle ajoutée par Caddy
+  return String(xf || req.headers['x-real-ip'] || peer).replace(/^::ffff:/, '').slice(0, 64);
 }
 function isPrivate(ip) {
   if (!ip || ip === '::1' || ip === 'localhost') return true;
@@ -53,23 +54,26 @@ function fromTz(tz) {
 }
 
 // setGeo(pid, geo) est appelé dès qu'on sait ; en arrière-plan si on doit demander au service
-function makeGeo(db) {
+// vie privée : le cache est rangé par IP hachée (hash), la position arrondie au dixième de degré (~10 km), rien n'est gardé si le service échoue
+const r1 = v => v == null || !isFinite(v) ? null : Math.round(v * 10) / 10;
+function makeGeo(db, hash = x => x) {
   const getC = db.prepare('SELECT data FROM geo_cache WHERE ip = ?'), putC = db.prepare('INSERT OR REPLACE INTO geo_cache (ip, t, data) VALUES (?, ?, ?)');
   const setP = db.prepare('UPDATE players SET country = ?, cc = ?, region = ?, city = ?, lat = ?, lon = ?, geo_src = ? WHERE pid = ?');
   const busy = new Set();
-  const apply = (pid, g) => g && setP.run(g.country || null, g.cc || null, g.region || null, g.city || null, g.lat ?? null, g.lon ?? null, g.src || null, pid);
+  const apply = (pid, g) => g && setP.run(g.country || null, g.cc || null, g.region || null, g.city || null, r1(g.lat), r1(g.lon), g.src || null, pid);
   return function locate(pid, ip, tz, already) {
     try {
       const tzGeo = fromTz(tz);
       if (isPrivate(ip)) { if (tzGeo && (!already || already === 'fuseau')) apply(pid, tzGeo); return; }
-      const c = getC.get(ip);
+      const h = hash(ip), c = getC.get(h);
       if (c) { const g = JSON.parse(c.data); apply(pid, g && g.cc ? g : tzGeo); return; }
       if (tzGeo && !already) apply(pid, tzGeo);   // en attendant la réponse du service
       if (busy.has(ip) || typeof fetch !== 'function') return; busy.add(ip);
-      fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,regionName,city,lat,lon`, { signal: AbortSignal.timeout(5000) })
+      fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,city,lat,lon`, { signal: AbortSignal.timeout(5000) })
         .then(r => r.json()).then(j => {
-          const g = j && j.status === 'success' ? { country: COUNTRY_FR[j.countryCode] || j.country, cc: j.countryCode, region: j.regionName, city: j.city, lat: j.lat, lon: j.lon, src: 'ip' } : { fail: 1 };
-          putC.run(ip, Date.now(), JSON.stringify(g)); apply(pid, g.cc ? g : tzGeo);
+          if (!j || j.status !== 'success' || !/^[A-Z]{2}$/.test(j.countryCode || '')) return;   // échec : on ne garde rien (le fuseau a déjà servi)
+          const g = { country: String(COUNTRY_FR[j.countryCode] || j.country || '').slice(0, 60), cc: j.countryCode, city: String(j.city || '').slice(0, 80) || null, lat: r1(j.lat), lon: r1(j.lon), src: 'ip' };
+          putC.run(h, Date.now(), JSON.stringify(g)); apply(pid, g);
         }).catch(() => {}).finally(() => busy.delete(ip));
     } catch (e) { /* jamais bloquant */ }
   };

@@ -51,8 +51,8 @@
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
-  const rpPcs = () => ['pcv-0', 'pcv-1', 'pcv-2', 'pcv-r1', 'pcv-r2', 'pcv-r3', 'pcv-r4'].filter(has);   // tous les PC du jeu, pour l'outil de placement
-  const pcLook = () => { const r = st().rig ? st().rig.lvl : 0; return r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0'; };
+  const pcFor = r => r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-0') ? 'pcv-0' : 'pc-0';   // machine 1 : le vieux PC de face (flèche verte)   // le PC suit la machine
+  const pcLook = () => pcFor(st().rig ? st().rig.lvl : 0);
   // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
   const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
   // mise à jour sans tout redessiner : on ne touche que ce qui a changé (les images déjà affichées restent en place).
@@ -737,7 +737,7 @@
     $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
     $('#adm-quit').onclick = () => { history.replaceState(null, '', location.href.split('#')[0]); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
-    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {} location.reload(); };
+    $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer3'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
   }
   // ------------------------------------------------------------ textes modifiables (back-office, bouton ✏️ Textes)
@@ -845,8 +845,9 @@
     try {
       const r = await fetch('/admin/layout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), j = await r.json();
       if (!r.ok) return toast(j.err || 'La publication a échoué.', true);
-      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer2'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {}
+      try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer3'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {}
       if (window.LAYOUT) { window.LAYOUT.texts = body.texts; window.LAYOUT.values = body.values; }
+      body.rooms.forEach((r, i) => { D.ROOM_LAYOUT[i] = JSON.parse(JSON.stringify(r)); });   // la chambre affichée garde ce qui vient d'être publié
       Object.assign(D.PARK_SLOTS, pkCopy(body.parking));   // la partie en cours garde les places publiées
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
@@ -862,19 +863,19 @@
     if (!window.HC_DEV || (!force && location.hash !== '#placer-appart')) return;
     if (RP.on || !st().skin) return;
     closeModal(); RP.on = true; RP.room = st().room; RP.L = roomLayout(RP.room); RP.sel = RP.sel || 'pc';
-    RP.pv = RP.pv || { pc: Math.max(0, rpPcs().indexOf(pcLook())), rig: st().rig.lvl }; setScene('appart');
+    RP.pv = RP.pv || { rig: st().rig.lvl }; setScene('appart');
     const objs = () => ['pc', 'rig', 'light', 'shelf', ...RP.L.slots.slice(0, D.ROOMS[RP.room].slots).map((_, i) => 'slot' + i)];
     $('#app').insertAdjacentHTML('beforeend', `<div id="rplacer" class="${RP.top ? 'top' : ''} ${RP.more ? 'more' : ''}">
       <div class="rp-row"><select id="rp-sel"></select><button class="btn xs" data-n="-1,0">←</button><button class="btn xs" data-n="0,-1">↑</button><button class="btn xs" data-n="0,1">↓</button><button class="btn xs" data-n="1,0">→</button>
         <button class="btn xs" id="rp-minus">−</button><button class="btn xs" id="rp-plus">+</button><button class="btn xs" id="rp-flip">↔</button><button class="btn xs purple" id="rp-more">⋯</button></div>
       <div class="rp-row rp-x"><b>Chambre</b>${D.ROOMS.map((x, i) => `<button class="btn xs rp-room" data-i="${i}">${i + 1}</button>`).join('')}<button class="btn xs purple" id="rp-g"></button>
-        <small>PC</small>${rpPcs().map((x, i) => `<button class="btn xs rp-pv" data-k="pc" data-i="${i}">${i + 1}</button>`).join('')}<small>Mach.</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
+        <small>Machine (le PC suit)</small>${D.RIG.map((x, i) => `<button class="btn xs rp-pv" data-k="rig" data-i="${i}">${i + 1}</button>`).join('')}</div>
       <div class="rp-row rp-x"><span id="rp-cur"></span><button class="btn xs" id="rp-one" title="Remettre cet objet">⟲</button></div>
       <div class="rp-row rp-x"><button class="btn xs blue" id="rp-copyto">Copier vers les autres chambres</button><button class="btn xs red" id="rp-reset">↺ Chambre</button><button class="btn xs" id="rp-move" title="Haut / bas">⇅</button><button class="btn xs green" id="rp-copy">Publier</button><button class="btn xs blue" id="rp-close">Fini</button></div>
       <textarea id="rp-out" readonly></textarea></div>`);
     $('#rp-more').onclick = () => { RP.more = !RP.more; $('#rplacer').classList.toggle('more', RP.more); };
-    const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} };
-    const cur = () => { const k = RP.sel; if (k === 'shelf') return { x: '–', y: '–', w: RP.L.shelf.w }; if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; return { x: p[0], y: p[1], w: RP.L.shelf.w }; } return RP.L[k]; };
+    const save = () => { const all = roomSaved(); all[RP.room] = RP.L; try { localStorage.setItem('hustleCity.roomPlacer3', JSON.stringify(all)); } catch (e) {} };
+    const cur = () => { const k = RP.sel; if (k === 'shelf') return { x: '–', y: '–', w: RP.L.shelf.w }; if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; return { x: p[0], y: p[1], w: RP.L.shelf.w }; } return rpObj(k); };
     const out = () => {
       save(); const o = cur();
       $('#rp-sel').innerHTML = objs().map(k => `<option value="${k}" ${k === RP.sel ? 'selected' : ''}>${RP_NAME(k)}</option>`).join('');
@@ -890,24 +891,24 @@
     document.querySelectorAll('.rp-pv').forEach(b => b.onclick = () => { RP.pv[b.dataset.k] = +b.dataset.i; redraw(); });
     $('#rp-g').onclick = () => { RP.g = (RP.g || curG()) === 'f' ? 'm' : 'f'; redraw(); };
     $('#rp-sel').onchange = e => { RP.sel = e.target.value; redraw(); };
-    const nudge = (dx, dy) => { const k = RP.sel, st = .5; if (k === 'shelf') RP.L.slots = RP.L.slots.map(([x, y]) => [x + dx * st, y + dy * st]); else if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; p[0] += dx * st; p[1] += dy * st; } else { RP.L[k].x += dx * st; RP.L[k].y += dy * st; } redraw(); };
+    const nudge = (dx, dy) => { const k = RP.sel, st = .5; if (k === 'shelf') RP.L.slots = RP.L.slots.map(([x, y]) => [x + dx * st, y + dy * st]); else if (k.startsWith('slot')) { const p = RP.L.slots[+k.slice(4)]; p[0] += dx * st; p[1] += dy * st; } else { const o = rpObj(k, 1); o.x += dx * st; o.y += dy * st; } redraw(); };
     document.querySelectorAll('#rplacer [data-n]').forEach(b => b.onclick = () => { const [dx, dy] = b.dataset.n.split(',').map(Number); nudge(dx, dy); });
-    const size = d => { if (RP.sel === 'shelf' || RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else RP.L[RP.sel].w = Math.max(3, Math.round((RP.L[RP.sel].w + d / 2) * 10) / 10); redraw(); };
+    const size = d => { if (RP.sel === 'shelf' || RP.sel.startsWith('slot')) { RP.L.shelf.w = Math.max(2, Math.round((RP.L.shelf.w + d / 2) * 10) / 10); RP.L.shelf.h = Math.round(RP.L.shelf.w * .77 * 10) / 10; } else { const o = rpObj(RP.sel, 1); o.w = Math.max(3, Math.round((o.w + d / 2) * 10) / 10); } redraw(); };
     $('#rp-minus').onclick = () => size(-1); $('#rp-plus').onclick = () => size(1);
-    $('#rp-flip').onclick = () => { const o = RP.L[RP.sel]; if (o && !RP.sel.startsWith('slot')) { o.flip = !o.flip; redraw(); } };
-    $('#rp-one').onclick = () => { const all = roomSaved(); const base = (delete all[RP.room], localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)), roomLayout(RP.room));
-      const k = RP.sel; if (k === 'shelf') { RP.L.slots = base.slots; RP.L.shelf = base.shelf; } else if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = base.slots[+k.slice(4)]; else RP.L[k] = base[k]; redraw(); };
-    $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
+    $('#rp-flip').onclick = () => { const o = RP.sel.startsWith('slot') || RP.sel === 'shelf' ? null : rpObj(RP.sel, 1); if (o) { o.flip = !o.flip; redraw(); } };
+    $('#rp-one').onclick = () => { const all = roomSaved(); const base = (delete all[RP.room], localStorage.setItem('hustleCity.roomPlacer3', JSON.stringify(all)), roomLayout(RP.room));
+      const k = RP.sel; if (k === 'shelf') { RP.L.slots = base.slots; RP.L.shelf = base.shelf; } else if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = base.slots[+k.slice(4)]; else if (k === 'pc' || k === 'rig') { const img = rpImg(k); RP.L.looks = RP.L.looks || {}; if (base.looks && base.looks[img]) RP.L.looks[img] = base.looks[img]; else delete RP.L.looks[img]; } else RP.L[k] = base[k]; redraw(); };
+    $('#rp-copyto').onclick = () => { if (!confirm(`Copier la disposition de la chambre ${RP.room + 1} vers les 2 autres ?`)) return; const all = roomSaved(); D.ROOMS.forEach((_, i) => { if (i !== RP.room) all[i] = JSON.parse(JSON.stringify(RP.L)); }); try { localStorage.setItem('hustleCity.roomPlacer3', JSON.stringify(all)); } catch (e) {} toast('Copié dans les 3 chambres. Pense à « Publier ».'); };
     $('#rp-copy').onclick = () => publishLayout();
     $('#rp-move').onclick = () => { RP.top = !RP.top; $('#rplacer').classList.toggle('top', RP.top); };
     $('#rp-close').onclick = () => { RP.on = false; RP.drag = null; RP.g = null; $('#rplacer')?.remove(); if (location.hash === '#placer-appart') history.replaceState(null, '', location.href.split('#')[0]); renderAppart(); if (placing) setScene('city'); };
-    $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer2', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
+    $('#rp-reset').onclick = () => { if (!confirm('Remettre toute cette chambre comme à l\'origine ?')) return; const all = roomSaved(); delete all[RP.room]; try { localStorage.setItem('hustleCity.roomPlacer3', JSON.stringify(all)); } catch (e) {} RP.L = roomLayout(RP.room); redraw(); };
     if (RP.bound) return; RP.bound = true;
     $('#scene-appart').addEventListener('pointerdown', e => {
       if (!RP.on) return;
       const t = e.target.closest('[data-rp]'); if (!t) return;
       e.preventDefault(); e.stopPropagation(); RP.sel = t.dataset.rp;
-      const st2 = $('#scene-appart .room-stage').getBoundingClientRect(), k = RP.sel, o = k.startsWith('slot') ? RP.L.slots[+k.slice(4)] : [RP.L[k].x, RP.L[k].y];
+      const st2 = $('#scene-appart .room-stage').getBoundingClientRect(), k = RP.sel, o = k.startsWith('slot') ? RP.L.slots[+k.slice(4)] : [rpObj(k).x, rpObj(k).y];
       $('#rplacer')?.classList.add('ghost');
       RP.drag = { st2, dx: o[0] - (e.clientX - st2.left) / st2.width * 100, dy: o[1] - (e.clientY - st2.top) / st2.height * 100 };
       renderAppart(); RP.out();
@@ -915,7 +916,7 @@
     window.addEventListener('pointermove', e => {
       if (!RP.drag) return; const { st2, dx, dy } = RP.drag, k = RP.sel;
       const x = Math.round(((e.clientX - st2.left) / st2.width * 100 + dx) * 2) / 2, y = Math.round(((e.clientY - st2.top) / st2.height * 100 + dy) * 2) / 2;
-      if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = [x, y]; else { RP.L[k].x = x; RP.L[k].y = y; }
+      if (k.startsWith('slot')) RP.L.slots[+k.slice(4)] = [x, y]; else { const o = rpObj(k, 1); o.x = x; o.y = y; }
       renderAppart(); RP.out();
     });
     window.addEventListener('pointerup', () => { if (RP.drag) { RP.drag = null; $('#rplacer')?.classList.remove('ghost'); RP.out(); } });
@@ -950,12 +951,16 @@
   }
   // ------------------------------------------------------------ appart : chaque objet affiche une bulle qui dit ce qu'il fait
   // disposition d'une chambre : celle du jeu, ou celle réglée à la main (mode #placer-appart, gardée dans ce navigateur)
-  const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer2') || '{}'); } catch (e) { return {}; } };
+  const roomSaved = () => { try { return JSON.parse(localStorage.getItem('hustleCity.roomPlacer3') || '{}'); } catch (e) { return {}; } };
   function roomLayout(i) {
     const base = D.ROOM_LAYOUT[i], sv = roomSaved()[i] || {};
-    return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), light: Object.assign({ x: 84, y: 58, w: 13 }, base.light, sv.light), shelf: Object.assign({}, base.shelf, sv.shelf), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
+    return { pc: Object.assign({}, base.pc, sv.pc), rig: Object.assign({}, base.rig, sv.rig), light: Object.assign({ x: 84, y: 58, w: 13 }, base.light, sv.light), shelf: Object.assign({}, base.shelf, sv.shelf), looks: JSON.parse(JSON.stringify(Object.assign({}, base.looks, sv.looks))), slots: sv.slots || base.slots || D.SHELF_SLOTS.map(x => x.slice()) };
   }
   const RP = { on: false, room: 0, sel: 'pc', drag: null };
+  // chaque modèle de PC / de machine peut avoir sa propre place et sa propre taille (L.looks), sinon il prend celle de base
+  const lookPos = (L, k, img) => (L.looks && L.looks[img]) || L[k];
+  const rpImg = k => k === 'pc' ? pcFor(RP.pv.rig) : has('minerv-' + RP.pv.rig) ? 'minerv-' + RP.pv.rig : 'rig-' + RP.pv.rig;
+  const rpObj = (k, mk) => { if (k !== 'pc' && k !== 'rig') return RP.L[k]; const img = rpImg(k); RP.L.looks = RP.L.looks || {}; if (mk && !RP.L.looks[img]) RP.L.looks[img] = Object.assign({}, RP.L[k]); return RP.L.looks[img] || RP.L[k]; };
   // bulle de l'objet PrivéFans (ordi portable sur le lit) : ce qu'il y a à encaisser, ou une alerte
   function agBubble() {
     const A_ = window.AGENCE; if (!A_ || !A_.unlocked()) return '';
@@ -1001,8 +1006,8 @@
     owned.sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
     const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
-    const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? rpPcs()[pl] || 'pc-0' : pcLook();
+    const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = G.pcLvl();
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? pcFor(rl) : pcLook(), Lpc = lookPos(L, 'pc', pcImg), Lrig = lookPos(L, 'rig', rigImg);
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
@@ -1024,12 +1029,12 @@
         ${has(rb) ? `<img class="room-bg" src="${src(rb)}" alt="">` : `<div class="room-fallback r${s.room}"></div>`}
         ${shelf}
         ${onShelf.length ? `<div class="bubble-at" data-for="shelf"><button class="obj-bubble shelf-b" data-act="collectionInfo"><span><small>Ta collection</small><b>${short(iv)}</b></span></button></div>` : ''}
-        <button class="room-obj ${L.pc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(L.pc)};transform:translate(-50%, ${-(1 - (D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
+        <button class="room-obj ${Lpc.flip ? 'flip' : ''} ${RP.on && RP.sel === 'pc' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'pc'}" data-rp="pc" style="${place(Lpc)};transform:translate(-50%, ${-(1 - (RP.on ? 0 : D.PC_DROP[pl] || 0)) * 100}%)">${pic(pcImg, EMO.pc)}</button>
         <div class="bubble-at" data-for="pc">${pcBubble}</div>
         ${has(rb + '-fg') ? `<img class="room-fg" src="${src(rb + '-fg')}" alt="">` : ''}
         ${s.lvl >= D.AGENCE.lvl || RP.on ? `<button class="room-obj ${L.light.flip ? 'flip' : ''} ${RP.on && RP.sel === 'light' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'agence'}" data-rp="light" style="${place(L.light)}">${(n => has(n) ? pic(n) : null)('bed-laptop-' + gg) || `<span class="bed-emo">💻<i>${gg === 'f' ? '💗' : '❤️'}</i></span>`}</button>
         <div class="bubble-at" data-for="light">${agBubble()}</div>` : ''}
-        <button class="room-obj ${L.rig.flip ? 'flip' : ''} ${!rig.idle && !rig.burnt && rig.heat >= 80 ? 'hot' : ''} ${rig.burnt ? 'burnt' : ''} ${rig.ready ? 'ready' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(L.rig)}">${pic(rigImg, EMO.rig)}</button>
+        <button class="room-obj ${Lrig.flip ? 'flip' : ''} ${!rig.idle && !rig.burnt && rig.heat >= 80 ? 'hot' : ''} ${rig.burnt ? 'burnt' : ''} ${rig.ready ? 'ready' : ''} ${RP.on && RP.sel === 'rig' ? 'rp-sel' : ''}" data-act="${RP.on ? 'noop' : 'rig'}" data-rp="rig" style="${place(Lrig)}">${pic(rigImg, EMO.rig)}</button>
         <div class="bubble-at" data-for="rig">${rigBubble}</div>
       </div>
       <div class="room-head">
@@ -1722,7 +1727,7 @@
       <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank ? `${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}` : '–'}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
     if (sixTab === 'board') {
       const rows = info.rows, me = rows.find(r => r.me), top = rows.filter(r => r.rank && r.rank <= 10 && rows.indexOf(r) < 10);
-      const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${r.rank || '–'}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${r.pts} pts</b></div>`;
+      const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${+r.rank || '–'}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${+r.pts || 0} pts</b></div>`;
       const fin = G.sixState().final;
       return head + (fin && !fin.claimed ? `<div class="card center six-end"><b>${fin.rank ? `Tournoi terminé : tu finis ${fin.rank}<sup>${fin.rank === 1 ? 'er' : 'e'}</sup> !` : 'Tournoi terminé !'}</b><p>Ta récompense : ${chips(0, G.sixReward(fin.rank).lingots, G.sixReward(fin.rank).boosters ? `<span class="need">${packArt(true)}${G.sixReward(fin.rank).boosters}</span>` : '')}</p><button class="btn green wide" data-act="sixClaim">Récupérer</button></div>` : '') +
         `<h3 class="sec">Les équipes</h3><div class="six-board-list">${G.sixTable().map((t, k) => `<div class="sb-row"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}</span><small class="muted">${t.j} m · ${t.diff >= 0 ? '+' : ''}${t.diff}</small><b>${t.pts} pts</b></div>`).join('')}</div>
@@ -1803,7 +1808,7 @@
     const good = ms.filter(m => m.ok).length, played = ms.filter(m => m.pick != null).length, rw = G.sixReward(fin.rank);
     const cards = D.ITEMS.filter(i => i.event === 'six'), got = cards.filter(i => (st().owned[i.id] || []).length).length;
     const sup = r => r === 1 ? 'er' : 'e';
-    const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${ico(['medal-gold', 'medal-silver', 'medal-bronze'][k], ['🥇', '🥈', '🥉'][k])}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
+    const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${ico(['medal-gold', 'medal-silver', 'medal-bronze'][k], ['🥇', '🥈', '🥉'][k])}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${+r.pts || 0} pts</small></div>`).join('');
     openModal({ title: 'Tournoi terminé', icon: 'star', center: true, body: `<div class="six-recap">
       <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>${fin.rank ? `Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${info.total.toLocaleString('fr-FR')}` : `${G.sixPoints()} points`}</b></div></div>
       <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
@@ -1908,7 +1913,7 @@
         grp('deco', 'Pour la ville', 'posés sur la carte') + grp('avatar', 'Pin\'s', 'sur ta photo de profil') + grp('frame', 'Cadre', 'autour de ta photo') + grp('booster', 'Boosters', 'des cartes en plus');
     }
     // l'équipe : la course, ta part, le top 5, les récompenses de fin
-    const top = B.top.map((r, k) => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${B.online ? k + 1 : '–'}</span><span class="sb-nm">${esc(r.me ? `${r.name} (toi)` : r.name)}</span><b>${fmtN(r.pts)} pts</b></div>`).join('');
+    const top = B.top.map((r, k) => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${B.online ? k + 1 : '–'}</span><span class="sb-nm">${esc(r.me ? `${r.name} (toi)` : r.name)}</span><b>${fmtN(+r.pts || 0)} pts</b></div>`).join('');
     const meRow = B.online && !B.top.some(r => r.me) ? `<div class="sb-gap">…</div><div class="sb-row me"><span class="sb-rk">${B.rank}</span><span class="sb-nm">${esc(st().name)} (toi)</span><b>${fmtN(S.pts)} pts</b></div>` : '';
     return head + `<h3 class="sec">La course des équipes${B.online ? ` <small>· ${fmtN(B.players)} joueur${B.players > 1 ? 's' : ''}</small>` : ''}</h3>${cdmRace(B, S.team)}
       <div class="card cdm-mine" style="--tc:${T.color};--td:${T.dark}">${cdmCrest(T.id)}<div><b>${T.name}</b><small>« ${T.motto} »</small><p>Ta part : <b>${fmtN(S.pts)} pts</b>${B.online ? ` · ${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup> sur ${fmtN(B.of)}` : ''}</p></div></div>
@@ -2261,7 +2266,11 @@
           <p class="hint-line">${free ? 'Ton <b>booster du jour</b> est gratuit !' : `Prochain booster gratuit dans <b>${mmss(untilMidnight())}</b>.`} Chaque booster : 3 récompenses + 1 carte de collection qui a une vraie cote.</p>
           <button class="btn green bst-open ${n ? 'pulse' : ''}" data-act="boosterOpen" ${n ? '' : 'disabled'}>Ouvrir un booster</button>
           <button class="btn" data-act="boosterBuy" ${s.lingots >= D.BOOSTER.cost ? '' : 'disabled'}>Acheter un booster · ${ic('lingot')}${D.BOOSTER.cost}</button></div>
-        <h3 class="sec">Chances par carte de collection</h3><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
+        <h3 class="sec">Les chances dans un booster</h3>
+        <div class="card bst-prob"><b>Les 3 récompenses</b> <small>(chacune tirée au hasard)</small><div class="bst-odds">${Object.entries(D.BOOSTER.weights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
+          <small class="muted">Commun : billets, 5 tickets ou expérience · Rare : 2 lingots, pari gratuit ou expérience · Épique : 5 lingots, crypto ou pari gratuit · Légendaire : 12 lingots ou grosse crypto. Dans chaque rareté, chaque récompense a la même chance.</small>
+          <b>La carte de collection</b><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
+          <small class="muted">Toutes les cartes d'une même rareté ont la même chance.${D.SIX && D.SIX.cardChance ? ` Pendant un tournoi, ${Math.round(D.SIX.cardChance * 100)} % des cartes viennent de l'édition limitée.` : ''} Une carte déjà possédée est revendue tout de suite au prix du Comptoir.</small></div>
         <div class="bst-defis ${ready ? 'hot' : ''}"><div class="bd-ic">${ic('trophy')}</div><div class="bd-info"><b>Défis du jour · ${got}/3</b><small>${ch.bonus ? 'Booster du jour gagné ! Nouveaux défis demain.' : ready ? `${ready} défi${ready > 1 ? 's' : ''} à réclamer !` : 'Réussis les 3 défis : <b>1 booster + 2 lingots</b> offerts.'}</small>
           <div class="bd-dots">${ch.list.map(c => `<i class="bd-dot ${c.got ? 'got' : G.chalValue(c) >= c.goal ? 'ready' : ''}">${c.got ? '✓' : ''}</i>`).join('')}</div></div>
           <button class="btn ${ready ? 'green pulse' : ''}" data-act="goDefis">${ready ? 'Réclamer' : 'Voir'}</button></div>`;
@@ -2425,7 +2434,7 @@
     lbLoad();
     if (!LB) return `<h3 class="sec">Les plus riches du quartier</h3><div class="lb-card lb-off"><p class="hint-line center">${window.ONLINE && ONLINE.on ? 'Chargement du classement…' : 'Le classement des joueurs s\'affiche quand tu es connecté à internet.'}</p></div>`;
     const d = LB, rk = r => r === 1 ? ico('medal-gold', '🥇') : r === 2 ? ico('medal-silver', '🥈') : r === 3 ? ico('medal-bronze', '🥉') : r;
-    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(p.skin, true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${p.lvl || 1}</small></span><b class="lb-w">${short(p.worth)}</b></div>`;
+    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(/^[a-z0-9-]{1,40}$/.test(p.skin) ? p.skin : '', true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${Math.max(1, Math.min(99, +p.lvl | 0))}</small></span><b class="lb-w">${short(+p.worth || 0)}</b></div>`;
     const inTop = d.rank <= 10, around = inTop ? [] : d.around;
     return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
       <div class="lb-card"><div class="lb-me">Ta place : <b>${d.rank.toLocaleString('fr-FR')}<sup>${d.rank === 1 ? 'er' : 'e'}</sup></b> sur ${d.total.toLocaleString('fr-FR')}${d.rank > 1 ? ` · encore <b>${short(Math.max(0, ((inTop ? d.top[d.rank - 2] : d.around[d.rank - d.aroundStart - 1]) || {}).worth - G.worth() + 1))}</b> pour passer devant` : ' · tu es le plus riche !'}</div>
@@ -2456,16 +2465,17 @@
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
         <div class="set-row"><span><b>Ton pseudo</b><small>${esc(s.name || '')}</small></span><button class="btn xs blue" data-act="setName">Changer</button></div>
-        <div class="set-row"><span><b>Se connecter</b><small>Apple, Google : avec la version App Store et Google Play</small></span><button class="btn xs" disabled>Bientôt</button></div>
         <div class="set-row"><span><b>Sauvegarder ma partie</b><small>Un code à garder pour la retrouver sur un autre appareil</small></span><button class="btn xs green" data-act="saveExport">Copier</button></div>
-        <div class="set-row"><span><b>Récupérer une sauvegarde</b><small>Colle le code d'une partie</small></span><button class="btn xs yellow" data-act="saveImport">Coller</button></div></div>
+        <div class="set-row"><span><b>Récupérer une sauvegarde</b><small>Colle le code d'une partie</small></span><button class="btn xs yellow" data-act="saveImport">Coller</button></div>
+        <div class="set-row"><span><b>Supprimer mes données</b><small>Efface ta partie et tout ce qui est gardé sur notre serveur</small></span><button class="btn xs red" data-act="deleteMe">Supprimer</button></div></div>
       <h3 class="sec">Aide</h3><div class="card set-card">
         <button class="set-row" data-act="howto"><span><b>Comment jouer</b></span><em>›</em></button>
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
         <div class="set-row"><span><b>Tutos de Momo</b><small>${st().noTuto ? 'Coupés : plus d\'explications quand un lieu s\'ouvre' : 'Momo t\'explique chaque nouveau lieu'}</small></span><button class="btn xs ${st().noTuto ? 'green' : ''}" data-act="tutoToggle">${st().noTuto ? 'Remettre' : 'Couper'}</button></div>
         ${isStandalone() ? '' : `<button class="set-row" data-act="installHelp"><span><b>Mettre le jeu sur mon écran d'accueil</b><small>Comme une appli, en plein écran</small></span><em>›</em></button>`}
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
-        <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button></div>
+        <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button>
+        <button class="set-row" data-act="mentions"><span><b>Mentions légales</b></span><em>›</em></button></div>
       ${admLocal ? `<h3 class="sec">Pour tester</h3><div class="card set-card"><button class="set-row" data-act="adminOpen"><span><b>Back-office</b><small>Placer la ville et l'appart</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#placer-parking'"><span><b>Places du parking</b><small>Placer chaque voiture et moto</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>
@@ -2489,6 +2499,19 @@
   }
 
   // ------------------------------------------------------------ accueil
+  // au tout premier lancement : le jeu parle de paris et de casino (fictifs), il est réservé aux adultes
+  function ageGate(then) {
+    let ok = false; try { ok = localStorage.getItem('hustleCity.age18') === '1'; } catch (e) {}
+    if (ok || G.TEST || (window.HC_DEV && /^#neuf/.test(location.hash))) return then();
+    const el = $('#start'); el.className = 'first age';
+    const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '';
+    el.innerHTML = `<div class="logo">${logo}</div><div class="age-card"><b>Réservé aux plus de 18 ans</b>
+      <p>Hustle City contient des paris sportifs, un casino et des tickets à gratter. Tout est fictif : on n'y mise et on n'y gagne jamais d'argent réel.</p>
+      <div class="age-btns"><button class="btn green" id="age-yes">J'ai 18 ans ou plus</button><button class="btn" id="age-no">J'ai moins de 18 ans</button></div></div>`;
+    startBg(el);
+    $('#age-yes').onclick = () => { try { localStorage.setItem('hustleCity.age18', '1'); } catch (e) {} then(); };
+    $('#age-no').onclick = () => { el.querySelector('.age-card').innerHTML = '<b>Désolé !</b><p>Ce jeu est réservé aux adultes. Reviens quand tu auras 18 ans.</p>'; };
+  }
   function startScreen() {
     const el = $('#start'); el.className = 'first';
     const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '<div class="t1">HUSTLE</div><div class="t2">CITY</div>';
@@ -2683,7 +2706,25 @@
     installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
     tutoToggle() { const s = st(); s.noTuto = !s.noTuto; if (s.noTuto) { s.tutoDone = true; if (window.TUTO && TUTO.active) TUTO.skip(); } else { s.bldTuto = {}; s.featTutoFix = 0; }   /* seuls les lieux pas encore atteints auront leur tuto */ G.save(); toast(s.noTuto ? 'Tutos coupés.' : 'Tutos remis : Momo t\'expliquera les prochains lieux.'); setBody(settingsBody()); },
     installHelp() { openInstall(); },
-    legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55"><b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans Hustle City : ils ne s'échangent pas contre de l'argent réel.<br><br><b>Tes données</b> : ta partie est enregistrée sur ton appareil. Rien n'est envoyé ailleurs tant que tu ne te connectes pas (bientôt).<br><br><b>Jeux d'argent</b> : les paris, casinos et tickets du jeu sont fictifs. Les vrais sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13.</div>` }); },
+    legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card legal-txt">
+      <b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans le jeu : ils ne s'échangent jamais contre de l'argent réel, et on ne peut rien y gagner de réel.
+      <b>Réservé aux adultes.</b> Le jeu contient des paris, un casino et des tickets à gratter, tous fictifs. Les vrais jeux d'argent sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13 (appel non surtaxé).
+      <b>Ce qu'on garde sur notre serveur</b>Pour sauvegarder ta partie, afficher les classements et améliorer le jeu :
+      <ul><li>un identifiant de partie créé au hasard (pas de compte, pas d'e-mail, pas de mot de passe) ;</li><li>ton pseudo, ton perso et ta sauvegarde ;</li><li>ce que tu fais dans le jeu (boutons touchés, niveaux, paris fictifs) ;</li><li>ton modèle de téléphone, sa langue et son fuseau horaire ;</li><li>ta ville approximative, déduite de ton adresse internet (l'adresse elle-même n'est pas gardée) ;</li><li>dans l'appli : l'adresse de notification de ton téléphone, si tu acceptes les notifications.</li></ul>
+      Rien n'est vendu ni partagé, et il n'y a pas de pub ciblée. Les données sont hébergées en France chez OVH. Ce qui concerne ton activité est effacé au bout de 13 mois.
+      <b>Tes droits.</b> Tu peux tout effacer à tout moment : Réglages → Supprimer mes données. Pour une question : ${D.LEGAL && D.LEGAL.email ? esc(D.LEGAL.email) : 'via « Aide » dans les Réglages'}.</div>` }); },
+    mentions() { const L = D.LEGAL || {}; openModal({ title: 'Mentions légales', icon: 'star', body: `<div class="card legal-txt">
+      <b>Éditeur</b>${esc(L.editeur || '')}${L.adresse ? `<br>${esc(L.adresse)}` : ''}${L.rcs ? `<br>${esc(L.rcs)}` : ''}${L.tva ? `<br>TVA ${esc(L.tva)}` : ''}${L.email ? `<br>${esc(L.email)}` : ''}
+      <b>Directeur de la publication</b>${esc(L.directeur || L.editeur || '')}
+      <b>Hébergeur</b>OVH SAS, 2 rue Kellermann, 59100 Roubaix, France · 1007</div>` }); },
+    deleteMe() { openModal({ title: 'Supprimer mes données', icon: 'lock', center: true, body: `<p class="center">Ta partie, ton argent du jeu, tes objets et tout ce qui est gardé sur notre serveur seront <b>effacés pour de bon</b>. Ça ne peut pas s'annuler.</p>
+      <div class="row-btns"><button class="btn" data-act="closeModal">Annuler</button><button class="btn red" data-act="deleteMeGo">Tout supprimer</button></div>` }); },
+    async deleteMeGo() {
+      if (window.ONLINE && ONLINE.deleteMe) { const ok = await ONLINE.deleteMe(); if (!ok) return toast('Pas de connexion au serveur : réessaie quand tu as internet.', true); }
+      G.wipe();
+      try { Object.keys(localStorage).filter(k => /^(hustleCity|hc[.-])/.test(k)).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+      location.href = location.pathname;
+    },
     trading() { openCrypto(); },
     moodCoin(el) { closeModal(); setTimeout(() => openCrypto(el.dataset.id), 60); },
     flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
@@ -2967,14 +3008,23 @@
     setInterval(loop, 1000);
     if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
     setTimeout(() => offerToday(), 30000);
+    setTimeout(trickle, 2500);
   }
+  // images chargées en douce, 3 à la fois, pendant qu'on joue
+  function trickle() { const L = (preload.later || []).slice(); preload.later = []; const next = () => { const u = L.shift(); if (!u) return; const i = new Image(); i.onload = i.onerror = () => setTimeout(next, 30); i.src = u; }; for (let k = 0; k < 3; k++) next(); }
   // fin de l'écran de chargement : on attend les images du premier écran (la barre suit), puis on l'affiche
   function preload(html, then) {
     // un vrai chargement : tout ce qu'il faut pour jouer sans trou (ville, bâtiments, interface, ton perso, ton appart), polices comprises
     const s = st(), look = s.cityLook && s.cityLook !== 'base' ? '-' + s.cityLook : '', A = window.ASSETS || [];
-    const want = n => /^(bld-|icon-|nav-|btn-|hdr-|app-|ui-|ic-promo|ic-shop|deco-|tip-|coin-|ev-)/.test(n) || ['bg-city', 'bg-city' + look, 'bg-accueil', 'booster-pack', 'card-back', 'guide', 'logo', 'phone-wall'].includes(n)
-      || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && (n === `room-${((D.SKINS.find(k => k.id === s.skin) || {}).g || 'm')}-${s.room}` || n === 'room-' + s.room))   /* seulement TA chambre */ || /^(minerv|pcv|rig|pc)-/.test(n);
-    const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(want).map(src)))];
+    // tout de suite : seulement ce qu'on voit en arrivant (la ville dans TON look, l'interface, ton perso, ta chambre, ton PC et ta machine)
+    const looks = (D.CITY_LOOKS || []).map(l => l.id).filter(id => id && id !== 'base'), bldOk = n => { const m = n.match(/^bld-[a-z0-9]+-([a-z]+)$/); return !m || !looks.includes(m[1]) || '-' + m[1] === look; };
+    const rl = s.rig ? s.rig.lvl : 0, mine = [pcLook(), 'minerv-' + rl, 'rig-' + rl];
+    const now = n => n !== 'ev-cdm-bg' && ((/^bld-/.test(n) && bldOk(n)) || /^(icon-|nav-|btn-|hdr-|ui-|ic-promo|ic-shop|deco-|ev-)/.test(n) || ['bg-city', 'bg-city' + look, 'bg-accueil', 'booster-pack', 'card-back', 'guide', 'logo'].includes(n)
+      || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && (n === `room-${((D.SKINS.find(k => k.id === s.skin) || {}).g || 'm')}-${s.room}` || n === 'room-' + s.room))   /* seulement TA chambre */ || mine.includes(n));
+    // le reste (téléphone, autres looks, autres PC, cryptos) se charge en douce une fois dans le jeu : il est prêt avant qu'on l'ouvre
+    const later = n => !now(n) && (/^(bld-|app-|deco-|tip-|coin-|ev-|minerv-|pcv-|rig-|pc-)/.test(n) || n === 'phone-wall');
+    preload.later = A.filter(later).map(src);
+    const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(now).map(src)))];
     let n = 0; const tot = L.length + 1, one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / tot, n, tot); };
     const fonts = (document.fonts && document.fonts.ready || Promise.resolve()).then(one);
     const all = Promise.all([fonts, ...L.map(u => new Promise(ok => { const i = new Image(); i.onload = i.onerror = () => { one(); ok(); }; i.src = u; }))]);
@@ -3035,7 +3085,7 @@
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
-    if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), startScreen);
+    if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), () => ageGate(startScreen));
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
     const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>

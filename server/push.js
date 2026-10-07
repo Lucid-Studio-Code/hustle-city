@@ -46,7 +46,14 @@ function makePush(db) {
   }
   return {
     on: !!(key || apnsKey),
-    save(pid, token, platform) { if (!token) return; db.prepare('INSERT INTO push_tokens (token, pid, platform, t) VALUES (?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET pid = excluded.pid, platform = excluded.platform, t = excluded.t').run(String(token).slice(0, 400), pid, String(platform || '').slice(0, 20), Date.now()); },
+    // pid = joueur AUTHENTIFIÉ (pid + secret vérifiés par server.js) : un téléphone déjà lié à un autre joueur lui est retiré, puis lié à celui-ci ; 5 téléphones par joueur au plus
+    save(pid, token, platform) {
+      token = String(token || ''); if (!pid || !/^[\w:.-]{20,400}$/.test(token)) return false;
+      const pf = ['ios', 'android', 'web'].includes(platform) ? platform : '';
+      db.prepare('DELETE FROM push_tokens WHERE token = ? AND pid != ?').run(token, pid);
+      db.prepare('INSERT INTO push_tokens (token, pid, platform, t) VALUES (?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET platform = excluded.platform, t = excluded.t').run(token, pid, pf, Date.now());
+      db.prepare('DELETE FROM push_tokens WHERE pid = ? AND token NOT IN (SELECT token FROM push_tokens WHERE pid = ? ORDER BY t DESC LIMIT 5)').run(pid, pid); return true;
+    },
     count(pids) { if (!pids.length) return 0; const set = new Set(pids); return db.prepare('SELECT pid FROM push_tokens').all().filter(r => set.has(r.pid)).length; },
     // envoie à une liste de joueurs (en tâche de fond : ne bloque jamais la réponse du back office)
     async toPlayers(pids, title, body) {

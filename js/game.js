@@ -1596,6 +1596,7 @@
   }
 
   window.GAME = {
+    wipe() { loaded = false; asleep = true; },   // « Supprimer mes données » : plus aucune écriture jusqu'au rechargement
     get st() { return st; }, get asleep() { return asleep; }, TEST, on, emit, load, save, reset, simulate,
     placeOf, parkedCount, garageSlots, garageUp, safeCount, safeSlots, safeUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
     achValue, looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,

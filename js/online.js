@@ -46,9 +46,13 @@
 
   // ---------------------------------------------------------- boîte de réception : cadeaux, réponses du SAV, restauration
   function inbox(list) {
-    (list || []).forEach(m => {
+    // restauration par le support : on coupe toute écriture de la partie en cours AVANT de poser la copie, sinon la partie actuelle la réécrasait
+    const rs = (list || []).find(m => m.gift && m.gift.restore);
+    let done = ''; try { done = sessionStorage.getItem('hc-rs') || ''; } catch (e) {}
+    if (rs && String(rs.id) === done) post('/api/claim', { id: rs.id }).catch(() => {});   // déjà posée (le serveur n'avait pas reçu l'accusé) : on ne boucle pas
+    else if (rs) { try { sessionStorage.setItem('hc-rs', String(rs.id)); } catch (e) {} G.wipe(); try { localStorage.setItem('hustleCity.v1', rs.gift.restore); } catch (e) {} post('/api/claim', { id: rs.id }).catch(() => {}).then(() => location.reload()); return; }
+    (list || []).filter(m => !(m.gift && m.gift.restore)).forEach(m => {
       const g = m.gift || {};
-      if (g.restore) { try { localStorage.setItem('hustleCity.v1', g.restore); } catch (e) {} post('/api/claim', { id: m.id }).then(() => location.reload()); return; }
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
       const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`].filter(Boolean).join(', ');
       if (/support/i.test(m.title)) U.chatPush('Support Hustle City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
@@ -78,6 +82,7 @@
       if (r.cfgAt && +r.cfgAt !== cfgAt) { cfgAt = +r.cfgAt; fetch(API + '/api/config').then(x => x.json()).then(applyConfig).catch(() => {}); }
     } catch (e) { queue.unshift(...events); playMs += ms; }
   }
+  let helloTry = 15000;
   async function hello() {
     if (off) return;
     // on ne compte un joueur qu'une fois sa partie commencée (perso et pseudo choisis) : ouvrir la page ne crée personne
@@ -85,11 +90,11 @@
     try {
       await getModel();
       const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120), ...device() });
-      if (!r.ok) return; ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
+      if (!r.ok) { if (r.retry) setTimeout(hello, (+r.retry + 5) * 1000); return; } ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
       sync(true); setInterval(() => sync(true), 60000);
       document.addEventListener('visibilitychange', () => { if (document.hidden) sync(true); });
       window.addEventListener('pagehide', () => sync(false));   // en quittant : on envoie au moins les stats (la sauvegarde complète part avec la sync régulière)
-    } catch (e) { /* hors ligne : on réessaiera au prochain lancement */ }
+    } catch (e) { helloTry = Math.min(helloTry * 2, 300000); setTimeout(hello, helloTry); }   // serveur injoignable : on réessaie (30 s, 1 min, 2 min… jusqu'à 5 min)
   }
 
   // ---------------------------------------------------------- ce qu'on mesure : chaque bouton touché + les grands moments
@@ -101,6 +106,8 @@
   G.on('trophy', it => it && ev('trophy', { id: it.id }));
 
   // ---------------------------------------------------------- SAV et récupération de partie (paramètres)
+  // « Supprimer mes données » : le serveur efface tout ce qui concerne ce joueur, puis le jeu ne lui envoie plus rien
+  ONLINE.deleteMe = async () => { if (off) return true; try { const r = await post('/api/delete-me', {}); if (r && r.ok) { ONLINE.on = false; return true; } } catch (e) {} return false; };
   ONLINE.support = text => post('/api/support', { text });
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;

@@ -26,7 +26,9 @@ function publish(req, res) {
 
 http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/admin/layout') { if (!isLocal(req)) { res.writeHead(403); return res.end(); } return publish(req, res); }
-  let p = decodeURIComponent(req.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
-  const f = path.join(root, p); if (!f.startsWith(root)) { res.writeHead(403); return res.end(); }
+  let p; try { p = decodeURIComponent(req.url.split('?')[0]); } catch (e) { res.writeHead(400); return res.end(); } if (p.endsWith('/')) p += 'index.html';
+  // jamais servis : le serveur (jeton, base), les outils, l'historique git, les originaux, les fichiers cachés, les notes .md, les bases
+  const f = path.join(root, p), rel = path.relative(root, f).split(path.sep);
+  if (!f.startsWith(root + path.sep) || rel.some(x => x.startsWith('.')) || ['server', 'tools', 'originals-2k', 'node_modules'].includes(rel[0]) || /\.(md|db|db-wal|db-shm|p8|pem|key|sqlite)$/i.test(f)) { res.writeHead(404); return res.end('404'); }
   fs.readFile(f, (e, b) => { if (e) { res.writeHead(404); return res.end('404'); } res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(b); });
-}).listen(port, () => console.log('Hustle City sur http://localhost:' + port));
+}).listen(port, '127.0.0.1', () => console.log('Hustle City sur http://localhost:' + port + ' (seulement sur ce Mac)'));

@@ -81,7 +81,7 @@
       </div>
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('app-bank')}Répartition des fortunes</div><div class="chart"><canvas id="s-worth"></canvas></div></div>
-        <div class="card"><div class="card-h">${img('icon-trophy')}Top 10 des fortunes</div>${e.top.map((p, i) => `<div class="feed-row" data-pid="${esc(p.pid)}"><span class="lvl" style="background:${['#ffd23f', '#c9c9d6', '#e0915a'][i] || 'var(--purple)'};color:${i < 3 ? '#2a1a10' : '#fff'}">${i + 1}</span>${HC.who(p, 34, `Niveau ${p.lvl}`)}<span class="num" style="margin-left:auto">${cash(p.worth)}</span></div>`).join('')}</div>
+        <div class="card"><div class="card-h">${img('icon-trophy')}Top 10 des fortunes</div>${e.top.map((p, i) => `<div class="feed-row" data-pid="${esc(p.pid)}"><span class="lvl" style="background:${['#ffd23f', '#c9c9d6', '#e0915a'][i] || 'var(--purple)'};color:${i < 3 ? '#2a1a10' : '#fff'}">${i + 1}</span>${HC.who(p, 34, `Niveau ${esc(p.lvl)}`)}<span class="num" style="margin-left:auto">${cash(p.worth)}</span></div>`).join('')}</div>
       </div>
 
       ${HC.secTitle('icon-treasure', 'Argent', 'achats intégrés (simulés tant que le jeu n\'est pas sur les stores) et pubs', 'argent')}
@@ -100,7 +100,7 @@
         <div class="card"><div class="card-h">${img('ic-promo')}Les offres<small>clics → achats → revenu</small></div>
           <div style="overflow-x:auto"><table class="ptable" style="display:table"><tr><th>Offre</th><th class="r">Clics</th><th class="r">Achats</th><th class="r">Taux</th><th class="r">Revenu</th></tr>
           ${m.offers.map(x => `<tr><td><span class="who">${img(HC.offerIcon(x.id), 'ico')}<div><b>${esc(x.name)}</b><small>${esc(x.price)}</small></div></span></td><td class="r num">${fmt(x.clicks)}</td><td class="r num">${fmt(x.buys)}</td><td class="r">${x.clicks ? pct(x.buys / x.clicks * 100) : '–'}</td><td class="r num" style="color:var(--green)">${eur(x.revenue)}</td></tr>`).join('') || `<tr><td colspan="5">${HC.empty('Aucun clic sur une offre.')}</td></tr>`}</table></div></div>
-        <div class="card span2"><div class="card-h">${img('gift-big')}Ceux qui ont le plus dépensé<small>depuis le début</small></div><div class="grid g4" style="gap:10px">${m.topPayers.map(p => `<div class="feed-row" data-pid="${esc(p.pid)}" style="background:rgba(0,0,0,.15)">${HC.who(p, 38, `${p.n} achat${p.n > 1 ? 's' : ''} · niv. ${p.lvl || 1}`)}<span class="num" style="margin-left:auto;color:var(--green)">${eur(p.eur)}</span></div>`).join('') || HC.empty('Aucun payeur pour l\'instant.')}</div></div>
+        <div class="card span2"><div class="card-h">${img('gift-big')}Ceux qui ont le plus dépensé<small>depuis le début</small></div><div class="grid g4" style="gap:10px">${m.topPayers.map(p => `<div class="feed-row" data-pid="${esc(p.pid)}" style="background:rgba(0,0,0,.15)">${HC.who(p, 38, `${fmt(p.n)} achat${p.n > 1 ? 's' : ''} · niv. ${esc(p.lvl || 1)}`)}<span class="num" style="margin-left:auto;color:var(--green)">${eur(p.eur)}</span></div>`).join('') || HC.empty('Aucun payeur pour l\'instant.')}</div></div>
       </div>
 
       ${HC.secTitle('icon-bolt', 'Ce qu\'ils font', 'les boutons les plus touchés dans le jeu', 'usage')}

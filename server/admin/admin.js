@@ -25,7 +25,7 @@
   const hm = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const dur = ms => { const m = Math.round((ms || 0) / 60000); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`; };
   const minTxt = m => m == null ? '–' : m < 1 ? '< 1 min' : m < 60 ? fmt(m, m < 10 ? 1 : 0) + ' min' : `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, '0')}`;
-  const flag = cc => cc && /^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '🌍';
+  const flag = cc => typeof cc === 'string' && /^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map(c => 0x1F1E6 + c.charCodeAt(0) - 65)) : '🌍';
   const dlabel = d => { const [y, m, dd] = d.split('-'); return `${dd}/${m}`; };
   const delta = (cur, prev, inv) => { if (prev == null || !isFinite(prev) || prev === 0) return ''; const v = (cur / prev - 1) * 100; if (Math.abs(v) < 1) return '<span class="kd flat">=</span>'; const up = v > 0; return `<span class="kd ${up !== !!inv ? 'up' : 'down'}">${up ? '▲' : '▼'} ${fmt(Math.abs(v))} %</span>`; };
   Object.assign(HC, { $, $$, esc, has, src, img, first, fmt, short, cash, lingots, boosters, eur, pct, ago, dt, day, hm, dur, minTxt, flag, dlabel, delta, lsGet, lsSet });
@@ -243,7 +243,7 @@
       <div class="grid g3" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('nav-city')}D'où ils jouent<small><a href="#page=map">voir la carte</a></small></div><div class="mini-map" id="mini-map"></div></div>
         <div class="card"><div class="card-h">${img('icon-gift')}Ce qui vient de se passer</div><div class="feed" id="feed"></div></div>
-        <div class="card"><div class="card-h">${img('icon-cash')}Les plus riches<small>patrimoine</small></div><div id="top-rich">${o.economy.top.slice(0, 6).map((p, i) => `<div class="feed-row" data-pid="${esc(p.pid)}"><span class="lvl" style="background:${['#ffd23f', '#c9c9d6', '#e0915a'][i] || 'var(--purple)'};color:${i < 3 ? '#2a1a10' : '#fff'}">${i + 1}</span>${HC.who(p, 38, `Niveau ${p.lvl} · ${esc(HC.skinName(p.skin))}`)}<span class="num" style="margin-left:auto">${cash(p.worth)}</span></div>`).join('')}</div></div>
+        <div class="card"><div class="card-h">${img('icon-cash')}Les plus riches<small>patrimoine</small></div><div id="top-rich">${o.economy.top.slice(0, 6).map((p, i) => `<div class="feed-row" data-pid="${esc(p.pid)}"><span class="lvl" style="background:${['#ffd23f', '#c9c9d6', '#e0915a'][i] || 'var(--purple)'};color:${i < 3 ? '#2a1a10' : '#fff'}">${i + 1}</span>${HC.who(p, 38, `Niveau ${esc(p.lvl)} · ${esc(HC.skinName(p.skin))}`)}<span class="num" style="margin-left:auto">${cash(p.worth)}</span></div>`).join('')}</div></div>
       </div>
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('icon-bolt')}Ce qu'ils font le plus<small>${o.days} derniers jours</small></div>${HC.hbars(o.acts.slice(0, 8).map(a => ({ label: esc(HC.actLabel(a.a)), icon: img(HC.actIcon(a.a)), n: a.n, sub: `${fmt(a.u)} joueurs` })))}</div>
@@ -263,7 +263,7 @@
     const drawNow = L2 => {
       $('#now-n').textContent = L2.online.length; $('#k-on').textContent = L2.online.length;
       const cities = new Set(L2.online.map(p => p.city).filter(Boolean)); $('#now-sub').textContent = cities.size ? `dans ${cities.size} ville${cities.size > 1 ? 's' : ''}` : '';
-      $('#now-av').innerHTML = L2.online.length ? L2.online.slice(0, 24).map(p => `<div class="who-mini" data-pid="${esc(p.pid)}">${HC.avatar(p, 50)}<small>${esc(p.name)}</small><span class="c">niv. ${p.lvl || 1}${p.city ? ' · ' + esc(p.city) : ''}</span></div>`).join('') : HC.empty('Personne en ce moment.', 'guide');
+      $('#now-av').innerHTML = L2.online.length ? L2.online.slice(0, 24).map(p => `<div class="who-mini" data-pid="${esc(p.pid)}">${HC.avatar(p, 50)}<small>${esc(p.name)}</small><span class="c">niv. ${esc(p.lvl || 1)}${p.city ? ' · ' + esc(p.city) : ''}</span></div>`).join('') : HC.empty('Personne en ce moment.', 'guide');
       const prevTop = $('#feed').dataset.t || 0;
       $('#feed').innerHTML = L2.feed.slice(0, 30).map(e => { const x = HC.evDesc(e); return `<div class="feed-row ${prevTop && e.t > prevTop ? 'new' : ''}" data-pid="${esc(e.pid)}"><span class="fi">${img(x.i)}</span><span class="ft">${x.t}</span><time>${ago(e.t)}</time></div>`; }).join('') || HC.empty('Rien pour l\'instant.');
       $('#feed').dataset.t = L2.feed[0] ? L2.feed[0].t : 0;
@@ -285,10 +285,10 @@
   const FR_BOUNDS = [[41.2, -5.3], [51.3, 9.8]];
   function cityIcon(pt, k = 1) {
     const sz = Math.round((22 + Math.min(40, Math.sqrt(pt.n) * 6)) * k);
-    return L.divIcon({ className: '', iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], html: `<div class="mk ${pt.online ? 'on' : ''}" style="font-size:${Math.max(12, sz / 2.6)}px">${pt.n}</div>` });
+    return L.divIcon({ className: '', iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2], html: `<div class="mk ${pt.online ? 'on' : ''}" style="font-size:${Math.max(12, sz / 2.6)}px">${+pt.n || 0}</div>` });
   }
   function popupHtml(pt) {
-    return `<b class="pc">${flag(pt.cc)} ${esc(pt.city || '?')}</b><small>${esc(pt.country || '')}</small><div style="margin-top:6px;font-weight:800">${fmt(pt.n)} joueur${pt.n > 1 ? 's' : ''}${pt.online ? ` · <span style="color:#1f9d55">${pt.online} en ligne</span>` : ''}<br>${fmt(pt.active7)} actifs cette semaine · ${fmt(pt.new7)} nouveaux</div><small>${pt.names.map(esc).join(', ')}${pt.n > pt.names.length ? '…' : ''}</small>`;
+    return `<b class="pc">${flag(pt.cc)} ${esc(pt.city || '?')}</b><small>${esc(pt.country || '')}</small><div style="margin-top:6px;font-weight:800">${fmt(pt.n)} joueur${pt.n > 1 ? 's' : ''}${pt.online ? ` · <span style="color:#1f9d55">${fmt(pt.online)} en ligne</span>` : ''}<br>${fmt(pt.active7)} actifs cette semaine · ${fmt(pt.new7)} nouveaux</div><small>${pt.names.map(esc).join(', ')}${pt.n > pt.names.length ? '…' : ''}</small>`;
   }
   async function drawMap(map, layer, avLayer, data, withAvatars, k) {
     layer.clearLayers(); avLayer.clearLayers();
@@ -296,7 +296,7 @@
     if (withAvatars) data.online.forEach((p, i) => {
       const a = (i * 137.5) * Math.PI / 180, r = .05 + (i % 3) * .02;
       L.marker([p.lat + Math.sin(a) * r, p.lon + Math.cos(a) * r * 1.4], { zIndexOffset: 1000, icon: L.divIcon({ className: 'mk-av', iconSize: [40, 40], iconAnchor: [20, 20], html: HC.avatar({ ...p, online: true }, 40) }) })
-        .bindPopup(`<b class="pc">${esc(p.name)}</b><small>#${esc(p.tag)} · niveau ${p.lvl || 1} · ${esc(p.city || '')}</small><div style="margin-top:6px"><a href="#page=player&pid=${encodeURIComponent(p.pid)}" style="color:#9b5de5;font-weight:900">Voir sa fiche →</a></div>`).addTo(avLayer);
+        .bindPopup(`<b class="pc">${esc(p.name)}</b><small>#${esc(p.tag)} · niveau ${esc(p.lvl || 1)} · ${esc(p.city || '')}</small><div style="margin-top:6px"><a href="#page=player&pid=${encodeURIComponent(p.pid)}" style="color:#9b5de5;font-weight:900">Voir sa fiche →</a></div>`).addTo(avLayer);
     });
   }
   HC.miniMap = async id => {
@@ -324,8 +324,8 @@
     let D2 = data;
     const side = d => {
       $('#m-n').textContent = d.online.length + ' joueur' + (d.online.length > 1 ? 's' : '');
-      $('#m-online').innerHTML = d.online.length ? d.online.map(p => `<div class="feed-row" data-pid="${esc(p.pid)}">${HC.who({ ...p, online: true }, 38, `Niveau ${p.lvl || 1} · ${flag(p.cc)} ${esc(p.city || '?')}`)}<time>${ago(p.last_seen)}</time></div>`).join('') : HC.empty('Personne en ce moment.');
-      $('#m-ctry').innerHTML = d.countries.map(c => `<div class="ctry" data-cc="${esc(c.cc)}"><span class="flag">${flag(c.cc)}</span><b>${esc(c.country)}</b>${c.online ? `<span class="tag ok">${c.online} en ligne</span>` : ''}<em>${fmt(c.n)}</em></div>`).join('');
+      $('#m-online').innerHTML = d.online.length ? d.online.map(p => `<div class="feed-row" data-pid="${esc(p.pid)}">${HC.who({ ...p, online: true }, 38, `Niveau ${esc(p.lvl || 1)} · ${flag(p.cc)} ${esc(p.city || '?')}`)}<time>${ago(p.last_seen)}</time></div>`).join('') : HC.empty('Personne en ce moment.');
+      $('#m-ctry').innerHTML = d.countries.map(c => `<div class="ctry" data-cc="${esc(c.cc)}"><span class="flag">${flag(c.cc)}</span><b>${esc(c.country)}</b>${c.online ? `<span class="tag ok">${fmt(c.online)} en ligne</span>` : ''}<em>${fmt(c.n)}</em></div>`).join('');
       $$('#m-ctry .ctry').forEach(el => el.onclick = () => { const pts = d.points.filter(p => p.cc === el.dataset.cc); if (pts.length) map.fitBounds(L.latLngBounds(pts.map(p => [p.lat, p.lon])).pad(.4), { maxZoom: 9 }); });
     };
     const draw = () => { drawMap(map, layer, avl, D2, $('#m-av').checked); side(D2); };
