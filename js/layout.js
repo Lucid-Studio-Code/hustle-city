@@ -48,80 +48,110 @@ window.LAYOUT = {
    "y": 76,
    "w": 22,
    "flip": false
+  },
+  "parking": {
+   "x": 89,
+   "y": 81,
+   "w": 13,
+   "flip": false
   }
  },
  "decos": {
   "dc-posts": {
-   "flip": false,
    "x": 44,
    "y": 35,
-   "w": 9
+   "w": 9,
+   "flip": false
   },
   "dc-flags": {
-   "flip": false,
    "x": 30,
    "y": 72,
-   "w": 8
+   "w": 8,
+   "flip": false
   },
   "dc-ball": {
-   "flip": false,
    "x": 76,
    "y": 24.5,
-   "w": 8
+   "w": 8,
+   "flip": false
   },
   "dc-trophy": {
-   "flip": false,
    "x": 71.5,
    "y": 61.5,
-   "w": 8
+   "w": 8,
+   "flip": false
+  },
+  "dc-citrouilles": {
+   "x": 33,
+   "y": 60,
+   "w": 8,
+   "flip": false
+  },
+  "dc-toiles": {
+   "x": 70,
+   "y": 44,
+   "w": 8,
+   "flip": false
+  },
+  "dc-tombe": {
+   "x": 12,
+   "y": 78,
+   "w": 7,
+   "flip": false
+  },
+  "dc-chaudron": {
+   "x": 47,
+   "y": 74,
+   "w": 8,
+   "flip": false
   },
   "dc-bench": {
-   "flip": false,
    "x": 72.5,
    "y": 65.5,
-   "w": 7
+   "w": 7,
+   "flip": false
   },
   "dc-lamp": {
-   "flip": false,
    "x": 40.5,
    "y": 46.5,
-   "w": 10.5
+   "w": 10.5,
+   "flip": false
   },
   "dc-palm": {
-   "flip": false,
    "x": 92,
    "y": 48,
-   "w": 7
+   "w": 7,
+   "flip": false
   },
   "dc-kebab": {
-   "flip": true,
    "x": 86.5,
    "y": 87,
-   "w": 18.5
+   "w": 18.5,
+   "flip": true
   },
   "dc-arcade": {
-   "flip": false,
    "x": 83,
    "y": 63,
-   "w": 9
+   "w": 9,
+   "flip": false
   },
   "dc-fountain": {
-   "flip": false,
    "x": 60,
    "y": 50.5,
-   "w": 10
+   "w": 10,
+   "flip": false
   },
   "dc-car": {
-   "flip": true,
    "x": 14,
    "y": 73,
-   "w": 21.5
+   "w": 21.5,
+   "flip": true
   },
   "dc-statue": {
-   "flip": false,
    "x": 86,
    "y": 76,
-   "w": 12
+   "w": 12,
+   "flip": false
   }
  },
  "rooms": [
@@ -410,6 +440,72 @@ window.LAYOUT = {
    "w": 11,
    "h": 29
   }
+ },
+ "parking": {
+  "car": [
+   [
+    27.5,
+    55.5,
+    27
+   ],
+   [
+    76.5,
+    44,
+    25
+   ],
+   [
+    27,
+    45.5,
+    26
+   ],
+   [
+    76.5,
+    56,
+    27
+   ],
+   [
+    27.5,
+    33.5,
+    23.5
+   ],
+   [
+    74.5,
+    36,
+    24.5
+   ]
+  ],
+  "moto": [
+   [
+    50,
+    29.5,
+    12
+   ],
+   [
+    50.5,
+    61,
+    17.5
+   ],
+   [
+    51,
+    75,
+    18.5
+   ],
+   [
+    26,
+    70,
+    16.5
+   ],
+   [
+    73.5,
+    68.5,
+    16.5
+   ]
+  ],
+  "big": [
+   51.5,
+   40,
+   30.5
+  ]
  },
  "values": {}
 };
