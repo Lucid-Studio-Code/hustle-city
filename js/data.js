@@ -89,11 +89,13 @@
   const CRYPTO_REVERT = .0004;   // force de rappel des cours vers leur prix de départ (par minute) : ça monte et ça baisse, mais ça ne s'écroule pas pour de bon
   const CRYPTO_FEE = .015;         // frais par achat/vente avec le vieux PC (comme une appli grand public)
   // Le PC : un meilleur PC donne accès à de meilleures plateformes, avec moins de frais à chaque achat et vente
-  const PC_UPGRADES = true;   // le PC affiché suit le meilleur des deux : la machine, ou le PC acheté ici (PC gamer = ordi n°3, Station = ordi n°4)
+  const PC_UPGRADES = true;   // le PC affiché suit le meilleur des deux : la machine, ou le PC acheté ici (chaque niveau de PC = l'ordi du même rang)
   const PCS = [
     { name: 'Vieux PC',            cost: 0,    fee: .015, desc: 'Il rame, mais il marche.' },
     { name: 'PC gamer',            cost: 600,  fee: .008, desc: 'Écran rapide, clavier lumineux.' },
-    { name: 'Station de trading',  cost: 4000, fee: .002, desc: 'Plusieurs écrans, comme les pros.' }
+    { name: 'Station de trading',  cost: 4000, fee: .002, desc: 'Plusieurs écrans, comme les pros.' },
+    { name: 'Station pro',         cost: 15000, fee: .001, desc: 'Écrans renforcés, câblage de compétition.' },
+    { name: 'Salle des marchés',   cost: 50000, fee: .0005, desc: 'Trois écrans dorés : le bureau d\'un vrai magnat.' }
   ];
   const TICK_S = 5;                // un point de cours toutes les 5 s
   const HISTORY = 180;             // points gardés pour la courbe (15 min)
