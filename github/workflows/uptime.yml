@@ -1,0 +1,19 @@
+name: Surveillance du serveur
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Le serveur répond ?
+        run: |
+          for i in 1 2 3; do
+            if curl -fsS --max-time 20 https://hustle.lucidstudio.fr/api/health; then echo OK; exit 0; fi
+            echo "Essai $i raté"; [ "$i" -lt 3 ] && sleep 30
+          done
+          echo "::error::Le serveur ne répond plus"; exit 1
