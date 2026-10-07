@@ -3401,3 +3401,14 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 
 #app .trophy-how { margin: 8px auto 4px; max-width: 320px; padding: 7px 12px; border-radius: 14px; background: #fff6d6; border: 2px solid #e8c873; color: #5a3d14; font: 800 13px/1.35 var(--text); text-align: center; }
 #app .trophy-how .ico { width: 18px; height: 18px; vertical-align: -4px; object-fit: contain; }
+
+/* ---------- Android / Samsung : effets allégés (calques géants, ombres animées et fondus de couleurs font clignoter l'écran) ---------- */
+html.lowfx #map-inner { will-change: auto; }
+html.lowfx #app #btn-gift.glow, html.lowfx #app #btn-booster.glow, html.lowfx #app #btn-next.glow { animation: none; box-shadow: 0 3px 0 #2a1a10, 0 0 10px 3px rgba(255, 210, 63, .7); }
+html.lowfx #app #btn-gift.glow .ic, html.lowfx #app #btn-booster.glow .bst-mini { animation: none; }
+html.lowfx .tcg-holo, html.lowfx .tcg-holo::before, html.lowfx .tcg-holo::after { mix-blend-mode: normal !important; animation: none !important; }
+html.lowfx .tcg.rE .tcg-holo, html.lowfx .tcg.rL .tcg-holo, html.lowfx .tcg.rR .tcg-holo { opacity: .18 !important; }
+html.lowfx #app #start > .st-fx .st-scene, html.lowfx #start .ld-bg i { animation: none; }
+html.lowfx #app #start > .st-fx .st-rays { animation: none; }
+html.lowfx *, html.lowfx *::before, html.lowfx *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .room-obj.burnt::after { animation: none; }

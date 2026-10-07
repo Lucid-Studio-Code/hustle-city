@@ -193,7 +193,8 @@
     modalClose = onClose || null; modalRefresh = refresh || null; tabHandler = onTab || null;
     m.onclick = e => { if (e.target === m) closeModal(); };
   }
-  function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; b.innerHTML = html; b.scrollTop = y; } }
+  let liveTick = false;   // rafraîchissement automatique (chaque seconde) : on ne touche que ce qui change, sinon l'écran clignote sur Android
+  function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; if (liveTick) morph(b, html); else b.innerHTML = html; b.scrollTop = y; } }
   function closeModal() { const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
@@ -213,7 +214,7 @@
     $('#hud-name').textContent = s.name || '';
     const need = G.xpNeed(); $('#xpfill').style.width = (need === Infinity ? 100 : Math.min(100, s.xp / need * 100)) + '%';
     $('#xptext').textContent = need === Infinity ? 'MAX' : `${s.xp}/${need}`;
-    $('#worth-v').innerHTML = short(G.worth());
+    { const w = short(G.worth()); if ($('#worth-v').innerHTML !== w) $('#worth-v').innerHTML = w; }
     const av = s.avatar && D.EV_SHOP.find(x => x.id === s.avatar), fr = s.frame && D.EV_SHOP.find(x => x.id === s.frame);
     const avKey = (s.avatar || s.skin) + '|' + (s.frame || '');
     if ($('#avatar-img').dataset.k !== avKey) {
@@ -223,7 +224,7 @@
       const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr && !frameImg(fr) ? fr.emo : ''; a.classList.toggle('framed-img', !!frameImg(fr)); a.querySelector('.av-frame-img')?.remove(); if (frameImg(fr)) a.insertAdjacentHTML('beforeend', `<img class="av-frame-img" src="${src(frameImg(fr))}" alt="">`);
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
-    const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wxIc(m.id)}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
+    const wx = WEATHER[m.id] || WEATHER.calm; if ($('#mood').dataset.k !== m.id) { $('#mood').dataset.k = m.id; $('#mood').innerHTML = `<span class="mood-ic">${wxIc(m.id)}</span>${wx[1]}`; } $('#mood').className = 'm-' + m.id; void col;
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
@@ -2858,7 +2859,7 @@
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
     renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.dataset.v !== v) { e.dataset.v = v; e.innerHTML = v; } });
     if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();
-    if (modalRefresh && !document.activeElement?.matches('input')) modalRefresh();
+    if (modalRefresh && !document.activeElement?.matches('input')) { liveTick = true; try { modalRefresh(); } finally { liveTick = false; } }
     if (Date.now() - lastSave > 5000) { G.save(); lastSave = Date.now(); }
   }
   function hudBottom() { const h = $('#hud'); if (h) $('#app').style.setProperty('--hud-b', (h.getBoundingClientRect().bottom - appBox().top) + 'px'); }
