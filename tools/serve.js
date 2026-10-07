@@ -20,6 +20,9 @@ function publish(req, res) {
     const pull = await git(['pull', '--rebase', '--autostash', '-q', 'origin', 'main']);
     const push = await git(['push', '-q', 'origin', 'main']);
     if (push.e) return send(500, { err: 'Enregistré sur ton Mac, mais la mise en ligne a échoué.', detail: pull.out + push.out });
+    // puis le serveur en ligne récupère cette version (sinon les joueurs ne voient rien avant le prochain déploiement)
+    const dep = await new Promise(ok => execFile('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=15', 'debian@57.129.175.70', 'sudo /usr/local/bin/hustle-deploy'], { timeout: 90000 }, (e, out, err) => ok({ e, out: String(out) + String(err) })));
+    if (dep.e) return send(500, { err: 'Publié sur GitHub, mais le serveur en ligne n\'a pas été mis à jour : dis-le à Claude.', detail: dep.out });
     send(200, { ok: true });
   });
 }

@@ -2280,7 +2280,7 @@
     const got = ALL.filter(c => (s.owned[c.id] || []).length).length;
     const val = CARD_ALL.reduce((a, c) => a + (s.owned[c.id] || []).length * G.sellPrice(c.id), 0);
     const nCrea = CARD_ALL.filter(c => colOf(c) === 'crea').length;
-    let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ic('trophy')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">${ico('cat-crea', '🐲')} Créatures</button></div>
+    let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ico('ic-sport-foot', '⚽')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">${ico('cat-crea', '🐲')} Créatures</button></div>
       <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
       <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>
       ${colTab === 'crea' && nCrea < 10 ? '<p class="hint-line"><b>Nouvelles créatures en route :</b> elles arrivent dans les boosters au fil des mises à jour.</p>' : ''}`;
