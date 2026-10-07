@@ -674,7 +674,16 @@
   // objets de collection possédés, toutes catégories (sauf trophées) : pour la mission « Possède 6 objets »
   const collCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (item(id) && item(id).cat !== 'trophy' ? a.length : 0), 0);
   const parkedCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'park' ? a.length : 0), 0);
-  const garageSlots = () => D.GARAGES[st.garageLvl || 0].slots;
+  const parkFloors = () => st.parkFloors || 0;   // étages achetés en plus du niveau -1
+  const garageSlots = () => D.GARAGES[st.garageLvl || 0].slots + parkFloors() * (D.PARK_MAX.car + D.PARK_MAX.moto);
+  const parkMax = k => D.PARK_MAX[k] * (1 + parkFloors());
+  function floorUp() {
+    const nx = D.PARK_FLOORS[parkFloors()]; if (!nx) return { err: 'Tous les étages sont ouverts.' };
+    if ((st.garageLvl || 0) < D.GARAGES.length - 1) return { err: 'Agrandis d\'abord ton parking au maximum.' };
+    if (st.lvl < nx.lvl) return { err: `${nx.name} : niveau ${nx.lvl}.` };
+    if (!pay(nx.cost)) return { err: 'Pas assez de cash.' };
+    st.parkFloors = parkFloors() + 1; addXp(200); save(); return { ok: true, floor: nx };
+  }
   const safeCount = () => Object.entries(st.owned).reduce((s, [id, a]) => s + (placeOf(id) === 'safe' ? a.length : 0), 0);
   const safeSlots = () => D.SAFES[st.safeLvl || 0].slots;
   function safeUp() { const nx = D.SAFES[(st.safeLvl || 0) + 1]; if (!nx) return { err: 'Déjà au max.' }; if (!pay(nx.cost)) return { err: 'Pas assez de cash.' }; st.safeLvl = (st.safeLvl || 0) + 1; addXp(60); emit('change'); return { ok: true }; }
@@ -721,7 +730,7 @@
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     if (placeOf(id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein : agrandis-le ou vends un véhicule.' };
     if (placeOf(id) === 'park') { const k = item(id).cat === 'moto' ? 'moto' : 'car', n = Object.entries(st.owned).reduce((t, [j, a]) => t + (placeOf(j) === 'park' && (item(j).cat === 'moto' ? 'moto' : 'car') === k ? a.length : 0), 0);
-      if (n >= D.PARK_MAX[k]) return { err: k === 'moto' ? 'Toutes les places motos sont prises (5 max) : vends une moto.' : 'Toutes les places voitures sont prises (6 max) : vends une voiture.' }; }
+      if (n >= parkMax(k)) return { err: k === 'moto' ? `Toutes les places motos sont prises (${parkMax(k)} max) : vends une moto${D.PARK_FLOORS[parkFloors()] ? ' ou ouvre un étage' : ''}.` : `Toutes les places voitures sont prises (${parkMax(k)} max) : vends une voiture${D.PARK_FLOORS[parkFloors()] ? ' ou ouvre un étage' : ''}.` }; }
     if (placeOf(id) === 'safe' && safeCount() >= safeSlots()) return { err: 'Ton coffre est plein : agrandis-le ou revends une pièce.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
@@ -1598,7 +1607,7 @@
   window.GAME = {
     wipe() { loaded = false; asleep = true; },   // « Supprimer mes données » : plus aucune écriture jusqu'au rechargement
     get st() { return st; }, get asleep() { return asleep; }, TEST, on, emit, load, save, reset, simulate,
-    placeOf, parkedCount, garageSlots, garageUp, safeCount, safeSlots, safeUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
+    placeOf, parkedCount, garageSlots, garageUp, parkFloors, floorUp, safeCount, safeSlots, safeUp, props, prop, propValue, propPending, propBuy, propCollect, propSell, bourse, stockBuy, stockSell, stocksValue, propsValue,
     achValue, looksOwned, lookBuy, betOn, addCash, addLingots, addXp, pay, canPay, xpNeed, stat,
     coin, mood, coinUnlocked, buyCrypto, sellCrypto, holdValue, cryptoValue,
     traderState, traderGoal, claimTrader, addOrder, cancelOrder,

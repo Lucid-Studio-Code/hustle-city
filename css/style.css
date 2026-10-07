@@ -3462,3 +3462,11 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .trader .tr-ic img.ico { width: 40px; height: 40px; }
 #app .trader .tr-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
 #app .trader .tr-foot .rw-get { margin: 0; }
+/* étages du parking : onglets en haut, et un éclairage de secours tant que l'image de l'étage n'existe pas */
+#app .park-full .pk-foot { flex-wrap: wrap; }
+#app .park-full .pk-floors { flex: 1 0 100%; display: flex; justify-content: center; gap: 6px; }
+.park-full .pk-floors .btn { min-width: 46px; }
+#app .park-full.pk-lux1 .pk-bg { filter: saturate(1.3) brightness(1.1) hue-rotate(-10deg); }
+#app .park-full.pk-lux2 .pk-bg { filter: sepia(.35) saturate(1.5) brightness(1.1); }
+#app .park-full.pk-lux3 .pk-bg { filter: sepia(.5) saturate(1.8) hue-rotate(-15deg) brightness(1.05); }
+#app .park-full.pk-lux4 .pk-bg { filter: sepia(.7) saturate(2) brightness(1.15); }

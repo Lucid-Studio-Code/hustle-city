@@ -45,6 +45,9 @@
   // le coffre de la Bijouterie (or et raretés) : places limitées, qu'on agrandit comme le parking
   const SAFES = [{ slots: 4, cost: 0, name: 'Petit coffre' }, { slots: 8, cost: 20000, name: 'Coffre-fort' }, { slots: 14, cost: 90000, name: 'Salle forte' }, { slots: 24, cost: 350000, name: 'Chambre forte' }];
   const GARAGES = [{ slots: 2, cost: 0, name: 'Box simple' }, { slots: 4, cost: 25000, name: 'Garage double' }, { slots: 7, cost: 90000, name: 'Parking privé' }, { slots: 11, cost: 250000, name: 'Parking souterrain' }];
+  // étages du parking (fin de jeu) : le parking actuel est le niveau -1 ; chaque étage ajoute 6 voitures + 5 motos, de plus en plus luxueux.
+  // Les véhicules les plus chers vont tout seuls dans l'étage le plus beau. Image : parking-bg-2 … parking-bg-5
+  const PARK_FLOORS = [{ name: 'Niveau -2', lvl: 31, cost: 400000 }, { name: 'Niveau -3', lvl: 34, cost: 900000 }, { name: 'Niveau -4', lvl: 37, cost: 2000000 }, { name: 'Niveau -5', lvl: 40, cost: 4000000 }];
   const PARK_MAX = { car: 6, moto: 5 };   // places peintes du parking : jamais plus de 6 voitures et 5 motos
   // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
   const PROPS = [
@@ -939,7 +942,7 @@
   window.DATA = {
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

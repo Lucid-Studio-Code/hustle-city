@@ -574,19 +574,26 @@
   }
   function openTower(tab) { if (tab) towerTab = tab; openModal({ title: 'La Tour', icon: 'bld-tour', full: true, tabs: [{ id: 'immo', label: 'Immobilier' }, { id: 'bourse', label: 'Bourse' }], tab: towerTab, body: towerBody(), refresh: () => setBody(towerBody()), onTab: id => { towerTab = id; setBody(towerBody()); } }); }
   // ------------------------------------------------------------ Mon parking : tes voitures et motos garées sur leurs places
+  // étages : le niveau -1 est le parking de base ; les étages achetés sont de plus en plus beaux, et les véhicules les plus chers vont dans le plus beau
+  let pkFloor = 0;
   function parkingBody() {
     const s = st(), cars = Object.keys(s.owned).flatMap(id => G.placeOf(id) === 'park' ? s.owned[id].map(() => G.item(id)) : []), n = G.garageSlots();
-    // les voitures sur les places en épi, les motos sur la grande place du milieu : jamais l'une à la place de l'autre (sauf s'il n'y a plus de place du bon type)
-    const P = parkSlots(), motos = cars.filter(c => c.cat === 'moto'), autos = cars.filter(c => c.cat !== 'moto');
-    const carSpots = P.car, motoSpots = P.moto;   // 6 voitures et 5 motos au maximum, chacun sur ses places
-    const placed = autos.map((c, i) => [c, carSpots[i]]).concat(motos.map((m, i) => [m, motoSpots[i]]));
-    const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, f]]) =>
-      `<button class="pk-car${f ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
+    const F = 1 + G.parkFloors(), f = Math.min(pkFloor, F - 1), fromTop = F - 1 - f, nx = D.PARK_FLOORS[G.parkFloors()];
+    const byValue = l => l.slice().sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
+    // les voitures sur les places en épi, les motos sur leurs places : jamais l'une à la place de l'autre
+    const P = parkSlots(), motos = byValue(cars.filter(c => c.cat === 'moto')).slice(fromTop * D.PARK_MAX.moto, (fromTop + 1) * D.PARK_MAX.moto), autos = byValue(cars.filter(c => c.cat !== 'moto')).slice(fromTop * D.PARK_MAX.car, (fromTop + 1) * D.PARK_MAX.car);
+    const placed = autos.map((c, i) => [c, P.car[i]]).concat(motos.map((m, i) => [m, P.moto[i]]));
+    const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, fl]]) =>
+      `<button class="pk-car${fl ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
+    const maxed = (s.garageLvl || 0) >= D.GARAGES.length - 1;
+    const bgN = f && has('parking-bg-' + (f + 1)) ? 'parking-bg-' + (f + 1) : 'parking-bg';
+    const tabs = F > 1 || (nx && maxed && s.lvl >= nx.lvl - 3) ? `<div class="pk-floors">${Array.from({ length: F }, (_, i) => F - 1 - i).map(i => `<button class="btn xs ${i === f ? 'yellow' : ''}" data-act="pkFloor" data-f="${i}">-${i + 1}</button>`).join('')}${nx ? `<button class="btn xs" disabled>${ic('lock')} -${F + 1}</button>` : ''}</div>` : '';
+    const up = nx && maxed ? (s.lvl < nx.lvl ? `<button class="btn" disabled>${ic('lock')} Étage -${F + 1} · niv. ${nx.lvl}</button>` : `<button class="btn ${s.cash >= nx.cost ? 'yellow' : ''}" data-act="floorUp" ${s.cash >= nx.cost ? '' : 'disabled'}>Ouvrir l'étage -${F + 1} · ${short(nx.cost)}</button>`) : '';
     // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
-    return `<div class="park-full"><div class="pk-stage">${has('parking-bg') ? `<img class="pk-bg" src="${src('parking-bg')}" alt="">` : ''}${slots}</div>
-      <div class="pk-foot"><span class="pk-count">${cars.length} / ${n} places</span><button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button></div></div>`;
+    return `<div class="park-full ${f && !has('parking-bg-' + (f + 1)) ? 'pk-lux' + Math.min(f, 4) : ''}"><div class="pk-stage">${has(bgN) ? `<img class="pk-bg" src="${src(bgN)}" alt="">` : ''}${slots}</div>
+      <div class="pk-foot">${tabs}<span class="pk-count">${F > 1 ? `Niveau -${f + 1} · ` : ''}${cars.length} / ${n} places</span>${up || '<button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button>'}</div></div>`;
   }
-  function openParking() { openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
+  function openParking() { pkFloor = G.parkFloors(); openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
   // ------------------------------------------------------------ placement des places du parking (back-office, #placer-parking)
   // Toutes les places sont montrées avec un véhicule d'essai : on les fait glisser, − / + pour la taille, ↔ Miroir.
   // Gardé dans ce navigateur (hustleCity.parkPlacer) jusqu'à « Publier », qui l'écrit dans js/layout.js (parking).
@@ -2627,6 +2634,8 @@
     crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
+    pkFloor(el) { pkFloor = +el.dataset.f; setBody(parkingBody()); },
+    floorUp() { const r = G.floorUp(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 50); toast(`${r.floor.name} ouvert ! Tes plus belles voitures s'y garent toutes seules.`); pkFloor = G.parkFloors(); setBody(parkingBody()); },
     goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
     safeUp() { const r = G.safeUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Coffre agrandi !'); refresh(); },
     garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
