@@ -230,6 +230,11 @@
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
+    // le bouton montre la prochaine amélioration la moins chère (machine, PC ou appart)
+    { const s = st(), g = (D.SKINS.find(k => k.id === s.skin) || D.SKINS[0]).g, rn = G.rigNext(), pn = G.pcNext(), nr = D.ROOMS[s.room + 1];
+      const c = [rn && [rn.price, has('minerv-' + (s.rig.lvl + 1)) ? 'minerv-' + (s.rig.lvl + 1) : 'rig-' + (s.rig.lvl + 1)], pn && [pn.price, pcFor(0, G.pcLvl() + 1)], nr && [G.cost(nr.cost), has(`room-${g}-${s.room + 1}`) ? `room-${g}-${s.room + 1}` : 'room-' + (s.room + 1)]].filter(Boolean).sort((a, b) => a[0] - b[0])[0];
+      const im = ub.querySelector('.upg-ic img'), n = c && has(c[1]) ? c[1] : 'btn-setup';
+      if (im && im.dataset.n !== n) { im.dataset.n = n; im.src = src(n); ub.classList.toggle('upg-room', /^room-/.test(n)); } }
     // boutons du côté droit (comme Mama Kana) : Récompenses, Booster, Cadeau
     const rw = G.questsReady() + G.chalReady() + G.weekReady();
     $('#trophy .badge').classList.toggle('hidden', !rw); $('#trophy .badge').textContent = rw;
@@ -385,7 +390,7 @@
         <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
       : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
     const pn = G.pcNext(), fpc = f => (f * 100).toFixed(1).replace('.', ',').replace(',0', '') + ' %';
-    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(pcFor(st().rig.lvl, G.pcLvl() + 1), EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
+    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(pcFor(0, G.pcLvl() + 1), EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
         <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
         <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
       : D.PC_UPGRADES ? `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>` : '';
