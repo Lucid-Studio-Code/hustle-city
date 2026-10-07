@@ -64,11 +64,11 @@
   // la collab demande 2 places dans l'agence : avant l'agrandissement, elle est verrouillée (et rangée en bas)
   const lockedDuo = (m, o) => o.duo && m.id !== 'me' && slotsN() < 2;
   function actGain(m, x) {
-    const p = prof(m.id), subs = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
+    const mt0 = x.duo && m.id !== 'me' && m.act && m.act.k === x.id && m.act.with && ag().crew.find(o => o.id === m.act.with), p = prof(m.id), subs = (mt0 ? mt0.subs : m.subs) * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs'));
     const tips = x.cash ? Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)) : 0, L = [];
     // collab : chacune gagne des abonnés selon SA taille (la plus grosse gagne plus) ; on affiche les deux chiffres
     const mate = x.duo && m.id !== 'me' && m.act && m.act.k === x.id && m.act.with && ag().crew.find(o => o.id === m.act.with);
-    if (mate) { const ms = mate.subs * x.subs * (prof(mate.id).cha / 3); L.push(`<span class="g-up">+${fmtSubs(subs)} pour elle</span>`); if (ms >= 1) L.push(`<span class="g-up">+${fmtSubs(ms)} pour ${U.esc(prof(mate.id).name)}</span>`); }
+    if (mate) { const ms = m.subs * x.subs * (prof(mate.id).cha / 3); L.push(`<span class="g-up">+${fmtSubs(subs)} pour elle</span>`); if (ms >= 1) L.push(`<span class="g-up">+${fmtSubs(ms)} pour ${U.esc(prof(mate.id).name)}</span>`); }
     else if (subs >= 1) { L.push(`<span class="g-up">+${fmtSubs(subs)} abonnés</span>`); if (x.duo && m.id !== 'me') L.push('<span class="g-up">et l\'autre en gagne aussi</span>'); }
     if (tips) L.push(`<span class="g-up">+${U.short(tips)} pourboires</span>`);
     if (x.mood) L.push(`<span class="${x.mood > 0 ? 'g-up' : 'g-down'}">${m.id === 'me' ? 'énergie' : 'moral'} ${x.mood > 0 ? '+' : '−'}${Math.abs(x.mood)}</span>`);
@@ -93,10 +93,12 @@
   function finishAct(m) {
     const x = A.acts.find(o => o.id === m.act.k), p = prof(m.id), duo = m.act.with && ag().crew.find(o => o.id === m.act.with);
     // collab sur ta page : une partie de son public la suit chez toi (plus elle est grosse, plus tu gagnes)
-    const gain = m.subs * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs')) + (m.act.pSubs ? m.act.pSubs * .05 : 0);
+    // collab entre deux créatrices : chacune récupère une part du public de L'AUTRE (la plus petite gagne donc le plus, comme dans la vraie vie)
+    const m0 = m.subs, base = duo ? duo.subs : m.subs;
+    const gain = base * x.subs * (p.cha / 3) * (1 + gearK(m, 'subs')) + (m.act.pSubs ? m.act.pSubs * .05 : 0);
     m.subs += gain; m.mood = Math.max(0, Math.min(100, m.mood + x.mood));
     let tips = 0; if (x.cash) { tips = Math.round(m.subs * x.cash * A.subPrice * 10 * share(m)); m.pend = (m.pend || 0) + tips; }
-    if (duo) { duo.subs += duo.subs * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
+    if (duo) { duo.subs += m0 * x.subs * (prof(duo.id).cha / 3); duo.mood = Math.min(100, duo.mood + x.mood); duo.act = null; }
     m.act = null; G.stat('agActs');
     U.notify('agence', p.me ? `Tu as fini : ${x.name}` : `${p.name} a fini : ${x.name}`, `${gain >= 1 ? `+${fmtSubs(gain)} abonnés` : 'Elle a bien récupéré'}${tips ? ` et +${U.short(tips)} de pourboires pour toi` : ''}.`, null, false, null, faceImg(p.me ? 'me' : p.id));
   }
