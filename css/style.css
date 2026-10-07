@@ -3393,3 +3393,5 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* créature commune : même fenêtre que les autres communes, le dessin prend toute la largeur ; cadrage vertical réglé par créature (--fy) pour garder le perso et ce qu'il fait */
 .tcg .tcg-sub.crea-art img.cr-main { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center var(--fy, 38%); }
 .tcg .tcg-sub.crea-art img.cr-blur { display: none; }
+/* plus de petites étoiles sur les cartes (épiques et légendaires) */
+.tcg.rE .tcg-card::before, .tcg.rL .tcg-card::before { content: none !important; display: none !important; }
