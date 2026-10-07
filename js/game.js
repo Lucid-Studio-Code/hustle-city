@@ -720,6 +720,8 @@
     if (!inStock(id)) return { err: 'Plus en rayon : reviens au prochain arrivage.' };
     if (onShelf(id) && ownedCount() >= roomSlots()) return { err: 'Plus de place chez toi : déménage via ton téléphone.' };
     if (placeOf(id) === 'park' && parkedCount() >= garageSlots()) return { err: 'Ton parking est plein : agrandis-le ou vends un véhicule.' };
+    if (placeOf(id) === 'park') { const k = item(id).cat === 'moto' ? 'moto' : 'car', n = Object.entries(st.owned).reduce((t, [j, a]) => t + (placeOf(j) === 'park' && (item(j).cat === 'moto' ? 'moto' : 'car') === k ? a.length : 0), 0);
+      if (n >= D.PARK_MAX[k]) return { err: k === 'moto' ? 'Toutes les places motos sont prises (5 max) : vends une moto.' : 'Toutes les places voitures sont prises (6 max) : vends une voiture.' }; }
     if (placeOf(id) === 'safe' && safeCount() >= safeSlots()) return { err: 'Ton coffre est plein : agrandis-le ou revends une pièce.' };
     const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
     (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });

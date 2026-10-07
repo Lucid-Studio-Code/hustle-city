@@ -572,8 +572,8 @@
     const s = st(), cars = Object.keys(s.owned).flatMap(id => G.placeOf(id) === 'park' ? s.owned[id].map(() => G.item(id)) : []), n = G.garageSlots();
     // les voitures sur les places en épi, les motos sur la grande place du milieu : jamais l'une à la place de l'autre (sauf s'il n'y a plus de place du bon type)
     const P = parkSlots(), motos = cars.filter(c => c.cat === 'moto'), autos = cars.filter(c => c.cat !== 'moto');
-    const carSpots = P.car.concat(motos.length ? [] : [P.big]), motoSpots = P.moto.slice(0, motos.length ? P.moto.length : 0);
-    const placed = autos.map((c, i) => [c, carSpots[i]]).concat(motos.map((m, i) => [m, motoSpots[i] || P.car[autos.length + i - motoSpots.length]]));
+    const carSpots = P.car, motoSpots = P.moto;   // 6 voitures et 5 motos au maximum, chacun sur ses places
+    const placed = autos.map((c, i) => [c, carSpots[i]]).concat(motos.map((m, i) => [m, motoSpots[i]]));
     const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, f]]) =>
       `<button class="pk-car${f ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
     // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
@@ -596,7 +596,7 @@
   const PKP = { on: false, sel: 'car:0', pv: {}, empty: false, top: true, auto: null, drag: null };
   const pkName = k => { const [t, i] = k.split(':'); return t === 'big' ? 'Grande' : (t === 'car' ? 'C' : 'M') + (+i + 1); };
   const pkSpot = k => { const [t, i] = k.split(':'); return t === 'big' ? PKP.L.big : PKP.L[t][+i]; };
-  const pkKeys = () => PKP.L.car.map((_, i) => 'car:' + i).concat(PKP.L.moto.map((_, i) => 'moto:' + i), ['big']);
+  const pkKeys = () => PKP.L.car.map((_, i) => 'car:' + i).concat(PKP.L.moto.map((_, i) => 'moto:' + i));
   const pkVehs = k => D.ITEMS.filter(i => i.cat === (k.startsWith('moto') ? 'moto' : 'car'));
   // véhicule d'essai d'une place : celui choisi, sinon un différent par place
   const pkVeh = k => { const l = pkVehs(k), i = k === 'big' ? 6 : +k.split(':')[1]; return l.find(x => x.id === PKP.pv[k]) || l[i % l.length]; };

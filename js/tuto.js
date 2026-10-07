@@ -81,7 +81,7 @@
     parking: [
       { say: () => 'Ta première caisse ! Regarde : <b>l\'entrée de ton parking</b> vient d\'apparaître, juste à côté de l\'arrêt de bus. Touche-la.', target: '.bld[data-id=parking]', before: () => U.focusBld('parking'), done: () => modalOpen() && title() === 'Mon parking' },
       { say: () => 'Tes véhicules sont garés ici : <b>les voitures sur les places en épi, les motos au milieu</b>. Touche un véhicule pour voir ce qu\'il vaut : sa cote bouge, tu peux le revendre quand elle monte.', target: '.park-full .pk-car', btn: 'Compris' },
-      { say: () => 'Il n\'y a que <b>2 places</b> au début. Quand c\'est plein, agrandis ton garage au <b>Garage Prestige</b> (en bus) : 4 places, puis 7.', target: '.park-full .pk-count, .park-full .pk-foot', btn: 'Trop bien' }]
+      { say: () => 'Il n\'y a que <b>2 places</b> au début. Agrandis ton garage au <b>Garage Prestige</b> (en bus) : jusqu\'à 6 voitures et 5 motos.', target: '.park-full .pk-count, .park-full .pk-foot', btn: 'Trop bien' }]
   });
   // le mot de la fin du tuto : seulement après la visite des lieux du début (Kiosque, arrêt de bus)
   BLD.outro = [{ say: () => `Voilà, t'as les bases ! Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. ${nextOpen()}Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l'écran : je te dirai quoi faire pour avancer. À toi de jouer !`, btn: 'C\'est parti' }];

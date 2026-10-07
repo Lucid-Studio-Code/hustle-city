@@ -12,7 +12,7 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
-    'ic-shop-ville': 'all', 'item-g-earrings': [], 'niche-gaming': 'all', 'niche-mode': 'all', 'frame-cdm': 'all', 'ev-cdm-cup': 'sides',   # vides entre le palmier et le banc
+    'ic-shop-ville': 'all', 'item-v-electric': [], 'item-v-van': [], 'item-v-city': [], 'item-m-scoot': [],   # carrosseries blanches : pas de trous 'item-g-earrings': [], 'niche-gaming': 'all', 'niche-mode': 'all', 'frame-cdm': 'all', 'ev-cdm-cup': 'sides',   # vides entre le palmier et le banc
     # revue du 03/10 : fonds restés coincés dans des formes fermées
     'slot-bell': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
