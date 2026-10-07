@@ -874,20 +874,13 @@
     { id: 'l-1300',   bonus: 25, title: 'Coffre de lingots +25 %',   desc: '1 625 lingots au lieu de 1 300' }
   ];
   // Saisons commerciales : elles remplacent l'offre du moment et changent le visuel du bouton Promo (dates incluses, au format MM-JJ)
-  const SEASONS = [
-    { id: 'halloween', name: 'Halloween',    from: '10-24', to: '10-31', img: 'ic-promo-halloween', color: '#ff7a1a',
-      deal: { id: 'x-collec', off: 40, title: 'Boosters de l\'horreur : −40 %', desc: '20 boosters de cartes et 150 lingots, juste avant Halloween' } },
-    { id: 'blackfriday', name: 'Black Friday', from: 'bf', to: 'bf+3', img: 'ic-promo-bf', color: '#1d1d1f',
-      deal: { id: 'x-pass', off: 60, title: 'Black Friday : Pass Hustle −60 %', desc: 'Le 1er mois de l\'abonnement : 150 lingots, puis 15 lingots et 1 booster par jour' } },
-    { id: 'noel', name: 'Noël',          from: '12-15', to: '12-26', img: 'ic-promo-noel', color: '#d33a2c',
-      deal: { id: 'l-1300', bonus: 50, title: 'Coffre de Noël : +50 % de lingots', desc: '1 950 lingots au lieu de 1 300' } }
-  ];
+  const SEASONS = [];   // plus de saisons automatiques : Halloween, Black Friday, Noël se programment dans le back office (page Promos)
   // promos programmées depuis le back office (page Promos) : { look, name, offer, kind: off|bonus, value, start, end, on, title, desc }.
   // Elles passent avant les saisons et les offres du jour. Vide tant que le jeu n'a pas parlé au serveur.
   const CAMPAIGNS = [];
   const PROMO_LOOKS = { promo: ['ic-promo', '#ff3cac'], halloween: ['ic-promo-halloween', '#ff7a1a'], bf: ['ic-promo-bf', '#1d1d1f'], noel: ['ic-promo-noel', '#d33a2c'] };
   // l'offre du moment ne tourne pas tous les jours : ces jours-là (0 = dimanche), sinon le bouton redevient une simple boutique
-  const PROMO_DAYS = [0, 3, 5, 6];
+  const PROMO_DAYS = [];   // plus d'offre du jour automatique : les promos se lancent uniquement depuis le back office (page Promos)
   // Pubs récompensées : on regarde une pub pour gagner des lingots (le pack « Sans pub » donne la récompense sans la pub)
   const ADS = { reward: 3, perDay: 5, cooldownMin: 10, watchS: 15 };
   // ================= Progression (révision du 05/10) =================

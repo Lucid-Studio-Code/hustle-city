@@ -2053,13 +2053,13 @@
     D.BUILDINGS.filter(b => b.lvl === L && !b.spot).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name, how: b.tag, go: b.id }));
     D.COINS.filter(c => c.lvl === L && L > 1).forEach(c => u.push({ html: coinIco(c), name: c.name, how: 'Nouvelle crypto à trader' }));
     Object.entries(D.SPORTS).filter(([, x]) => x.lvl === L && L > 1).forEach(([k, x]) => u.push({ html: teamCrest(k, 0), name: `Paris ${x.name.toLowerCase()}`, how: 'Plus de matchs où parier', go: 'balto' }));
-    Object.entries(D.ITEM_CATS).filter(([, c]) => c.lvl === L && L > 1).forEach(([k, c]) => u.push({ img: 'item-' + D.ITEMS.find(i => i.cat === k).id, name: c.name, how: 'Achète, attends que ça monte, revends' }));
+    Object.entries(D.ITEM_CATS).filter(([, c]) => c.lvl === L && L > 1).forEach(([k, c]) => u.push({ img: (D.ITEMS.find(i => i.cat === k && has('item-' + i.id)) || D.ITEMS.find(i => i.cat === k)).id.replace(/^/, 'item-'), name: c.name, how: 'Achète, attends que ça monte, revends' }));
     D.SKINS.filter(k => k.lvl === L && L > 1).forEach(k => u.push({ img: `skin-${k.id}-bust`, name: k.name }));
-    if (L === D.ROULETTE.lvl) u.push({ emo: '🎡', name: 'Roulette', how: 'Au Lucky Palace', go: 'casino' });
-    if (L === D.COMBI_LVL) u.push({ emo: '🎟️', name: 'Paris combinés' });
-    D.SCRATCH.filter(t => t.lvl === L && L > 1).forEach(t => u.push({ img: 'ticket-' + t.id, emo: '🎟️', name: t.name }));
-    D.HABITS.filter(h => h.lvl === L).forEach(h => u.push({ emo: h.icon, name: h.name }));
-    if (L === D.EVENTS.lvl) u.push({ emo: '⚡', name: 'Mini-événements' });
+    if (L === D.ROULETTE.lvl) u.push({ img: 'roulette-hub', emo: '🎡', name: 'Roulette', how: 'Au Lucky Palace', go: 'casino' });
+    if (L === D.COMBI_LVL) u.push({ img: 'nav-bets', emo: '🎟️', name: 'Paris combinés' });
+    D.SCRATCH.filter(t => t.lvl === L && L > 1).forEach(t => u.push({ img: has('ticket-' + t.id) ? 'ticket-' + t.id : 'ticket-flash', emo: '🎟️', name: t.name }));
+    D.HABITS.filter(h => h.lvl === L).forEach(h => u.push({ img: 'hab-' + h.id, emo: h.icon, name: h.name }));
+    if (L === D.EVENTS.lvl) u.push({ img: 'ev-boost', emo: '⚡', name: 'Mini-événements' });
     if (L === D.DEALS.lvl) u.push({ img: 'guide', name: 'Bons plans' });
     if (L === D.AGENCE.lvl) u.push({ img: 'app-agence', emo: '📸', name: (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Ta page PrivéFans' : 'Agence PrivéFans', how: 'Des revenus chaque heure, même absent' });
     D.CITY_SHOP.filter(x => x.lvl === L && L > 1).forEach(x => u.push({ img: 'deco-' + x.id, emo: x.emo, name: x.name }));
@@ -2927,7 +2927,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
+  window.UI = { unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();
