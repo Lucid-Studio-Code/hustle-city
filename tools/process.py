@@ -12,7 +12,7 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 # (x, y) = centre de la poche, tel que l'affiche --poches ; ou {'n': [numéros]} quand deux poches ont le même centre.
 # Pour choisir : python3 tools/process.py --poches <nom>  (écrit /tmp/poches-<nom>.png avec les poches numérotées).
 POCKETS = {
-    'ic-shop-ville': 'all',   # vides entre le palmier et le banc
+    'ic-shop-ville': 'all', 'item-g-earrings': [], 'niche-gaming': 'all', 'niche-mode': 'all', 'frame-cdm': 'all', 'ev-cdm-cup': 'sides',   # vides entre le palmier et le banc
     # revue du 03/10 : fonds restés coincés dans des formes fermées
     'slot-bell': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
@@ -29,7 +29,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
+MAX = {'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
@@ -129,7 +129,7 @@ CREA_CROP = {   # fenêtre de l'illustration dans chaque carte générée (gauch
 def run(name):
     im = Image.open(os.path.join(src, name + '.png'))
     kind = name.split('-')[0]
-    if name in ('shop-hero', 'pop-starter'): kind = 'bg'   # images avec leur décor
+    if name in ('shop-hero', 'pop-starter', 'ev-cdm-bg'): kind = 'bg'   # images avec leur décor
     if name.startswith('item-cr-'):   # créatures : on ne garde que l'illustration, le jeu dessine le même cadre pour toutes
         w, h = im.size; b = CREA_CROP.get(name[8:], (.12, .11, .88, .75))
         im = im.convert('RGB').crop((int(w * b[0]), int(h * b[1]), int(w * b[2]), int(h * b[3]))); im.thumbnail((360, 460), Image.LANCZOS)

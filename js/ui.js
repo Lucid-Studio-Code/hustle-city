@@ -50,6 +50,8 @@
     return /^[aeiouyhàâäéèêëîïôöûüAEIOUYHÀÂÉÈÊÎÔÛ]/.test(n) ? "d'" + n : 'de ' + n; }
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
+  // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
+  const pcLook = () => { const r = st().rig ? st().rig.lvl : 0; return r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0'; };
   const frameImg = x => x && has('frame-' + x.id.replace('fr-', '')) ? 'frame-' + x.id.replace('fr-', '') : null;
   const decoImg = x => x.img || 'deco-' + x.id;
   // pin's de la photo de profil : écusson d'une équipe du tournoi, ou pin's d'un camp de la Coupe des Morts
@@ -887,7 +889,7 @@
     const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = RP.on ? RP.pv.pc : G.pcLvl();
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl;
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? (has('pcv-' + pl) ? 'pcv-' + pl : 'pc-' + pl) : pcLook();
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
@@ -925,7 +927,7 @@
   function openRoomHelp() {
     openModal({ title: 'Ton appart', icon: 'home', center: true, body: `
       <div class="help-row">${pic(has('minerv-' + st().rig.lvl) ? 'minerv-' + st().rig.lvl : 'rig-0', EMO.rig)}<div><b>La machine à crypto</b><p>Elle fabrique de l'argent toute seule, même quand tu n'es pas là. Elle chauffe et s'arrête au bout d'un moment : touche sa bulle pour encaisser, ça la relance.</p></div></div>
-      <div class="help-row">${pic(has('pcv-' + G.pcLvl()) ? 'pcv-' + G.pcLvl() : 'pc-0', EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
+      <div class="help-row">${pic(pcLook(), EMO.pc)}<div><b>Ton PC</b><p>Tu y achètes des cryptos : des monnaies dont le prix bouge tout le temps. Achète quand c'est bas, revends quand c'est haut. Si ça baisse, tu perds.</p></div></div>
       <div class="help-row"><span class="pic help-phone"><i class="ph-mini"><i></i></i></span><div><b>Ton téléphone</b><p>Pour déménager (appli Appart'Immo), voir ta banque, tes paris et les messages de tes contacts.</p></div></div>
       <div class="help-row">${pic('item-c-holo', '🃏')}<div><b>Tes étagères</b><p>Tes objets de collection s'y exposent. Leur prix bouge aussi : touche un objet pour voir combien il vaut et le revendre.</p></div></div>
       <button class="btn green wide" data-act="closeModal">Compris</button>` });
@@ -1502,7 +1504,7 @@
       return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
     // looks du quartier : en haut de l'onglet, avec un aperçu de la ville
     const own = G.looksOwned(), cur = s.cityLook || 'base';
-    const look = L => { const ready = L.id === 'base' || has('bg-city-' + L.id), has_ = own.includes(L.id), on = cur === L.id, lock = s.lvl < L.lvl;
+    const look = L => { const ready = L.id === 'base' || (has('bg-city-' + L.id) && ['casino', 'appart', 'shop', 'balto', 'kiosque', 'six'].every(b => has(`bld-${b}-${L.id}`))), has_ = own.includes(L.id), on = cur === L.id, lock = s.lvl < L.lvl;
       const price = L.lingots ? `${ic('lingot')}${L.lingots}` : short(L.cash), can = L.lingots ? s.lingots >= L.lingots : s.cash >= L.cash;
       const btn = !ready ? '<button class="btn xs" disabled>Bientôt</button>' : on ? '<span class="lk-on">✓ Ta ville</span>' : has_ ? `<button class="btn xs blue" data-act="lookBuy" data-id="${L.id}">Mettre</button>`
         : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${L.lvl}</button>` : `<button class="btn xs ${L.lingots ? 'gold' : 'green'}" data-act="lookBuy" data-id="${L.id}" ${can ? '' : 'disabled'}>${price}</button>`;
