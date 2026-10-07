@@ -3412,3 +3412,10 @@ html.lowfx #app #start > .st-fx .st-scene, html.lowfx #start .ld-bg i { animatio
 html.lowfx #app #start > .st-fx .st-rays { animation: none; }
 html.lowfx *, html.lowfx *::before, html.lowfx *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .room-obj.burnt::after { animation: none; }
+/* look en vente limitée : une étiquette « compte à rebours » posée sur l'aperçu, comme les autres pastilles du jeu */
+#app .lk-prev { position: relative; }
+#app .lk-card .lk-tag { position: absolute; top: auto; right: auto; left: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px 3px 5px;
+  border: 2.5px solid #2a1a10; border-radius: 12px; background: #ffd23f; color: #2a1a10; box-shadow: 0 2px 0 #2a1a10; transform: rotate(-3deg); }
+#app .lk-card .lk-tag .ico { width: 16px; height: 16px; object-fit: contain; }
+#app .lk-card .lk-tag b { font: 400 15px/1 var(--title); }
+#app .lk-card .lk-tag small { min-height: 0; font: 800 10px/1 var(--text); color: #5a3d14; }
