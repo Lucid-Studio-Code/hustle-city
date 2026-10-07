@@ -34,7 +34,7 @@
     'ic-ev-cdm': '🎃', 'bld-appart': '🏢', 'bld-balto': '🍺', 'bld-casino': '🎰', 'bld-shop': '🛍️', 'bld-club': '🎉', 'bld-kiosque': '📰', 'bld-bijou': '💍', 'bld-garage': '🏎️', 'bld-tour': '🏙️',
     pc: '🖥️', trading: '📈', shop: '🛍️', bolt: '⚡', rig: '🧰', bed: '🛏️', foot: '⚽', basket: '🏀', tennis: '🎾', slot: '🎰', roulette: '🎡', scratch: '🎟️', guide: '🧢'
   };
-  const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', shop: 'nav-shop', bolt: 'icon-bolt' };
+  const ICON_FILE = { cash: 'icon-cash', lingot: 'icon-lingot', gear: 'icon-gear', trophy: 'icon-trophy', lock: 'icon-lock', check: 'icon-check', star: 'icon-star', gift: 'icon-gift', wallet: 'nav-wallet', ticket: 'nav-bets', home: 'nav-home', city: 'nav-city', trading: 'nav-trading', shop: 'nav-shop', bolt: 'icon-bolt', dice: 'icon-dice' };
   // REMOTE_IMG : images envoyées depuis le back office (objets ajoutés), servies par le serveur du jeu (js/content.js)
   const REMOTE = () => window.REMOTE_IMG || {};
   function has(name) { return IMG.has(name) || !!REMOTE()[name]; }
@@ -204,7 +204,7 @@
       const a = $('#hud .avatar'); a.classList.toggle('framed', !!fr); a.style.setProperty('--f1', fr ? fr.colors[0] : ''); a.style.setProperty('--f2', fr ? fr.colors[1] : ''); a.dataset.emo = fr && !frameImg(fr) ? fr.emo : ''; a.classList.toggle('framed-img', !!frameImg(fr)); a.querySelector('.av-frame-img')?.remove(); if (frameImg(fr)) a.insertAdjacentHTML('beforeend', `<img class="av-frame-img" src="${src(frameImg(fr))}" alt="">`);
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
-    const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wx[0]}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
+    const wx = WEATHER[m.id] || WEATHER.calm; $('#mood').innerHTML = `<span class="mood-ic">${wxIc(m.id)}</span>${wx[1]}`; $('#mood').className = 'm-' + m.id; void col;
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
@@ -238,6 +238,10 @@
     L.sort((x, y) => x[0] - y[0]);
     return L.length ? { lvl: L[0][0], what: L.filter(x => x[0] === L[0][0]).map(x => x[1]) } : null;
   }
+  // icônes des conseils de Momo : l'emoji sert de clé (et de repli tant que l'image manque)
+  const COACH_IC = { '🏆': 'icon-trophy', '🎁': 'icon-gift', '⚡': 'icon-bolt', '📩': 'app-msg', '📸': 'app-agence', '🃏': 'booster-pack', '🎃': 'ic-ev-cdm', '🏉': 'bld-six', '💬': 'app-msg',
+    '🛠️': 'btn-setup', '📒': 'app-binder', '🛍️': 'nav-shop', '💰': 'icon-cash', '🎟️': 'ticket-flash', '🎰': 'casino-machine', '📰': 'bld-kiosque', '⛏️': 'ic-pickaxe', '🌡️': 'ic-heat', '🎯': 'ic-target', '🔓': 'ic-unlock' };
+  const coachIc = e => ico(COACH_IC[e] || '', e);
   function coach() {
     const s = st(), L = [], add = (p, ic, t, d, go, now) => L.push({ p, ic, t, d, go, now: !!now });
     const rw = G.questsReady() + G.chalReady() + G.weekReady();
@@ -330,14 +334,14 @@
   function showNextTip(n) {
     const t = $('#next-tip'); if (!t || modalOpen() || phoneOpen() || (window.TUTO && TUTO.active)) return;
     tipLast = Date.now();
-    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>${n.ic} ${n.t}</b><small>${n.d}</small></span>`;
+    t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>${coachIc(n.ic)} ${n.t}</b><small>${n.d}</small></span>`;
     t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
   }
   let coachList = [];
   function coachBody() {
     coachList = coach().slice(0, 4);
     return `<div class="coach-top"><span class="t-who">${pic('guide', '🧢')}</span><p><b>Momo</b>Voilà ce que je ferais à ta place, dans l'ordre :</p></div>` +
-      coachList.map((c, i) => `<div class="card coach-step ${c.now ? 'now' : ''}"><span class="cs-ic">${c.ic}</span><div class="grow"><b>${c.t}</b><small>${c.d}</small></div><button class="btn sm ${i === 0 ? 'green' : 'blue'}" data-act="coachGo" data-i="${i}">Y aller</button></div>`).join('');
+      coachList.map((c, i) => `<div class="card coach-step ${c.now ? 'now' : ''}"><span class="cs-ic">${coachIc(c.ic)}</span><div class="grow"><b>${c.t}</b><small>${c.d}</small></div><button class="btn sm ${i === 0 ? 'green' : 'blue'}" data-act="coachGo" data-i="${i}">Y aller</button></div>`).join('');
   }
   function goNextBuy() {
     nextClicked = true; $('#btn-next .badge')?.classList.add('hidden'); $('#btn-next')?.classList.remove('glow');
@@ -468,7 +472,7 @@
     if (ph === 'over') return 'Terminé';
     const m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
     const left = d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min ${String(Math.floor(t / 1000) % 60).padStart(2, '0')}`;
-    return ph === 'before' ? `Commence dans ${left}` : `⏱ Encore ${left}`;
+    return ph === 'before' ? `Commence dans ${left}` : `${ico('ic-timer', '⏱')} Encore ${left}`;
   }
   function renderCity() {
     const s = st(), inner = $('#map-inner');
@@ -846,7 +850,7 @@
   // bulle de l'objet PrivéFans (ordi portable sur le lit) : ce qu'il y a à encaisser, ou une alerte
   function agBubble() {
     const A_ = window.AGENCE; if (!A_ || !A_.unlocked()) return '';
-    if (A_.offer()) return `<button class="obj-bubble hot" data-act="agence"><span><b>📩 Elle hésite à partir</b><small>Touche vite</small></span></button>`;
+    if (A_.offer()) return `<button class="obj-bubble hot" data-act="agence"><span><b>${ico('app-msg', '📩')} Elle hésite à partir</b><small>Touche vite</small></span></button>`;
     const p = A_.pending(), me = (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g === 'f';
     if (!st().agence || !st().agence.crew.length) return `<button class="obj-bubble" data-act="agence"><span><small>PrivéFans</small><b>${me ? 'Lance ta page' : 'Ouvre ton agence'}</b></span></button>`;
     return `<button class="obj-bubble ${p >= 1 ? 'up' : ''}" data-act="agence"><span><small>PrivéFans</small><b>${p >= 1 ? `+${short(p)} à encaisser` : 'Ouvrir'}</b></span></button>`;
@@ -898,8 +902,8 @@
     }).join('');
     // bulle de la machine : ce qu'il y a dedans (en billets) et la chaleur ; on la vide d'un geste
     const rigBubble = rig.idle ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>À l'arrêt</b><small>Choisis quoi miner</small></span></button>`
-      : rig.ready ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>⛏️ Récolte prête !</b><small>Touche pour voir</small></span></button>`
-      : `<button class="obj-bubble ${rig.burnt ? 'down' : rig.heat >= 80 ? 'hot' : ''}" data-act="rigQuick"><i class="ring" style="--p:${Math.round(rig.pct * 100)}"></i><span><b>${rig.burnt ? '💥 Surchauffe' : rig.heat >= 80 ? `🌡️ ${Math.round(rig.heat)} % : refroidis !` : G.coin(rig.run.id).name}</b><small>Fini dans ${mmss(rig.left)}</small></span></button>`;
+      : rig.ready ? `<button class="obj-bubble hot" data-act="rigQuick"><span><b>${ico('ic-pickaxe', '⛏️')} Récolte prête !</b><small>Touche pour voir</small></span></button>`
+      : `<button class="obj-bubble ${rig.burnt ? 'down' : rig.heat >= 80 ? 'hot' : ''}" data-act="rigQuick"><i class="ring" style="--p:${Math.round(rig.pct * 100)}"></i><span><b>${rig.burnt ? `${ico('ic-burn', '💥')} Surchauffe` : rig.heat >= 80 ? `${ico('ic-heat', '🌡️')} ${Math.round(rig.heat)} % : refroidis !` : G.coin(rig.run.id).name}</b><small>Fini dans ${mmss(rig.left)}</small></span></button>`;
     // bulle du PC : ce que valent tes cryptos, gagné ou perdu
     const cv = G.cryptoValue(), cc = D.COINS.reduce((a, c) => a + (s.crypto.hold[c.id] > 0 ? s.crypto.cost[c.id] : 0), 0), diff = cv - cc;
     const pcBubble = cv >= .01
@@ -940,6 +944,7 @@
   // humeur du marché présentée comme une météo
   const WEATHER = { calm: ['☁️', 'Calme', 'Les prix bougent peu.'], bull: ['☀️', 'Ça monte', 'La tendance est à la hausse. Ça zigzague quand même : une baisse de quelques minutes, c\'est normal.'], bear: ['🌧️', 'Ça baisse', 'La tendance est à la baisse, doucement. Quelques remontées, mais ça descend sur la durée.'],
     fomo: ['🚀', 'Folie', 'Tout le monde achète, ça s\'envole… et ça peut retomber d\'un coup.'], krach: ['⛈️', 'Panique', 'Tout s\'effondre. Certains en profitent pour acheter pas cher.'] };
+  const wxIc = id => ico('wx-' + (WEATHER[id] ? id : 'calm'), (WEATHER[id] || WEATHER.calm)[0]);
   function sparkSvg(h, w = 64, hgt = 28, color) {
     if (h.length < 2) return '';
     const mn = Math.min(...h), mx = Math.max(...h), r = mx - mn || 1;
@@ -966,8 +971,8 @@
   }
   function cryptoBody() {
     const s = st(), m = G.mood(), w = WEATHER[m.id] || WEATHER.calm;
-    const weather = `<div class="weather w-${m.id}" data-act="moodInfo"><span class="w-ic">${w[0]}</span><div><small>La météo du marché</small><b>${w[1]}</b><p>${w[2]} Change dans ${mmss(s.crypto.moodUntil - Date.now())}.</p></div></div>`;
-    const ct = G.tipBought('crypto'), tipBox = ct ? `<div class="tip-banner">📰 <span><b>Ton tuyau du Kiosque</b>« ${esc(ct.txt)} »</span></div>` : '';
+    const weather = `<div class="weather w-${m.id}" data-act="moodInfo"><span class="w-ic">${wxIc(m.id)}</span><div><small>La météo du marché</small><b>${w[1]}</b><p>${w[2]} Change dans ${mmss(s.crypto.moodUntil - Date.now())}.</p></div></div>`;
+    const ct = G.tipBought('crypto'), tipBox = ct ? `<div class="tip-banner">${ico('tip-crypto', '📰')} <span><b>Ton tuyau du Kiosque</b>« ${esc(ct.txt)} »</span></div>` : '';
     if (cryptoView === 'list') {
       const cv = G.cryptoValue(), cc = D.COINS.reduce((a, c) => a + (s.crypto.hold[c.id] > 0 ? s.crypto.cost[c.id] : 0), 0);
       const list = D.COINS.map(k => {
@@ -1025,7 +1030,7 @@
   }
   function traderCard() {
     const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal, n = D.PCX.trader.lingots + Math.floor(st().lvl / 3);
-    return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">🎯</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
+    return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">${ico('ic-target', '🎯')}</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
       ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div><small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}
       <p class="rw-get">Tu gagnes ${chips(0, n)}</p></div>
       ${tr.claimed ? '<span class="rw-done">✓ Déjà récupéré</span>' : done ? '<button class="btn green sm" data-act="traderClaim">Réclamer</button>' : ''}</div>`;
@@ -1033,16 +1038,16 @@
   function flashBanner() {
     const s = st(), f = s.crypto.flash; if (!f) return '';
     const c = G.coin(f.id);
-    if (!f.applied) return `<div class="flash-banner soon"><span class="fb-ic">🔔</span><div class="grow"><b>Ton PC a repéré un mouvement sur ${c.name}</b><small>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</small></div><button class="btn xs blue" data-act="coinSel" data-id="${f.id}">Voir</button></div>`;
+    if (!f.applied) return `<div class="flash-banner soon"><span class="fb-ic">${ico('ic-bell', '🔔')}</span><div class="grow"><b>Ton PC a repéré un mouvement sur ${c.name}</b><small>Ça va bouger dans ${mmss(f.at - Date.now())}. Prépare-toi !</small></div><button class="btn xs blue" data-act="coinSel" data-id="${f.id}">Voir</button></div>`;
     const hold = s.crypto.hold[f.id] || 0, val = hold * s.crypto.prices[f.id], net = val * (1 - G.fee()), gain = net - (s.crypto.cost[f.id] || 0);
     // à la hausse on propose de vendre ; à la baisse, on propose d'acheter pas cher (vendre au creux n'a pas de sens)
     const sell = f.up && hold > 0 && val >= .01 ? `<button class="btn xs ${gain >= 0 ? 'green' : 'red'} fb-sell" data-act="flashSell"><span>Vendre · +${short(net)}</span><small>${gain >= 0 ? `gagné +${short(gain)}` : `perdu ${short(gain)}`}</small></button>` : '';
-    return `<div class="flash-banner ${f.up ? 'up' : 'down'}"><span class="fb-ic">⚡</span><div class="grow"><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b><small>${f.up ? (hold > 0 ? 'Vends avant que ça retombe' : 'Ça va sûrement retomber') : 'Ça plonge : acheter pas cher ?'} · encore ${mmss(f.back - Date.now())}</small></div>
+    return `<div class="flash-banner ${f.up ? 'up' : 'down'}"><span class="fb-ic">${ico('icon-bolt', '⚡')}</span><div class="grow"><b>${c.name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !</b><small>${f.up ? (hold > 0 ? 'Vends avant que ça retombe' : 'Ça va sûrement retomber') : 'Ça plonge : acheter pas cher ?'} · encore ${mmss(f.back - Date.now())}</small></div>
       ${sell || `<button class="btn xs blue" data-act="coinSel" data-id="${f.id}">${f.up ? 'Voir' : 'Acheter'}</button>`}</div>`;
   }
   function coinNewsHtml(c) {
     const L = (st().crypto.news || []).filter(n => n.id === c.id).slice(0, 3);
-    return `<h3 class="sec">Les actus ${de(c.name)}</h3>${L.length ? L.map(n => `<div class="card cn-item ${n.until > Date.now() ? 'live' : 'old'}"><div class="cn-src"><b>${n.src}</b><span class="cn-rel r-${n.rel === 'Sérieux' ? 1 : n.rel === 'Moyen' ? 2 : 3}">${n.rel}</span><small>${ago(n.t)}</small></div><p>${n.said ? '📈' : '📉'} ${esc(n.txt)}</p>
+    return `<h3 class="sec">Les actus ${de(c.name)}</h3>${L.length ? L.map(n => `<div class="card cn-item ${n.until > Date.now() ? 'live' : 'old'}"><div class="cn-src"><b>${n.src}</b><span class="cn-rel r-${n.rel === 'Sérieux' ? 1 : n.rel === 'Moyen' ? 2 : 3}">${n.rel}</span><small>${ago(n.t)}</small></div><p>${n.said ? ico('ic-up', '📈') : ico('ic-down', '📉')} ${esc(n.txt)}</p>
         ${n.until > Date.now() ? '' : `<small class="cn-verdict ${n.said === n.real ? 'up' : 'down'}">${n.said === n.real ? '✓ C\'était vrai' : '✗ C\'était faux'}</small>`}</div>`).join('') : '<p class="hint-line">Pas d\'actu pour l\'instant. Elles tombent toutes les 10 min environ.</p>'}`;
   }
   function ordersHtml(c, hold) {
@@ -1051,7 +1056,7 @@
     const row = (t, label, opts) => { const o = has_(t);
       return `<div class="ord-row"><span>${label}</span>${o ? `<b>${o.pct > 0 ? '+' : '−'}${Math.round(Math.abs(o.pct) * 100)} % ✓ <small class="muted">(${o.type === 'buy' ? `${short(o.eur)} à ` : 'à '}${coinPx(o.price)})</small></b><button class="btn xs red" data-act="ordCancel" data-t="${t}">Annuler</button>`
         : opts.map(v => `<button class="btn xs blue" data-act="ordAdd" data-t="${t}" data-p="${v}" ${t !== 'buy' && !(hold > 0) ? 'disabled' : ''}>${v > 0 ? '+' : ''}${Math.round(v * 100)} %</button>`).join('')}</div>`; };
-    return `<h3 class="sec">Ordres automatiques</h3>${lock ? `<div class="explain">🔒 Avec le <b>PC gamer</b>, ton PC achète et vend tout seul quand le prix atteint ce que tu veux, même quand tu n'es pas là.</div>`
+    return `<h3 class="sec">Ordres automatiques</h3>${lock ? `<div class="explain">${ico('icon-lock', '🔒')} Avec le <b>PC gamer</b>, ton PC achète et vend tout seul quand le prix atteint ce que tu veux, même quand tu n'es pas là.</div>`
       : `<div class="card orders"><p class="hint-line">Ton PC le fait tout seul quand le prix y arrive, même si tu n'es pas là.</p>
         ${row('take', 'Tout vendre s\'il monte de', [.1, .25, .5])}${row('stop', 'Tout vendre s\'il baisse de', [-.1, -.2])}${row('buy', `Acheter ${short(Math.min(50, Math.floor(s.cash)) || 0)} s'il baisse de`, [-.1, -.2])}</div>`}`;
   }
@@ -1077,34 +1082,34 @@
   const coinQty = q => q >= 100 ? Math.round(q).toLocaleString('fr-FR') : q >= 1 ? q.toFixed(2).replace('.', ',') : q.toPrecision(3).replace('.', ',');
   const deC = n => /^[AEIOUYÉ]/i.test(n) ? `d'${n}` : `de ${n}`;
   const coinPic = id => has('coin-' + id) ? `<img src="${src('coin-' + id)}" alt="">` : `<b>${G.coin(id).sym}</b>`;
-  const flames = n => '🔥'.repeat(Math.max(1, Math.min(4, Math.ceil(n))));
+  const flames = n => ico('ic-flame', '🔥').repeat(Math.max(1, Math.min(4, Math.ceil(n))));
   function minePicker() {
     const s = st();
     return `<h3 class="sec">Choisis quoi miner</h3><div class="mine-grid">${D.MINE.map(o => {
       const c = G.coin(o.id), lock = s.rig.lvl < o.need, lv = Math.max(s.rig.lvl, o.need), est = G.powerH(lv) * o.min / 60 * o.mult, maxHeat = o.heat * o.min / D.RIG[lv].heatMin;
       const cools = Math.max(0, Math.ceil((maxHeat - 1) / .5));
       return `<div class="card mine-opt ${lock ? 'locked' : ''}"><span class="mo-coin">${coinPic(o.id)}</span><b>${c.name}</b><small class="mo-tag">${o.tag}</small>
-        <div class="mo-row"><span>⏱️ ${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}</span><span>💰 ≈ ${short(est)}</span></div>
+        <div class="mo-row"><span>${ico('ic-timer', '⏱️')} ${o.min < 60 ? o.min + ' min' : o.min / 60 + ' h'}</span><span>${ico('icon-cash', '💰')} ≈ ${short(est)}</span></div>
         <div class="mo-row"><span title="Chaleur">${flames(maxHeat * 2)}</span><span>${cools ? `À refroidir ×${cools}` : 'Ne chauffe pas'}</span></div>
-        ${lock ? `<button class="btn xs" disabled>🔒 Machine niv. ${o.need + 1}</button>` : `<button class="btn xs green" data-act="mineStart" data-id="${o.id}">Miner</button>`}</div>`;
+        ${lock ? `<button class="btn xs" disabled>${ic('lock')} Machine niv. ${o.need + 1}</button>` : `<button class="btn xs green" data-act="mineStart" data-id="${o.id}">Miner</button>`}</div>`;
     }).join('')}</div><p class="hint-line">Ce que tu mines est payé au <b>cours du moment</b> à la récolte : si la crypto monte pendant ce temps, tu gagnes plus. Les cryptos « tout ou rien » peuvent rapporter le double… ou presque rien.</p>`;
   }
   function mineRunning(i) {
     const c = G.coin(i.run.id), heat = Math.min(100, Math.round(i.heat));
     return `<div class="mine-run ${i.burnt ? 'burnt' : ''}"><div class="mr-coin"><i class="ring big" style="--p:${Math.round(i.pct * 100)}"></i>${coinPic(i.run.id)}</div>
         <div><b>Minage ${deC(c.name)}</b><small>Fini dans <strong>${mmss(i.left)}</strong></small><small>Déjà ≈ ${short(i.value)} (au cours du moment)</small></div></div>
-      <div class="gauge"><div class="g-lbl"><span>🌡️ Chaleur</span><b class="${heat >= 80 ? 'down' : ''}">${i.burnt ? 'Surchauffe !' : heat + ' %'}</b></div><div class="g-bar heat ${heat >= 80 ? 'hot' : ''}"><i style="width:${heat}%"></i></div></div>
-      ${i.burnt ? `<p class="mine-warn">💥 Elle a surchauffé : la récolte perdra ${Math.round(D.FINDS.burnt * 100)} % et un virus est plus probable. La prochaine fois, refroidis-la avant 100 %.</p>`
-        : `<button class="btn blue wide" data-act="mineCool" ${i.coolLeft > 0 ? 'disabled' : ''}>${i.coolLeft > 0 ? `💨 Le ventilo souffle… ${mmss(i.coolLeft)}` : '💨 Refroidir (−50 % de chaleur)'}</button>
+      <div class="gauge"><div class="g-lbl"><span>${ico('ic-heat', '🌡️')} Chaleur</span><b class="${heat >= 80 ? 'down' : ''}">${i.burnt ? 'Surchauffe !' : heat + ' %'}</b></div><div class="g-bar heat ${heat >= 80 ? 'hot' : ''}"><i style="width:${heat}%"></i></div></div>
+      ${i.burnt ? `<p class="mine-warn">${ico('ic-burn', '💥')} Elle a surchauffé : la récolte perdra ${Math.round(D.FINDS.burnt * 100)} % et un virus est plus probable. La prochaine fois, refroidis-la avant 100 %.</p>`
+        : `<button class="btn blue wide" data-act="mineCool" ${i.coolLeft > 0 ? 'disabled' : ''}>${i.coolLeft > 0 ? `${ico('ic-fan', '💨')} Le ventilo souffle… ${mmss(i.coolLeft)}` : `${ico('ic-fan', '💨')} Refroidir (−50 % de chaleur)`}</button>
            <p class="hint-line center" style="margin-top:4px">À 100 %, elle surchauffe : la récolte en prend un coup. Passe la refroidir de temps en temps.</p>`}
-      <button class="btn gold wide mine-skip" data-act="mineSkip" ${st().lingots >= G.mineSkipCost() ? '' : 'disabled'}>⚡ Finir maintenant · ${ic('lingot')}${G.mineSkipCost()}</button>`;
+      <button class="btn gold wide mine-skip" data-act="mineSkip" ${st().lingots >= G.mineSkipCost() ? '' : 'disabled'}>${ico('icon-bolt', '⚡')} Finir maintenant · ${ic('lingot')}${G.mineSkipCost()}</button>`;
   }
   function rigBody() {
     const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
     const top = `<div class="rig-top">${pic(img(s.rig.lvl), EMO.rig)}<div><b>${i.r.name}</b><small>Machine niveau ${s.rig.lvl + 1} / ${D.RIG.length} · puissance ≈ ${short(i.perHour)} par heure</small></div></div>`;
     const main = i.idle ? minePicker()
       : i.ready ? `<div class="mine-ready"><span class="mr-coin pop">${coinPic(i.run.id)}</span><b>Ton minage ${deC(G.coin(i.run.id).name)} est fini !</b><small>Qu'est-ce qu'il y a dedans ?</small>
-          <button class="btn green wide big-act pulse" data-act="mineHarvest">⛏️ Récolter</button></div>`
+          <button class="btn green wide big-act pulse" data-act="mineHarvest">${ico('ic-pickaxe', '⛏️')} Récolter</button></div>`
       : mineRunning(i);
     const up = nx ? `<h3 class="sec">Améliorer ta machine</h3><div class="card up-card"><div class="up-img">${pic(img(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><b>${nx.nx.name}</b>
         <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus puissante, elle chauffe moins, et elle débloque ${D.MINE.filter(o => o.need === s.rig.lvl + 1).map(o => G.coin(o.id).name).join(' et ') || 'plus de trouvailles'}.</p>
@@ -1121,13 +1126,14 @@
     wallet: ['👛', 'Un vieux portefeuille !', n => `Un portefeuille crypto oublié : ≈ ${short(n)} d'Axion en plus, rangés dans ton PC.`],
     virus: ['🦠', 'Un virus !', 'Un virus s\'est glissé dans ta machine : −40 % sur la récolte.']
   };
+  const FIND_IMG = { gold: 'cat-gold', lingots: 'icon-lingot', card: 'card-back', wallet: 'nav-wallet', virus: 'ic-virus' };
   function showHarvest(r) {
     const c = G.coin(r.id), f = r.find && FIND_TXT[r.find.kind];
     const fTxt = f ? (typeof f[2] === 'function' ? f[2](r.find.kind === 'card' ? r.find : r.find.n) : f[2]) : '';
     openModal({ title: 'Récolte', icon: 'bolt', center: true, body: `<div class="harvest">
         <span class="hv-coin">${coinPic(r.id)}</span><small>Minage ${deC(c.name)} terminé</small>
-        <b class="hv-amt stroke">+${coinQty(r.amt)} ${c.sym}</b><small class="hv-val">≈ ${short(r.value)} au cours du moment · rangé dans ton PC</small>${r.burnt ? '<p class="mine-warn">💥 Surchauffe : −35 % sur cette récolte.</p>' : ''}
-        ${f ? `<div class="hv-find ${r.find.kind}"><span>${f[0]}</span><div><b>${f[1]}</b><small>${fTxt}</small></div></div>` : '<p class="hint-line center">Pas de trouvaille cette fois. La prochaine, peut-être…</p>'}
+        <b class="hv-amt stroke">+${coinQty(r.amt)} ${c.sym}</b><small class="hv-val">≈ ${short(r.value)} au cours du moment · rangé dans ton PC</small>${r.burnt ? `<p class="mine-warn">${ico('ic-burn', '💥')} Surchauffe : −35 % sur cette récolte.</p>` : ''}
+        ${f ? `<div class="hv-find ${r.find.kind}"><span>${ico(FIND_IMG[r.find.kind] || '', f[0])}</span><div><b>${f[1]}</b><small>${fTxt}</small></div></div>` : '<p class="hint-line center">Pas de trouvaille cette fois. La prochaine, peut-être…</p>'}
         <button class="btn gold wide" data-act="hvSell" data-id="${r.id}" data-q="${r.amt}">Vendre tout de suite · +${short(r.value * (1 - G.fee()))}</button>
         <p class="hint-line center" style="margin:2px 0 6px">Ou garde-la : si ${c.name} monte, ta récolte vaudra plus.</p>
         <div class="grid2"><button class="btn" data-act="coinSelPc" data-id="${r.id}">Voir sur mon PC</button><button class="btn green" data-act="rig">Relancer un minage</button></div></div>` });
@@ -1149,8 +1155,8 @@
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
   const appIcon = (a, cls = '') => `<i class="ph-ic ${cls}" style="--bg:${a.bg}">${has(a.img) ? `<img src="${src(a.img)}" alt="">` : a.emo}</i>`;
-  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: '' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: '' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: '' } };
-  const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: '' });
+  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: 'bld-six' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: 'icon-bolt' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: 'bld-kiosque' } };
+  const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: 'app-infos' });
   const notifs = () => (st().notifs = st().notifs || []);
   function notify(app, title, txt, act, quiet, thread, img) {
     const n = { id: Date.now() + Math.random(), t: Date.now(), app, title, txt, act, thread, img: img || (thread && chats()[thread] && chats()[thread].img), seen: false, read: false };
@@ -1242,7 +1248,7 @@
       return head('Appart\'Immo') + `<div class="ph-scroll"><p class="ph-hint">Des annonces près de chez toi. Plus grand = plus de place pour exposer ta collection.</p>` +
         D.ROOMS.map((r, i) => { const img = has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i, mine = i === s.room, past = i < s.room, price = G.cost(r.cost);
           return `<div class="ph-ad ${mine ? 'mine' : ''}"><div class="ph-photo" style="background-image:url(${src(img)})">${mine ? '<span class="ph-tag">Chez toi</span>' : ''}</div>
-            <div class="ph-ad-txt"><b>${r.name}</b><small>${r.desc}</small><small>📦 ${r.slots} places pour tes objets</small></div>
+            <div class="ph-ad-txt"><b>${r.name}</b><small>${r.desc}</small><small>${ico('ic-shelf', '📦')} ${r.slots} places pour tes objets</small></div>
             ${i === s.room + 1 && s.cash < price ? mixBtn(price, 'roomUpL') : ''}
             <div class="ph-ad-foot"><b>${r.cost ? short(price) : 'Ton premier chez-toi'}</b>${mine || past ? '' : `<button class="btn xs ${i === s.room + 1 && s.cash >= price ? 'green' : ''}" data-act="roomUp" ${i === s.room + 1 && s.cash >= price ? '' : 'disabled'}>${i === s.room + 1 ? 'Emménager' : 'Plus tard'}</button>`}</div></div>`; }).join('') + '</div>';
     }
@@ -1263,7 +1269,7 @@
     const recent = notifs().filter(n => !n.read).slice(0, 2);
     return `<div class="ph-home" style="${has('phone-wall') ? `background-image:url(${src('phone-wall')})` : ''}">${status}
       <div class="ph-clock">${hh}</div><small class="ph-date">${now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</small>
-      ${recent.length ? `<div class="ph-stack">${recent.map(notifCard).join('')}<button class="ph-all" data-act="phoneApp" data-id="notifs">Toutes les notifications (${notifs().length})</button></div>` : `<button class="ph-all solo" data-act="phoneApp" data-id="notifs">🔔 Notifications</button>`}
+      ${recent.length ? `<div class="ph-stack">${recent.map(notifCard).join('')}<button class="ph-all" data-act="phoneApp" data-id="notifs">Toutes les notifications (${notifs().length})</button></div>` : `<button class="ph-all solo" data-act="phoneApp" data-id="notifs">${ico('app-infos', '🔔')} Notifications</button>`}
       <div class="ph-apps">${APPS.map(a => { const n = appBadge(a.id); return `<button class="ph-app" data-act="phoneApp" data-id="${a.id}">${appIcon(a)}<span>${a.name}</span>${n ? `<em class="badge ok">${n > 9 ? '9+' : n}</em>` : ''}</button>`; }).join('')}</div></div>`;
   }
   function openChat(name) { const c = chats()[name]; if (!c) return openPhone('msg'); chatOpen = name; c.unread = 0; if (!phoneOpen()) openPhone('chat'); else { phoneApp = 'chat'; drawPhone(); } const sc = $('#phone-layer .ph-scroll'); if (sc) sc.scrollTop = sc.scrollHeight; }
@@ -1344,7 +1350,7 @@
     const spots = C.spots.map(p => { const done = c.done[p.id];
       return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico('ic-club-' + p.id, p.icon)} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
     return `<div class="club-room">${has('club-room') ? `<img class="cr-bg" src="${src('club-room')}" alt="">` : '<div class="cr-bg neon"><i class="ball"></i><i class="floor"></i></div>'}${spots}
-        <div class="club-timer">${placing ? '🛠️ Fais glisser les zones (− / + pour la taille), puis Publier' : `🎉 Soirée : <b>${mmss(left)}</b>${c.dj ? ' · 🎧 ton son passe' : ''}`}</div></div>
+        <div class="club-timer">${placing ? `${ico('btn-setup', '🛠️')} Fais glisser les zones (− / + pour la taille), puis Publier` : `${ico('hab-club', '🎉')} Soirée : <b>${mmss(left)}</b>${c.dj ? ` · ${ico('ic-club-dj', '🎧')} ton son passe` : ''}`}</div></div>
       ${placing ? '<div class="grid2" style="margin-top:8px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>' : ''}
       <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${ico('ic-club-' + p.id, p.icon)}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
       <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
@@ -1406,8 +1412,8 @@
     if (g.lingots) out.push(`<span class="gc gc-l">${ic('lingot')}<b>${g.lingots.toLocaleString('fr-FR')}</b></span>`);
     if (g.boosters) out.push(`<span class="gc gc-b">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>×${g.boosters}</b></span>`);
     if (g.cash) out.push(`<span class="gc gc-c">${ic('cash')}<b>${short(g.cash, true)}</b></span>`);
-    if (g.rig) out.push('<span class="gc gc-r">⚡<b>Machine niv. 2</b></span>');
-    if (g.noAds) out.push('<span class="gc gc-n">🚫<b>Plus de pub imposée</b></span>');
+    if (g.rig) out.push(`<span class="gc gc-r">${ico('rigv-2', '⚡')}<b>Machine niv. 2</b></span>`);
+    if (g.noAds) out.push(`<span class="gc gc-n">${ico('pack-noads', '🚫')}<b>Plus de pub imposée</b></span>`);
     if (g.passDays) out.push(`<span class="gc">${ic('lingot')}<b>+15 / jour</b></span>`, `<span class="gc">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}<b>+1 / jour</b></span>`);
     if (g.skin) out.push(`<span class="gc gc-s">${has('skin-' + g.skin) ? `<img src="${src('skin-' + g.skin)}" alt="">` : '👑'}<b>Skin Gold</b></span>`);
     return out.join('');
@@ -1442,10 +1448,10 @@
     const badge = p ? (p.off ? `−${p.off} %` : `+${p.bonus} %`) : '';
     return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
       ${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
-      ${p && p.season ? `<span class="sh2-for"><i>★</i>Spécial ${p.season.name}</span>` : `<span class="sh2-for"><i>★</i>Rien que pour toi<em>${o.why}</em></span>`}
+      ${p && p.season ? `<span class="sh2-for"><i>${ico('icon-star', '★')}</i>Spécial ${p.season.name}</span>` : `<span class="sh2-for"><i>${ico('icon-star', '★')}</i>Rien que pour toi<em>${o.why}</em></span>`}
       <div class="sh2-row"><div class="sh2-art" style="--ad:-${Date.now() % 3200}ms">${offerArt(x)}${badge ? `<span class="sh2-badge">${badge}</span>` : ''}</div>
         <div class="sh2-info"><b>${p ? p.title : x.name}</b><small>${p ? p.desc : o.sub || x.desc || ''}</small><div class="give-chips">${giveChips(x)}</div></div></div>
-      <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>⏱ Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
+      <div class="sh2-buy">${priceBtn(x, p, 'green big')}${p ? `<small>${ico('ic-timer', '⏱')} Finit dans ${leftTxt(promoLeft())}</small>` : x.once ? '<small>Une seule fois par compte</small>' : ''}</div></div>`;
   }
   // carte « regarder une pub » : récompense en lingots, quelques fois par jour
   function adCard() {
@@ -1500,7 +1506,7 @@
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
       const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
       const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${used ? 'Ranger' : 'Poser en ville'}</button>`
-        : lock ? `<button class="btn xs" disabled>🔒 Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
+        : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
       return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
     // looks du quartier : en haut de l'onglet, avec un aperçu de la ville
     const own = G.looksOwned(), cur = s.cityLook || 'base';
@@ -1511,7 +1517,7 @@
       // look en vente limitée : un compte à rebours à la place de « Spécial » ; passé la date, il n'est plus en vente (ceux qui l'ont le gardent)
       const left = L.until ? Date.parse(L.until) - Date.now() : 0, gone = L.until && left <= 0 && !has_;
       if (gone) return '';
-      const tag = L.until && !has_ ? `<span class="lk-tag">⏱ ${left > 864e5 ? `Encore ${Math.ceil(left / 864e5)} j` : `Encore ${Math.max(1, Math.ceil(left / 36e5))} h`}</span>` : '';
+      const tag = L.until && !has_ ? `<span class="lk-tag">${ico('ic-timer', '⏱')} ${left > 864e5 ? `Encore ${Math.ceil(left / 864e5)} j` : `Encore ${Math.max(1, Math.ceil(left / 36e5))} h`}</span>` : '';
       return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${tag}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})"></div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
     return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
       <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
@@ -1573,11 +1579,11 @@
     // en haut : le compte à rebours du prochain journal, bien visible, et comment un tuyau fait gagner
     const leftMs = G.editionLeft(), ED = D.KIOSK.editionMin * 60000;
     return `<div class="kiosk-hero">
-        <div class="kh-row"><div class="kh-clock"><span class="kh-ic">📰</span><div class="grow"><small>Prochain journal</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
+        <div class="kh-row"><div class="kh-clock"><span class="kh-ic">${ico('bld-kiosque', '📰')}</span><div class="grow"><small>Prochain journal</small><b>${mmss(leftMs)}</b><div class="kh-bar"><i style="width:${Math.round((1 - leftMs / ED) * 100)}%"></i></div></div></div>
           <button class="btn gold sm kh-now" data-act="kRefresh" ${s.lingots >= D.LINGOT.kiosk ? '' : 'disabled'}><span>Tout de suite</span><span>${ic('lingot')}${D.LINGOT.kiosk}</span></button></div>
-        <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>📰</b><small>le tuyau</small></div><span class="pe-arr">→</span>
-          <div class="pe-box mid"><small>2. Tu mises</small><b>⚽</b><small>dans son sens</small></div><span class="pe-arr">→</span>
-          <div class="pe-box sell"><small>3. Tu gagnes</small><b>💰</b><small>plus souvent</small></div></div>
+        <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>${ico('bld-kiosque', '📰')}</b><small>le tuyau</small></div><span class="pe-arr">→</span>
+          <div class="pe-box mid"><small>2. Tu mises</small><b>${ico('ic-sport-foot', '⚽')}</b><small>dans son sens</small></div><span class="pe-arr">→</span>
+          <div class="pe-box sell"><small>3. Tu gagnes</small><b>${ico('icon-cash', '💰')}</b><small>plus souvent</small></div></div>
         <small class="pe-foot">Juste un peu plus souvent que le hasard : ne mise jamais tout.</small></div>` +
       D.KIOSK.tips.map(t => {
         const b = G.tipBought(t.id), lock = s.lvl < (t.lvl || 1);
@@ -1663,10 +1669,10 @@
         const good = L.filter(m => m.ok).length, isOpen = sixPastOpen.has(d);
         return past.unshift(`<div class="sx-pday ${isOpen ? 'open' : ''}"><button class="sx-pline" data-act="sixPast" data-d="${d}"><b>Journée ${d}</b><span>${good} / ${L.length} bons pronos</span><em>+${good * S.pts} pts</em><i>${isOpen ? '▾' : '▸'}</i></button>${isOpen ? `<div class="sx-past">${L.map(pastRow).join('')}</div>` : ''}</div>`);
       }
-      if (d === cur) return today.push(`<div class="sx-today"><div class="sx-today-h"><b>🏉 Journée ${d}</b><small>${fDay(L[0].kickoff)}</small></div>${L.filter(m => m.state !== 'done').map(card).join('')}${L.some(m => m.state === 'done') ? `<div class="sx-past">${L.filter(m => m.state === 'done').map(pastRow).join('')}</div>` : ''}</div>`);
+      if (d === cur) return today.push(`<div class="sx-today"><div class="sx-today-h"><b>${ico('bld-six', '🏉')} Journée ${d}</b><small>${fDay(L[0].kickoff)}</small></div>${L.filter(m => m.state !== 'done').map(card).join('')}${L.some(m => m.state === 'done') ? `<div class="sx-past">${L.filter(m => m.state === 'done').map(pastRow).join('')}</div>` : ''}</div>`);
       upcoming.push(`<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`);
     });
-    const lockTxt = locked.length ? `<div class="sx-locked">🔒 ${locked.length > 1 ? `Journées ${locked[0]} à ${locked[locked.length - 1]}` : `Journée ${locked[0]}`} : ${locked.length > 1 ? 'elles s\'ouvrent' : 'elle s\'ouvre'} une par une, quand la précédente est finie.</div>` : '';
+    const lockTxt = locked.length ? `<div class="sx-locked">${ico('icon-lock', '🔒')} ${locked.length > 1 ? `Journées ${locked[0]} à ${locked[locked.length - 1]}` : `Journée ${locked[0]}`} : ${locked.length > 1 ? 'elles s\'ouvrent' : 'elle s\'ouvre'} une par une, quand la précédente est finie.</div>` : '';
     const how = `<button class="sx-how" data-act="sixHow">${sixHowOpen ? '▾' : '▸'} Comment ça marche ?</button>${sixHowOpen ? `<p class="hint-line">Pronos <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d'envoi. Bon prono = <b>${S.pts} points</b> et <b>+${S.lingotPerGood} lingot</b>. La <b>forme</b> : V = victoire, N = nul, D = défaite. Les rumeurs sont vraies… une fois sur deux.</p>` : ''}`;
     return head + how + today.join('') + upcoming.join('') + lockTxt + (past.length ? `<h3 class="sec">Journées passées</h3>${past.join('')}` : '');
   }
@@ -1678,7 +1684,7 @@
     openModal({ title: 'Le Panneau', icon: 'star', center: true, body: `<div class="panneau-off">
       <div class="po-board">${has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`}</div>
       <b class="po-title">Pas d'événement en cours</b>
-      ${G.cdmPhase() === 'before' && G.cdmT()[0] === t ? `<p class="center po-cdm">🎃 <b>${D.CDM.name}</b> arrive pour Halloween : Zombies, Vampires, Démons ou Fantômes, tu choisiras ton camp !</p>` : ''}
+      ${G.cdmPhase() === 'before' && G.cdmT()[0] === t ? `<p class="center po-cdm">${ico('ic-ev-cdm', '🎃')} <b>${D.CDM.name}</b> arrive pour Halloween : Zombies, Vampires, Démons ou Fantômes, tu choisiras ton camp !</p>` : ''}
       <p class="center">${t ? `Reviens dans <b>${n} jour${n > 1 ? 's' : ''}</b> : le prochain commence le <b>${when}</b>.` : 'Le prochain arrive bientôt : il sera annoncé ici.'}</p>
       <p class="hint-line center">Tes pin's et tes cadres restent dans ton profil.</p></div>` });
   }
@@ -1688,12 +1694,12 @@
     const good = ms.filter(m => m.ok).length, played = ms.filter(m => m.pick != null).length, rw = G.sixReward(fin.rank);
     const cards = D.ITEMS.filter(i => i.event === 'six'), got = cards.filter(i => (st().owned[i.id] || []).length).length;
     const sup = r => r === 1 ? 'er' : 'e';
-    const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${['🥇', '🥈', '🥉'][k]}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
+    const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${ico(['medal-gold', 'medal-silver', 'medal-bronze'][k], ['🥇', '🥈', '🥉'][k])}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${r.pts} pts</small></div>`).join('');
     openModal({ title: 'Tournoi terminé', icon: 'star', center: true, body: `<div class="six-recap">
       <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>${fin.rank ? `Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${info.total.toLocaleString('fr-FR')}` : `${G.sixPoints()} points`}</b></div></div>
       <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
       ${info.online ? `<h3 class="sec">Le podium des joueurs</h3><div class="rc-podium">${podium}</div>` : '<p class="hint-line center offline-line">Classement en direct indisponible hors ligne.</p>'}${me.rank > 3 ? `<p class="hint-line center">Toi : ${me.rank}<sup>${sup(me.rank)}</sup> avec ${me.pts} points.</p>` : ''}
-      <h3 class="sec">Le classement des équipes</h3><div class="six-board-list">${tab.map((t, k) => `<div class="sb-row ${k === 0 ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}${k === 0 ? ' 🏆' : ''}</span><b>${t.pts} pts</b></div>`).join('')}</div>
+      <h3 class="sec">Le classement des équipes</h3><div class="six-board-list">${tab.map((t, k) => `<div class="sb-row ${k === 0 ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}${k === 0 ? ` ${ico('icon-trophy', '🏆')}` : ''}</span><b>${t.pts} pts</b></div>`).join('')}</div>
       <h3 class="sec">Tes récompenses</h3><div class="rc-rew">${chips(0, rw.lingots + good * S.lingotPerGood, rw.boosters ? `<span class="need">${packArt(true)}${rw.boosters}</span>` : '')}<small>dont ${good * S.lingotPerGood} lingot${good > 1 ? 's' : ''} déjà gagnés avec tes bons pronos</small></div>
       <button class="btn green wide big" data-act="sixRecapOk">${fin.claimed ? 'Super !' : 'Récupérer mes récompenses'}</button>
       <p class="hint-line center">${champ ? `${champ.name} remporte le tournoi. ` : ''}Rendez-vous au prochain événement, sur le Panneau !</p></div>` });
@@ -1724,7 +1730,7 @@
   function cdmTimer() {
     if (G.cdmPhase() !== 'on') return 'Terminée';
     const t = G.cdmT()[1] - Date.now(), m = Math.max(0, Math.floor(t / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mn = m % 60;
-    return `🎃 Encore ${d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min`}`;
+    return `${ico('ic-ev-cdm', '🎃')} Encore ${d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min`}`;
   }
   // le Panneau habillé pour Halloween (dessiné en attendant l'image ev-cdm-board)
   function cdmBoardArt() {
@@ -1834,7 +1840,7 @@
   function openCdmRecap() {
     const S = G.cdmState(), f = S.final, T = G.cdmTeam(S.team), r = f.ok ? G.cdmReward(f.place) : null, sup = n => n === 1 ? 're' : 'e';
     const order = f.order.length ? `<h3 class="sec">Le classement final</h3><div class="six-board-list">${f.order.map((t, k) => { const x = G.cdmTeam(t.id);
-      return `<div class="sb-row ${t.id === S.team ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${cdmCrest(t.id, 'mini')}<span class="sb-nm">${x.name}${k === 0 ? ' 🏆' : ''}</span><b>${fmtN(t.total)} pts</b></div>`; }).join('')}</div>` : offLine();
+      return `<div class="sb-row ${t.id === S.team ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${cdmCrest(t.id, 'mini')}<span class="sb-nm">${x.name}${k === 0 ? ` ${ico('icon-trophy', '🏆')}` : ''}</span><b>${fmtN(t.total)} pts</b></div>`; }).join('')}</div>` : offLine();
     openModal({ title: 'Coupe des Morts terminée', icon: 'ic-ev-cdm', center: true, theme: 'cdm', body: `<div class="cdm-recap">
       <div class="rc-top"><span class="ch-cup">${f.place === 1 && has('ev-cdm-chest') ? `<img src="${src('ev-cdm-chest')}" alt="">` : cdmCup()}</span><div><small>${D.CDM.name}</small><b>${f.place ? `Les ${T.name} finissent ${f.place}<sup>${sup(f.place)}</sup> !` : `Merci d'avoir défendu les ${T.name} !`}</b></div></div>
       <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${fmtN(f.pts)}</b></span><span><small>Dans ton équipe</small><b>${f.rank ? `${f.rank}<sup>${f.rank === 1 ? 'er' : 'e'}</sup>` : '–'}</b></span><span><small>Bonbons gagnés</small><b>${S.candyAll}</b></span></div>
@@ -1900,14 +1906,14 @@
       : `<div class="grid2">${items.map(i => card(i)).join('')}</div>`;
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
     const buyEx = sale ? 89 : 105;
-    return `${mt ? `<div class="tip-banner">📰 <span><b>Ton tuyau du Kiosque</b>« ${esc(mt.txt)} »</span></div>` : ''}
+    return `${mt ? `<div class="tip-banner">${ico('tip-market', '📰')} <span><b>Ton tuyau du Kiosque</b>« ${esc(mt.txt)} »</span></div>` : ''}
       <div class="price-explain"><small class="pe-title">Comment on gagne de l'argent ici ?</small>
         <div class="pe-story"><div class="pe-box buy"><small>1. Tu achètes</small><b>${buyEx}<i class="cur"></i></b></div><span class="pe-arr">→</span>
           <div class="pe-box mid"><small>2. Son prix monte</small><b>130<i class="cur"></i></b></div><span class="pe-arr">→</span>
           <div class="pe-box sell"><small>3. Tu revends</small><b>117<i class="cur"></i></b></div></div>
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : ${SHOP_PLACES[shopPlace].who} te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
-      <div class="stock-chip">${ico('ic-truck', '🚚')}<span class="grow">Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</span><button class="btn gold xs" data-act="stockSkip" ${s.lingots >= G.stockSkipCost() ? '' : 'disabled'}>⚡ Maintenant · ${ic('lingot')}${G.stockSkipCost()}</button></div>
+      <div class="stock-chip">${ico('ic-truck', '🚚')}<span class="grow">Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</span><button class="btn gold xs" data-act="stockSkip" ${s.lingots >= G.stockSkipCost() ? '' : 'disabled'}>${ico('icon-bolt', '⚡')} Maintenant · ${ic('lingot')}${G.stockSkipCost()}</button></div>
       ${(pl => pl === 'safe' ? (nx => `<div class="shelf-chip ${G.safeCount() >= G.safeSlots() ? 'full' : ''}">${ico('ic-shelf', '🔐')} Ton coffre : <b>${G.safeCount()} / ${G.safeSlots()}</b> places${nx ? ` <button class="btn xs ${s.cash >= nx.cost ? 'green' : ''}" data-act="safeUp" ${s.cash >= nx.cost ? '' : 'disabled'}>${nx.name} · ${nx.slots} places · ${short(nx.cost)}</button>` : ''}</div>`)(D.SAFES[(s.safeLvl || 0) + 1])
         : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
         : pl === 'binder' ? `<div class="shelf-chip">${ico('ic-shelf', '🏠')} Les cartes vont dans ton classeur : aucune limite.</div>`
@@ -2156,7 +2162,7 @@
     const got = ALL.filter(c => (s.owned[c.id] || []).length).length;
     const val = CARD_ALL.reduce((a, c) => a + (s.owned[c.id] || []).length * G.sellPrice(c.id), 0);
     const nCrea = CARD_ALL.filter(c => colOf(c) === 'crea').length;
-    let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ic('trophy')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">🐲 Créatures</button></div>
+    let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ic('trophy')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">${ico('cat-crea', '🐲')} Créatures</button></div>
       <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
       <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>
       ${colTab === 'crea' && nCrea < 10 ? '<p class="hint-line"><b>Nouvelles créatures en route :</b> elles arrivent dans les boosters au fil des mises à jour.</p>' : ''}`;
@@ -2309,7 +2315,7 @@
   function leaderHtml() {
     lbLoad();
     if (!LB) return `<h3 class="sec">Les plus riches du quartier</h3><div class="lb-card lb-off"><p class="hint-line center">${window.ONLINE && ONLINE.on ? 'Chargement du classement…' : 'Le classement des joueurs s\'affiche quand tu es connecté à internet.'}</p></div>`;
-    const d = LB, rk = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    const d = LB, rk = r => r === 1 ? ico('medal-gold', '🥇') : r === 2 ? ico('medal-silver', '🥈') : r === 3 ? ico('medal-bronze', '🥉') : r;
     const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(p.skin, true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${p.lvl || 1}</small></span><b class="lb-w">${short(p.worth)}</b></div>`;
     const inTop = d.rank <= 10, around = inTop ? [] : d.around;
     return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
@@ -2365,10 +2371,10 @@
   function openHowto() {
     openModal({ title: 'Comment jouer', icon: 'star', body: `<div class="card" style="font-size:13px;line-height:1.55">
       <b>Le but</b> : faire grimper ton patrimoine (cash + crypto + objets).<br><br>
-      🏢 <b>Ton appart</b> : ton PC pour trader la crypto, ton rig qui mine de l'Axion (relance-le quand il surchauffe), et tes étagères où s'exposent tes objets.<br><br>
-      🍺 <b>Le Royal</b> : paris sportifs (cotes réelles, le bookmaker garde 7 %) et tickets à gratter.<br><br>
-      🎰 <b>Lucky Palace</b> : machine à sous et roulette européenne. Sur la durée, la maison gagne.<br><br>
-      🛍️ <b>Le Comptoir</b> : cartes, sneakers, montres. Leur cote bouge toute la journée. Tes trophées aussi valent de l'argent.</div>` });
+      ${ico('bld-appart', '🏢')} <b>Ton appart</b> : ton PC pour trader la crypto, ton rig qui mine de l'Axion (relance-le quand il surchauffe), et tes étagères où s'exposent tes objets.<br><br>
+      ${ico('bld-balto', '🍺')} <b>Le Royal</b> : paris sportifs (cotes réelles, le bookmaker garde 7 %) et tickets à gratter.<br><br>
+      ${ico('bld-casino', '🎰')} <b>Lucky Palace</b> : machine à sous et roulette européenne. Sur la durée, la maison gagne.<br><br>
+      ${ico('bld-shop', '🛍️')} <b>Le Comptoir</b> : cartes, sneakers, montres. Leur cote bouge toute la journée. Tes trophées aussi valent de l'argent.</div>` });
   }
 
   // ------------------------------------------------------------ accueil
@@ -2634,7 +2640,7 @@
     tutoAgain() { closeModal(); setScene('city'); st().tutoStep = 0; window.TUTO.start(0); },
     resetAsk() { openModal({ title: 'Recommencer', center: true, body: '<p class="center">Tout ton argent, tes cryptos et tes objets seront effacés.</p><button class="btn red wide" data-act="resetGo">Tout effacer</button>' }); },
     resetGo() { G.reset(); location.reload(); },
-    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm; if (modalOpen()) return; openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${w[0]}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div>${moodPick()}<p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
+    moodInfo() { const m = G.mood(), w = WEATHER[m.id] || WEATHER.calm; if (modalOpen()) return; openModal({ title: 'Météo du marché', center: true, body: `<div class="weather w-${m.id}"><span class="w-ic">${wxIc(m.id)}</span><div><b>${w[1]}</b><p>${w[2]}</p></div></div>${moodPick()}<p class="hint-line center">Elle change toutes les 20 minutes et fait bouger toutes les cryptos en même temps. Quand ça monte, tes cryptos prennent de la valeur ; quand ça baisse, elles en perdent.</p><button class="btn green wide" data-act="closeModal">Compris</button>` }); },
     mybets: () => window.BALTO.openMyBets(),
     kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); refresh(); },
@@ -2820,7 +2826,7 @@
     { const pk = G.parkedCount() > 0; if (pk !== lastParked) { lastParked = pk; renderCity(); } }
     { const pn = G.panneau(); if (pn !== lastPn) { lastPn = pn; renderCity(); } }
     if (phoneOpen() && (phoneApp === 'home' || phoneApp === 'chat' || phoneApp === 'msg')) drawPhone();
-    renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.textContent !== v) e.textContent = v; });
+    renderHud(); document.querySelectorAll('.pq-timer').forEach(e => { const v = sixTimer(); if (e.dataset.v !== v) { e.dataset.v = v; e.innerHTML = v; } });
     if (scene === 'appart' && !modalOpen() && !RP.on) renderAppart();
     if (modalRefresh && !document.activeElement?.matches('input')) modalRefresh();
     if (Date.now() - lastSave > 5000) { G.save(); lastSave = Date.now(); }
@@ -2927,7 +2933,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
+  window.UI = { unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

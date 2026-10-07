@@ -9,6 +9,8 @@
   const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const money = n => `${n.toLocaleString('fr-FR')}<i class="cur"></i>`;
   // montant « leurre » affiché sur une case perdante (plutôt des petits, parfois un gros pour faire rêver)
+  // symboles du morpion : leur image scr-<nom> (l'emoji en attendant)
+  const SCR_IMG = { '🎲': 'scr-dice', '🍺': 'scr-beer', '🛴': 'scr-scooter', '🍔': 'scr-burger', '🎧': 'scr-headphones', '🧢': 'scr-cap' };
   const decoy = t => { const v = t.prizes.map(p => p[0]); return Math.random() < .8 ? v[rnd(Math.min(3, v.length))] : pick(v); };
 
   // ------------------------------------------------------------ fabrication des grilles
@@ -44,7 +46,7 @@
         const old = grid[i]; grid[i] = '💵';
         if (lines() > (prize ? 1 : 0)) grid[i] = old; else k++;
       }
-      grid.forEach(s => g.cases.push({ zone: 'g', html: s === '💵' ? `<span class="sym cash" data-c="💵">${U.pic('icon-cash', '💵')}</span>` : `<span class="sym">${s}</span>` }));
+      grid.forEach(s => g.cases.push({ zone: 'g', html: s === '💵' ? `<span class="sym cash" data-c="💵">${U.pic('icon-cash', '💵')}</span>` : U.has(SCR_IMG[s]) ? `<span class="sym sym-img">${U.pic(SCR_IMG[s], s)}</span>` : `<span class="sym">${s}</span>` }));
       g.cases.push({ zone: 'gain', html: `<small>GAIN</small><b>${money(prize || decoy(t))}</b>` });
       if (prize) g.win.push(9);
     } else if (t.game === 'blackjack') {
@@ -110,7 +112,7 @@
         const odds = Math.round(1 / t.prizes.reduce((a, [, p]) => a + p, 0));
         return `<button class="tk-mini ${lock || poor ? 'locked' : ''} ${U.has('tkbg-' + t.id) ? 'has-bg' : ''}" data-act="${lock ? 'scrLocked' : 'scrBuy'}" ${poor ? 'disabled' : ''} data-id="${t.id}" style="--c1:${t.c1};--c2:${t.c2};--ink:${t.ink}${U.has('tkbg-' + t.id) ? `;--tkbg:url(${new URL(U.src('tkbg-' + t.id), location.href).href})` : ''}">
           ${U.pic(t.emblem, '🎟️', 'tk-emb')}<b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span><small>1 ticket gagnant sur ${odds}</small>
-          <span class="tk-buy">${lock ? `🔒 Niveau ${t.lvl}` : free ? 'Offert' : poor ? `À sec · ${money(t.price)}` : money(t.price)}</span></button>`;
+          <span class="tk-buy">${lock ? `${U.ico('icon-lock', '🔒')} Niveau ${t.lvl}` : free ? 'Offert' : poor ? `À sec · ${money(t.price)}` : money(t.price)}</span></button>`;
       }).join('')}</div>${statsHtml()}`;
   }
 

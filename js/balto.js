@@ -77,7 +77,7 @@
         ${labels(m)[i] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[i] === '2', 'mini')}
         <span class="ob-txt"><small>${labels(m)[i] === 'N' ? 'Match nul' : shortName(labels(m)[i] === '1' ? m.home : m.away)}</small><b>${boost ? `<s>${fmtOdd(o)}</s>` : ''}${fmtOdd(G.legOdd(m, i))}</b></span></button>`).join('')}</div>` : '';
     return `<div class="mcard ${m.state} sp-${m.sport} ${goal ? 'goal' : ''} ${done && justEnded(m) ? 'ended' : ''} ${sel ? 'picked' : ''}">
-      <div class="mc-top"><span class="mc-league">${sp.icon} ${sp.league}</span>
+      <div class="mc-top"><span class="mc-league">${U.ico('ic-sport-' + m.sport, sp.icon)} ${sp.league}</span>
         <span class="mc-time ${live ? 'live' : ''}">${soon ? `Coup d'envoi ${U.mmss(m.kickoff - Date.now())}` : live ? `<i class="dot"></i>LIVE` : 'Terminé'}</span></div>
       <div class="mc-mid">
         <div class="mc-team ${win === 0 ? 'won' : ''}">${crest(m, 0)}<b>${m.home}</b></div>
@@ -87,7 +87,7 @@
       ${live ? pitch(m, sc) : ''}
       ${soon ? chances(m) + oddBtns : live ? oddBtns : ''}
       ${done ? `<p class="mc-res">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire ${U.de(m.res === 0 ? m.home : m.away)}`}</p>` : ''}
-      ${sportTip() && sportTip().m === m.id ? `<div class="mc-tip">📰 <b>Ton tuyau du Kiosque :</b> « ${U.esc(sportTip().txt)} »</div>` : ''}
+      ${sportTip() && sportTip().m === m.id ? `<div class="mc-tip">${U.ico('tip-sport', '📰')} <b>Ton tuyau du Kiosque :</b> « ${U.esc(sportTip().txt)} »</div>` : ''}
       ${goal ? '<div class="goal-flash stroke">BUT !</div>' : ''}
       ${done && justEnded(m) ? `<div class="end-flash" style="--ago:-${Date.now() - ended[m.id]}ms"><span class="ef-t stroke">TERMINÉ</span><span class="ef-sc stroke">${sc ? `${sc.a} - ${sc.b}` : ''}</span><span class="ef-w">${m.res === 1 && m.sport === 'foot' ? 'Match nul' : `Victoire ${U.de(m.res === 0 ? m.home : m.away)}`}</span></div>` : ''}
     </div>`;
@@ -122,7 +122,7 @@
   }
   function sportsBar() {
     const s = st();
-    return `<div class="sport-bar">${[['all', '🏟️', 'Tout']].concat(Object.entries(D.SPORTS).map(([k, x]) => [k, x.icon, x.name])).map(([k, i, n]) => {
+    return `<div class="sport-bar">${[['all', U.ico('ic-sport-all', '🏟️'), 'Tout']].concat(Object.entries(D.SPORTS).map(([k, x]) => [k, U.ico('ic-sport-' + k, x.icon), x.name])).map(([k, i, n]) => {
       const lock = k !== 'all' && s.lvl < D.SPORTS[k].lvl;
       return `<button class="sp-chip ${sport === k ? 'on' : ''} ${lock ? 'locked' : ''}" data-act="${lock ? 'bLocked' : 'bSport'}" data-id="${k}"><span>${i}</span>${lock ? `Niv. ${D.SPORTS[k].lvl}` : n}</button>`;
     }).join('')}</div>`;

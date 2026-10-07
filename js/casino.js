@@ -20,8 +20,8 @@
       const L = D.SLOT.ui, z = r => `left:${r.x}%;top:${r.y}%;width:${r.w}%;height:${r.h}%`;
       return `<div class="real-slot"><img class="rs-img" src="${U.src('casino-machine')}" alt="">
           <button class="rs-top rs-close" data-act="closeModal" aria-label="Fermer">×</button>
-          <button class="rs-top rs-tab" data-act="csTab" data-t="roulette">🎡 Roulette</button>
-          <button class="rs-top rs-info" data-act="slPays">${showPays ? '✕ Fermer' : 'ℹ️ Gains'}</button>
+          <button class="rs-top rs-tab" data-act="csTab" data-t="roulette">${U.ico('roulette-hub', '🎡')} Roulette</button>
+          <button class="rs-top rs-info" data-act="slPays">${showPays ? '✕ Fermer' : `${U.ico('ic-info', 'ℹ️')} Gains`}</button>
           ${showPays ? `<div class="rs-pays">${pays}</div>` : ''}
           <div class="rs-screen reels" data-zone="screen" style="${z(L.screen)}">${reels}</div>
           <div class="rs-led stroke" id="slot-msg" data-zone="led" style="${z(L.led)}">${msg}</div>

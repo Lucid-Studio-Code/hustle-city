@@ -3371,3 +3371,20 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app #start .st-restore { align-self: center; margin-top: 2px; padding: 6px 14px; border: 0; border-radius: 999px; background: rgba(255,255,255,.14); color: #fff; font: 800 13px var(--text); text-decoration: underline; cursor: pointer; }
 
 #app .ag-lock .ag-lock-ic { display: block; width: 84px; height: 84px; margin: 0 auto 8px; object-fit: contain; filter: drop-shadow(0 3px 0 rgba(42,26,16,.35)); }
+
+/* icônes en image à la place des emoji (07/10) : l'emoji reste en repli tant que l'image manque */
+#app .coach-step .cs-ic img.ico { width: 32px; height: 32px; vertical-align: middle; }
+#app #next-tip b img.ico { width: 20px; height: 20px; vertical-align: -5px; }
+#app .sc-in .sym.sym-img { width: 40px; height: 32px; display: grid; place-items: center; }
+#app .sc-in .sym.sym-img .pic, #app .sc-in .sym.sym-img img { width: 100%; height: 100%; object-fit: contain; }
+#app .hv-find > span img.ico { width: 42px; height: 42px; vertical-align: middle; }
+#app .weather .w-ic img.ico { width: 46px; height: 46px; vertical-align: middle; }
+#app #hud #mood .mood-ic img.ico { width: 15px; height: 15px; vertical-align: middle; }
+#app .trader .tr-ic img.ico { width: 32px; height: 32px; vertical-align: middle; }
+#app .flash-banner .fb-ic img.ico { width: 28px; height: 28px; vertical-align: middle; }
+#app .kh-clock .kh-ic img.ico { width: 32px; height: 32px; vertical-align: middle; }
+#app .rc-pod i img.ico { width: 28px; height: 28px; vertical-align: middle; }
+#app .sh2-for i img.ico { width: 14px; height: 14px; vertical-align: middle; }
+#app .sp-chip span img.ico { width: 18px; height: 18px; vertical-align: -4px; }
+#app .col-tabs button img.ico { width: 18px; height: 18px; vertical-align: middle; }
+#app .club-timer img.ico, #app .pq-timer img.ico { width: 1.3em; height: 1.3em; vertical-align: -0.3em; }
