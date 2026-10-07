@@ -532,6 +532,9 @@ http.createServer(async (req, res) => {
     const f = path.join(ROOT, p), rel = path.relative(ROOT, f).split(path.sep);
     if (!f.startsWith(ROOT + path.sep) || rel.some(s => s.startsWith('.')) || (rel[0] === 'server' && rel[1] !== 'admin') || ['originals-2k', 'node_modules', 'android', 'ios'].includes(rel[0])
       || /\.(db|db-wal|db-shm|p8|pem|key|sqlite)$/i.test(f)) return send(res, 403, { err: 'interdit' });
-    fs.readFile(f, (e, data) => { if (e) return send(res, 404, '404', 'text/plain'); send(res, 200, data, types[path.extname(f)] || 'application/octet-stream'); });
+    fs.readFile(f, (e, data) => { if (e) return send(res, 404, '404', 'text/plain');
+      // cache du navigateur : un fichier avec sa version dans l'adresse (?v=…) ne change jamais → gardé 1 an ; une image sans version → 1 jour ; les pages → toujours revérifiées
+      const ext = path.extname(f), cc = ext === '.html' || ext === '.webmanifest' ? 'no-cache' : /[?&]v=/.test(req.url) && !/[?&]t=/.test(req.url) ? 'public, max-age=31536000, immutable' : /\.(png|jpe?g|svg|woff2?)$/.test(ext) ? 'public, max-age=86400' : 'no-cache';
+      res.writeHead(200, { 'Content-Type': types[ext] || 'application/octet-stream', 'Access-Control-Allow-Origin': '*', 'Cache-Control': cc }); res.end(data); });
   } catch (e) { console.error(e); send(res, 500, { err: String(e.message || e) }); }
 }).listen(PORT, () => console.log(`Hustle City en ligne sur http://localhost:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));

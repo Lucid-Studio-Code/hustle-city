@@ -2883,7 +2883,7 @@
     // un vrai chargement : tout ce qu'il faut pour jouer sans trou (ville, bâtiments, interface, ton perso, ton appart), polices comprises
     const s = st(), look = s.cityLook && s.cityLook !== 'base' ? '-' + s.cityLook : '', A = window.ASSETS || [];
     const want = n => /^(bld-|icon-|nav-|btn-|hdr-|app-|ui-|ic-promo|ic-shop|deco-|tip-|coin-|ev-)/.test(n) || ['bg-city', 'bg-city' + look, 'bg-accueil', 'booster-pack', 'card-back', 'guide', 'logo', 'phone-wall'].includes(n)
-      || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && /^room-/.test(n)) || /^(minerv|pcv|rig|pc)-/.test(n);
+      || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && (n === `room-${((D.SKINS.find(k => k.id === s.skin) || {}).g || 'm')}-${s.room}` || n === 'room-' + s.room))   /* seulement TA chambre */ || /^(minerv|pcv|rig|pc)-/.test(n);
     const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(want).map(src)))];
     let n = 0; const tot = L.length + 1, one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / tot, n, tot); };
     const fonts = (document.fonts && document.fonts.ready || Promise.resolve()).then(one);
