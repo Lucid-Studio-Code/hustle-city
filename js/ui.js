@@ -51,7 +51,8 @@
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
-  const pcFor = r => r > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-0') ? 'pcv-0' : 'pc-0';   // machine 1 : le vieux PC de face (flèche verte)   // le PC suit la machine
+  const PC_LOOK = [0, 2, 3];   // niveau du PC acheté dans « Mon setup » → ordi affiché (même échelle que la machine)
+  const pcFor = (r, pl = G.pcLvl()) => (r = Math.max(r, PC_LOOK[pl] || 0)) > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-0') ? 'pcv-0' : 'pc-0';   // machine 1 : le vieux PC de face (flèche verte)   // le PC suit la machine
   const pcLook = () => pcFor(st().rig ? st().rig.lvl : 0);
   // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
   const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
@@ -384,7 +385,7 @@
         <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
       : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
     const pn = G.pcNext(), fpc = f => (f * 100).toFixed(1).replace('.', ',').replace(',0', '') + ' %';
-    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(has('pcv-' + (G.pcLvl() + 1)) ? 'pcv-' + (G.pcLvl() + 1) : 'pc-0', EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
+    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(pcFor(st().rig.lvl, G.pcLvl() + 1), EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
         <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
         <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
       : D.PC_UPGRADES ? `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>` : '';
@@ -582,7 +583,14 @@
     const byValue = l => l.slice().sort((a, b) => G.sellPrice(b.id) - G.sellPrice(a.id));
     // les voitures sur les places en épi, les motos sur leurs places : jamais l'une à la place de l'autre
     const P = parkSlots(), motos = byValue(cars.filter(c => c.cat === 'moto')).slice(fromTop * D.PARK_MAX.moto, (fromTop + 1) * D.PARK_MAX.moto), autos = byValue(cars.filter(c => c.cat !== 'moto')).slice(fromTop * D.PARK_MAX.car, (fromTop + 1) * D.PARK_MAX.car);
-    const placed = autos.map((c, i) => [c, P.car[i]]).concat(motos.map((m, i) => [m, P.moto[i]]));
+    // ordre de remplissage : voitures en haut à gauche, en haut à droite, puis la rangée du milieu, puis celle du bas ; motos à gauche, à droite, puis au centre.
+    // Dans un étage, les plus gros gabarits prennent les premières places (le fond de la pièce)
+    const big = l => l.slice().sort((a, b) => (D.VEH_SIZE[b.id] || 5) - (D.VEH_SIZE[a.id] || 5));
+    const rows = P.car.slice().sort((a, b) => a[1] - b[1]), carOrder = [];
+    for (let i = 0; i < rows.length; i += 2) carOrder.push(...rows.slice(i, i + 2).sort((a, b) => a[0] - b[0]));
+    const sides = P.moto.filter(p => Math.abs(p[0] - 50) > 12).sort((a, b) => a[0] - b[0]), mid = P.moto.filter(p => Math.abs(p[0] - 50) <= 12).sort((a, b) => a[1] - b[1]);
+    const motoOrder = sides.concat(mid);
+    const placed = big(autos).map((c, i) => [c, carOrder[i]]).concat(big(motos).map((m, i) => [m, motoOrder[i]]));
     const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, fl]]) =>
       `<button class="pk-car${fl ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
     const maxed = (s.garageLvl || 0) >= D.GARAGES.length - 1;
@@ -593,7 +601,7 @@
     return `<div class="park-full ${f && !has('parking-bg-' + (f + 1)) ? 'pk-lux' + Math.min(f, 4) : ''}"><div class="pk-stage">${has(bgN) ? `<img class="pk-bg" src="${src(bgN)}" alt="">` : ''}${slots}</div>
       <div class="pk-foot">${tabs}<span class="pk-count">${F > 1 ? `Niveau -${f + 1} · ` : ''}${cars.length} / ${n} places</span>${up || '<button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button>'}</div></div>`;
   }
-  function openParking() { pkFloor = G.parkFloors(); openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
+  function openParking(keep) { if (!keep) pkFloor = G.parkFloors(); openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
   // ------------------------------------------------------------ placement des places du parking (back-office, #placer-parking)
   // Toutes les places sont montrées avec un véhicule d'essai : on les fait glisser, − / + pour la taille, ↔ Miroir.
   // Gardé dans ce navigateur (hustleCity.parkPlacer) jusqu'à « Publier », qui l'écrit dans js/layout.js (parking).
@@ -978,7 +986,7 @@
   const RP = { on: false, room: 0, sel: 'pc', drag: null };
   // chaque modèle de PC / de machine peut avoir sa propre place et sa propre taille (L.looks), sinon il prend celle de base
   const lookPos = (L, k, img) => (L.looks && L.looks[img]) || L[k];
-  const rpImg = k => k === 'pc' ? pcFor(RP.pv.rig) : has('minerv-' + RP.pv.rig) ? 'minerv-' + RP.pv.rig : 'rig-' + RP.pv.rig;
+  const rpImg = k => k === 'pc' ? pcFor(RP.pv.rig, 0) : has('minerv-' + RP.pv.rig) ? 'minerv-' + RP.pv.rig : 'rig-' + RP.pv.rig;
   const rpObj = (k, mk) => { if (k !== 'pc' && k !== 'rig') return RP.L[k]; const img = rpImg(k); RP.L.looks = RP.L.looks || {}; if (mk && !RP.L.looks[img]) RP.L.looks[img] = Object.assign({}, RP.L[k]); return RP.L.looks[img] || RP.L[k]; };
   // bulle de l'objet PrivéFans (ordi portable sur le lit) : ce qu'il y a à encaisser, ou une alerte
   function agBubble() {
@@ -1026,7 +1034,7 @@
     const onShelf = owned.slice(0, r.slots), shImg = it => it.img && has(it.img) ? it.img : 'item-' + it.id;   // trophées : image « ach-… »
     const sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0], gg = (RP.on && RP.g) || sk.g, rb = has(`room-${gg}-${R}`) ? `room-${gg}-${R}` : 'room-' + R;
     const rl = RP.on ? RP.pv.rig : s.rig.lvl, pl = G.pcLvl();
-    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? pcFor(rl) : pcLook(), Lpc = lookPos(L, 'pc', pcImg), Lrig = lookPos(L, 'rig', rigImg);
+    const L = RP.on ? RP.L : roomLayout(R), rigImg = has('minerv-' + rl) ? 'minerv-' + rl : 'rig-' + rl, pcImg = RP.on ? pcFor(rl, 0) : pcLook(), Lpc = lookPos(L, 'pc', pcImg), Lrig = lookPos(L, 'rig', rigImg);
     const place = o => `left:${o.x}%;top:${o.y}%;width:${o.w}%`;
     const shelf = L.slots.slice(0, r.slots).map(([x, y], i) => {
       const it = onShelf[i];
@@ -2063,7 +2071,8 @@
   function openItem(id) {
     const s = st(), it = G.item(id), a = s.owned[id] || [], h = s.market.hist[id];
     const paid = a.length ? a[0].paid : 0, sp = G.sellPrice(id), diff = sp - paid;
-    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, body: `<div class="center">
+    const fromPark = !!document.querySelector('#modal .park-full');   // ouvert depuis le parking : on y revient en fermant
+    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, onClose: fromPark ? () => setTimeout(() => openParking(true), 0) : null, body: `<div class="center">
       <div class="item-big">${itemPic(it)}</div><div class="big" style="font-size:20px">${it.name}</div>
       <span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}</div>
       <div class="card chart-card"><div class="cc-line"><span>Il y a 2 h</span><b>${trend(s.market.prices[id], h[0])}</b><span>Maintenant</span></div>${chartSvg(h)}</div>
