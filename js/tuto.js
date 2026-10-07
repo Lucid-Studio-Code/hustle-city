@@ -182,6 +182,7 @@
     bld = null; STEPS = MAIN; G.save();
   }
   function start(from) {
+    if (window.HC_DEV && /^#(admin|placer)/.test(location.hash)) return;   // jamais pendant le placement de la ville / de l'appart
     STEPS = MAIN; bld = null;
     idx = from != null ? from : Math.min(st().tutoStep || 0, STEPS.length - 1);
     // reprise en cours de route : on repart d'une étape qui a du sens

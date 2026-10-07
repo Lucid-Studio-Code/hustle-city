@@ -12,7 +12,7 @@ function publish(req, res) {
   req.on('end', async () => {
     const send = (code, o) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(o)); };
     let L; try { L = JSON.parse(body); } catch (e) { return send(400, { err: 'Données illisibles.' }); }
-    const keep = { buildings: L.buildings || {}, decos: L.decos || {}, rooms: L.rooms || [], texts: L.texts || {}, shop: L.shop || {}, club: L.club || {}, slot: L.slot || null, parking: L.parking || null, values: L.values || {} };
+    const keep = { buildings: L.buildings || {}, decos: L.decos || {}, rooms: L.rooms || [], texts: L.texts || {}, shop: L.shop || {}, club: L.club || {}, slot: L.slot || null, parking: L.parking || null, values: L.values || {}, looks: L.looks || {} };
     fs.writeFileSync(path.join(root, 'js/layout.js'), '/* Placements réglés dans le back-office (game.html#admin, sur localhost). Généré par le bouton « Publier » : ne pas modifier à la main. */\nwindow.LAYOUT = ' + JSON.stringify(keep, null, 1) + ';\n');
     await git(['add', 'js/layout.js']);
     const c = await git(['commit', '-m', 'Back-office : nouveaux placements', '--', 'js/layout.js']);

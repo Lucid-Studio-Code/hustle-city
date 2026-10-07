@@ -474,7 +474,7 @@
   function clampCam() { const map = $('#map'); cam.x = Math.min(0, Math.max(map.clientWidth - cam.w, cam.x)); cam.y = Math.min(0, Math.max(map.clientHeight - cam.h, cam.y)); }
   function applyCam() { $('#map-inner').style.transform = `translate(${cam.x}px,${cam.y}px) scale(${cam.s})`; }
   function focusBld(id) {
-    const b = D.BUILDINGS.find(x => x.id === id), map = $('#map');
+    const b = posOf(D.BUILDINGS.find(x => x.id === id), 'buildings', cityLookNow()), map = $('#map');
     cam.x = -(cam.w * b.x / 100 - map.clientWidth / 2); cam.y = -(cam.h * (b.y - 8) / 100 - map.clientHeight * .5);
     clampCam(); applyCam();
   }
@@ -495,13 +495,18 @@
     const left = d ? `${d} j ${h} h` : h ? `${h} h ${String(mn).padStart(2, '0')}` : `${mn} min ${String(Math.floor(t / 1000) % 60).padStart(2, '0')}`;
     return ph === 'before' ? `Commence dans ${left}` : `${ico('ic-timer', '⏱')} Encore ${left}`;
   }
+  // look de la ville affiché : celui du joueur, ou celui choisi dans le back-office pour régler ses placements
+  let admLook = null;
+  const cityLookNow = () => (placing && admLook) || st().cityLook || 'base';
+  const posOf = (o, kind, look) => { const ov = look !== 'base' && ((D.LOOK_POS[look] || {})[kind] || {})[o.id]; return ov ? Object.assign({}, o, ov) : o; };
   function renderCity() {
     const s = st(), inner = $('#map-inner');
-    const look = st().cityLook || 'base', bgN = has('bg-city-' + look) ? 'bg-city-' + look : 'bg-city';
+    const look = cityLookNow(), bgN = has('bg-city-' + look) ? 'bg-city-' + look : 'bg-city';
     const bg = has(bgN) ? `<img class="bg" src="${src(bgN)}" alt="" draggable="false">` : '<div class="bg-fallback"></div>';
     const cols = { appart: '#8ecae6', balto: '#2d6a4f', casino: '#9b5de5', shop: '#ffb703', bijou: '#e0aaff', garage: '#adb5bd', tour: '#90e0ef' };
     // enseigne : plaque de rue émaillée posée au-dessus du toit (ne recouvre jamais le bâtiment d'en dessous)
-    inner.innerHTML = bg + D.BUILDINGS.map(b => {
+    inner.innerHTML = bg + D.BUILDINGS.map(b0 => {
+      const b = posOf(b0, 'buildings', look);
       if (b.needVehicle && !placing && !G.parkedCount()) return '';
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
@@ -512,7 +517,7 @@
         ${plaque(b, locked)}
         ${img}${b.id === 'six' ? '<span class="badge ok six-badge hidden">!</span>' : ''}
       </button>`;
-    }).join('') + D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has(decoImg(x)) ? pic(decoImg(x)) : `<i>${x.emo}</i>`}</span>`).join('');
+    }).join('') + D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco' && (placing || G.evUsed(x.id))).map(x0 => posOf(x0, 'decos', look)).map(x => `<span class="ev-deco ${placing ? 'adm' : ''} ${x.flip ? 'flip' : ''}" data-deco="${x.id}" style="left:${x.x}%;top:${x.y}%;width:${x.w}%">${has(decoImg(x)) ? pic(decoImg(x)) : `<i>${x.emo}</i>`}</span>`).join('');
     hydrateIcons(inner);
     if (!placing) { liftPlaques(); inner.querySelectorAll('img').forEach(i => i.complete || i.addEventListener('load', liftPlaques, { once: true })); }
   }
@@ -691,13 +696,14 @@
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
     const decos = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
     decos.forEach(d => Object.assign(d, (sv.decos || {})[d.id] || {}));
+    if (sv.looks) Object.keys(D.LOOK_POS).concat(Object.keys(sv.looks)).forEach(k => { D.LOOK_POS[k] = sv.looks[k] || D.LOOK_POS[k]; });
     if (sv.slot) Object.assign(D.SLOT.ui, sv.slot);
     Object.entries(localVals()).forEach(([p, v]) => { try { setVal(p, v); } catch (e) {} });
     Object.entries(sv.club || {}).forEach(([id, p]) => { const z = D.CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button><button class="btn xs yellow" id="pl-flip">⇋ Miroir</button></span>
-      <button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-park">Parking</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <span class="pl-looks">${['base', 'renov', 'neon', 'hiver'].map(k => `<button class="btn xs pl-look ${k === (st().cityLook || 'base') ? 'green' : ''}" data-look="${k}">${{ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver' }[k]}</button>`).join('')}<button class="btn xs" id="pl-same" title="Remettre l'objet choisi comme dans le look de base">= Base</button></span><button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-park">Parking</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -707,14 +713,16 @@
       ds.forEach((d, i) => { const r = box(d); ds.slice(i + 1).forEach(e => { if (hit(r, box(e))) { bad.add(d); bad.add(e); } }); bs.forEach(b => { if (hit(r, box(b))) bad.add(d); }); });
       ds.forEach(d => d.classList.toggle('clash', bad.has(d))); return [...bad].map(name);
     };
-    const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])) });
+    const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), looks: D.LOOK_POS });
+    // ce qu'on règle : dans le look de base, l'objet lui-même ; dans un autre look, sa place à lui (créée au premier geste, à partir de la base)
+    const tgt = (o, mk) => { const lk = cityLookNow(), kind = D.BUILDINGS.includes(o) ? 'buildings' : 'decos'; if (lk === 'base') return o; const L = D.LOOK_POS[lk] = D.LOOK_POS[lk] || {}, K = L[kind] = L[kind] || {}; if (!K[o.id] && mk) K[o.id] = { x: o.x, y: o.y, w: o.w, flip: !!o.flip }; return K[o.id] || o; };
     const save = () => { const o = data(); try { localStorage.setItem(ADM_KEY, JSON.stringify(o)); } catch (e) {} $('#placer-out').value = JSON.stringify(o); };
     let cur = null, sel = null;
-    const show = () => { if (!sel) return; const o = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id); $('#pl-cur').textContent = `${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w ? ' · taille ' + o.w : ''}${o.flip ? ' · miroir' : ''}`; $('.pl-size').classList.toggle('hidden', false); };
+    const show = () => { if (!sel) return; const o0 = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id), o = Object.assign({ name: o0.name }, tgt(o0)); $('#pl-cur').textContent = `${lookName()} · ${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w ? ' · taille ' + o.w : ''}${o.flip ? ' · miroir' : ''}`; $('.pl-size').classList.toggle('hidden', false); };
     $('#map-inner').addEventListener('pointerdown', e => {
       const el = e.target.closest('.bld, .ev-deco'); if (!el) return;
       const r = $('#map-inner').getBoundingClientRect(), o = el.dataset.deco ? decos.find(d => d.id === el.dataset.deco) : D.BUILDINGS.find(x => x.id === el.dataset.id);
-      cur = { el, o, dx: o.x - (e.clientX - r.left) / r.width * 100, dy: o.y - (e.clientY - r.top) / r.height * 100 };
+      const t = tgt(o, 1); cur = { el, o: t, dx: t.x - (e.clientX - r.left) / r.width * 100, dy: t.y - (e.clientY - r.top) / r.height * 100 };
       $('#map-inner').querySelectorAll('.adm-sel').forEach(x => x.classList.remove('adm-sel')); sel = el; el.classList.add('dragging', 'adm-sel'); show(); e.preventDefault(); e.stopPropagation();
     }, true);
     window.addEventListener('pointermove', e => {
@@ -723,7 +731,11 @@
       cur.el.style.left = cur.o.x + '%'; cur.el.style.top = cur.o.y + '%'; show(); clashes();
     });
     window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); clashes(); } });
-    const selObj = () => sel && (sel.dataset.deco ? decos.find(x => x.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id));
+    const selObj = () => sel && tgt(sel.dataset.deco ? decos.find(x => x.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id), 1);
+    const lookName = () => ({ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver' })[cityLookNow()] || cityLookNow();
+    // choix du look à régler : chaque look garde ses propres places (sinon il reprend celles de la base)
+    document.querySelectorAll('.pl-look').forEach(btn => btn.onclick = () => { admLook = btn.dataset.look; document.querySelectorAll('.pl-look').forEach(x => x.classList.toggle('green', x === btn)); sel = null; renderCity(); setTimeout(clashes, 300); $('#pl-cur').textContent = `Look ${lookName()} : fais glisser un bâtiment ou un objet`; });
+    $('#pl-same').onclick = () => { const lk = cityLookNow(); if (!sel || lk === 'base') return toast('Choisis un objet dans un look autre que Base.'); const kind = sel.dataset.deco ? 'decos' : 'buildings', id = sel.dataset.deco || sel.dataset.id; delete ((D.LOOK_POS[lk] || {})[kind] || {})[id]; renderCity(); save(); toast('Remis comme dans le look de base.'); sel = null; };
     const size = k => { const d = selObj(); if (!d) return; d.w = Math.max(3, Math.min(sel.dataset.deco ? 30 : 60, Math.round((d.w + k) * 2) / 2)); sel.style.width = d.w + '%'; show(); save(); clashes(); };
     const flip = () => { const d = selObj(); if (!d) return; d.flip = !d.flip; sel.classList.toggle('flip', d.flip); save(); };
     $('#pl-minus').onclick = () => size(-.5); $('#pl-plus').onclick = () => size(.5); $('#pl-flip').onclick = flip;
@@ -839,7 +851,7 @@
     // on publie TOUJOURS l'état complet (ce qui est affiché), jamais seulement ce que ce navigateur a retenu :
     // sinon une publication faite depuis la chambre envoyait « aucune déco » et tout revenait à sa place d'origine
     const decoAll = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
-    const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), parking: PKP.on ? PKP.L : parkSlots(), texts: allTexts() };
+    const body = { buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decoAll.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), rooms, values: allVals(), slot: D.SLOT.ui, club: Object.fromEntries(D.CLUB.spots.map(p => [p.id, { x: p.x, y: p.y, w: p.w, h: p.h }])), parking: PKP.on ? PKP.L : parkSlots(), texts: allTexts(), looks: D.LOOK_POS };
     if (!admLocal) { try { await navigator.clipboard.writeText(JSON.stringify(body)); } catch (e) {} return toast('Publier marche seulement sur ton Mac (localhost:5190). Réglages copiés : colle-les à Claude.'); }
     toast('Publication en cours…');
     try {
@@ -3006,7 +3018,7 @@
     hydrateIcons(); hudBottom(); setTimeout(hudBottom, 300);
     layoutMap(); renderCity(); focusTop(); renderHud(); placerMode(); roomPlacer(); if (window.HC_DEV && location.hash === '#placer-parking') parkPlacer();
     setInterval(loop, 1000);
-    if (!st().tutoDone) setTimeout(() => window.TUTO.start(), 500);
+    if (!st().tutoDone && !placing && !RP.on) setTimeout(() => window.TUTO.start(), 500);   // pas de tuto pendant qu'on place la ville ou l'appart
     setTimeout(() => offerToday(), 30000);
     setTimeout(trickle, 2500);
   }

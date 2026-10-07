@@ -920,6 +920,8 @@
   const LY = window.LAYOUT || {};
   Object.entries(LY.buildings || {}).forEach(([id, p]) => { const b = BUILDINGS.find(x => x.id === id); if (b) Object.assign(b, p); });
   Object.entries(LY.decos || {}).forEach(([id, p]) => { const d = EV_SHOP.concat(CITY_SHOP).find(x => x.id === id); if (d) Object.assign(d, p); });
+  // placements propres à chaque look de la ville (rénové, néon, hiver) : { look: { buildings: {id: {x,y,w,flip}}, decos: {…} } }. Sinon : ceux du look de base
+  const LOOK_POS = JSON.parse(JSON.stringify(LY.looks || {}));
   (LY.rooms || []).forEach((r, i) => { if (r && ROOM_LAYOUT[i]) ROOM_LAYOUT[i] = r; });
   if (LY.slot) Object.assign(SLOT.ui, LY.slot);
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
@@ -937,7 +939,7 @@
   window.DATA = {
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();
