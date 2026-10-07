@@ -50,8 +50,8 @@ window.LAYOUT = {
    "flip": false
   },
   "parking": {
-   "x": 89,
-   "y": 81,
+   "x": 46.5,
+   "y": 79.5,
    "w": 13,
    "flip": false
   }
@@ -94,14 +94,14 @@ window.LAYOUT = {
    "flip": false
   },
   "dc-tombe": {
-   "x": 12,
-   "y": 78,
+   "x": 76,
+   "y": 70,
    "w": 7,
    "flip": false
   },
   "dc-chaudron": {
-   "x": 47,
-   "y": 74,
+   "x": 8,
+   "y": 63,
    "w": 8,
    "flip": false
   },
@@ -148,10 +148,10 @@ window.LAYOUT = {
    "flip": true
   },
   "dc-statue": {
-   "x": 86,
-   "y": 76,
+   "x": 83,
+   "y": 72.5,
    "w": 12,
-   "flip": false
+   "flip": true
   }
  },
  "rooms": [
