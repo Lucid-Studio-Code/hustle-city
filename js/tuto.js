@@ -190,6 +190,18 @@
     show(); clearInterval(timer); timer = setInterval(tick, 300);
   }
   function skip() { finish(); }
+  // pendant un tuto, seule la case montrée par Momo répond (et sa bulle) : un appui ailleurs ne fait rien
+  ['pointerdown', 'pointerup', 'click', 'touchstart', 'mousedown'].forEach(type => document.addEventListener(type, e => {
+    if (!timer) return; const step = STEPS[idx]; if (!step) return;
+    const t = e.target; if (!(t instanceof Element)) return;
+    if (el.say && el.say.contains(t)) return;   // la bulle (Suivant, Passer)
+    if (t.closest('#tab-lock, .dlg')) return;
+    if (!step.btn && step.target) { const ok = [...document.querySelectorAll(step.target)].some(x => x.offsetParent !== null && x.contains(t)); if (ok) return; }
+    // la carte de la ville se fait glisser pour retrouver la cible : on garde le glisser, pas les appuis sur les bâtiments
+    if (type !== 'click' && t.closest('#map') && !t.closest('.bld, .plq-copy, button, [data-act]')) return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    if (type === 'click' && el.spot) { el.spot.classList.remove('nudge'); void el.spot.offsetWidth; el.spot.classList.add('nudge'); }
+  }, true));
   // coupe tous les tutos : le principal et ceux des lieux à venir (Réglages → « Tutos de Momo » pour les remettre)
   function skipAll() { const s0 = st(); s0.noTuto = true; s0.tutoDone = true; finish(); Object.keys(BLD).forEach(k => seen()[k] = true); G.save(); U.toast && U.toast('Tutos coupés. Tu peux les remettre dans les Réglages.'); }
   function startBld(id) {

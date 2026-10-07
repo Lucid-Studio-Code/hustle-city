@@ -3439,3 +3439,7 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #pkplacer .btn.xs { min-height: 28px; padding: 1px 8px 3px; font-size: 12px; }
 #pkplacer select { flex: 1 1 auto; max-width: 60%; min-width: 0; padding: 4px 6px; border: 2px solid #2a1a10; border-radius: 10px; background: #fff; font: 800 12px var(--text); color: #2a1a10; }
 #app:has(#pkplacer) #placer, #app:has(#pkplacer) #admin-banner { display: none; }
+
+/* tuto : appui hors de la case montrée → la case clignote pour la montrer */
+#tuto-spot.nudge { animation: tutoNudge .45s ease-in-out 2; }
+@keyframes tutoNudge { 50% { transform: scale(1.08); border-color: #fff; } }
