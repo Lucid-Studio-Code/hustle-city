@@ -82,8 +82,8 @@ window.LAYOUT = {
    "flip": false
   },
   "dc-citrouilles": {
-   "x": 33,
-   "y": 60,
+   "x": 41.5,
+   "y": 21,
    "w": 8,
    "flip": false
   },
