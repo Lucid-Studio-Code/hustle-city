@@ -137,6 +137,14 @@ def run(name):
     if name.endswith('-fg'):  # calque de premier plan déjà détouré : on garde la transparence
         im = im.convert('RGBA'); im.thumbnail((1080, 2160), Image.LANCZOS)
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
+    if name.startswith('app-') and name != 'app-agence':   # icônes d'appli : un carré arrondi net (le détourage classique rongeait le contour sombre)
+        import numpy as np
+        from PIL import ImageDraw
+        im = im.convert('RGBA'); im.thumbnail((900, 900)); g = np.asarray(im.convert('L')); ys, xs = np.nonzero(g < 235)
+        x0, y0, x1, y1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1; im = im.crop((x0, y0, x1, y1)); w, h = im.size
+        k = 4; m = Image.new('L', (w * k, h * k), 0); ImageDraw.Draw(m).rounded_rectangle((0, 0, w * k - 1, h * k - 1), radius=int(min(w, h) * .23 * k), fill=255)
+        im.putalpha(m.resize((w, h), Image.LANCZOS)); m_ = MAX.get(kind, MAX['default']); im.thumbnail((m_, m_), Image.LANCZOS)
+        im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
         im.thumbnail((900, 900)) if max(im.size) > 900 else None
         jewel = name.startswith(('item-o-', 'item-g-', 'item-w-', 'item-m-', 'item-v-'))   # + motos et voitures : vides entre rayons, cadre, vitres   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous

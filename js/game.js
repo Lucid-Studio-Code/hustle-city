@@ -420,6 +420,12 @@
   }
   function playMatch(m) {
     if (m.res != null) return;
+    // tout premier pari du tuto : le match finit comme le joueur l'a parié (on rejoue le tirage jusqu'à ce résultat)
+    const lucky = st.bets.find(b => b.lucky && b.state === 'open' && b.legs.some(l => l.m === m.id)), want = lucky && lucky.legs.find(l => l.m === m.id).pick;
+    for (let k = 0; k < 200; k++) { m.res = null; sampleMatch(m); if (want == null || m.res === want) break; }
+    if (want != null && m.res !== want && m.sport === 'foot') { const g = Math.max(m.sh, m.sa); m.sh = want === 0 ? g + 1 : want === 1 ? g : Math.max(0, g - 1); m.sa = want === 2 ? g + 1 : want === 1 ? g : Math.max(0, g - 1); m.res = want; }
+  }
+  function sampleMatch(m) {
     if (m.sport === 'foot') {
       m.sh = samplePoisson(m.la); m.sa = samplePoisson(m.lb);
       m.res = m.sh > m.sa ? 0 : m.sh === m.sa ? 1 : 2;
@@ -480,7 +486,8 @@
     for (const l of legs) { const m = match(l.m); if (!m || m.state !== 'soon') return { err: 'Ce match a déjà commencé.' }; if (ids.has(l.m)) return { err: 'Un seul prono par match.' }; if (betOn(l.m)) return { err: 'Tu as déjà parié sur ce match.' }; ids.add(l.m); }
     if (free) st.freebets.shift(); else if (!pay(stake)) return { err: 'Pas assez de cash.' };
     const odds = Math.round(legs.reduce((o, l) => o * legOdd(match(l.m), l.pick), 1) * 100) / 100;
-    st.bets.unshift({ id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
+    const lucky = !free && !st.luckyUsed && !st.tutoDone && legs.length === 1; if (lucky) st.luckyUsed = true;   // le pari du tuto gagne
+    st.bets.unshift({ lucky, id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
     if (st.bets.length > 30) st.bets.length = 30;
     stat('bets'); if (serious(stake) || free) gameXp(4 + Math.min(xpCap(40), stake / 4)); else gameXp(stake / 4);
     emit('change'); return { ok: true, odds };
