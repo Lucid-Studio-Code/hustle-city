@@ -339,13 +339,16 @@
     { id: 'g-pearl', cat: 'gem', name: "Perle noire de Tahiti", r: 'R', p0: 1500, vol: 0.015 },
     { id: 'g-earrings', cat: 'gem', name: "Boucles d’oreilles diamant", r: 'R', p0: 2600, vol: 0.015 },
     { id: 'g-egg', cat: 'gem', name: "Œuf impérial", r: 'L', p0: 250000, vol: 0.015 },
+    { id: 'g-comic', cat: 'gem', name: "Premier numéro de BD culte", r: 'E', p0: 12000, vol: 0.015 },
     { id: 'v-van', cat: 'car', name: "Van aménagé", r: 'C', p0: 9000, vol: 0.03 },
     { id: 'v-pickup', cat: 'car', name: "Pick-up rétro", r: 'R', p0: 22000, vol: 0.03 },
     { id: 'v-electric', cat: 'car', name: "Berline électrique", r: 'R', p0: 48000, vol: 0.03 },
     { id: 'v-rally', cat: 'car', name: "Voiture de rallye", r: 'E', p0: 90000, vol: 0.03 },
+    { id: 'v-hyper', cat: 'car', name: "Hypercar", r: 'L', p0: 900000, vol: 0.03 },
     { id: 'm-cafe', cat: 'moto', name: "Café racer", r: 'R', p0: 12000, vol: 0.035 },
     { id: 'm-cross', cat: 'moto', name: "Moto de cross", r: 'C', p0: 5000, vol: 0.035 },
     { id: 'm-sport', cat: 'moto', name: "Sportive de piste", r: 'E', p0: 30000, vol: 0.035 },
+    { id: 'm-touring', cat: 'moto', name: "Grosse routière", r: 'R', p0: 25000, vol: 0.035 },
     { id: 'm-trike', cat: 'moto', name: "Trike custom", r: 'E', p0: 40000, vol: 0.035 },
     // FIN-OBJETS-AJOUTES
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
@@ -824,7 +827,7 @@
   // ---------------------------------------------------------------- Boutique (bouton du bas)
   // Décos pour la ville, achetées pour toujours. Chacune a SA place sur la carte (réglée dans le back-office, jamais deux au même endroit).
   // looks du quartier : toute la ville (fond + bâtiments) change d'apparence. Images bg-city-<id> et bld-<bâtiment>-<id>.
-  const BLD_SCALE = {'bld-appart-renov': 1.049, 'bld-balto-neon': 1.046, 'bld-balto-renov': 1.035, 'bld-casino-neon': 1.003, 'bld-casino-renov': 1.002, 'bld-club-renov': 0.982, 'bld-kiosque-hiver': 0.819, 'bld-kiosque-renov': 0.806, 'bld-shop-neon': 0.964, 'bld-shop-renov': 0.963, 'bld-six-neon': 1.004, 'bld-six-renov': 1.05};   // généré par tools/bld-scale.py
+  const BLD_SCALE = {'bld-appart-renov': 1.049, 'bld-balto-neon': 1.046, 'bld-balto-renov': 1.035, 'bld-casino-neon': 1.003, 'bld-casino-renov': 1.002, 'bld-club-renov': 0.982, 'bld-kiosque-hiver': 0.819, 'bld-kiosque-neon': 0.82, 'bld-kiosque-renov': 0.806, 'bld-shop-neon': 0.964, 'bld-shop-renov': 0.963, 'bld-six-neon': 1.004, 'bld-six-renov': 1.05};   // généré par tools/bld-scale.py
   const CITY_LOOKS = [
     { id: 'base',  name: 'Quartier d\'origine', desc: 'Le bitume, le vrai.', cash: 0, lvl: 1 },
     { id: 'renov', name: 'Quartier rénové',    desc: 'Façades repeintes, fleurs, fresques : ton quartier monte en gamme.', cash: 20000, lvl: 6 },
