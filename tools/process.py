@@ -27,7 +27,7 @@ POCKETS = {
     'graded-slab': 'all',   # boîtier de carte gradée : fenêtre et étiquette vides (la carte s'affiche dessous)
     'item-t-collect': 'all', 'item-t-first': 'all', 'item-t-jackpot': 'all', 'item-t-hodl': 'all',
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
-    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, **{f'pcv-r{i}': 'all' for i in range(1, 5)}, 'medal-bronze': 'all', 'pin-gold': 'all', 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
+    **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, **{f'pcv-r{i}': 'all' for i in range(1, 5)}, 'medal-bronze': 'all', 'niche-cosplay': 'all', 'pin-gold': 'all', 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
 MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
@@ -114,7 +114,7 @@ def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     bbox = alpha.point(lambda v: 255 if v > 20 else 0).getbbox()
     return im.crop(bbox) if bbox else im
 
-CREA_CROP = {   # fenêtre de l'illustration dans chaque carte générée (gauche, haut, droite, bas), mesurée à la main
+CREA_CROP = { 'meduzik': (.17, .12, .83, .69), 'esprit': (.14, .16, .86, .7),   # fenêtre de l'illustration dans chaque carte générée (gauche, haut, droite, bas), mesurée à la main
     'betonnard': (.12, .11, .88, .73), 'biscotto': (.14, .13, .86, .74), 'bitumouche': (.13, .11, .86, .73), 'canardo': (.12, .11, .88, .76),
     'chenillette': (.12, .11, .88, .76), 'cosmo': (.11, .09, .89, .80), 'crocodalle': (.13, .10, .86, .72), 'electrochat': (.14, .14, .86, .77),
     'escargoat': (.12, .10, .88, .71), 'fenekko': (.12, .10, .90, .76), 'flamenkoh': (.16, .12, .88, .77), 'fourmidable': (.15, .15, .85, .72),
