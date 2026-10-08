@@ -1349,9 +1349,20 @@
     if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); if (sound && !st().quiet && !phoneOpen() && Date.now() - lastPing > 30000) { lastPing = Date.now(); sfx.notif(); } }
   }
   // petite notification qui glisse en haut de l'écran, comme sur un vrai téléphone
+  // une bannière se balaie du doigt vers le haut (ou sur le côté) pour la faire disparaître, comme sur iPhone ; un simple toucher l'ouvre toujours
+  function swipeAway(el, done) {
+    let x0 = 0, y0 = 0, dx = 0, dy = 0, on = false;
+    el.addEventListener('pointerdown', e => { on = true; x0 = e.clientX; y0 = e.clientY; dx = dy = 0; el.style.transition = 'none'; });
+    window.addEventListener('pointermove', e => { if (!on) return; dx = e.clientX - x0; dy = Math.min(0, e.clientY - y0); if (Math.abs(dx) > 6 || dy < -6) el.style.transform = `translate(${dx}px, ${dy}px)`; el.style.opacity = String(Math.max(.2, 1 - (Math.abs(dx) + Math.abs(dy)) / 220)); });
+    window.addEventListener('pointerup', () => { if (!on) return; on = false; el.style.transition = '';
+      if (dy < -30 || Math.abs(dx) > 70) { el.dataset.swiped = '1'; el.style.transform = dy < -30 ? 'translateY(-140%)' : `translateX(${dx > 0 ? 120 : -120}%)`; el.style.opacity = '0'; setTimeout(() => { el.style.transform = el.style.opacity = ''; done(); }, 220); setTimeout(() => { delete el.dataset.swiped; }, 400); }
+      else { el.style.transform = el.style.opacity = ''; } });
+    el.addEventListener('click', e => { if (el.dataset.swiped) { e.stopPropagation(); e.preventDefault(); } }, true);   // un balayage n'ouvre pas la notification
+  }
   function banner(n) {
     if (st().quiet) return;
     let el = $('#ph-banner'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<button id="ph-banner" data-act="phoneNotif"></button>'); el = $('#ph-banner'); }
+    if (!el.dataset.swipe) { el.dataset.swipe = 1; swipeAway(el, () => { clearTimeout(banner._t); el.classList.remove('show'); }); }
     const a = appOf(n.app);
     el.dataset.id = n.id;
     el.innerHTML = `${n.img ? pic(n.img, '🧑', 'nt-face') : appIcon(a, 'sm')}<span><small>${a.name} · maintenant</small><b>${noEmo(n.title)}</b><em>${noEmo(n.txt)}</em></span>`;
