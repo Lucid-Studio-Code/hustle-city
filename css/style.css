@@ -3518,3 +3518,4 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .lv-gift .item-big { max-height: 80px; } #app .lv-gift .item-big img { max-height: 80px; width: auto; }
 
 #app #btn-booster .bst-mini { width: 30px; height: 32px; } #app #btn-booster .bst-mini img { width: auto !important; height: 32px !important; max-width: 30px; object-fit: contain; }
+#app .bst-prob > :last-child { margin-bottom: 0; }
