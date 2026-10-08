@@ -2477,14 +2477,15 @@
     el.querySelector('.pk-stack').addEventListener('click', e => {
       e.stopPropagation();
       if (busy || !el.classList.contains('dealt')) return;
-      sfx.flip();
       const c = cardsEl[k]; if (!c) return;
       busy = true; setTimeout(() => { busy = false; }, 350);
       if (!c.classList.contains('flip')) {
         c.classList.add('flip');
         const r = c.className.match(/r([CREL])/)[1];
         reveal(r);
-        sfx[{ C: 'common', R: 'rare', E: 'epic', L: 'legend' }[r]](); if (r === 'E' || r === 'L') rain(r === 'L' ? 'bill' : 'confetti', r === 'L' ? 50 : 30);
+        // la carte se retourne et claque sur le paquet, puis le son de sa rareté (de plus en plus grand : commune → légendaire)
+        sfx.cardflip(); setTimeout(() => { sfx[{ C: 'common', R: 'rare', E: 'epic', L: 'legend' }[r]](); }, 200);
+        if (r === 'E' || r === 'L') rain(r === 'L' ? 'bill' : 'confetti', r === 'L' ? 50 : 30);
         hint.textContent = k < cardsEl.length - 1 ? 'Touche pour la carte suivante' : 'Touche pour voir tes cartes';
         return;
       }

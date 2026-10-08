@@ -34,10 +34,14 @@
   const seen = {}, flash = {}, flashSide = {}, ended = {}, wasLive = new Set(); let goalSnd = 0;
   const justEnded = m => ended[m.id] && Date.now() - ended[m.id] < 8000;   // le coup de sifflet final reste affiché 8 s, à sa place
   let booted = false;
+  function kickNote(m) {
+    const leg = st().bets.filter(b => b.state === 'open').flatMap(b => b.legs).find(l => l.m === m.id);
+    U.toast(`Coup d'envoi : ${m.home} - ${m.away}${leg ? `. Ton pari : ${pickName(m, leg.pick)}` : ''}`, false, 'mybets');
+  }
   function checkGoals() {
     const mine = new Set(st().bets.filter(b => b.state === 'open').flatMap(b => b.legs.map(l => l.m)));
-    let kick = false;   // coup d'envoi d'un match sur lequel on a parié : coup de sifflet
-    st().matches.forEach(m => { if (m.state === 'live') { if (!wasLive.has(m.id) && booted && mine.has(m.id)) kick = true; wasLive.add(m.id); } else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
+    let kick = false;   // coup d'envoi d'un match sur lequel on a parié : coup de sifflet + notification (sinon on ne comprend pas le sifflet)
+    st().matches.forEach(m => { if (m.state === 'live') { if (!wasLive.has(m.id) && booted && mine.has(m.id)) { kick = true; kickNote(m); } wasLive.add(m.id); } else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
     booted = true; if (kick && !document.hidden) U.sfx.whistle();
     st().matches.filter(m => m.state === 'live').forEach(m => {
       const sc = liveScore(m), prev = seen[m.id];
@@ -75,8 +79,9 @@
     const sel = slip.find(l => l.m === m.id), boost = G.evOn('boost');
     const goal = m.sport === 'foot' && flash[m.id] && Date.now() - flash[m.id] < 2500;   // le « BUT ! » n'existe qu'au foot
     const win = done ? m.res : null;
-    const mine = soon && G.betOn(m.id), myLeg = mine && st().bets.find(b => b.state === 'open' && b.legs.some(l => l.m === m.id)).legs.find(l => l.m === m.id);
-    const oddBtns = mine ? `<div class="bet-placed">${U.ic('check')} Tu as parié : <b>${pickName(m, myLeg.pick)}</b></div>` : soon || live ? `${live ? '<p class="odds-closed">Paris fermés : le match a commencé</p>' : ''}<div class="odds n${m.odds.length} ${live ? 'closed' : ''}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" ${live ? 'disabled' : ''} data-act="bPick" data-m="${m.id}" data-p="${i}">
+    // ton pari reste affiché pendant le match (pas seulement avant) : on sait pour qui on tremble
+    const mine = (soon || live) && G.betOn(m.id), myLeg = mine && st().bets.find(b => b.state === 'open' && b.legs.some(l => l.m === m.id)).legs.find(l => l.m === m.id);
+    const oddBtns = mine ? `<div class="bet-placed ${live ? 'live' : ''}">${U.ic('check')} ${live ? 'Ton pari en cours' : 'Tu as parié'} : <b>${pickName(m, myLeg.pick)}</b></div>` : soon || live ? `${live ? '<p class="odds-closed">Paris fermés : le match a commencé</p>' : ''}<div class="odds n${m.odds.length} ${live ? 'closed' : ''}">${m.odds.map((o, i) => `<button class="odd-btn ${sel && sel.pick === i ? 'sel' : ''}" ${live ? 'disabled' : ''} data-act="bPick" data-m="${m.id}" data-p="${i}">
         ${labels(m)[i] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[i] === '2', 'mini')}
         <span class="ob-txt"><small>${labels(m)[i] === 'N' ? 'Match nul' : shortName(labels(m)[i] === '1' ? m.home : m.away)}</small><b>${boost ? `<s>${fmtOdd(o)}</s>` : ''}${fmtOdd(G.legOdd(m, i))}</b></span></button>`).join('')}</div>` : '';
     return `<div class="mcard ${m.state} sp-${m.sport} ${goal ? 'goal' : ''} ${done && justEnded(m) ? 'ended' : ''} ${sel ? 'picked' : ''}">

@@ -41,7 +41,7 @@
 
   // ---------------------------------------------------------------- vrais enregistrements (assets/sons/*.mp3)
   // SND_V : à augmenter quand on remplace un fichier (les .mp3 versionnés sont gardés un an par le navigateur)
-  const SND_V = '4', SAMPLES = ['cash', 'coin', 'whistle', 'whistle-long', 'goal', 'groan', 'gift', 'payout', 'scratch', 'scratch-win', 'notif', 'tear', 'level'], SMP = {};
+  const SND_V = '5', SAMPLES = ['cardflip', 'cash', 'coin', 'whistle', 'whistle-long', 'goal', 'groan', 'gift', 'payout', 'scratch', 'scratch-win', 'notif', 'tear', 'level'], SMP = {};
   let smpAsked = false, useSmp = true;
   function loadSamples() {
     if (smpAsked || !C || !window.fetch || !C.decodeAudioData) return; smpAsked = true;
@@ -201,16 +201,17 @@
     // boosters et cartes
     rustle: t => { for (let i = 0; i < (lite() ? 6 : 12); i++) nz(t + rnd(0, .5), .015, { vol: rnd(.02, .05), f: rnd(5000, 9000), type: 'highpass', pan: rnd(-.5, .5), rev: .05 }); },
     tear: t => { if (smp('tear', t, { vol: SV.tear, rev: .04, pan: rnd(-.15, .15) })) return; S.rustle(t); nz(t + .1, .34, { vol: .13, f: 900, sweep: 4.5, q: .9, a: .02, rev: .2 }); nz(t + .12, .4, { vol: .025, f: 9000, type: 'highpass', a: .05, rev: .4 }); thump(t + .1, 180, .06, .08); },
+    cardflip: t => { if (smp('cardflip', t, { vol: SV.cardflip, rev: .03 })) return; S.flip(t); },   // vraie carte retournée puis posée (enregistrement libre)
     flip: t => { nz(t, .07, { vol: .07, f: 1800, sweep: 2.5, q: .9, pan: rnd(-.2, .2) }); tone(220, t + .03, .05, { vol: .04, slide: .6 }); },
-    common: t => { tone(600, t, .08, { vol: .06, slide: 1.6 }); bell(1200, t + .02, .25, { vol: .03, ratio: 2, idx: .6 }); },
+    common: t => { tone(600, t, .08, { vol: .06, slide: 1.6 }); bell(1200, t + .02, .3, { vol: .05, ratio: 2, idx: .6, rev: .2 }); },
     rare: t => { duck(.6, .8); nz(t, .3, { vol: .03, f: 800, sweep: 5, a: .1, rev: .3 }); [1319, 1661, 1976].forEach((f, i) => bell(f, t + .1 + i * .08, .8, { vol: .07, ratio: 2, idx: 1, pan: (i - 1) * .4, rev: .4 })); },
     epic: t => {
       duck(.4, 1.6); nz(t, .55, { vol: .05, f: 300, sweep: 12, a: .4, rev: .3 }); thump(t + .5, 70, .22, .4);
-      brass([311, 392, 466, 587], t + .5, 1, .02, 2600); [1245, 1568, 1865].forEach((f, i) => bell(f, t + .5 + i * .07, .9, { vol: .045, ratio: 2, idx: 1.2, pan: (i - 2) * .3, rev: .45 }));
+      brass([311, 392, 466, 587], t + .5, 1, .04, 2600); [1245, 1568, 1865].forEach((f, i) => bell(f, t + .5 + i * .07, .9, { vol: .045, ratio: 2, idx: 1.2, pan: (i - 2) * .3, rev: .45 }));
     },
     legend: t => {
       duck(.25, 3); nz(t, .7, { vol: .06, f: 250, sweep: 16, a: .6, rev: .3 }); tone(55, t + .65, 1.4, { vol: .3, slide: .5, rev: .1 }); nz(t + .65, .5, { vol: .1, f: 500, type: 'lowpass', rev: .4 });
-      brass([262, 330, 392, 523, 587], t + .65, 1.6, .022, 3600); [523, 659, 784].forEach(f => tone(f, t + .7, 2, { type: 'triangle', vol: .02, a: .3, rev: .5 }));
+      brass([262, 330, 392, 523, 587], t + .65, 1.6, .045, 3600); [523, 659, 784].forEach(f => tone(f, t + .7, 2, { type: 'triangle', vol: .02, a: .3, rev: .5 }));
       [1047, 1319, 1568, 2093].forEach((f, i) => bell(f, t + .7 + i * .09, 1, { vol: .045, ratio: 2, idx: 1.3, pan: Math.sin(i) * .7, rev: .5 }));
     },
     // crypto et minage
@@ -241,7 +242,7 @@
     candy: t => { bell(1245 * R(.02), t, .4, { vol: .07, ratio: 2, idx: .5, pan: -.2, rev: .2 }); bell(1568 * R(.02), t + .09, .45, { vol: .065, ratio: 2, idx: .45, pan: .2, rev: .2 }); }
   };
   // volume de chaque enregistrement dans la console (réglé pour tenir le même niveau que les sons synthétisés)
-  const SV = { level: .5, coin: .34, cash: .55, whistle: .6, goal: .26, groan: .26, gift: .26, payout: .2, scratch: .15, scratchWin: .22, notif: .25, tear: .3 };
+  const SV = { cardflip: .5, level: .5, coin: .34, cash: .55, whistle: .6, goal: .26, groan: .26, gift: .26, payout: .2, scratch: .15, scratchWin: .22, notif: .25, tear: .3 };
   const GAP = { scratch: 40, chip: 40, coin: 50 }, last = {};
 
   const on = () => st().sound !== false;

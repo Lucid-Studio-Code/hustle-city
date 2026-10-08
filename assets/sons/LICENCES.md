@@ -21,6 +21,7 @@ volume harmonisé et réencodés en MP3 112 kb/s.
 | `notif.mp3` | notification : trois notes de xylophone | https://freesound.org/people/egomassive/sounds/536748/ (fait à partir de « Xylophone - C5 » de Samulis, CC0) | egomassive | CC0 1.0 | 0,03 → 0,45 s |
 | `tear.mp3` | paquet de cartes déchiré : la déchirure d'un paquet de chips (aluminium froissé) | https://freesound.org/people/lmbubec/sounds/118808/ | lmbubec | CC0 1.0 | 1,45 → 2,15 s |
 | `level.mp3` | passage de niveau : petite fanfare de victoire (« Level Up / Mission Complete ») | https://freesound.org/people/Beetlemuse/sounds/528958/ | Beetlemuse | CC0 1.0 | 0 → 3,40 s (fondu final 0,5 s) |
+| `cardflip.mp3` | carte retournée puis posée sur la table (ouverture des boosters) | https://freesound.org/people/Splashdust/sounds/84322/ | Splashdust | CC0 1.0 | 0,27 → 0,80 s |
 
 Écarté : « Cash Register Purchase » (Zott820, 209578), CC0 lui-même mais construit avec un son sous licence
 Attribution 4.0 (« coinbank », UncleSigmund) : risque d'attribution, on a pris sa source CC0 (CapsLok 184438).
