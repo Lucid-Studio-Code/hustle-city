@@ -2498,7 +2498,7 @@
       <div class="skin-grid">${D.SKINS.map(k => { const lock = s.lvl < k.lvl, has = own.includes(k.id), on = k.id === s.skin;
         if (k.iap && !has) { const x = D.IAP.find(i => i.id === k.iap); return `<div class="card sk-iap"><div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="muted">Exclusif</small><button class="btn gold xs" data-act="iapSoon" data-id="${k.iap}">${x ? x.price : 'Boutique'}</button></div>`; }
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
-        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="${!lock && !has && !on ? 'sk-price' : 'muted'}">${lock ? `${ic('lock')} Niveau ${k.lvl}` : on ? 'Porté' : has ? 'Mettre' : short(k.cost)}</small></button>`; }).join('')}</div>
+        <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b>${lock ? `<small class="muted">${ic('lock')} Niveau ${k.lvl}</small>` : on ? '<small class="muted">Porté</small>' : has ? '<span class="btn xs blue sk-btn">Mettre</span>' : `<span class="btn xs green sk-btn">${short(k.cost)}</span>`}</button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
       <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
@@ -3119,8 +3119,8 @@
     const now = n => n !== 'ev-cdm-bg' && ((/^bld-/.test(n) && bldOk(n)) || /^(icon-|nav-|btn-|hdr-|ui-|ic-promo|ic-shop|deco-|ev-)/.test(n) || ['bg-city', 'bg-city' + look, 'bg-accueil', 'booster-pack', 'card-back', 'guide', 'logo'].includes(n)
       || (s.skin && n.startsWith('skin-' + s.skin)) || (s.room != null && (n === `room-${((D.SKINS.find(k => k.id === s.skin) || {}).g || 'm')}-${s.room}` || n === 'room-' + s.room))   /* seulement TA chambre */ || mine.includes(n));
     // le reste (téléphone, autres looks, autres PC, cryptos) se charge en douce une fois dans le jeu : il est prêt avant qu'on l'ouvre
-    const later = n => !now(n) && (/^(bld-|app-|deco-|tip-|coin-|ev-|minerv-|pcv-|rig-|pc-)/.test(n) || n === 'phone-wall');
-    preload.later = A.filter(later).map(src);
+    const later = n => !now(n) && (/^(tkbg-|tk-|bld-|app-|deco-|tip-|coin-|ev-|minerv-|pcv-|rig-|pc-)/.test(n) || n === 'phone-wall');   // les fonds des tickets d'abord : ils sont grands
+    preload.later = A.filter(later).sort((a, b) => /^tkbg-/.test(b) - /^tkbg-/.test(a)).map(src);
     const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(now).map(src)))];
     let n = 0; const tot = L.length + 1, one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / tot, n, tot); };
     const fonts = (document.fonts && document.fonts.ready || Promise.resolve()).then(one);

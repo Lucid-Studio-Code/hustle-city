@@ -3541,3 +3541,5 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .btn s.pr-old { -webkit-text-stroke: 0; text-shadow: none; color: #2a1a10; opacity: .7; font: 900 .72em var(--text); text-decoration-color: #2a1a10; } #app .btn s.pr-old .ic { width: 1em; height: 1em; } #app .btn s.pr-old .cur { opacity: .6; }
 #app .item-card > .promo-tag { top: 22px; right: -6px; }   /* sous l étiquette de rareté, jamais dessus */
 #pack .bst-pack .bst-gloss { display: none; }   /* pendant l'ouverture, le reflet clignotait en rectangle blanc */
+#app .skin-grid .sk-btn { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; pointer-events: none; } #app .skin-grid .sk-btn .ic { width: 18px; height: 18px; }
+#app .zod.zod-img { display: inline-grid; place-items: center; width: 40px; height: 40px; } #app .zod.zod-img .pic, #app .zod.zod-img img { width: 40px; height: 40px; }

@@ -16,6 +16,8 @@
   // ------------------------------------------------------------ fabrication des grilles
   const LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
   const ZODIAC = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓'];
+  const ZIMG = ['belier', 'taureau', 'gemeaux', 'cancer', 'lion', 'vierge', 'balance', 'scorpion', 'sagittaire', 'capricorne', 'verseau', 'poissons'].map(n => 'zod-' + n);
+  const zod = i => U.has(ZIMG[i]) ? `<span class="zod zod-img">${U.pic(ZIMG[i], ZODIAC[i])}</span>` : `<span class="zod">${ZODIAC[i]}</span>`;   // l'image du signe (l'emoji en attendant)
   const ZNAME = ['Bélier', 'Taureau', 'Gémeaux', 'Cancer', 'Lion', 'Vierge', 'Balance', 'Scorpion', 'Sagittaire', 'Capricorne', 'Verseau', 'Poissons'];
   function build(t, prize) {
     const g = { game: t.game, cases: [], win: [] };   // cases : { html, zone } ; win : index des cases gagnantes
@@ -62,12 +64,12 @@
       }
     } else {
       const day = rnd(12), k = prize ? rnd(4) : -1;
-      g.cases.push({ zone: 'day', html: `<span class="zod">${ZODIAC[day]}</span><small>${ZNAME[day]}</small>` });
+      g.cases.push({ zone: 'day', html: `${zod(day)}<small>${ZNAME[day]}</small>` });
       const others = shuffle(Array.from({ length: 12 }, (_, i) => i).filter(i => i !== day));
       for (let i = 0; i < 4; i++) {
         const z = i === k ? day : others[i];
         if (i === k) g.win.push(0, g.cases.length);
-        g.cases.push({ zone: 'm', html: `<span class="zod">${ZODIAC[z]}</span><small>${ZNAME[z]}</small><b>${money(i === k ? prize : decoy(t))}</b>` });
+        g.cases.push({ zone: 'm', html: `${zod(z)}<small>${ZNAME[z]}</small><b>${money(i === k ? prize : decoy(t))}</b>` });
       }
     }
     return g;
