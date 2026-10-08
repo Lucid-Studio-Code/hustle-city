@@ -134,7 +134,7 @@
   const S = {
     // clic : un « pop » rond et doux (bulle qui éclate), plus de « tic » aigu ; deux variantes à écouter sur la page des sons
     // clic : la « goutte » choisie, arrondie (plus grave, attaque douce, un peu de corps dessous, aucune harmonique aiguë)
-    tap: t => { tone(360 * R(.03), t, .09, { vol: .1, a: .006, slide: 1.7, slideT: .06, rev: .05 }); tone(180 * R(.03), t, .07, { vol: .05, a: .006, slide: 1.5, slideT: .05, rev: 0 }); },
+    tap: t => { tone(520 * R(.03), t, .08, { vol: .09, a: .005, slide: 1.7, slideT: .055, rev: .05 }); tone(260 * R(.03), t, .06, { vol: .03, a: .005, slide: 1.5, slideT: .05, rev: 0 }); },   // entre la goutte d'origine (700) et la version trop grave (360)
     tapPop: t => { tone(620 * R(.04), t, .05, { vol: .09, a: .002, slide: .6, rev: .03 }); tone(165, t, .035, { vol: .045, a: .002, slide: .8, rev: 0 }); },   // l'ancien « pop »
     tapDrop: t => { tone(700 * R(.04), t, .06, { vol: .07, a: .002, slide: 1.9, slideT: .05, rev: .06 }); },   // la goutte d'avant (plus aiguë)
     tapSoft: t => { tone(440 * R(.03), t, .07, { type: 'triangle', vol: .08, a: .003, lp: 1400, slide: .85, rev: .05 }); tone(880, t, .04, { vol: .02, a: .002, rev: 0 }); },   // variante « feutrée »
