@@ -2170,7 +2170,7 @@
       <div class="card chart-card"><div class="cc-line"><span>Il y a 2 h</span><b>${trend(s.market.prices[id], h[0])}</b><span>Maintenant</span></div>${chartSvg(h)}</div>
       <div class="pos-card ${paid ? (diff >= 0 ? 'up' : 'down') : 'up'}"><small>Ce qu'il vaut</small>
         <div class="pos-line"><span>${paid ? 'Tu l\'as payé' : 'Gagné'}<b>${paid ? short(paid) : 'gratuit'}</b></span><i>→</i><span>Tu le revends<b>${short(sp)}</b></span><span class="pos-diff">${diff >= 0 ? 'Gagné' : 'Perdu'}<b>${diff >= 0 ? '+' : '−'}${short(Math.abs(diff))}</b></span></div>
-        <p class="muted">Sa cote du jour est ${eur(s.market.prices[id])}. Le Comptoir te le reprend 10 % moins cher : c'est sa commission.</p></div>
+        <p class="muted">Sa cote du jour est ${eur(s.market.prices[id])}. ${({ bijou: 'La Bijouterie', garage: 'Le Garage' })[D.ITEM_CATS[it.cat].shop] || 'Le Comptoir'} te le reprend 10 % moins cher : c'est sa commission.</p></div>
       ${a.length > 1 ? `<p class="hint-line center">Tu en as ${a.length}.</p>` : ''}
       <div class="center it-sell-row"><button class="btn red" data-act="itSell" data-id="${id}">Vendre ${short(sp)}</button></div>` });
   }

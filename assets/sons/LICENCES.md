@@ -20,6 +20,7 @@ volume harmonisé et réencodés en MP3 112 kb/s.
 | `scratch-win.mp3` | ticket gagnant : poignée de pièces + « tada » en fa | https://freesound.org/people/Norman_Hittle/sounds/395824/ et https://freesound.org/people/plasterbrain/sounds/397354/ | Norman_Hittle, plasterbrain | CC0 1.0 | pièces 0,42 → 1,2 s (-9 dB), tada 0 → 1,36 s |
 | `notif.mp3` | notification : trois notes de xylophone | https://freesound.org/people/egomassive/sounds/536748/ (fait à partir de « Xylophone - C5 » de Samulis, CC0) | egomassive | CC0 1.0 | 0,03 → 0,45 s |
 | `tear.mp3` | paquet de cartes déchiré : la déchirure d'un paquet de chips (aluminium froissé) | https://freesound.org/people/lmbubec/sounds/118808/ | lmbubec | CC0 1.0 | 1,45 → 2,15 s |
+| `level.mp3` | passage de niveau : petite fanfare de victoire (« Level Up / Mission Complete ») | https://freesound.org/people/Beetlemuse/sounds/528958/ | Beetlemuse | CC0 1.0 | 0 → 3,40 s (fondu final 0,5 s) |
 
 Écarté : « Cash Register Purchase » (Zott820, 209578), CC0 lui-même mais construit avec un son sous licence
 Attribution 4.0 (« coinbank », UncleSigmund) : risque d'attribution, on a pris sa source CC0 (CapsLok 184438).

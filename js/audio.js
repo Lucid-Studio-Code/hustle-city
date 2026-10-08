@@ -41,7 +41,7 @@
 
   // ---------------------------------------------------------------- vrais enregistrements (assets/sons/*.mp3)
   // SND_V : à augmenter quand on remplace un fichier (les .mp3 versionnés sont gardés un an par le navigateur)
-  const SND_V = '3', SAMPLES = ['cash', 'coin', 'whistle', 'whistle-long', 'goal', 'groan', 'gift', 'payout', 'scratch', 'scratch-win', 'notif', 'tear'], SMP = {};
+  const SND_V = '4', SAMPLES = ['cash', 'coin', 'whistle', 'whistle-long', 'goal', 'groan', 'gift', 'payout', 'scratch', 'scratch-win', 'notif', 'tear', 'level'], SMP = {};
   let smpAsked = false, useSmp = true;
   function loadSamples() {
     if (smpAsked || !C || !window.fetch || !C.decodeAudioData) return; smpAsked = true;
@@ -221,8 +221,8 @@
     alarm: t => { for (let i = 0; i < 3; i++) { tone(i % 2 ? 196 : 247, t + i * .34, .24, { type: 'sawtooth', vol: .04, a: .02, hold: .15, lp: 900, vib: 6, vibF: 9, rev: .15 }); tone(62, t + i * .34, .22, { vol: .06, a: .02, hold: .1 }); } },
     burnt: t => { S.alarm(t); nz(t + .9, .9, { vol: .06, f: 6000, type: 'highpass', sweep: .3, a: .05, rev: .3 }); thump(t + .9, 80, .2, .3); },
     // progression
-    level: t => {   // petite fanfare : deux notes d'appel, accord de cuivres qui s'ouvre, coup de grosse caisse, cymbale
-      duck(.3, 2); brass([392], t, .12, .03, 2400); brass([523], t + .13, .12, .03, 2600);
+    level: t => {   // vraie fanfare de victoire (enregistrement libre) ; à défaut : deux notes d'appel, accord de cuivres, grosse caisse, cymbale
+      duck(.3, 3.4); if (smp('level', t, { vol: SV.level, rev: .08 })) return; brass([392], t, .12, .03, 2400); brass([523], t + .13, .12, .03, 2600);
       thump(t + .27, 70, .3, .35); brass([523, 659, 784, 1047], t + .27, 1.1, .022, 3800); nz(t + .27, 1.3, { vol: .045, f: 6500, type: 'highpass', rev: .4 });
     },
     trophy: t => { duck(.35, 2); [784, 988, 1175, 1568, 1976].forEach((f, i) => bell(f, t + i * .09, 1.1, { vol: .055, ratio: 2, idx: 1.1, pan: (i - 2) * .3, rev: .45 })); [392, 494, 587].forEach(f => tone(f, t + .3, 1.3, { type: 'triangle', vol: .025, a: .15, rev: .45 })); thump(t + .36, 80, .18, .3); },
@@ -241,7 +241,7 @@
     candy: t => { bell(1245 * R(.02), t, .4, { vol: .07, ratio: 2, idx: .5, pan: -.2, rev: .2 }); bell(1568 * R(.02), t + .09, .45, { vol: .065, ratio: 2, idx: .45, pan: .2, rev: .2 }); }
   };
   // volume de chaque enregistrement dans la console (réglé pour tenir le même niveau que les sons synthétisés)
-  const SV = { coin: .34, cash: .55, whistle: .6, goal: .26, groan: .26, gift: .26, payout: .2, scratch: .15, scratchWin: .22, notif: .25, tear: .3 };
+  const SV = { level: .5, coin: .34, cash: .55, whistle: .6, goal: .26, groan: .26, gift: .26, payout: .2, scratch: .15, scratchWin: .22, notif: .25, tear: .3 };
   const GAP = { scratch: 40, chip: 40, coin: 50 }, last = {};
 
   const on = () => st().sound !== false;
