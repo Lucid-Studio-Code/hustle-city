@@ -3564,3 +3564,10 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #ph-banner { touch-action: none; }
 /* boutons côte à côte : le texte tient sur une ligne même sur petit téléphone */
 #app .grid2 > .btn, #app .row-btns > .btn { white-space: nowrap; font-size: clamp(13px, 4.1vw, 18px); line-height: 1.1; padding-left: 8px; padding-right: 8px; min-width: 0; }
+
+/* portraits de tennis : Safari iPhone ne découpe pas en rond une image qui porte une ombre (filter) ;
+   on arrondit l'image elle-même, sans filtre, et on force le découpage du cercle */
+.crest.tennis { overflow: hidden !important; isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); aspect-ratio: 1; }
+.crest.tennis img { filter: none !important; border-radius: 50% !important; }
+/* même garde-fou pour les coins arrondis des cartes (sans masque, pour garder leur ombre et leur halo) */
+.tcg-card { isolation: isolate; }
