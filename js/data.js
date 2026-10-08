@@ -49,6 +49,8 @@
   // Les véhicules les plus chers vont tout seuls dans l'étage le plus beau. Image : parking-bg-2 … parking-bg-5
   const PARK_FLOORS = [{ name: 'Niveau -2', lvl: 31, cost: 400000 }, { name: 'Niveau -3', lvl: 34, cost: 900000 }, { name: 'Niveau -4', lvl: 37, cost: 2000000 }, { name: 'Niveau -5', lvl: 40, cost: 4000000 }];
   const PARK_MAX = { car: 6, moto: 5 };
+  // retouche d'un véhicule sur sa place (dy = monter/descendre en % de la pièce, k = taille) : certaines images n'ont pas la même marge
+  const VEH_ADJ = { 'v-rally': { dy: -2.5 }, 'v-hyper': { k: 1.2, dx: 3, dy: -1 } };
   // gabarit des véhicules (plus c'est gros, plus ça se gare au fond du parking) ; un véhicule ajouté au back-office compte 5
   const VEH_SIZE = { 'v-unique': 5, 'v-van': 9, 'v-pickup': 8, 'v-muscle': 6, 'v-rally': 5, 'v-electric': 5, 'v-super': 4, 'v-hyper': 4, 'v-gti': 3, 'v-city': 2,
     'm-trike': 8, 'm-touring': 7, 'm-chopper': 6, 'm-road': 5, 'm-sport': 4, 'm-cafe': 4, 'm-cross': 3, 'm-scoot': 1 };   // places peintes du parking : jamais plus de 6 voitures et 5 motos
@@ -960,7 +962,7 @@
   window.DATA = {
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
-    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
+    ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, VEH_ADJ, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
     CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

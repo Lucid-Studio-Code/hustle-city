@@ -126,7 +126,7 @@
     function editor(c, isNew) {
       edit = c; c.target = c.target || 'iap';
       let tab = c.target === 'look' ? 'deco' : c.target, q = '';
-      const TABS = [['iap', 'Offres en euros'], ['item', 'Objets du jeu'], ['booster', 'Boosters'], ['deco', 'Looks & décos']];
+      const TABS = [['iap', 'Offres en euros'], ['item', 'Objets spéciaux'], ['deco', 'Décos & looks exclusifs']];   // jamais les objets normaux du jeu ni les boosters : les promos, c'est pour les offres et les exclusivités
       HC.main(`<div class="page-head"><div><h1>${isNew ? 'Nouvelle promo' : 'Modifier la promo'}</h1><div class="sub">4 étapes, l'aperçu du jeu se met à jour à droite.</div></div><button class="btn ghost" id="pm-back">← Retour aux promos</button></div>
         <div class="pm-ed"><div class="pm-steps">
           <section class="card pm-step"><div class="pm-sn">1</div><div class="pm-sb"><h3>Le look du bouton</h3><p class="help">L'image et la couleur du bouton Promo, dans la ville.</p>
@@ -157,9 +157,9 @@
         if (tab === 'iap') h = `<div class="pm-offers">${IAP.map(x => pickBtn('iap:' + x.id, c.target === 'iap' && c.offer === x.id, img(offerImg(x)), x.name, esc(x.price))).join('')}</div>`;
         else if (tab === 'item') {
           const qq = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''), norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          const L = ITEMS.filter(it => !qq || norm(it.name).includes(qq)), sel = c.target === 'item' ? itemOf(c.ref) : null, shown = (sel && !L.slice(0, 48).includes(sel) ? [sel] : []).concat(L.slice(0, 48));
-          h = `<input type="search" id="pm-q" placeholder="Chercher un objet par son nom…" value="${esc(q)}" style="width:100%;margin-bottom:10px">
-            <div class="pm-offers pm-items">${shown.map(it => pickBtn('item:' + it.id, sel === it, itemPic(it), it.name, `≈ ${cash(Math.ceil((+it.p0 || 0) * 1.05))} · ${esc(shopOf(it))}`, (it.custom ? '<span class="tag pink">Ajouté</span>' : '') + (avail(it) ? '' : '<span class="tag">pas en vente</span>'))).join('') || '<p class="help">Aucun objet à ce nom.</p>'}</div>
+          const L = ITEMS.filter(it => it.custom && (!qq || norm(it.name).includes(qq))), sel = c.target === 'item' ? itemOf(c.ref) : null, shown = (sel && !L.slice(0, 48).includes(sel) ? [sel] : []).concat(L.slice(0, 48));
+          h = `<input type="search" id="pm-q" placeholder="Chercher un objet spécial…" value="${esc(q)}" style="width:100%;margin-bottom:10px">
+            <div class="pm-offers pm-items">${shown.map(it => pickBtn('item:' + it.id, sel === it, itemPic(it), it.name, `≈ ${cash(Math.ceil((+it.p0 || 0) * 1.05))} · ${esc(shopOf(it))}`, (it.custom ? '<span class="tag pink">Ajouté</span>' : '') + (avail(it) ? '' : '<span class="tag">pas en vente</span>'))).join('') || '<p class="help">Aucun objet spécial pour l\'instant : crée-le avec « Créer un objet spécial ».</p>'}</div>
             ${L.length > 48 ? `<p class="help">${L.length - 48} autres objets : tape une partie du nom pour les trouver.</p>` : ''}`;
         } else if (tab === 'booster') h = `<div class="pm-offers">${BOOST.map(b => pickBtn('booster:' + b.id, c.target === 'booster' && c.ref === b.id, img('booster-pack') || '🃏', b.name, esc(b.sub))).join('')}</div>`;
         else h = `<div class="ob-sl">Looks du quartier</div><div class="pm-offers">${LOOKS_C.map(L => pickBtn('look:' + L.id, c.target === 'look' && c.ref === L.id, img('bg-city-' + L.id) || img('bg-city'), L.name, L.lingots ? lingots(L.lingots) : cash(L.cash))).join('')}</div>

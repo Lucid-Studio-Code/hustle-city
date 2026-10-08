@@ -173,7 +173,7 @@ const PROMO_LOOKS = ['promo', 'halloween', 'bf', 'noel'], PROMO_TXT = (v, n) => 
 function cleanCampaigns(L, content) {
   if (!Array.isArray(L)) return [];
   const ids = a => new Set((a || []).map(x => x.id)), iap = new Map((GAME.IAP || []).map(x => [x.id, x])), deco = ids(GAME.CITY_SHOP), looks = ids((GAME.CITY_LOOKS || []).filter(x => x.id !== 'base'));
-  const items = new Set([...(GAME.ITEMS || []).filter(i => i.cat !== 'trophy').map(i => i.id), ...Object.entries((content || {}).items || {}).filter(([, e]) => e && e.new && e.cat !== 'trophy').map(([id]) => id)]);
+  const items = new Set([...Object.entries((content || {}).items || {}).filter(([, e]) => e && e.new && e.cat !== 'trophy').map(([id]) => id)]);
   const seen = new Set(), out = [];
   L.slice(0, 200).forEach(c => {
     if (!c || typeof c !== 'object' || typeof c.id !== 'string' || !/^[\w-]{1,48}$/.test(c.id) || seen.has(c.id)) return;
@@ -181,7 +181,7 @@ function cleanCampaigns(L, content) {
     const t = c.target || 'iap', x = { id: c.id, target: t, look: PROMO_LOOKS.includes(c.look) ? c.look : 'promo', name: PROMO_TXT(c.name, 14), kind: 'off', value: 0,
       start: new Date(c.start).toISOString(), end: new Date(c.end).toISOString(), on: c.on !== false, title: PROMO_TXT(c.title, 90), desc: PROMO_TXT(c.desc, 200) };
     if (t === 'iap') { const o = iap.get(c.offer); if (!o) return; x.offer = c.offer; if (c.kind === 'bonus' && o.kind === 'lingots') x.kind = 'bonus'; }
-    else if ((t === 'item' && items.has(c.ref)) || (t === 'deco' && deco.has(c.ref)) || (t === 'look' && looks.has(c.ref)) || (t === 'booster' && ['lingots', 'kiosk', 'all'].includes(c.ref))) x.ref = c.ref;
+    else if ((t === 'item' && items.has(c.ref)) || (t === 'deco' && deco.has(c.ref)) || (t === 'look' && looks.has(c.ref)) || false /* plus de promo sur les boosters ni sur les objets normaux du jeu */) x.ref = c.ref;
     else return;
     const v = Math.round(+c.value); if (!Number.isFinite(v)) return;
     x.value = x.kind === 'bonus' ? Math.min(300, Math.max(5, v)) : Math.min(90, Math.max(5, v));

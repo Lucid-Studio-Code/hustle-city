@@ -599,7 +599,7 @@
     const motoOrder = sides.concat(mid);
     const placed = big(autos).map((c, i) => [c, carOrder[i]]).concat(big(motos).map((m, i) => [m, motoOrder[i]]));
     const slots = placed.filter(([, p]) => p).sort((a, b) => a[1][1] - b[1][1]).map(([it, [x, y, w, fl]]) =>
-      `<button class="pk-car${fl ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x}%;top:${y}%;width:${w}%">${itemPic(it)}</button>`).join('');
+      { const j = (D.VEH_ADJ || {})[it.id] || {}; return `<button class="pk-car${fl ? ' flip' : ''}" data-act="itemInfo" data-id="${it.id}" aria-label="${esc(it.name)}" style="left:${x + (j.dx || 0)}%;top:${y + (j.dy || 0)}%;width:${w * (j.k || 1)}%">${itemPic(it)}</button>`; }).join('');
     const maxed = (s.garageLvl || 0) >= D.GARAGES.length - 1;
     const bgN = f && has('parking-bg-' + (f + 1)) ? 'parking-bg-' + (f + 1) : 'parking-bg';
     const tabs = F > 1 || (nx && maxed && s.lvl >= nx.lvl - 3) ? `<div class="pk-floors">${Array.from({ length: F }, (_, i) => F - 1 - i).map(i => `<button class="btn xs ${i === f ? 'yellow' : ''}" data-act="pkFloor" data-f="${i}">-${i + 1}</button>`).join('')}${nx ? `<button class="btn xs" disabled>${ic('lock')} -${F + 1}</button>` : ''}</div>` : '';
