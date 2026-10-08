@@ -706,7 +706,7 @@
   // On fait glisser les bâtiments et TOUS les objets de la ville (même ceux qu'on n'a pas achetés), on règle leur taille,
   // et un objet qui en chevauche un autre passe en rouge. « Publier » (seulement sur localhost) écrit js/layout.js
   // et le met en ligne pour tout le monde. En attendant, les réglages restent dans ce navigateur.
-  let placing = false;
+  let placing = false, PUB_SNAP = '';
   const ADM_KEY = 'hustleCity.admin', admLocal = !!window.HC_DEV;
   const admSaved = () => { try { return JSON.parse(localStorage.getItem(ADM_KEY) || '{}'); } catch (e) { return {}; } };
   function placerMode() {
@@ -714,6 +714,8 @@
     placing = true;
     // une seule fois : on oublie les vieux brouillons de placement (ils ont remis les décos à zéro le 03/10)
     try { if (!localStorage.getItem('hustleCity.admFix2')) { localStorage.removeItem(ADM_KEY); localStorage.setItem('hustleCity.admFix2', '1'); } } catch (e) {}
+    const decos0 = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
+    PUB_SNAP = JSON.stringify({ b: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), d: Object.fromEntries(decos0.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), l: D.LOOK_POS });   // ce qui est en ligne, avant les brouillons
     const sv = admSaved(), old = (() => { try { return JSON.parse(localStorage.getItem('hustleCity.placer') || '{}'); } catch (e) { return {}; } })();
     D.BUILDINGS.forEach(b => Object.assign(b, old[b.id] || {}, (sv.buildings || {})[b.id] || {}));
     const decos = D.EV_SHOP.concat(D.CITY_SHOP).filter(x => x.kind === 'deco');
@@ -738,7 +740,10 @@
     const data = () => ({ buildings: Object.fromEntries(D.BUILDINGS.map(b => [b.id, { x: b.x, y: b.y, w: b.w, flip: !!b.flip }])), decos: Object.fromEntries(decos.map(d => [d.id, { x: d.x, y: d.y, w: d.w, flip: !!d.flip }])), looks: D.LOOK_POS });
     // ce qu'on règle : dans le look de base, l'objet lui-même ; dans un autre look, sa place à lui (créée au premier geste, à partir de la base)
     const tgt = (o, mk) => { const lk = cityLookNow(), kind = D.BUILDINGS.includes(o) ? 'buildings' : 'decos'; if (lk === 'base') return o; const L = D.LOOK_POS[lk] = D.LOOK_POS[lk] || {}, K = L[kind] = L[kind] || {}; if (!K[o.id] && mk) K[o.id] = { x: o.x, y: o.y, w: o.w, flip: !!o.flip }; return K[o.id] || o; };
-    const save = () => { const o = data(); try { localStorage.setItem(ADM_KEY, JSON.stringify(o)); } catch (e) {} $('#placer-out').value = JSON.stringify(o); };
+    // ce qui est en ligne (js/layout.js) contre ce qui est réglé ici : tant que ça diffère, « Publier » clignote et on prévient avant de quitter
+    const mine = o => JSON.stringify({ b: o.buildings, d: o.decos, l: o.looks });
+    const dirty = () => mine(data()) !== PUB_SNAP;
+    const save = () => { const o = data(); try { localStorage.setItem(ADM_KEY, JSON.stringify(o)); } catch (e) {} $('#placer-out').value = JSON.stringify(o); const d = dirty(); $('#pl-pub')?.classList.toggle('pulse', d); const bn = $('#admin-banner b'); if (bn) bn.textContent = d ? '⚠️ Réglages PAS ENCORE publiés : les joueurs ne les voient pas' : '✓ Tout est publié'; };
     let cur = null, sel = null;
     const show = () => { if (!sel) return; const o0 = sel.dataset.deco ? decos.find(d => d.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id), o = Object.assign({ name: o0.name }, tgt(o0)); $('#pl-cur').textContent = `${lookName()} · ${o.name.replace(/^(Le|La|Mon) /, '')} · x${o.x} y${o.y}${o.w ? ' · taille ' + o.w : ''}${o.flip ? ' · miroir' : ''}`; $('.pl-size').classList.toggle('hidden', false); };
     $('#map-inner').addEventListener('pointerdown', e => {
@@ -768,8 +773,8 @@
     $('#pl-test').onclick = () => openModal({ title: 'Tests', icon: 'gear', body: testsBody() });
     $('#pl-slot').onclick = () => { if (!has('casino-machine')) return toast('L\'image de la machine à sous n\'est pas encore faite.'); window.CASINO.open('slot'); };
     $('#pl-txt').onclick = () => { textEdit = !textEdit; $('#pl-txt').classList.toggle('green', textEdit); $('#app').classList.toggle('txt-edit', textEdit); toast(textEdit ? 'Touche un texte pour le changer. Re-touche ✏️ Textes pour rejouer normalement.' : 'Mode textes coupé.'); };
-    $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ MODE ADMIN · rien ne change chez les joueurs avant « Publier » <button id="adm-quit">Quitter</button></div>');
-    $('#adm-quit').onclick = () => { history.replaceState(null, '', location.href.split('#')[0]); location.reload(); };
+    $('#app').insertAdjacentHTML('afterbegin', '<div id="admin-banner">🛠️ <b>MODE ADMIN · rien ne change chez les joueurs avant « Publier »</b> <button id="adm-quit">Quitter</button></div>');
+    $('#adm-quit').onclick = () => { if (dirty() && !confirm('Tes réglages ne sont pas publiés : les joueurs ne les verront pas. Quitter quand même ?')) return; history.replaceState(null, '', location.href.split('#')[0]); location.reload(); };
     $('#pl-pub').onclick = () => publishLayout(clashes);
     $('#pl-reset').onclick = () => { if (!confirm('Annuler tous tes réglages pas encore publiés ?')) return; try { localStorage.removeItem(ADM_KEY); localStorage.removeItem('hustleCity.placer'); localStorage.removeItem('hustleCity.roomPlacer3'); localStorage.removeItem(TXT_KEY); localStorage.removeItem(VAL_KEY); localStorage.removeItem(PK_KEY); } catch (e) {} location.reload(); };
     save(); setTimeout(clashes, 300);
@@ -883,6 +888,9 @@
       if (window.LAYOUT) { window.LAYOUT.texts = body.texts; window.LAYOUT.values = body.values; }
       body.rooms.forEach((r, i) => { D.ROOM_LAYOUT[i] = JSON.parse(JSON.stringify(r)); });   // la chambre affichée garde ce qui vient d'être publié
       Object.assign(D.PARK_SLOTS, pkCopy(body.parking));   // la partie en cours garde les places publiées
+      if (window.LAYOUT) Object.assign(window.LAYOUT, { buildings: body.buildings, decos: body.decos, looks: body.looks });
+      PUB_SNAP = JSON.stringify({ b: body.buildings, d: body.decos, l: body.looks });
+      $('#pl-pub')?.classList.remove('pulse'); const bn = $('#admin-banner b'); if (bn) bn.textContent = '✓ Tout est publié';
       toast('Publié ! Le jeu en ligne se met à jour d\'ici une minute.');
     } catch (e) { toast('Le serveur du jeu n\'a pas répondu : relance « node tools/serve.js ».', true); }
   }
