@@ -28,6 +28,12 @@ for n in names:
     elif os.path.exists(w): os.remove(w)
 for f in os.listdir(d):   # versions légères orphelines (ou devenues inutiles)
     if (f.endswith('.jpg') and f[:-4] not in jpg) or (f.endswith('.webp') and f[:-5] not in webp): os.remove(os.path.join(d, f))
+# version PAR image (empreinte du fichier servi) : changer une image ne force plus le téléchargement de toutes les autres
+import hashlib
+def ver(n):
+    ext = 'jpg' if n in jpg else 'webp' if n in webp else 'png'
+    return hashlib.md5(open(os.path.join(d, n + '.' + ext), 'rb').read()).hexdigest()[:8]
+hv = {n: ver(n) for n in names}
 open(os.path.join(root, 'js/assets.js'), 'w').write(
-    '/* généré par tools/manifest.py */\nwindow.ASSETS = %s;\nwindow.ASSETS_JPG = %s;\nwindow.ASSETS_WEBP = %s;\nwindow.ASSET_V = %d;\n' % (json.dumps(names), json.dumps(jpg), json.dumps(webp), int(time.time())))
+    '/* généré par tools/manifest.py */\nwindow.ASSETS = %s;\nwindow.ASSETS_JPG = %s;\nwindow.ASSETS_WEBP = %s;\nwindow.ASSET_H = %s;\nwindow.ASSET_V = %d;\n' % (json.dumps(names), json.dumps(jpg), json.dumps(webp), json.dumps(hv, separators=(',', ':')), int(time.time())))
 print(len(names), 'images,', len(jpg), 'en jpg,', len(webp), 'en webp')

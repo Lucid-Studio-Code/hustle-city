@@ -21,7 +21,7 @@ function initDb(db) {
   const cols = (tbl) => new Set(db.prepare(`PRAGMA table_info(${tbl})`).all().map(c => c.name));
   const add = (tbl, defs) => { const have = cols(tbl); Object.entries(defs).forEach(([c, type]) => { if (!have.has(c)) db.exec(`ALTER TABLE ${tbl} ADD COLUMN ${c} ${type}`); }); };
   add('players', { xp: 'INT', boosters: 'INT', avatar: 'TEXT', frame: 'TEXT', tz: 'TEXT', lang: 'TEXT', screen: 'TEXT', ip: 'TEXT',
-    country: 'TEXT', cc: 'TEXT', region: 'TEXT', city: 'TEXT', lat: 'REAL', lon: 'REAL', geo_src: 'TEXT',
+    country: 'TEXT', cc: 'TEXT', region: 'TEXT', city: 'TEXT', home: 'TEXT', lat: 'REAL', lon: 'REAL', geo_src: 'TEXT',
     // anti-triche : suspect = nombre de synchros refusées (valeurs qui montent trop vite), sync_at = dernière synchro, ac = repères du jour (JSON)
     suspect: 'INT DEFAULT 0', sync_at: 'INT', ac: 'TEXT' });
   add('tickets', { created: 'INT' });

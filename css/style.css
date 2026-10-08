@@ -3543,3 +3543,9 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #pack .bst-pack .bst-gloss { display: none; }   /* pendant l'ouverture, le reflet clignotait en rectangle blanc */
 #app .skin-grid .sk-btn { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; pointer-events: none; } #app .skin-grid .sk-btn .ic { width: 18px; height: 18px; }
 #app .zod.zod-img { display: inline-grid; place-items: center; width: 40px; height: 40px; } #app .zod.zod-img .pic, #app .zod.zod-img img { width: 40px; height: 40px; }
+#app .lb-tag { font: 700 11px var(--text); color: #8a7a6a; font-style: normal; } #app .lb-nm small .ic { width: 12px; height: 12px; vertical-align: -2px; }
+/* respiration : un texte ne colle jamais au bloc au-dessus ni au bord */
+#app .hint-line { padding: 0 12px; }
+#app .card + .hint-line, #app .lb-card + *, #app .six-board-list + .hint-line, #app .grid2 + .hint-line, #app .six-rew + .hint-line { margin-top: 12px; }
+#app .lb-card ~ p, #app .lb-card ~ small { display: block; margin-top: 10px; padding: 0 12px; }
+#app .card > small:last-child, #app .card > p:last-child { margin-bottom: 0; }

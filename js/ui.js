@@ -42,7 +42,7 @@
   // (une image absente de ton dossier est reprise sur internet, voir plus bas)
   const IMG_LOCAL = /^https:\/\/cdn\.jsdelivr\.net\//.test(document.baseURI) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + '/' : '';
   const JPG = new Set(window.ASSETS_JPG || []), WEBP = new Set(window.ASSETS_WEBP || []);   // versions légères : .jpg sans transparence, .webp avec
-  function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.${JPG.has(name) ? 'jpg' : WEBP.has(name) ? 'webp' : 'png'}?v=${window.ASSET_V || 1}`; }
+  function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.${JPG.has(name) ? 'jpg' : WEBP.has(name) ? 'webp' : 'png'}?v=${(window.ASSET_H || {})[name] || window.ASSET_V || 1}`; }   /* une version par image : le navigateur garde toutes les autres */
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
   function pic(name, emo, cls = '') { return `<span class="pic ${cls}">${has(name) ? `<img src="${src(name)}" alt="" draggable="false">` : `<span class="emo">${emo || EMO[name] || '❔'}</span>`}</span>`; }
   // « de » + un nom propre, à la française : de Les Paniers → des Paniers, de Le Royal → du Royal, de Axion → d'Axion
@@ -51,6 +51,9 @@
     return /^[aeiouyhàâäéèêëîïôöûüAEIOUYHÀÂÉÈÊÎÔÛ]/.test(n) ? "d'" + n : 'de ' + n; }
   function ic(key) { const f = ICON_FILE[key] || key; return `<i class="ic">${has(f) ? `<img src="${src(f)}" alt="" draggable="false">` : `<span class="emo">${EMO[key] || '•'}</span>`}</i>`; }
   const ico = (n, e) => has(n) ? `<img class="ico" src="${src(n)}" alt="" draggable="false">` : e;
+  // aucun emoji à l'écran : dans un texte (toast, notif, message), un emoji connu devient son image, les autres disparaissent
+  const EMO_RX = /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)(?:\p{Emoji_Modifier}|\uFE0F|\u200D\p{Extended_Pictographic}\uFE0F?)*/gu;
+  const noEmo = t => String(t ?? '').replace(EMO_RX, e => { const f = COACH_IC[e] || COACH_IC[e + '\uFE0F']; return f && has(f) ? ico(f) : ''; }).replace(/ {2,}/g, ' ').replace(/^ | $/g, '');
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
   const PC_LOOK = [0, 1, 2, 3, 4];   // niveau du PC acheté dans « Mon setup » → ordi affiché (même échelle que la machine)
   const pcFor = (r, pl = G.pcLvl()) => (r = Math.max(r, PC_LOOK[pl] || 0)) > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-0') ? 'pcv-0' : 'pc-0';   // machine 1 : le vieux PC de face (flèche verte)   // le PC suit la machine
@@ -134,7 +137,7 @@
   let toastT;
   function toast(msg, bad, act, id, who) {
     const t = $('#toast');
-    t.innerHTML = `<span class="t-who">${pic(who && has(who) ? who : 'guide', '🧢')}</span><span class="t-txt">${msg}</span>`;
+    t.innerHTML = `<span class="t-who">${pic(who && has(who) ? who : 'guide', '🧢')}</span><span class="t-txt">${noEmo(msg)}</span>`;
     t.classList.toggle('bad', !!bad);
     if (act) { t.dataset.act = act; if (id) t.dataset.id = id; else delete t.dataset.id; t.classList.add('tapme'); }
     else { delete t.dataset.act; delete t.dataset.id; t.classList.remove('tapme'); }
@@ -143,7 +146,7 @@
   }
   function floatTxt(txt, x, y, neg) {
     const r = appBox(), el = document.createElement('div');
-    el.className = 'float' + (neg ? ' neg' : ''); el.innerHTML = txt;
+    el.className = 'float' + (neg ? ' neg' : ''); el.innerHTML = noEmo(txt);
     el.style.left = ((x ?? r.left + r.width / 2) - r.left) + 'px'; el.style.top = ((y ?? r.top + r.height * .45) - r.top) + 'px';
     $('#fx').appendChild(el); setTimeout(() => el.remove(), 1400);
   }
@@ -534,7 +537,7 @@
   function liftPlaques() {
     const inner = $('#map-inner'); if (!inner) return; const R = inner.getBoundingClientRect(); if (!R.width) return;
     let lay = inner.querySelector('.plq-layer'); if (!lay) { lay = document.createElement('div'); lay.className = 'plq-layer'; inner.appendChild(lay); }
-    lay.innerHTML = [...inner.querySelectorAll('.bld')].map(b => { const p = b.querySelector('.plaque'); if (!p) return ''; p.style.visibility = 'hidden'; const r = p.getBoundingClientRect();
+    lay.innerHTML = [...inner.querySelectorAll('.bld:not(.plq-copy)')].map(b => { const p = b.querySelector('.plaque'); if (!p) return ''; p.style.visibility = 'hidden'; const r = p.getBoundingClientRect();
       const k = R.width / inner.offsetWidth || 1;   // la ville peut être zoomée : on revient à sa taille réelle
       return `<button class="bld plq-copy ${b.classList.contains('locked') ? 'locked' : ''}" data-act="bld" data-id="${b.dataset.id}" style="left:${(r.left + r.width / 2 - R.left) / k}px;top:${(r.top - R.top) / k}px">${p.outerHTML.replace('visibility: hidden;', '')}</button>`; }).join('');
   }
@@ -1337,13 +1340,13 @@
     let el = $('#ph-banner'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<button id="ph-banner" data-act="phoneNotif"></button>'); el = $('#ph-banner'); }
     const a = appOf(n.app);
     el.dataset.id = n.id;
-    el.innerHTML = `${n.img ? pic(n.img, '🧑', 'nt-face') : appIcon(a, 'sm')}<span><small>${a.name} · maintenant</small><b>${n.title}</b><em>${n.txt}</em></span>`;
+    el.innerHTML = `${n.img ? pic(n.img, '🧑', 'nt-face') : appIcon(a, 'sm')}<span><small>${a.name} · maintenant</small><b>${noEmo(n.title)}</b><em>${noEmo(n.txt)}</em></span>`;
     el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
     clearTimeout(banner._t); banner._t = setTimeout(() => el.classList.remove('show'), 4200);
   }
   const ago = t => { const m = Math.floor((Date.now() - t) / 60000); return m < 1 ? 'maintenant' : m < 60 ? `il y a ${m} min` : `il y a ${Math.floor(m / 60)} h`; };
   const faceOf = n => n.img || (n.app === 'msg' && ((chats()[n.thread || n.title] || {}).img || (D.DEALS.contacts.find(c => c.name === n.title) || {}).img));
-  const notifCard = n => { const a = appOf(n.app), f = faceOf(n); return `<button class="ph-notif ${n.read ? 'read' : ''}" data-act="phoneNotif" data-id="${n.id}">${f ? pic(f, '🧑', 'nt-face') : appIcon(a, 'sm')}<span><small>${a.name} · ${ago(n.t)}</small><b>${n.title}</b><em>${n.txt}</em></span></button>`; };
+  const notifCard = n => { const a = appOf(n.app), f = faceOf(n); return `<button class="ph-notif ${n.read ? 'read' : ''}" data-act="phoneNotif" data-id="${n.id}">${f ? pic(f, '🧑', 'nt-face') : appIcon(a, 'sm')}<span><small>${a.name} · ${ago(n.t)}</small><b>${noEmo(n.title)}</b><em>${noEmo(n.txt)}</em></span></button>`; };
   // conversations avec les contacts : chaque message reçu peut proposer des réponses rapides (« Je parie », « J'achète »…)
   const chats = () => (st().chats = st().chats || {});
   let chatOpen = null;
@@ -1369,7 +1372,7 @@
   const GAIN_RX = /(^|\s)([+−]\s?\d[\d,.]*(?:\s\d{3})*(?:\s?%|\s?k)?(?:\s?<i class="cur"><\/i>)?(?:\s(?:d['’]abonnés|abonnés|de moral|lingots?|d['’]XP|XP|de pourboires|fans))?)/g;
   const gainLines = t => t.replace(GAIN_RX, (_, sp, g) => `<br><b class="${g[0] === '+' ? 'msg-up' : 'msg-down'}">${g.trim()}</b> `);
   function bubbleHtml(c, m, i) {
-    if (m.from === 'me') return `<div class="bub out">${m.txt}</div>`;
+    if (m.from === 'me') return `<div class="bub out">${noEmo(m.txt)}</div>`;
     let extra = '';
     if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>${(f => m.offer.type === 'sell' ? `Il te ${f} vend` : `Il te ${f} rachète`)(/^la /.test(G.what(it)) ? 'la' : 'le')} <strong>${short(m.offer.price)}</strong>${m.offer.type === 'buy' && paidFor(m.offer.id) != null ? `<br>${gainTxt(m.offer.id, m.offer.price)}` : ` · cote ${short(st().market.prices[m.offer.id])}`}</small></span></div>`; }
     if (m.match) { const x = G.match(m.match); if (x) extra = `<div class="bub in offer match"><span class="of-crests">${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.home), 'mini')}${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.away), 'mini')}</span><span><b>${x.home} – ${x.away}</b><small>${x.state === 'soon' ? `Coup d'envoi dans ${mmss(x.kickoff - Date.now())}` : x.state === 'live' ? 'En direct' : 'Terminé'}</small></span></div>`; }
@@ -1383,7 +1386,7 @@
     }
     // les anciens messages (avant la v22) ne disaient pas « la carte » : on corrige à l'affichage
     const it = m.item && G.item(m.item), txt = it ? m.txt.replace(`« ${it.name} »`, G.what(it)) : m.txt;
-    return `<div class="bub in">${gainLines(txt)}</div>${extra}${acts}`;
+    return `<div class="bub in">${gainLines(noEmo(txt))}</div>${extra}${acts}`;
   }
   let phoneApp = 'home';
   const phoneOpen = () => !!$('#phone-layer.on');
@@ -1415,7 +1418,7 @@
     }
     if (phoneApp === 'msg') {
       const L = Object.values(chats()).sort((a, b) => b.last - a.last);
-      return head('Messages') + `<div class="ph-scroll">${L.length ? L.map(c => { const lm = c.msgs[c.msgs.length - 1]; return `<button class="chat-row" data-act="chatOpen" data-n="${esc(c.name)}">${pic(c.img, '🧑', 'chat-face')}<span><b>${c.name}</b><small>${lm.from === 'me' ? 'Toi : ' : ''}${lm.txt.replace(/<[^>]+>/g, '')}</small></span><em>${ago(c.last)}</em>${c.unread ? `<i class="badge ok">${c.unread}</i>` : ''}</button>`; }).join('')
+      return head('Messages') + `<div class="ph-scroll">${L.length ? L.map(c => { const lm = c.msgs[c.msgs.length - 1]; return `<button class="chat-row" data-act="chatOpen" data-n="${esc(c.name)}">${pic(c.img, '🧑', 'chat-face')}<span><b>${c.name}</b><small>${lm.from === 'me' ? 'Toi : ' : ''}${noEmo(lm.txt.replace(/<[^>]+>/g, ''))}</small></span><em>${ago(c.last)}</em>${c.unread ? `<i class="badge ok">${c.unread}</i>` : ''}</button>`; }).join('')
         : '<p class="ph-hint center">Pas encore de message. Tes contacts t\'écrivent quand ils ont un plan ou un tuyau (le Club aide à en rencontrer).</p>'}</div>`;
     }
     if (phoneApp === 'chat') {
@@ -2500,11 +2503,13 @@
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b>${lock ? `<small class="muted">${ic('lock')} Niveau ${k.lvl}</small>` : on ? '<small class="muted">Porté</small>' : has ? '<span class="btn xs blue sk-btn">Mettre</span>' : `<span class="btn xs green sk-btn">${short(k.cost)}</span>`}</button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
-      <div class="pf-trophies">${[...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
+      ${(() => { const L = [...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
-        .sort((p, q) => q.done - p.done).map(x => x.html).join('')}</div>
+        .sort((p, q) => q.done - p.done).map(x => x.html); trophyAll = L;   // les 6 premiers ici (gagnés d'abord), la liste complète dans une fenêtre
+        return `<div class="pf-trophies">${L.slice(0, 6).join('')}</div>${L.length > 6 ? `<div class="center"><button class="btn blue" data-act="trophyList">Voir la liste complète (${L.length})</button></div>` : ''}`; })()}
       ${leaderHtml()}`;
   }
+  let trophyAll = [];
   // ---- classement des fortunes : le top 10 toujours visible, puis ta place et tes voisins
   // le vrai classement, celui des joueurs du serveur (plus aucun joueur inventé) ; hors ligne : on le dit simplement
   let LB = null, lbAt = 0;
@@ -2516,7 +2521,7 @@
     lbLoad();
     if (!LB) return `<h3 class="sec">Les plus riches du quartier</h3><div class="lb-card lb-off"><p class="hint-line center">${window.ONLINE && ONLINE.on ? 'Chargement du classement…' : 'Le classement des joueurs s\'affiche quand tu es connecté à internet.'}</p></div>`;
     const d = LB, rk = r => r === 1 ? ico('medal-gold', '🥇') : r === 2 ? ico('medal-silver', '🥈') : r === 3 ? ico('medal-bronze', '🥉') : r;
-    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(/^[a-z0-9-]{1,40}$/.test(p.skin) ? p.skin : '', true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}</b><small>Niveau ${Math.max(1, Math.min(99, +p.lvl | 0))}</small></span><b class="lb-w">${short(+p.worth || 0)}</b></div>`;
+    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(/^[a-z0-9-]{1,40}$/.test(p.skin) ? p.skin : '', true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}${/^\d{1,6}$/.test(p.tag || '') ? ` <em class="lb-tag">#${p.tag}</em>` : ''}</b><small>Niveau ${Math.max(1, Math.min(99, +p.lvl | 0))}${p.home ? ` · ${ic('city')} ${esc(p.home)}` : ''}</small></span><b class="lb-w">${short(+p.worth || 0)}</b></div>`;
     const inTop = d.rank <= 10, around = inTop ? [] : d.around;
     return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
       <div class="lb-card"><div class="lb-me">Ta place : <b>${d.rank.toLocaleString('fr-FR')}<sup>${d.rank === 1 ? 'er' : 'e'}</sup></b> sur ${d.total.toLocaleString('fr-FR')}${d.rank > 1 ? ` · encore <b>${short(Math.max(0, ((inTop ? d.top[d.rank - 2] : d.around[d.rank - d.aroundStart - 1]) || {}).worth - G.worth() + 1))}</b> pour passer devant` : ' · tu es le plus riche !'}</div>
@@ -2547,6 +2552,7 @@
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
         <div class="set-row"><span><b>Ton pseudo</b><small>${esc(s.name || '')}</small></span><button class="btn xs blue" data-act="setName">Changer</button></div>
+        <div class="set-row"><span><b>Ta ville</b><small>${s.home ? esc(s.home) : 'Affichée à côté de ton nom dans le classement'}</small></span><button class="btn xs blue" data-act="setHome">${s.home ? 'Changer' : 'Ajouter'}</button></div>
         <div class="set-row"><span><b>Sauvegarder ma partie</b><small>Un code à garder pour la retrouver sur un autre appareil</small></span><button class="btn xs green" data-act="saveExport">Copier</button></div>
         <div class="set-row"><span><b>Récupérer une sauvegarde</b><small>Colle le code d'une partie</small></span><button class="btn xs yellow" data-act="saveImport">Coller</button></div>
         <div class="set-row"><span><b>Supprimer mes données</b><small>Efface ta partie et tout ce qui est gardé sur notre serveur</small></span><button class="btn xs red" data-act="deleteMe">Supprimer</button></div></div>
@@ -2699,6 +2705,8 @@
     shopGo: () => openShop(),
     pkFloor(el) { pkFloor = +el.dataset.f; setBody(parkingBody()); },
     floorUp() { const r = G.floorUp(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 50); toast(`${r.floor.name} ouvert ! Tes plus belles voitures s'y garent toutes seules.`); pkFloor = G.parkFloors(); setBody(parkingBody()); },
+    trophyList() { openModal({ title: 'Tes trophées', icon: 'cat-trophy', full: true, body: `<div class="pf-trophies">${trophyAll.join('')}</div>`, onClose: () => setTimeout(() => A.profile && A.profile(), 0) }); },
+    setHome() { const v = prompt('Ta ville (elle s\'affiche dans le classement) :', st().home || ''); if (v == null) return; st().home = v.replace(/[<>"'`&]/g, '').trim().slice(0, 16); G.save(); toast(st().home ? `Ville : ${st().home}` : 'Ville retirée.'); lbAt = 0; if (window.ONLINE && ONLINE.on) ONLINE.syncNow && ONLINE.syncNow(); setBody(settingsBody()); },
     goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
     safeUp() { const r = G.safeUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Coffre agrandi !'); refresh(); },
     garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
@@ -3011,7 +3019,7 @@
   G.on('flash', f => notify('crypto', `⚡ ${G.coin(f.id).name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !`, f.up ? 'Si tu en as, c\'est le moment de vendre : ça va sûrement retomber.' : 'Ça plonge : ça pourrait remonter dans quelques minutes.'));
   G.on('coinNews', n => { if (st().crypto.hold[n.id] > 0) softNotify('crypto', `📰 ${n.src} (${n.rel.toLowerCase()})`, n.txt); });
   G.on('orderDone', ({ o, r }) => notify('crypto', '🤖 Ordre exécuté', r.err ? `Ton ordre sur ${G.coin(o.id).name} n'a pas pu passer : ${r.err}` : o.type === 'buy' ? `Ton PC a acheté du ${G.coin(o.id).name}.` : `Ton PC a tout vendu : ${r.profit >= 0 ? `+${short(r.profit)} de gagné` : `${short(r.profit)} de perdu`}.`));
-  G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; softNotify('crypto', `Météo du marché : ${w[0]} ${w[1]}`, w[2]); });
+  G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; softNotify('crypto', `Météo du marché : ${w[1]}`, w[2]); });
   G.on('news', n => {
     if (n.smoke) {
       const t = n.txt.replace(/^🚬 Pause clope : un pote te glisse que /, '');
@@ -3121,6 +3129,8 @@
     // le reste (téléphone, autres looks, autres PC, cryptos) se charge en douce une fois dans le jeu : il est prêt avant qu'on l'ouvre
     const later = n => !now(n) && (/^(tkbg-|tk-|bld-|app-|deco-|tip-|coin-|ev-|minerv-|pcv-|rig-|pc-)/.test(n) || n === 'phone-wall');   // les fonds des tickets d'abord : ils sont grands
     preload.later = A.filter(later).sort((a, b) => /^tkbg-/.test(b) - /^tkbg-/.test(a)).map(src);
+    // puis tout le reste, doucement (sauf en mode « économie de données ») : chaque écran s'ouvre ensuite sans attendre. Le navigateur les garde un an.
+    if (!(navigator.connection && navigator.connection.saveData)) preload.later = preload.later.concat(A.filter(n => !now(n) && !later(n) && !/^(load-|bld-.*-(renov|neon|hiver|or)|bg-city-|originals)/.test(n)).map(src));
     const L = [...new Set([...(html.matchAll(/src="([^"]+)"/g))].map(m => m[1]).concat(A.filter(now).map(src)))];
     let n = 0; const tot = L.length + 1, one = () => { n++; if (window.HC_LOAD) window.HC_LOAD.set(n / tot, n, tot); };
     const fonts = (document.fonts && document.fonts.ready || Promise.resolve()).then(one);

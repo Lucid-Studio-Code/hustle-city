@@ -11,7 +11,7 @@
   // ------------------------------------------------------------ petits outils
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const has = n => IMG.has(n), src = n => `/assets/img/${n}.${(window.ASSETS_JPG || []).includes(n) ? 'jpg' : (window.ASSETS_WEBP || []).includes(n) ? 'webp' : 'png'}?v=${AV}`;
+  const has = n => IMG.has(n), src = n => `/assets/img/${n}.${(window.ASSETS_JPG || []).includes(n) ? 'jpg' : (window.ASSETS_WEBP || []).includes(n) ? 'webp' : 'png'}?v=${(window.ASSET_H || {})[n] || AV}`;
   const img = (n, cls = '', alt = '') => has(n) ? `<img class="${cls}" src="${src(n)}" alt="${esc(alt)}" loading="lazy">` : '';
   const first = (...names) => names.find(has) || null;
   const fmt = (n, d = 0) => n == null || isNaN(n) ? '–' : (+n).toLocaleString('fr-FR', { maximumFractionDigits: d, minimumFractionDigits: 0 });

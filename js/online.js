@@ -72,7 +72,7 @@
   let model = ''; const getModel = async () => { try { const D = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Device; if (D && !model) model = String((await D.getInfo()).model || '').slice(0, 12); } catch (e) {} };
   const device = () => { let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {} return { tz, lang: navigator.language || '', screen: `${screen.width}x${screen.height}${model ? ' ' + model : ''}` }; };
   // résumé envoyé à chaque synchro : de quoi afficher le joueur dans le back office (photo, cadre, pin's, niveau, fortune)
-  function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
+  function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, home: s.home || '', avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
   async function sync(withSave) {
     if (off || !ONLINE.on || !G.st.skin) return;
     const events = queue.splice(0), ms = playMs; playMs = 0;
@@ -111,6 +111,7 @@
   // « Supprimer mes données » : le serveur efface tout ce qui concerne ce joueur, puis le jeu ne lui envoie plus rien
   ONLINE.deleteMe = async () => { if (off) return true; try { const r = await post('/api/delete-me', {}); if (r && r.ok) { ONLINE.on = false; return true; } } catch (e) {} return false; };
   ONLINE.importFlag = () => { try { return !!localStorage.getItem('hustleCity.imported'); } catch (e) { return false; } };
+  ONLINE.syncNow = () => sync(false);   // pseudo / ville changés : on prévient le serveur tout de suite
   ONLINE.support = text => post('/api/support', { text });
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;

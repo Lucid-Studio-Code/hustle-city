@@ -91,6 +91,7 @@ function cleanName(v) {
   return n && (BAD_ANY.test(k.replace(/[^a-z]/g, '')) || k.split(/[^a-z]+/).some(w => BAD_WORD.test(w))) ? 'Joueur' : n;
 }
 // le résumé envoyé à chaque synchro, nettoyé
+const cleanHome = v => { const h = cleanName(String(v || '').slice(0, 24)).replace(/^Joueur$/, ''); return h ? h.slice(0, 24) : null; };   // la ville choisie par le joueur (affichée au classement)
 const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), worth: Math.round(num(s.worth)), cash: Math.round(num(s.cash)), lingots: Math.floor(num(s.lingots, 1e9)), boosters: Math.floor(num(s.boosters, 1e6)),
   skin: cleanId(s.skin), avatar: cleanId(s.avatar), frame: cleanId(s.frame), name: cleanName(s.name), tag: cleanTag(s.tag) });
 
@@ -241,12 +242,12 @@ function cdmBoard(ed, pid, n = 5) {
 const api = {
   async 'POST /api/leaderboard'(req, res) {   // classement des fortunes : le top 10, puis le joueur et ses voisins
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
-    const cols = 'pid, name, tag, skin, avatar, frame, lvl, worth', W = "banned = 0 AND suspect = 0 AND name != ''", top = q(`SELECT ${cols} FROM players WHERE ${W} ORDER BY worth DESC LIMIT 10`);
+    const cols = 'pid, name, tag, skin, avatar, frame, lvl, worth, home', W = "banned = 0 AND suspect = 0 AND name != ''", top = q(`SELECT ${cols} FROM players WHERE ${W} ORDER BY worth DESC LIMIT 10`);
     const rank = 1 + (q1(`SELECT COUNT(*) n FROM players WHERE ${W} AND worth > ?`, p.worth || 0).n), total = q1(`SELECT COUNT(*) n FROM players WHERE ${W}`).n;
     const above = q(`SELECT ${cols} FROM players WHERE ${W} AND worth > ? ORDER BY worth ASC LIMIT 2`, p.worth || 0).reverse();
     const below = q(`SELECT ${cols} FROM players WHERE ${W} AND worth <= ? AND pid != ? ORDER BY worth DESC LIMIT 2`, p.worth || 0, p.pid);
     const me = q1(`SELECT ${cols} FROM players WHERE pid = ?`, p.pid);
-    const strip = r => ({ name: cleanName(r.name), tag: cleanTag(r.tag), skin: cleanId(r.skin), avatar: cleanId(r.avatar), frame: cleanId(r.frame), lvl: lvlOf(r.lvl), worth: Math.round(num(r.worth)), me: r.pid === p.pid });
+    const strip = r => ({ name: cleanName(r.name), tag: cleanTag(r.tag), skin: cleanId(r.skin), avatar: cleanId(r.avatar), frame: cleanId(r.frame), lvl: lvlOf(r.lvl), worth: Math.round(num(r.worth)), home: cleanHome(r.home), me: r.pid === p.pid });
     send(res, 200, { total, rank, top: top.map(strip), around: [...above, me, ...below].map(strip), aroundStart: rank - above.length });
   },
   async 'POST /api/push-token'(req, res) {   // l'application envoie son adresse de notification (une par téléphone)
@@ -270,6 +271,7 @@ const api = {
   },
   async 'POST /api/sync'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    if (b.summary && 'home' in b.summary) run('UPDATE players SET home = ? WHERE pid = ?', cleanHome(b.summary.home), p.pid);
     const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), ms = Math.floor(num(b.playMs, 600000)), A = antiCheat(p, s);
     if (A.n) console.warn(`anti-triche : ${p.pid} (${A.n} valeur(s) rabotée(s))`);
     run('UPDATE players SET last_seen = ?, lvl = ?, worth = ?, cash = ?, lingots = ?, skin = ?, name = ?, tag = ?, play_ms = play_ms + ?, xp = ?, boosters = ?, avatar = ?, frame = ?, tz = COALESCE(?, tz), lang = COALESCE(?, lang), screen = COALESCE(?, screen), sync_at = ?, ac = ?, suspect = suspect + ? WHERE pid = ?',
