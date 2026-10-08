@@ -394,9 +394,9 @@
       p0: Math.round(CARD_P0[r] * (0.9 + (t[1] % 5) / 20)), vol: .06, img: `art-k-${key}`, art: `art-k-${key}`, needArt: `art-k-${key}`, team: [sp, i] });
   }));
   // les coulisses du sport : coachs, arbitre, supporter, mascotte (cartes à illustration, visibles une fois l'image installée)
-  [['coachf', 'Coach Ramos', 'Coach de foot', 'R', 45, 'art-coach-foot'], ['coachb', 'Coach Big Mike', 'Coach de basket', 'R', 45, 'art-coach-basket'],
-   ['coacht', 'Coach Ben', 'Coach de tennis', 'R', 40, 'art-coach-tennis'], ['ref', 'Mme Carton', 'Arbitre', 'R', 40, 'art-ref-foot'],
-   ['fan', 'Le Capo', 'Supporter ultra', 'E', 140, 'art-fan-ultra'], ['mascot', 'Roucoul', 'Mascotte', 'E', 160, 'art-mascot']]
+  [['coachf', 'Coach Ramos', 'Coach du FC Bitume', 'R', 45, 'art-coach-foot'], ['coachb', 'Coach Big Mike', 'Coach des Street Ballers', 'R', 45, 'art-coach-basket'],
+   ['coacht', 'Coach Ben', 'Coach de K. Moreau', 'R', 40, 'art-coach-tennis'], ['ref', 'Mme Carton', 'Arbitre de la Ligue du Quartier', 'R', 40, 'art-ref-foot'],
+   ['fan', 'Le Capo', 'Ultra du Racing Kebab', 'E', 140, 'art-fan-ultra'], ['mascot', 'Roucoul', 'Mascotte du Stade Tacos', 'E', 160, 'art-mascot']]
     .forEach(([k, name, role, r, p0, art]) => ITEMS.push({ id: 'st-' + k, cat: 'card', series: 'staff', noBuy: true, kind: 'staff', role, name, r, p0, vol: .05, art, needArt: art }));
   // Les grandes cartes du sport : la rookie (grande illustration full-rookie) et la dédicacée (attend son image dans la D.A. des cartes de sport)
   ['c-rookie', 'c-signed'].forEach(id => { ITEMS.find(x => x.id === id).series = 'classics'; });
