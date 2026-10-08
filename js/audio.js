@@ -247,7 +247,7 @@
 
   const on = () => st().sound !== false;
   const SFX = {};
-  Object.keys(S).forEach(k => { SFX[k] = arg => { if (!on()) return; const now = performance.now(); if (now - (last[k] || 0) < (GAP[k] || 70)) return; last[k] = now; try { const c = ac(); S[k](Math.max(c.currentTime + .01, T0 + .15), arg); } catch (e) {} }; });   // compresseur tout neuf : pic dans ses premiers instants, on attend un peu
+  Object.keys(S).forEach(k => { SFX[k] = arg => { if (!on() || document.hidden) return; const now = performance.now(); if (now - (last[k] || 0) < (GAP[k] || 70)) return; last[k] = now; try { const c = ac(); S[k](Math.max(c.currentTime + .01, T0 + .15), arg); } catch (e) {} }; });   // compresseur tout neuf : pic dans ses premiers instants, on attend un peu
   // gain d'argent : petite somme = pièces, grosse = tiroir-caisse (relatif au cash qu'on a déjà)
   SFX.gain = n => (n >= Math.max(150, (st().cash || 0) * .08) ? SFX.cash : SFX.coin)();
 
@@ -311,6 +311,8 @@
   function tick() {
     if (st().music === false && musicOn) return music(false);
     if (!musicOn || !C || !M) return;
+    // onglet resté en arrière-plan (minuteur ralenti par le navigateur) : on saute les mesures en retard au lieu de toutes les jouer d'un coup
+    if (nextBar < C.currentTime) nextBar = C.currentTime + .05;
     while (nextBar < C.currentTime + 1.2) { playBar(nextBar, bar++, M); nextBar += BAR; }
   }
   function music(want) {

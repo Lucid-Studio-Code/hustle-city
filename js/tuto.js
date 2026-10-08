@@ -124,7 +124,13 @@
   function tightRect(t, app) {
     const imgs = t.classList.contains('bld') ? [...t.querySelectorAll('.pic img')] : [], parts = [];   // on serre au dessin seulement pour les bâtiments
     const zone = t.querySelector('.spot-zone');   // arrêt de bus : la zone à toucher couvre tout l'abri
-    if (zone) parts.push(zone.getBoundingClientRect()); else if (!imgs.length) parts.push(t.getBoundingClientRect());
+    if (zone) parts.push(zone.getBoundingClientRect());
+    else if (!imgs.length) {
+      // une boîte plate (véhicule du parking : l'image déborde de son bouton) : le cadre suit l'image réellement affichée
+      const tr = t.getBoundingClientRect(); if (tr.height > 4) parts.push(tr);
+      t.querySelectorAll('img').forEach(i => { const r = i.getBoundingClientRect(); if (r.width > 4 && r.height > 4) parts.push(r); });
+      if (!parts.length) parts.push(tr);
+    }
     imgs.forEach(img => {
       const r = img.getBoundingClientRect(), b = imgBox(img); if (!r.width) return;
       // image en « contain » : on retrouve la zone réellement dessinée
