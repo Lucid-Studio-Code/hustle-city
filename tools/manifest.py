@@ -7,6 +7,7 @@ from PIL import Image
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 d = os.path.join(root, 'assets/img')
 names = sorted(f[:-4] for f in os.listdir(d) if f.endswith('.png'))
+CARD = lambda n: n.startswith(('art-', 'full-', 'item-cr-'))   # illustrations de cartes : en .webp de bonne qualité (le .jpg les abîmait)
 jpg = []
 for n in names:
     p, j = os.path.join(d, n + '.png'), os.path.join(d, n + '.jpg')
@@ -16,15 +17,15 @@ for n in names:
         if os.path.exists(j): os.remove(j)
         continue
     b = io.BytesIO(); im.convert('RGB').save(b, 'JPEG', quality=86, optimize=True, progressive=True)
-    if len(b.getvalue()) < os.path.getsize(p) * .7: open(j, 'wb').write(b.getvalue()); jpg.append(n)
+    if len(b.getvalue()) < os.path.getsize(p) * .7 and not CARD(n): open(j, 'wb').write(b.getvalue()); jpg.append(n)
     elif os.path.exists(j): os.remove(j)
 webp = []
 for n in names:
     if n in jpg: continue
     p, w = os.path.join(d, n + '.png'), os.path.join(d, n + '.webp')
     if os.path.exists(w) and os.path.getmtime(w) >= os.path.getmtime(p): webp.append(n); continue
-    b = io.BytesIO(); Image.open(p).convert('RGBA').save(b, 'WEBP', quality=80, method=4, alpha_quality=90)
-    if len(b.getvalue()) < os.path.getsize(p) * .85: open(w, 'wb').write(b.getvalue()); webp.append(n)
+    b = io.BytesIO(); Image.open(p).convert('RGB').save(b, 'WEBP', quality=86, method=5) if CARD(n) else Image.open(p).convert('RGBA').save(b, 'WEBP', quality=80, method=4, alpha_quality=90)
+    if len(b.getvalue()) < os.path.getsize(p) * .85 or CARD(n): open(w, 'wb').write(b.getvalue()); webp.append(n)
     elif os.path.exists(w): os.remove(w)
 for f in os.listdir(d):   # versions légères orphelines (ou devenues inutiles)
     if (f.endswith('.jpg') and f[:-4] not in jpg) or (f.endswith('.webp') and f[:-5] not in webp): os.remove(os.path.join(d, f))

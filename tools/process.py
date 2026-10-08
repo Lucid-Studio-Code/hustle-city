@@ -29,7 +29,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, **{f'pcv-r{i}': 'all' for i in range(1, 5)}, 'medal-bronze': 'all', 'pin-gold': 'all', 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
+MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
@@ -132,8 +132,8 @@ def run(name):
     if name in ('shop-hero', 'pop-starter', 'ev-cdm-bg'): kind = 'bg'   # images avec leur décor
     if name.startswith('item-cr-'):   # créatures : on ne garde que l'illustration, le jeu dessine le même cadre pour toutes
         w, h = im.size; b = CREA_CROP.get(name[8:], (.12, .11, .88, .75))
-        im = im.convert('RGB').crop((int(w * b[0]), int(h * b[1]), int(w * b[2]), int(h * b[3]))); im.thumbnail((360, 460), Image.LANCZOS)
-        im.quantize(256, method=Image.MEDIANCUT).save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
+        im = im.convert('RGB').crop((int(w * b[0]), int(h * b[1]), int(w * b[2]), int(h * b[3]))); im.thumbnail((720, 920), Image.LANCZOS)
+        im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return   # pleine couleur : le jeu sert la version .jpg
     if name.endswith('-fg'):  # calque de premier plan déjà détouré : on garde la transparence
         im = im.convert('RGBA'); im.thumbnail((1080, 2160), Image.LANCZOS)
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
@@ -152,7 +152,9 @@ def run(name):
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
-    if kind in NOCUT:
+    if kind in ('art', 'full'):   # illustrations de cartes : pleine couleur (256 couleurs les abîmait), le jeu sert la version .jpg
+        im.convert('RGB').save(os.path.join(dst, name + '.png'), optimize=True)
+    elif kind in NOCUT:
         im.convert('RGB').quantize(256, method=Image.MEDIANCUT).save(os.path.join(dst, name + '.png'), optimize=True)
     else:
         im.quantize(256, method=Image.FASTOCTREE).save(os.path.join(dst, name + '.png'), optimize=True)
