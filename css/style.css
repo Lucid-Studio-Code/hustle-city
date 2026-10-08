@@ -3558,3 +3558,5 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .pf-home { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; margin-top: 10px; }
 #app .pf-home b { font: 400 18px var(--title); } #app .pf-home small { font: 700 12px var(--text); color: #7a5a3a; }
 #app .pf-home select { margin-top: 6px; padding: 10px 12px; border: 2px solid #2a1a10; border-radius: 12px; background: #fffaf0; font: 800 15px var(--text); color: #2a1a10; }
+#app .col-link .cl-ic { flex: 0 0 48px; width: 48px; height: 62px; display: grid; place-items: center; margin-right: 6px; } #app .col-link .cl-ic .bst-mini { width: 44px; height: 58px; } #app .col-link .cl-ic .bst-mini img { width: 100% !important; height: 100% !important; object-fit: contain; }
+#app .col-link { padding-top: 10px; padding-bottom: 10px; } #app .col-link .cl-ic { height: 52px; } #app .col-link .cl-ic .bst-mini { width: 38px; height: 50px; }
