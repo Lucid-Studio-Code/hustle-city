@@ -2979,6 +2979,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .ip-compo .ip-c { width: 54%; height: 50%; right: 8%; bottom: 2%; }
 #app .ip-compo .ip-e { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 34px; font-style: normal; }
 #app .sh2-art .ip-compo .ip-e { font-size: 50px; }
+#app .ip-compo img.ip-e { width: 62%; height: 62%; }
 /* offre de bienvenue (fenêtre) */
 #app .welcome-pop { text-align: center; }
 #app .welcome-pop .wp-art { position: relative; margin: -6px auto 6px; width: 220px; height: 220px; display: grid; place-items: center; border-radius: 24px; background: radial-gradient(circle, #ffe9a0, #b48cff 65%, #6a3fd0); border: 3px solid #2a1a10; box-shadow: 0 4px 0 #2a1a10; overflow: hidden; }

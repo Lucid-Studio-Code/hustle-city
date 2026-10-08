@@ -113,7 +113,7 @@
       <div class="tk-legs">${legs}</div>
       <div class="tk-row"><span>Cote totale</span><b>${fmtOdd(odds)}</b></div>
       ${s.freebets.length ? `<label class="tk-free"><input type="checkbox" id="b-free" ${free ? 'checked' : ''}> Utiliser mon pari gratuit de ${s.freebets[0]}<i class="cur"></i></label>` : ''}
-      ${free ? '' : broke ? `<p class="tk-broke">💸 Tu es à sec : plus un billet en poche pour miser.</p>` : `<div class="tk-stake"><input class="amt" id="b-stake" type="number" inputmode="numeric" min="1" max="${max}" value="${amt || 1}">
+      ${free ? '' : broke ? `<p class="tk-broke">Tu es à sec : plus un billet en poche pour miser.</p>` : `<div class="tk-stake"><input class="amt" id="b-stake" type="number" inputmode="numeric" min="1" max="${max}" value="${amt || 1}">
         <div class="seg">${[5, 10, 20, 50].filter(v => v < max).map(v => `<button class="btn xs ${stake === v ? 'yellow' : 'blue'}" data-act="bStake" data-v="${v}">${v}</button>`).join('')}<button class="btn xs ${stake >= max ? 'yellow' : 'blue'}" data-act="bStake" data-v="${max}">Max</button></div></div>`}
       <div class="tk-gain"><span>Si tu gagnes</span><b id="b-gain">${gainTxt(broke ? 0 : amt, odds, free)}</b></div>
       <button class="btn green wide" data-act="bPlace" ${broke ? 'disabled' : ''}>${broke ? 'À sec' : 'Valider le ticket'}</button>
@@ -134,8 +134,8 @@
     const up = s.matches.filter(m => (m.state !== 'done' || justEnded(m)) && (ok(m) || (tm && m.id === tm.id))).sort((a, b) => (tm && b.id === tm.id) - (tm && a.id === tm.id) || a.kickoff - b.kickoff);
     const done = s.matches.filter(m => m.state === 'done' && !justEnded(m) && ok(m)).slice(-3).reverse();
     return `${sportsBar()}
-      ${tm && tm.state !== 'done' ? `<div class="tip-banner">📰 <span><b>Tuyau : ${tm.home} – ${tm.away}</b>${tm.state === 'soon' ? `coup d'envoi dans ${U.mmss(tm.kickoff - Date.now())}` : 'en direct'} · le match est en haut de la liste</span></div>` : ''}
-      <p class="hint-line">Les cotes viennent des vraies chances de chaque équipe, moins la marge du Royal (7 %). Mise max : <b>${G.betMax()}<i class="cur"></i></b>${G.habitOn('drink') ? ' (+30 % de culot 🍺)' : ''}.${s.lvl < D.COMBI_LVL ? ` Combinés au niveau ${D.COMBI_LVL}.` : ' Coche plusieurs matchs pour un combiné.'}</p>
+      ${tm && tm.state !== 'done' ? `<div class="tip-banner">${U.ico('tip-sport', '')} <span><b>Tuyau : ${tm.home} – ${tm.away}</b>${tm.state === 'soon' ? `coup d'envoi dans ${U.mmss(tm.kickoff - Date.now())}` : 'en direct'} · le match est en haut de la liste</span></div>` : ''}
+      <p class="hint-line">Les cotes viennent des vraies chances de chaque équipe, moins la marge du Royal (7 %). Mise max : <b>${G.betMax()}<i class="cur"></i></b>${G.habitOn('drink') ? ` (+30 % de culot ${U.ico('hab-drink', '')})` : ''}.${s.lvl < D.COMBI_LVL ? ` Combinés au niveau ${D.COMBI_LVL}.` : ' Coche plusieurs matchs pour un combiné.'}</p>
       ${up.map(matchCard).join('') || '<p class="hint-line center">Pas de match pour ce sport en ce moment.</p>'}
       ${done.length ? `<h3 class="sec">Derniers résultats</h3>${done.map(matchCard).join('')}` : ''}
       ${slipHtml()}`;

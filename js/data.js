@@ -105,11 +105,11 @@
   // Humeur du marché : change toutes les 20 min (tirage pondéré)
   const MOODS = [
     // noms simples (pas de jargon) : c'est la « météo du marché » affichée au joueur
-    { id: 'calm',  name: '☁️ Calme',       w: 40, drift: 0,      volx: .8,  desc: 'les prix bougent à peine.' },
-    { id: 'bull',  name: '☀️ Ça monte',    w: 22, drift: .0012,  volx: 1.1, desc: 'les cryptos vont plutôt grimper. Bon moment pour acheter avant.' },
-    { id: 'bear',  name: '🌧️ Ça baisse',   w: 25, drift: -.001,  volx: 1.1, desc: 'les cryptos vont plutôt descendre. Pense à vendre avant.' },
-    { id: 'fomo',  name: '🚀 Folie',       w: 8,  drift: .0025,  volx: 1.8, desc: 'tout le monde achète, ça s\'envole… et ça peut retomber d\'un coup.' },
-    { id: 'krach', name: '⛈️ Panique',     w: 5,  drift: -.004,  volx: 2.2, desc: 'tout s\'effondre. Vends vite, ou achète pas cher si tu es joueur.' }
+    { id: 'calm',  name: 'Calme',          w: 40, drift: 0,      volx: .8,  desc: 'les prix bougent à peine.' },
+    { id: 'bull',  name: 'Ça monte',       w: 22, drift: .0012,  volx: 1.1, desc: 'les cryptos vont plutôt grimper. Bon moment pour acheter avant.' },
+    { id: 'bear',  name: 'Ça baisse',      w: 25, drift: -.001,  volx: 1.1, desc: 'les cryptos vont plutôt descendre. Pense à vendre avant.' },
+    { id: 'fomo',  name: 'Folie',          w: 8,  drift: .0025,  volx: 1.8, desc: 'tout le monde achète, ça s\'envole… et ça peut retomber d\'un coup.' },
+    { id: 'krach', name: 'Panique',        w: 5,  drift: -.004,  volx: 2.2, desc: 'tout s\'effondre. Vends vite, ou achète pas cher si tu es joueur.' }
   ];
   const MOOD_MIN = 20;
 
