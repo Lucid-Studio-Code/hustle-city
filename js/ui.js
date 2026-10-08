@@ -130,7 +130,9 @@
     } catch (e) {}
   }
   // les sons viennent de js/audio.js (doux, fabriqués en direct) ; on garde les mêmes noms partout
-  const sfx = new Proxy({}, { get: (_, k) => () => { try { window.AUDIO && window.AUDIO.sfx[k] && window.AUDIO.sfx[k](); } catch (e) {} } });
+  const sfx = new Proxy({}, { get: (_, k) => (...a) => { try { window.AUDIO && window.AUDIO.sfx[k] && window.AUDIO.sfx[k](...a); } catch (e) {} } });
+  // ambiance de la musique selon le lieu : casino / club = plus chargé, appart = feutré
+  const musicMood = theme => { try { window.AUDIO && AUDIO.mood(theme === 'casino' || theme === 'club' ? 'hype' : scene === 'appart' ? 'calm' : 'street'); } catch (e) {} };
 
   // ------------------------------------------------------------ message de Momo, effets
   // même carte que Mama Kana : la tête du perso + le texte, au-dessus de la barre du bas ; un appui mène à l'action liée
@@ -196,12 +198,12 @@
       <div class="sheet-head">${icon ? ic(icon) : ''}<span>${title}</span><button class="sheet-close" data-act="closeModal" aria-label="Fermer">×</button></div>
       ${tabs ? `<div class="tabs">${tabs.map(t => `<button class="tab ${t.id === tab ? 'on' : ''} ${t.locked ? 'tab-locked' : ''}" data-tab="${t.id}" ${t.locked ? 'disabled' : ''}>${t.locked ? `<span class="tab-lock">${ic('lock')}</span>` : ''}<span class="tab-lbl">${t.label}${t.locked && t.lvl ? `<small>Niveau ${t.lvl}</small>` : ''}</span></button>`).join('')}</div>` : ''}
       <div class="sheet-body">${body}</div></div>`;
-    modalClose = onClose || null; modalRefresh = refresh || null; tabHandler = onTab || null;
+    modalClose = onClose || null; modalRefresh = refresh || null; tabHandler = onTab || null; sfx.open(); musicMood(theme);
     m.onclick = e => { if (e.target === m) closeModal(); };
   }
   let liveTick = false;   // rafraîchissement automatique (chaque seconde) : on ne touche que ce qui change, sinon l'écran clignote sur Android
   function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; if (liveTick) morph(b, html); else b.innerHTML = html; b.scrollTop = y; } }
-  function closeModal() { const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
+  function closeModal() { const m = $('#modal'); if (!m.classList.contains('hidden')) { sfx.close(); setTimeout(() => { if (!modalOpen()) musicMood(); }, 0); } m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
   function dialog(who, text, btn = 'OK', cb) {
@@ -1003,6 +1005,7 @@
     btn.querySelector('b').textContent = s === 'city' ? 'Appart' : 'Ville';
     btn.querySelector('.ic').outerHTML = ic(s === 'city' ? 'home' : 'city');
     if (s === 'appart') renderAppart();
+    if (!modalOpen()) musicMood();
     renderHud();
     if (placing) { if (s === 'appart' && !RP.on) setTimeout(() => roomPlacer(true), 0); if (s !== 'appart' && RP.on) $('#rp-close')?.click(); }
   }
@@ -1308,7 +1311,7 @@
         <button class="btn gold wide" data-act="hvSell" data-id="${r.id}" data-q="${r.amt}">Vendre tout de suite · +${short(r.value * (1 - G.fee()))}</button>
         <p class="hint-line center" style="margin:2px 0 6px">Ou garde-la : si ${c.name} monte, ta récolte vaudra plus.</p>
         <div class="grid2"><button class="btn" data-act="coinSelPc" data-id="${r.id}">Voir sur mon PC</button><button class="btn green" data-act="rig">Relancer un minage</button></div></div>` });
-    sfx.coin(); if (r.find && r.find.kind !== 'virus') { sfx.win && sfx.win(); rain('confetti', 24); }
+    if (r.find && r.find.kind !== 'virus') { setTimeout(() => sfx.win(), 500); rain('confetti', 24); } else if (r.find || r.burnt) setTimeout(() => sfx.miss(), 500);
 
   }
 
@@ -2429,8 +2432,8 @@
       <p class="pk-hint stroke">Touche la carte pour la retourner</p>
       <div class="pk-recap hidden">${deck.map(c => `<div class="pk-mini">${front(c)}</div>`).join('')}</div>
       <button class="btn green pk-done hidden" data-act="packDone">Super !</button>`;
-    sfx.tap();
-    setTimeout(() => { el.classList.add('torn'); sfx.win(); rain('confetti', 30); }, 900);
+    sfx.rustle();
+    setTimeout(() => { el.classList.add('torn'); sfx.tear(); rain('confetti', 30); }, 900);
     setTimeout(() => el.classList.add('dealt'), 1300);
     const cardsEl = [...el.querySelectorAll('.pk-card')], hint = el.querySelector('.pk-hint');
     // effets de révélation selon la rareté : éclair blanc, rayons qui tournent, étincelles, bandeau du nom de rareté
@@ -2457,11 +2460,11 @@
         c.classList.add('flip');
         const r = c.className.match(/r([CREL])/)[1];
         reveal(r);
-        if (r === 'E' || r === 'L') { sfx.level(); rain(r === 'L' ? 'bill' : 'confetti', r === 'L' ? 50 : 30); } else if (r === 'R') sfx.win(); else sfx.coin();
+        sfx[{ C: 'common', R: 'rare', E: 'epic', L: 'legend' }[r]](); if (r === 'E' || r === 'L') rain(r === 'L' ? 'bill' : 'confetti', r === 'L' ? 50 : 30);
         hint.textContent = k < cardsEl.length - 1 ? 'Touche pour la carte suivante' : 'Touche pour voir tes cartes';
         return;
       }
-      c.classList.add('gone'); sfx.tap(); k++; el.dataset.r = ''; el.querySelector('.pk-rar').textContent = '';
+      c.classList.add('gone'); sfx.swipe(); k++; el.dataset.r = ''; el.querySelector('.pk-rar').textContent = '';
       if (k >= cardsEl.length) {
         hint.classList.add('hidden');
         setTimeout(() => { el.querySelector('.pk-stack').classList.add('hidden'); el.querySelector('.pk-recap').classList.remove('hidden'); el.querySelector('.pk-done').classList.remove('hidden'); }, 300);
@@ -2564,7 +2567,7 @@
   function settingsBody() {
     const s = st();
     return `<div class="tip-carousel" data-act="tipNext"><div class="tc-txt" id="tc-txt">${D.TIPS[tipI % D.TIPS.length]}</div><div class="tc-dots">${D.TIPS.slice(0, 8).map((_, k) => `<i class="${k === tipI % 8 ? 'on' : ''}"></i>`).join('')}</div></div>
-      <h3 class="sec">Son</h3><div class="card set-card">${setRow('setToggle" data-k="music', 'Musique', s.music !== false, 'Une petite boucle lo-fi')}${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
+      <h3 class="sec">Son</h3><div class="card set-card">${setRow('setToggle" data-k="music', 'Musique', s.music !== false, 'Une instru rap, tranquille')}${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
       <h3 class="sec">Affichage</h3><div class="card set-card">${setRow('setToggle" data-k="calm', 'Animations réduites', !!s.calm, 'Moins de confettis et d\'effets')}<div class="set-row"><span><b>Langue</b></span><em>Français</em></div></div>
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
@@ -2696,12 +2699,12 @@
     roomUp() { const r = G.roomUpgrade(); if (r.err) return toast(r.err, true); rain('confetti'); closeModal(); renderAppart(); },
     rigCollect() { A.mineHarvest(); },
     rigQuick(el, e) { e.stopPropagation(); const i = G.rigInfo(); if (i.ready) return A.mineHarvest(); if (!i.idle && !i.burnt && i.heat >= 50 && i.coolLeft <= 0) return A.mineCool(); openRig(); },
-    mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
+    mineStart(el) { const r = G.mineStart(el.dataset.id); if (r.err) return toast(r.err, true); sfx.blipUp(); toast(`C'est parti : ta machine mine ${deC(G.coin(el.dataset.id).name).replace(/^de /, 'du ')}.`); refresh(); },
     stockSkip() { const r = G.stockSkip(); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Nouvel arrivage ! (−${r.n} lingots)`); refresh(); },
     mineSkip() { const r = G.mineSkip(); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`⚡ −${r.n} lingots`); refresh(); },
     mineCool() { const r = G.mineCool(); if (r.err) return toast(r.err, true); sfx.tap(); floatTxt('💨 −50 %'); refresh(); },
     hvSell(el) { const id = el.dataset.id, q = +el.dataset.q, h = st().crypto.hold[id] || 0; if (!(h > 0)) return toast('Plus rien à vendre.', true);
-      const r = G.sellCrypto(id, Math.min(1, q / h)); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); el.disabled = true; el.innerHTML = `Vendu · +${short(r.net)}`; refresh(); },
+      const r = G.sellCrypto(id, Math.min(1, q / h)); if (r.err) return toast(r.err, true); sfx.sell(); floatTxt(`+${eur(r.net)}`); el.disabled = true; el.innerHTML = `Vendu · +${short(r.net)}`; refresh(); },
     coinSelPc(el) { const id = el.dataset.id; closeModal(); setTimeout(() => openCrypto(id), 60); },
     mineHarvest() { const r = G.mineHarvest(); if (r.err) return toast(r.err, true); sfx.harvest(); closeModal(); setTimeout(() => { showHarvest(r); refresh(); }, 80); },
     roomHelp: () => openRoomHelp(),
@@ -2716,7 +2719,7 @@
     coinSel: el => { cryptoSel = el.dataset.id; cryptoView = 'coin'; crAmt = null; setBody(cryptoBody()); $('#modal .sheet-body').scrollTop = 0; },
     goCoin: el => { closeModal(); setScene('appart'); openCrypto(el.dataset.id); },
     crAmt(el) { crAmt = el.dataset.v === 'max' ? Math.floor(st().cash * 100) / 100 : +el.dataset.v; setBody(cryptoBody()); },
-    crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.coin(); crAmt = null; refresh(); },
+    crBuy(el) { const v = parseFloat($('#cr-amt').value); const r = G.buyCrypto(cryptoSel, v); if (r.err) return toast(r.err, true); sfx.blipUp(); crAmt = null; refresh(); },
     crSell(el) { sellCoin(+(el.dataset.f || 1)); },
     shopGo: () => openShop(),
     pkFloor(el) { pkFloor = +el.dataset.f; setBody(parkingBody()); },
@@ -2725,12 +2728,12 @@
     goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
     safeUp() { const r = G.safeUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Coffre agrandi !'); refresh(); },
     garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
-    propBuy(el) { const r = G.propBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast(`${G.prop(el.dataset.id).name} : c'est à toi ! Les loyers tombent chaque jour.`); refresh(); },
-    propCollect(el) { const r = G.propCollect(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); flyTo(el, '#pill-cash'); toast(r.issue ? `${r.issue.txt} : −${eur(r.issue.cost)}. Tu encaisses quand même ${eur(r.got)}.` : `Loyers encaissés : +${eur(r.got)}.`, !!r.issue); refresh(); },
+    propBuy(el) { const r = G.propBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.buy(); setTimeout(() => sfx.win(), 300); rain('confetti', 30); toast(`${G.prop(el.dataset.id).name} : c'est à toi ! Les loyers tombent chaque jour.`); refresh(); },
+    propCollect(el) { const r = G.propCollect(el.dataset.id); if (r.err) return toast(r.err, true); sfx.gain(r.got); flyTo(el, '#pill-cash'); toast(r.issue ? `${r.issue.txt} : −${eur(r.issue.cost)}. Tu encaisses quand même ${eur(r.got)}.` : `Loyers encaissés : +${eur(r.got)}.`, !!r.issue); refresh(); },
     propSell(el) { if (!confirm('Vendre ce bien ?')) return; const r = G.propSell(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`Vendu ${eur(r.v)} : ${r.profit >= 0 ? `+${eur(r.profit)} de gagné` : `${eur(r.profit)} de perdu`}.`, r.profit < 0); refresh(); },
-    stockBuy(el) { const v = el.dataset.v === 'all' ? st().cash : +el.dataset.v; const r = G.stockBuy(el.dataset.id, v); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
-    stockSell(el) { const c = D.STOCKS.find(x => x.id === el.dataset.id), r = G.stockSell(el.dataset.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); toast(r.profit >= 0 ? `${c.name} vendue : <b>+${eur(r.profit)} de gagné</b>.` : `${c.name} vendue : ${eur(r.profit)} de perdu.`, r.profit < 0); refresh(); },
-    lookBuy(el) { const r = G.lookBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 30); toast('Ta ville change de look !'); renderCity(); refresh(); },
+    stockBuy(el) { const v = el.dataset.v === 'all' ? st().cash : +el.dataset.v; const r = G.stockBuy(el.dataset.id, v); if (r.err) return toast(r.err, true); sfx.blipUp(); refresh(); },
+    stockSell(el) { const c = D.STOCKS.find(x => x.id === el.dataset.id), r = G.stockSell(el.dataset.id, 1); if (r.err) return toast(r.err, true); sfx.sell(); toast(r.profit >= 0 ? `${c.name} vendue : <b>+${eur(r.profit)} de gagné</b>.` : `${c.name} vendue : ${eur(r.profit)} de perdu.`, r.profit < 0); refresh(); },
+    lookBuy(el) { const r = G.lookBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.deco(); rain('confetti', 30); toast('Ta ville change de look !'); renderCity(); refresh(); },
     itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.buy(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),
@@ -2741,10 +2744,10 @@
     cdmPick(el) { sfx.tap(); cdmConfirm(el.dataset.id); },
     cdmBack() { sfx.tap(); openCdm(); },
     cdmGo() { goCdm(); },
-    cdmJoin(el) { const r = G.cdmJoin(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 50); cdmTab = 'team'; openCdm('team'); renderHud(); toast(`Bienvenue chez les ${r.T.name} ! ${r.T.motto}`); },
-    cdmNight(el) { const r = G.cdmNightClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', r.bonus ? 40 : 15); setBody(cdmBody()); renderHud(); },
+    cdmJoin(el) { const r = G.cdmJoin(el.dataset.id); if (r.err) return toast(r.err, true); sfx.spooky(); rain('confetti', 50); cdmTab = 'team'; openCdm('team'); renderHud(); toast(`Bienvenue chez les ${r.T.name} ! ${r.T.motto}`); },
+    cdmNight(el) { const r = G.cdmNightClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.candy(); if (r.bonus) sfx.win(); rain('confetti', r.bonus ? 40 : 15); setBody(cdmBody()); renderHud(); },
     cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud(); },
-    cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.CDM.shop.find(o => o.id === el.dataset.id) || {}).kind === 'deco') decoFocus = el.dataset.id; sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.CDM.shop.find(o => o.id === el.dataset.id) || {}).kind === 'deco') { decoFocus = el.dataset.id; sfx.deco(); } else sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmHow(el, e) { e && e.preventDefault(); cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },
     cdmRecapOk() { const claimed = G.cdmState().final.claimed; G.cdmRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 60); } closeModal(); renderCity(); renderHud(); },
@@ -2759,31 +2762,31 @@
     patGo(el) { const k = el.dataset.k, r = G.liquidate(G.upPrice(k)); if (r.err) return toast(r.err, true);
       const u = k === 'rig' ? G.rigUpgrade() : k === 'pc' ? G.pcUpgrade() : G.roomUpgrade(); if (u.err) return toast(u.err, true);
       sfx.win(); rain('confetti', 24); openUpgrades(); renderHud(); },
-    evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.EV_SHOP.find(o => o.id === el.dataset.id) || {}).kind === 'deco') decoFocus = el.dataset.id; sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
+    evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.EV_SHOP.find(o => o.id === el.dataset.id) || {}).kind === 'deco') { decoFocus = el.dataset.id; sfx.deco(); } else sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
     evUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); renderCity(); renderHud(); },
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
     sixRecapOk() { const claimed = G.sixState().final.claimed; G.sixRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 50); } closeModal(); renderCity(); renderHud(); },
     sixClaim(el) { const r = G.claimSix(); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 40); setBody(sixBody()); renderHud(); },
     quest() { const q = G.questFocus(); openRewards(q && G.questState(q).done ? 'missions' : undefined); },
-    claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 16); flyTo(el, '#pill-cash'); refresh(); },
+    claimQuest(el) { const r = G.claimQuest(el.dataset.id); if (r.err) return toast(r.err, true); sfx.cash(); rain('confetti', 16); flyTo(el, '#pill-cash'); refresh(); },
     lvlGo(el) { closeModal(); setScene('city'); focusBld(el.dataset.id); },
     nextCap() { openRewards('levels', true); },
     credGo(el) { questGo(el.dataset.id); },
     claimWeek(el) { const r = G.claimWeek(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-lingots'); if (r.bonus) { rain('bill', 40); toast('Semaine bouclée : 3 boosters et 15 lingots !'); } refresh(); },
-    claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
+    claimChal(el) { const r = G.claimChal(+el.dataset.id); if (r.err) return toast(r.err, true); sfx.cash(); flyTo(el, '#pill-cash'); if (r.bonus) rain('bill', 30); refresh(); },
     questGo(el) { questGo(D.QUESTS.find(q => q.id === el.dataset.id).go); },
     daily: () => openDaily(),
-    claimDaily(el) { const r = G.claimDaily(); if (r.err) return toast(r.err, true); sfx.win(); rain('bill', 24); flyTo(el, '#pill-cash', 8); toast(`Jour ${r.day} : +${eur(r.r.cash)} et ${r.r.lingots} lingots${r.r.boosters ? ` et ${r.r.boosters} booster${r.r.boosters > 1 ? 's' : ''}` : ''} !`); refresh(); },
+    claimDaily(el) { const r = G.claimDaily(); if (r.err) return toast(r.err, true); sfx.gift(); rain('bill', 24); flyTo(el, '#pill-cash', 8); toast(`Jour ${r.day} : +${eur(r.r.cash)} et ${r.r.lingots} lingots${r.r.boosters ? ` et ${r.r.boosters} booster${r.r.boosters > 1 ? 's' : ''}` : ''} !`); refresh(); },
     boosters: () => openBoosters('open'),
     collection: () => openBoosters('col'),
-    boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); sfx.tear(); packOpening(r.cards); renderHud(); },
-    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.coin(); A.boosterOpen(); },   // acheté = ouvert tout de suite
+    boosterOpen() { const r = G.openBooster(); if (r.err) return toast(r.err, true); closeModal(); packOpening(r.cards); renderHud(); },
+    boosterBuy() { const r = G.buyBooster(); if (r.err) return toast(r.err, true); sfx.buy(); A.boosterOpen(); },   // acheté = ouvert tout de suite
     packDone() { const el = $('#pack'); el.className = ''; el.innerHTML = ''; refresh(); nextPending(); },
     goDefis: () => openRewards('defis'),
     claimSeries(el) { const r = G.claimSeries(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('bill', 40); toast(`Série « ${r.se.name} » complète : +${eur(r.se.reward.cash)} et ${r.se.reward.lingots} lingots !`); refresh(); },
     cardZoom: el => cardZoom(el.dataset.id),
     czClose: () => closeZoom(),
-    czBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); closeZoom(); refresh(); },
+    czBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); sfx.buy(); closeZoom(); refresh(); },
     czSell(el) { const id = el.dataset.id, r = G.sellItem(id); if (r.err) return toast(r.err, true); sfx.coin(); closeZoom(); refresh(); },
     deal: () => openPhone('msg'),
     dealOk() { const r = G.acceptDeal(); if (r.err) return toast(r.err, true); sfx.win(); if (phoneOpen()) drawPhone(); else closeModal(); refresh(); },
@@ -2836,7 +2839,7 @@
     },
     trading() { openCrypto(); },
     moodCoin(el) { closeModal(); setTimeout(() => openCrypto(el.dataset.id), 60); },
-    flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
+    flashSell() { const f = st().crypto.flash; if (!f) return; const c = G.coin(f.id), r = G.sellCrypto(f.id, 1); if (r.err) return toast(r.err, true); sfx.sell(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu au bon moment : <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : ${eur(r.profit)} sur ${c.name}.`); refresh(); },
     traderClaim() { const r = G.claimTrader(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); toast(`Défi du trader réussi : +${r.n} lingots !`); refresh(); },
     ordAdd(el) { const t = el.dataset.t, r = G.addOrder(cryptoSel, t, +el.dataset.p, t === 'buy' ? Math.min(50, Math.floor(st().cash)) : 0); if (r.err) return toast(r.err, true); sfx.tap(); toast('Ordre posé : ton PC s\'en occupe.'); refresh(); },
     ordCancel(el) { G.cancelOrder(cryptoSel, el.dataset.t); refresh(); },
@@ -2855,7 +2858,7 @@
       if (t === 'item') { const it = G.item(ref); if (!it) return; if (!G.catUnlocked(it.cat)) return toast(`${D.ITEM_CATS[it.cat].name} : au niveau ${D.ITEM_CATS[it.cat].lvl}.`, true); setScene('city'); return openShop(it.cat, (D.ITEM_CATS[it.cat] || {}).shop); }
       if (t === 'deco' || t === 'look') return openBoutique('deco');
       if (t === 'booster') return ref === 'kiosk' ? (setScene('city'), openKiosk('booster')) : openBoosters('open'); },
-    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
+    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); if (r.x && r.x.kind === 'deco') sfx.deco(); else sfx.buy(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
@@ -2913,7 +2916,7 @@
     kRefresh() { const r = G.kioskRefresh(); if (r.err) return toast(r.err, true); sfx.coin(); refresh(); },
     kTipL(el) { const r = G.buyTip(el.dataset.id, true); if (r.err) return toast(r.err, true); refresh(); },
     kTip(el) { const r = G.buyTip(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); },
-    kBooster() { const r = G.buyBoosterCash(); if (r.err) return toast(r.err, true); sfx.coin(); setBody(kioskBody()); renderHud(); },
+    kBooster() { const r = G.buyBoosterCash(); if (r.err) return toast(r.err, true); sfx.buy(); setBody(kioskBody()); renderHud(); },
     habits: () => openHabits(),
     phone: () => openPhone(),
     phoneHome() { phoneApp = 'home'; drawPhone(); },
@@ -2958,20 +2961,20 @@
     habitQuit(el) { const r = G.quitHabit(el.dataset.id); if (r.err) return toast(r.err, true); refresh(); }
   };
   function rigDone(r, el) {
-    sfx.coin(); floatTxt(`+${eur(r.eur)}`);
+    sfx.gain(r.eur); floatTxt(`+${eur(r.eur)}`);
     if (r.mode === 'sell') flyTo(el, '#pill-cash');
     refresh();
   }
-  function sellCoin(frac) { const c = G.coin(cryptoSel), r = G.sellCrypto(cryptoSel, frac); if (r.err) return toast(r.err, true); sfx.coin(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu : tu récupères ${eur(r.net)}, soit <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : tu récupères ${eur(r.net)}. Tu as <b>perdu ${eur(-r.profit)}</b> sur ${c.name}.`, r.profit < 0); refresh(); }
+  function sellCoin(frac) { const c = G.coin(cryptoSel), r = G.sellCrypto(cryptoSel, frac); if (r.err) return toast(r.err, true); sfx.sell(); floatTxt(`+${eur(r.net)}`); toast(r.profit >= 0 ? `Vendu : tu récupères ${eur(r.net)}, soit <b>${eur(r.profit)} de gagné</b> sur ${c.name}.` : `Vendu : tu récupères ${eur(r.net)}. Tu as <b>perdu ${eur(-r.profit)}</b> sur ${c.name}.`, r.profit < 0); refresh(); }
   function refresh() { renderHud(); if (modalRefresh) modalRefresh(); if (scene === 'appart') renderAppart(); }
   function register(acts) { Object.assign(A, acts); }
 
   document.addEventListener('change', e => { if (e.target.id !== 'pf-home') return; const v = e.target.value; st().home = D.HOMES.includes(v) ? v : ''; G.save(); lbAt = 0; toast(st().home ? `Ta ville : ${st().home}` : 'Ville masquée.'); if (window.ONLINE && ONLINE.syncNow) ONLINE.syncNow(); });
   document.addEventListener('click', e => {
     const tab = e.target.closest('#modal .tab');
-    if (tab && !tab.disabled) { const id = tab.dataset.tab; document.querySelectorAll('#modal .tab').forEach(t => t.classList.toggle('on', t === tab)); if (tabHandler) tabHandler(id); return; }
+    if (tab && !tab.disabled) { const id = tab.dataset.tab; document.querySelectorAll('#modal .tab').forEach(t => t.classList.toggle('on', t === tab)); sfx.tab(); if (tabHandler) tabHandler(id); return; }
     const el = e.target.closest('[data-act]'); if (!el) return;
-    const fn = A[el.dataset.act]; if (fn) fn(el, e);
+    const fn = A[el.dataset.act]; if (fn) { sfx.tap(); fn(el, e); }
   });
 
   // ------------------------------------------------------------ événements du jeu
@@ -3008,8 +3011,8 @@
     notify('msg', d.name, `${d.line} (${d.type === 'sell' ? 'il vend' : 'il rachète'} ${G.what(G.item(d.id))})`, null, false, d.name);
   });
   // un pote envoie un prono : on peut répondre « Je parie » et le Royal s'ouvre avec le pronostic déjà coché
-  G.on('mineHot', h => notify('rig', `🌡️ Ta machine chauffe : ${h} %`, 'Elle tremble ! Refroidis-la avant 100 %, sinon ta récolte en prend un coup.'));
-  G.on('mineBurnt', () => notify('rig', 'Ta machine a surchauffé', 'La récolte en prend un coup : la prochaine fois, refroidis-la avant 100 %.'));
+  G.on('mineHot', h => (sfx.alarm(), notify('rig', `🌡️ Ta machine chauffe : ${h} %`, 'Elle tremble ! Refroidis-la avant 100 %, sinon ta récolte en prend un coup.')));
+  G.on('mineBurnt', () => (sfx.burnt(), notify('rig', 'Ta machine a surchauffé', 'La récolte en prend un coup : la prochaine fois, refroidis-la avant 100 %.')));
   G.on('stockNews', n => { if ((G.bourse().hold[n.c.id] || 0) > 0) softNotify('missions', `${n.c.name} ${n.up ? '+' : ''}${n.pct} % d'un coup`, n.up ? 'Bons résultats : l\'action grimpe.' : 'Mauvaise nouvelle : l\'action chute.'); });
   G.on('tipResult', r => {
     const score = `${r.m.home} ${r.m.sh} – ${r.m.sa} ${r.m.away}`;
@@ -3033,8 +3036,8 @@
     chatPush(f.name, f.img, { from: 'them', txt, acts: [{ label: f.up ? 'J\'achète' : 'Je regarde', act: 'crypto', id: f.coin }, { label: 'Pas confiance', act: 'no' }] });
     notify('msg', f.name, txt, null, false, f.name);
   });
-  G.on('flashSoon', f => notify('crypto', '🔔 Ton PC a repéré quelque chose', `${G.coin(f.id).name} va bouger d'un coup dans 1 min. Prépare-toi !`));
-  G.on('flash', f => notify('crypto', `⚡ ${G.coin(f.id).name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !`, f.up ? 'Si tu en as, c\'est le moment de vendre : ça va sûrement retomber.' : 'Ça plonge : ça pourrait remonter dans quelques minutes.'));
+  G.on('flashSoon', f => (sfx.alert(), notify('crypto', '🔔 Ton PC a repéré quelque chose', `${G.coin(f.id).name} va bouger d'un coup dans 1 min. Prépare-toi !`)));
+  G.on('flash', f => (sfx.alert(), notify('crypto', `⚡ ${G.coin(f.id).name} ${f.up ? '+' : '−'}${Math.round((f.k - 1) * 100)} % d'un coup !`, f.up ? 'Si tu en as, c\'est le moment de vendre : ça va sûrement retomber.' : 'Ça plonge : ça pourrait remonter dans quelques minutes.')));
   G.on('coinNews', n => { if (st().crypto.hold[n.id] > 0) softNotify('crypto', `📰 ${n.src} (${n.rel.toLowerCase()})`, n.txt); });
   G.on('orderDone', ({ o, r }) => notify('crypto', '🤖 Ordre exécuté', r.err ? `Ton ordre sur ${G.coin(o.id).name} n'a pas pu passer : ${r.err}` : o.type === 'buy' ? `Ton PC a acheté du ${G.coin(o.id).name}.` : `Ton PC a tout vendu : ${r.profit >= 0 ? `+${short(r.profit)} de gagné` : `${short(r.profit)} de perdu`}.`));
   G.on('mood', m => { const w = WEATHER[m.id] || WEATHER.calm; softNotify('crypto', `Météo du marché : ${w[1]}`, w[2]); });
@@ -3050,7 +3053,7 @@
   // Coupe des Morts : Momo l'annonce, les gros gains de points s'affichent, une notif si ton équipe se fait doubler
   G.on('cdmStart', () => { notify('cdm', '🎃 La Coupe des Morts a commencé', 'Zombies, Vampires, Démons ou Fantômes : choisis ton camp au Panneau et fais gagner ton équipe !');
     setTimeout(() => toast('🎃 La Coupe des Morts a commencé ! Choisis ton camp au Panneau, sur la place.', false, 'cdmGo'), 1500); });
-  G.on('cdmPts', e => { if (e.n >= 10 && !document.hidden) floatTxt(`+${e.n} pts 🎃`); });
+  G.on('cdmPts', e => { if (e.n >= 10 && !document.hidden) { floatTxt(`+${e.n} pts 🎃`); sfx.candy(); } });
   G.on('cdmPassed', e => e.by && notify('cdm', '🎃 Ton équipe a besoin de toi', `Les ${e.by.name} passent devant ! Gagne des points pour que les ${e.me.name} repassent.`));
   G.on('cdmEnd', f => { const T = G.cdmTeam(G.cdmState().team); notify('cdm', '🏆 La Coupe des Morts est finie', `${f.place && T ? `Les ${T.name} finissent ${f.place}${f.place === 1 ? 're' : 'e'} ! ` : ''}Va chercher tes récompenses au Panneau, sur la place.`); renderCity(); });
   G.on('sixRemind', m => notify('six', '🏉 Pense à ton prono', `${m.home} – ${m.away} commence bientôt. C'est gratuit !`));
@@ -3066,14 +3069,14 @@
     return '';
   }
   function showTrophy(it) {
-    sfx.level(); rain('confetti', 50);
+    sfx.trophy(); rain('confetti', 50);
     openModal({ title: 'Trophée gagné !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${itemPic(it)}</div>
       <div class="lv-big stroke">${it.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</div>
       ${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}
       <p class="hint-line center">Il rejoint tes étagères, dans ton appart.</p>
       <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
   }
-  G.on('achievement', a => queue(() => { sfx.win(); rain('confetti', 40);
+  G.on('achievement', a => queue(() => { sfx.trophy(); rain('confetti', 40);
     openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${pic(has('ach-' + a.id) ? 'ach-' + a.id : 'icon-trophy')}</div>
       <div class="lv-big stroke">${a.name}</div><p class="trophy-how">${ico('icon-trophy', '🏆')} Gagné en réussissant : ${esc(a.txt)}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
@@ -3082,8 +3085,8 @@
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {
     const l = b.legs[0], what = b.legs.length > 1 ? `Combiné ×${b.legs.length}` : l.home ? `${l.home} – ${l.away}` : 'Ton pari';
-    if (b.state === 'won') { if (!offline) { sfx.win(); rain('bill'); bump('#pill-cash'); } notify('bets', `Ticket gagnant : +${eur(b.gain)} !`, what, null, offline); }
-    else notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline);
+    if (b.state === 'won') { if (!offline) { sfx.betWin(); rain('bill'); bump('#pill-cash'); } notify('bets', `Ticket gagnant : +${eur(b.gain)} !`, what, null, offline); }
+    else { if (!offline) sfx.betLose(); notify('bets', 'Ticket perdu', `${what}. Le Royal encaisse.`, null, offline); }
   });
   G.on('money', () => bump('#pill-cash'));
   G.on('quit', h => (() => dialog(h.auto ? 'Fini les nuits blanches' : 'Sevrage terminé', h.auto ? `${D.QUIT_H} h sans mettre les pieds au Club : ${ico('hab-' + h.id, h.icon)} ${h.name} n'est plus ton habitude. Plus de frais chaque jour, ta machine refroidit normalement.` : `Tu as arrêté : ${h.icon} ${h.name}. Ta santé remonte.`, 'Fier de moi'))());

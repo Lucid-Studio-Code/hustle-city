@@ -44,7 +44,7 @@
   function fitMachine() { const m = document.getElementById('modal'), r = m && m.querySelector('.real-slot'); if (!r || !m.classList.contains('slot-full')) return; r.style.width = Math.min(m.clientWidth - 8, (m.clientHeight - 16) * .524) + 'px'; }
   function sizeReels() { fitMachine(); document.querySelectorAll('#modal .rs-screen .reel').forEach(r => { const h = r.clientHeight; r.querySelectorAll('.sym').forEach(x => { x.style.height = h + 'px'; }); }); }
   function spinAnim(res) {
-    U.sfx.spin();
+    U.sfx.spin(res.reels.map((_, i) => (.9 + i * .35) * .75));   // un « clonk » quand chaque rouleau se pose (fin visible de son glissé)
     const S = D.SLOT.symbols;
     res.reels.forEach((sym, i) => {
       const reel = document.getElementById('reel-' + i); if (!reel) return;
@@ -58,7 +58,7 @@
       strip.style.transform = `translateY(-${n * rh}px)`;
     });
     setTimeout(() => {
-      spinning = false; lastSpin = res; if (res.win) U.sfx.win();
+      spinning = false; lastSpin = res; if (res.mult >= 20) U.sfx.jackpot(); else if (res.win) U.sfx.gain(res.win); else U.sfx.miss();
       if (res.mult >= 20) U.rain('bill', 36); else if (res.win) U.rain('confetti', 12);
       if (res.win) U.floatTxt(`+${U.eur(res.win)}`);
       if (tab === 'slot') { U.setBody(slotBody()); sizeReels(); }
@@ -100,7 +100,7 @@
     const w = document.getElementById('wheel'); if (w) w.style.transform = `rotate(${wheelTurn}deg)`;
     setTimeout(() => {
       rolling = false; lastRoll = res;
-      if (res.win) U.sfx.win();
+      if (res.win >= res.total * 10) U.sfx.jackpot(); else if (res.win) U.sfx.cash(); else U.sfx.miss();
       if (res.win) { U.floatTxt(`+${U.eur(res.win)}`); U.rain(res.win >= res.total * 10 ? 'bill' : 'confetti', res.win >= res.total * 10 ? 30 : 12); }
       if (tab === 'roulette') U.setBody(rouletteBody());
       U.refresh();
@@ -129,24 +129,24 @@
   U.register({
     slPays() { showPays = !showPays; U.setBody(slotBody()); sizeReels(); },
     csTab(el) { const t = el.dataset.t; if (t === 'roulette' && st().lvl < D.ROULETTE.lvl) return U.toast(`La roulette ouvre au niveau ${D.ROULETTE.lvl}.`); tab = t; document.querySelectorAll('#modal .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t)); U.setBody(body()); frame(); sizeReels(); },
-    slBet(el) { bet = +el.dataset.v; U.setBody(slotBody()); sizeReels(); },
+    slBet(el) { bet = +el.dataset.v; U.sfx.chip(); U.setBody(slotBody()); sizeReels(); },
     slSpin() {
       if (spinning) return;
       const r = G.spin(bet); if (r.err) return U.toast(r.err, true);
       spinning = true; U.setBody(slotBody()); const m = document.getElementById('slot-msg'); if (m) m.textContent = '…';
       spinAnim(r); U.refresh();
     },
-    rlChip(el) { chip = +el.dataset.v; U.setBody(rouletteBody()); },
+    rlChip(el) { chip = +el.dataset.v; U.sfx.chip(); U.setBody(rouletteBody()); },
     rlBet(el) {
       if (rolling) return;
       const b = { type: el.dataset.t, v: el.dataset.v != null ? +el.dataset.v : null };
       const ex = board.find(x => betKey(x) === betKey(b));
       const total = board.reduce((a, x) => a + x.amt, 0) + chip;
       if (total > st().cash) return U.toast('Pas assez de cash pour ce jeton.', true);
-      if (ex) ex.amt += chip; else board.push({ ...b, amt: chip });
+      if (ex) ex.amt += chip; else board.push({ ...b, amt: chip }); U.sfx.chip();
       U.setBody(rouletteBody());
     },
-    rlClear() { board = []; U.setBody(rouletteBody()); },
+    rlClear() { board = []; U.sfx.swipe(); U.setBody(rouletteBody()); },
     rlSpin() {
       if (rolling) return;
       const r = G.roulette(board); if (r.err) return U.toast(r.err, true);

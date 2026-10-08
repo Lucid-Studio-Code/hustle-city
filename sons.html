@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hustle City · les sons</title>
+<style>
+  :root { --bg: #14121c; --card: #221f2e; --line: #34304a; --txt: #f3f0ff; --mut: #a39fba; --acc: #ffd23f; --grn: #3ddc84; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt); font: 15px/1.4 system-ui, -apple-system, sans-serif; padding: 16px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 4px 0 2px; } h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--mut); margin: 22px 0 8px; }
+  p.sub { color: var(--mut); margin: 0 0 14px; }
+  .music { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button { font: inherit; color: var(--txt); background: #2d2940; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; }
+  button:hover { border-color: var(--acc); } button:active { transform: scale(.97); }
+  button.play { background: var(--grn); color: #062; font-weight: 700; border: 0; min-width: 130px; text-align: center; }
+  button.play.on { background: #ff5d5d; color: #300; }
+  .moods button.on { border-color: var(--acc); color: var(--acc); }
+  .sec { display: flex; gap: 6px; } .sec b { width: 44px; text-align: center; padding: 6px 0; border-radius: 8px; background: #2d2940; color: var(--mut); font-size: 13px; }
+  .sec b.on { background: var(--acc); color: #221; }
+  .bar { color: var(--mut); font-variant-numeric: tabular-nums; min-width: 70px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .grid button small { display: block; color: var(--mut); font-size: 12px; }
+  .grid button.rec small::after { content: ' 🎙️'; }
+  .opts { display: flex; gap: 14px; align-items: center; color: var(--mut); margin-top: 18px; }
+</style>
+</head>
+<body>
+  <h1>Les sons de Hustle City</h1>
+  <p class="sub">Fabriqués en direct par le navigateur, sauf ceux marqués 🎙️ : de vrais enregistrements libres de droits (CC0). Touche un bouton pour écouter.</p>
+  <p class="sub" id="smp">Enregistrements : chargement au premier appui…</p>
+
+  <div class="music">
+    <button class="play" id="play">▶ Musique</button>
+    <div class="sec" id="sec"><b data-s="Intro">Intro</b><b data-s="A">A</b><b data-s="B">B</b><b data-s="A2">A2</b><b data-s="B2">B2</b></div>
+    <span class="bar" id="bar"></span>
+    <div class="moods" id="moods"><button data-m="calm">Appart (feutré)</button> <button data-m="street" class="on">Rue</button> <button data-m="hype">Casino / Club</button></div>
+  </div>
+
+  <div id="list"></div>
+  <label class="opts"><input type="checkbox" id="lite"> Version allégée (animations réduites / petit téléphone)</label>
+  <label class="opts"><input type="checkbox" id="synth"> Comparer : ancienne version synthétisée (sans les enregistrements)</label>
+
+<script src="js/audio.js?v=448"></script>
+<script>
+(function () {
+  var G = [
+    ['Interface', [['tap', 'Clic'], ['tab', 'Onglet'], ['open', 'Fenêtre ouverte'], ['close', 'Fenêtre fermée'], ['swipe', 'Carte rangée'], ['err', 'Erreur']]],
+    ['Argent', [['coin', 'Petit gain'], ['cash', 'Gros gain (caisse)'], ['buy', 'Achat'], ['win', 'Récompense'], ['gift', 'Cadeau du jour'], ['deco', 'Déco posée'], ['miss', 'Raté']]],
+    ['Paris', [['bet', 'Ticket validé'], ['whistle', 'Coup de sifflet'], ['whistle', 'Sifflet final', true], ['goal', 'But !'], ['betWin', 'Pari gagné'], ['betLose', 'Pari perdu']]],
+    ['Casino', [['chip', 'Jeton posé'], ['spin', 'Machine à sous'], ['jackpot', 'Jackpot'], ['roll', 'Roulette']]],
+    ['Grattage', [['paper', 'Ticket acheté'], ['scratch', 'Grattage'], ['scratchWin', 'Ticket gagnant']]],
+    ['Boosters', [['rustle', 'Paquet secoué'], ['tear', 'Paquet déchiré'], ['flip', 'Carte retournée'], ['common', 'Commune'], ['rare', 'Rare'], ['epic', 'Épique'], ['legend', 'Légendaire']]],
+    ['Crypto et minage', [['alert', 'Alerte de prix'], ['blipUp', 'Achat crypto'], ['sell', 'Vente'], ['harvest', 'Récolte'], ['alarm', 'Machine chaude'], ['burnt', 'Surchauffe']]],
+    ['Progression', [['level', 'Niveau supérieur'], ['trophy', 'Trophée'], ['notif', 'Notification']]],
+    ['Coupe des Morts', [['spooky', 'Rejoindre une équipe'], ['candy', 'Points / bonbons']]]
+  ];
+  var list = document.getElementById('list');
+  list.innerHTML = G.map(function (g) { return '<h2>' + g[0] + '</h2><div class="grid">' + g[1].map(function (s) { return '<button data-k="' + s[0] + '"' + (s[2] ? ' data-a="1"' : '') + '>' + s[1] + '<small>' + s[0] + '</small></button>'; }).join('') + '</div>'; }).join('');
+  // sons qui utilisent un enregistrement (assets/sons)
+  var REC = { coin: 1, cash: 1, gift: 1, whistle: 1, goal: 1, betWin: 1, betLose: 1, jackpot: 1, scratch: 1, scratchWin: 1, notif: 1, tear: 1 };
+  [].forEach.call(list.querySelectorAll('button[data-k]'), function (b) { if (REC[b.dataset.k]) b.classList.add('rec'); });
+  document.getElementById('synth').onchange = function () { AUDIO.samples.on = !this.checked; };
+  setInterval(function () { var r = AUDIO.samples.ready, f = AUDIO.samples.files; document.getElementById('smp').textContent = r.length ? 'Enregistrements prêts : ' + r.length + ' / ' + f.length + (r.length < f.length ? ' (les autres jouent la version synthétisée)' : '') : 'Enregistrements : chargement au premier appui…'; }, 500);
+  list.addEventListener('click', function (e) { var b = e.target.closest('button[data-k]'); if (b) AUDIO.sfx[b.dataset.k](b.dataset.a ? true : undefined); });
+  var play = document.getElementById('play');
+  play.onclick = function () { var on = !AUDIO.musicOn; AUDIO.music(on); play.classList.toggle('on', on); play.textContent = on ? '■ Stop' : '▶ Musique'; };
+  document.getElementById('moods').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; AUDIO.mood(b.dataset.m); [].forEach.call(this.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); }); };
+  document.getElementById('lite').onchange = function () { document.documentElement.classList.toggle('lowfx', this.checked); };
+  setInterval(function () { var s = AUDIO.section; [].forEach.call(document.querySelectorAll('#sec b'), function (b) { b.classList.toggle('on', !!s && b.dataset.s === s.name); }); document.getElementById('bar').textContent = s ? 'mesure ' + (s.bar + 1) : ''; }, 150);
+})();
+</script>
+</body>
+</html>

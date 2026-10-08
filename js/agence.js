@@ -204,7 +204,7 @@
     agCollect() {
       const a = ag(), n = Math.floor(a.crew.reduce((x, m) => x + (m.pend || 0), 0));
       if (n < 1) return U.toast('Rien à encaisser pour l\'instant.', true);
-      a.crew.forEach(m => { m.pend = 0; }); G.addCash(n); G.addXp(Math.min(40, 5 + n / 20)); U.sfx.coin(); U.floatTxt(`+${U.eur(n)}`); refresh();
+      a.crew.forEach(m => { m.pend = 0; }); G.addCash(n); G.addXp(Math.min(40, 5 + n / 20)); U.sfx.gain(n); U.floatTxt(`+${U.eur(n)}`); refresh();
     },
     agRush(el) {
       const a = ag(), m = a.crew.find(x => x.id === el.dataset.id); if (!m || !m.act) return;

@@ -665,9 +665,9 @@ for (const r of q('SELECT pid, name, tag, skin, avatar, frame FROM players')) {
   if (c.name !== (r.name || '') || c.tag !== (r.tag || '') || c.skin !== (r.skin || '') || c.avatar !== r.avatar || c.frame !== r.frame) run('UPDATE players SET name = ?, tag = ?, skin = ?, avatar = ?, frame = ? WHERE pid = ?', c.name, c.tag, c.skin, c.avatar, c.frame, r.pid);
 }
 
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 // fichiers servis : LISTE BLANCHE (ce que chargent game.html, index.html, la page confidentialité et le back office ; images .png ou .webp). Le reste (CLAUDE.md, tools/, server/, .git, ios/, android/, package.json…) → 404.
-const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html', '/manifest.webmanifest', '/og.jpg']), PUB_DIRS = ['/js/', '/css/', '/assets/'];
+const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html', '/manifest.webmanifest', '/og.jpg', '/sons.html']), PUB_DIRS = ['/js/', '/css/', '/assets/'];
 // en-têtes de sécurité des pages : pas d'affichage dans un cadre d'un autre site ; CSP seulement pour le back office (celle du jeu reste à faire : trop risqué)
 const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 const htmlHeaders = adm => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : "frame-ancestors 'none'" });
@@ -708,7 +708,7 @@ http.createServer(async (req, res) => {
     if (!f || !f.startsWith(base + path.sep) || p.split('/').some(x => x.startsWith('.')) || !types[ext] || ext === '.json') return send(res, 404, '404', 'text/plain');
     fs.readFile(f, (e, data) => { if (e) return send(res, 404, '404', 'text/plain');
       // cache du navigateur : un fichier avec sa version dans l'adresse (?v=…) ne change jamais → gardé 1 an ; une image sans version → 1 jour ; les pages → toujours revérifiées
-      const cc = ext === '.html' || ext === '.webmanifest' ? 'no-cache' : /[?&]v=/.test(req.url) && !/[?&]t=/.test(req.url) ? 'public, max-age=31536000, immutable' : /\.(png|jpe?g|webp|svg|woff2?)$/.test(ext) ? 'public, max-age=86400' : 'no-cache';
+      const cc = ext === '.html' || ext === '.webmanifest' ? 'no-cache' : /[?&]v=/.test(req.url) && !/[?&]t=/.test(req.url) ? 'public, max-age=31536000, immutable' : /\.(png|jpe?g|webp|svg|woff2?|mp3)$/.test(ext) ? 'public, max-age=86400' : 'no-cache';
       res.writeHead(200, { 'Content-Type': types[ext], 'X-Content-Type-Options': 'nosniff', 'Cache-Control': cc, ...(ext === '.html' ? htmlHeaders(adm) : {}) }); res.end(req.method === 'HEAD' ? undefined : data); });
   } catch (e) {
     if (e.code === 413) { res.setHeader('Connection', 'close'); send(res, 413, { err: 'Trop gros.' }); return res.on('finish', () => req.destroy()); }

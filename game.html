@@ -121,7 +121,7 @@
         var el = document.getElementById('start'), fill = el.querySelector('.ld-fill'), txt = el.querySelector('.ld-txt'), coin = el.querySelector('.ld-coin');
         // une scène au hasard parmi les images de chargement (celles qui existent) ; l'accueil « Continuer » garde la même
         var NB = 8, pick = [], tryBg = function () { if (!pick.length) return; var n = pick.shift(), im = new Image();
-          im.onload = function () { var b = el.querySelector('.ld-bg'); b.style.setProperty('--ld', 'url(' + im.src + ')'); b.classList.add('on'); window.HC_BG = im.src; }; im.onerror = function () { if (/\.jpg$/.test(im.src)) im.src = 'assets/img/load-' + n + '.png'; else tryBg(); }; im.src = 'assets/img/load-' + n + '.jpg'; };   /* la version jpg, plus légère */
+          im.onload = function () { var b = el.querySelector('.ld-bg'); b.style.setProperty('--ld', 'url(' + im.src + ')'); b.classList.add('on'); window.HC_BG = im.src; }; var ext = ['webp', 'jpg', 'png'], k = 0; im.onerror = function () { if (++k < ext.length) im.src = 'assets/img/load-' + n + '.' + ext[k]; else tryBg(); }; im.src = 'assets/img/load-' + n + '.webp'; };   /* la version légère d'abord (webp ou jpg selon l'image) */
         for (var k = 1; k <= NB; k++) pick.push(k); pick.sort(function () { return Math.random() - .5; }); tryBg();
         var rain = el.querySelector('.ld-rain'); for (var r = 0; r < 14; r++) { var b = document.createElement('b'); if (r % 3 === 0) b.className = 'c';
           b.style.left = (Math.random() * 100) + '%'; b.style.animationDuration = (4 + Math.random() * 5) + 's'; b.style.animationDelay = (-Math.random() * 8) + 's'; rain.appendChild(b); }
@@ -148,7 +148,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=444', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=448', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

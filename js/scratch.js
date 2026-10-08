@@ -143,7 +143,7 @@
   function finish() {
     if (ticket.done) return;
     ticket.done = true; G.scratchPay(ticket.prize);
-    if (ticket.prize) { U.sfx.win(); U.rain(ticket.prize >= 50 ? 'bill' : 'confetti', ticket.prize >= 50 ? 36 : 16); U.floatTxt(`+${U.eur(ticket.prize)}`); }
+    if (ticket.prize) { U.sfx.scratchWin(); if (ticket.prize >= 50) setTimeout(() => U.sfx.cash(), 400); U.rain(ticket.prize >= 50 ? 'bill' : 'confetti', ticket.prize >= 50 ? 36 : 16); U.floatTxt(`+${U.eur(ticket.prize)}`); } else U.sfx.miss();
     setTimeout(() => { U.setBody(body()); init(); U.refresh(); }, 350);
   }
   function init() {
@@ -170,7 +170,7 @@
   function buy(id) {
     const r = G.scratchDraw(id); if (r.err) return U.toast(r.err, true);
     ticket = { t: r.t, prize: r.prize, no: r.no, g: build(r.t, r.prize), open: new Set(), done: false };
-    U.sfx.tap(); U.setBody(body()); requestAnimationFrame(init); U.refresh();
+    U.sfx.paper(); U.setBody(body()); requestAnimationFrame(init); U.refresh();
     const b = document.querySelector('#modal .sheet-body'); if (b) b.scrollTop = 0;
   }
 

@@ -33,9 +33,12 @@
   // « BUT ! » : on retient le dernier score vu de chaque match
   const seen = {}, flash = {}, flashSide = {}, ended = {}, wasLive = new Set(); let goalSnd = 0;
   const justEnded = m => ended[m.id] && Date.now() - ended[m.id] < 8000;   // le coup de sifflet final reste affiché 8 s, à sa place
+  let booted = false;
   function checkGoals() {
-    st().matches.forEach(m => { if (m.state === 'live') wasLive.add(m.id); else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
     const mine = new Set(st().bets.filter(b => b.state === 'open').flatMap(b => b.legs.map(l => l.m)));
+    let kick = false;   // coup d'envoi d'un match sur lequel on a parié : coup de sifflet
+    st().matches.forEach(m => { if (m.state === 'live') { if (!wasLive.has(m.id) && booted && mine.has(m.id)) kick = true; wasLive.add(m.id); } else if (m.state === 'done' && wasLive.has(m.id)) { wasLive.delete(m.id); ended[m.id] = Date.now(); } });
+    booted = true; if (kick && !document.hidden) U.sfx.whistle();
     st().matches.filter(m => m.state === 'live').forEach(m => {
       const sc = liveScore(m), prev = seen[m.id];
       seen[m.id] = { a: sc.a, b: sc.b };
@@ -202,7 +205,7 @@
       const free = useFree && st().freebets.length;
       if (!free) stake = parseInt(document.getElementById('b-stake').value, 10) || 0;
       const r = G.placeBet(slip, stake, free); if (r.err) return U.toast(r.err, true);
-      U.sfx.coin();
+      U.sfx.bet();   // ticket imprimé + coup de tampon
       if (!free) U.floatTxt(`−${U.eur(stake)}`, null, null, true);
       slip = []; useFree = false; U.setBody(body()); U.refresh();
     }
