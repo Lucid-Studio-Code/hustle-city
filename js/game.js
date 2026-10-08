@@ -468,9 +468,9 @@
     { const L0 = D.CITY_LOOKS.find(x => x.id === id); if (L0 && L0.until && Date.now() >= Date.parse(L0.until) && !looksOwned().includes(id)) return { err: 'Ce look n\'est plus en vente.' }; }
     const L = D.CITY_LOOKS.find(x => x.id === id); if (!L) return { err: 'Introuvable.' };
     if (st.lvl < L.lvl) return { err: `Au niveau ${L.lvl}.` };
-    if (!looksOwned().includes(id)) {
-      if (L.lingots) { if (st.lingots < L.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-L.lingots); }
-      else if (!pay(L.cash || 0)) return { err: 'Pas assez de cash.' };
+    if (!looksOwned().includes(id)) { const k = lookCost(L);
+      if (L.lingots) { if (st.lingots < k.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-k.lingots); }
+      else if (!pay(k.cash || 0)) return { err: 'Pas assez de cash.' };
       looksOwned().push(id); addXp(50);
     }
     st.cityLook = id; emit('change'); return { ok: true };
@@ -666,8 +666,18 @@
     }
     emit('prices');
   }
-  function buyPrice(id) { return Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .9 : 1) * (vintageOn() && st.vintage.id === id ? D.VINTAGE.markup : 1)); }
-  function sellPrice(id) { return Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)); }
+  // promos du back office sur les achats du jeu (page Promos) : target item (objet du Comptoir, de la Bijouterie, du Garage), booster (lingots, kiosk, all), deco, look ;
+  // −X % (5 à 90) entre ses dates. Deux promos sur la même chose : la plus forte gagne. (target iap = offre en vrai argent, gérée par ui.js)
+  function promoOf(t, ref) { const n = Date.now(); return (D.CAMPAIGNS || []).filter(c => c && c.on !== false && c.target === t && (c.ref === ref || (t === 'booster' && c.ref === 'all')) && Date.parse(c.start) <= n && n < Date.parse(c.end)).sort((a, b) => b.value - a.value)[0] || null; }
+  const promoPct = (t, ref) => { const c = promoOf(t, ref); return c ? Math.min(90, Math.max(0, Math.round(+c.value || 0))) : 0; };
+  const promoCut = (v, t, ref) => { const k = promoPct(t, ref); return k && v > 0 ? Math.max(1, Math.ceil(v * (1 - k / 100))) : v; };
+  const decoCost = x => ({ cash: x.cash ? promoCut(x.cash, 'deco', x.id) : 0, lingots: x.lingots ? promoCut(x.lingots, 'deco', x.id) : 0 });
+  const lookCost = L => ({ cash: L.cash ? promoCut(L.cash, 'look', L.id) : 0, lingots: L.lingots ? promoCut(L.lingots, 'look', L.id) : 0 });
+  const boosterCost = () => promoCut(D.BOOSTER.cost, 'booster', 'lingots');
+  // full : le prix sans la promo (le prix barré)
+  function buyPrice(id, full) { const p = Math.ceil(st.market.prices[id] * (1 + D.BUY_MARKUP) * priceMult() * (evOn('sale') ? .9 : 1) * (vintageOn() && st.vintage.id === id ? D.VINTAGE.markup : 1)); return full ? p : promoCut(p, 'item', id); }
+  // un objet acheté en promo se revend au plus son prix payé tant que la promo dure (jamais de bénéfice garanti en revendant tout de suite)
+  function sellPrice(id, raw) { const p = Math.floor(st.market.prices[id] * (1 - D.SELL_FEE)), e = (st.owned[id] || [])[0]; return !raw && e && e.pu > Date.now() ? Math.min(p, e.paid) : p; }
   // les cartes vont dans le classeur : elles ne prennent pas de place sur les étagères
   // les cartes vont toutes dans le classeur : elles ne prennent jamais de place chez toi (une seule de chaque)
   // où un objet se range : étagère de l'appart (compte dans les places), classeur, coffre (sans limite) ou parking du garage
@@ -718,6 +728,7 @@
     if (vintageOn() && st.vintage.id === id) return true;   // carte exclusive d'un ancien événement, en vente quelques heures
     const it = item(id); if (!avail(it)) return false;
     if (it.custom && it.cat !== 'card') return true;   // nouveauté du back office : toujours en rayon pendant ses dates
+    if (promoOf('item', id)) return true;   // en promo : toujours en rayon pendant la promo
     if (it.cat === 'card') return cardStock().has(id);
     const g = it.series || it.cat, n = STOCK_N[g]; if (!n) return false;
     const ed = stockEd(), grp = D.ITEMS.filter(i => (i.series || i.cat) === g && avail(i) && !i.custom);
@@ -738,8 +749,8 @@
     if (placeOf(id) === 'park') { const k = item(id).cat === 'moto' ? 'moto' : 'car', n = Object.entries(st.owned).reduce((t, [j, a]) => t + (placeOf(j) === 'park' && (item(j).cat === 'moto' ? 'moto' : 'car') === k ? a.length : 0), 0);
       if (n >= parkMax(k)) return { err: k === 'moto' ? `Toutes les places motos sont prises (${parkMax(k)} max) : vends une moto${nextFloor() ? ' ou ouvre un étage' : ''}.` : `Toutes les places voitures sont prises (${parkMax(k)} max) : vends une voiture${nextFloor() ? ' ou ouvre un étage' : ''}.` }; }
     if (placeOf(id) === 'safe' && safeCount() >= safeSlots()) return { err: 'Ton coffre est plein : agrandis-le ou revends une pièce.' };
-    const p = buyPrice(id); if (!pay(p)) return { err: 'Pas assez de cash.' };
-    (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now() });
+    const p = buyPrice(id), pr = promoOf('item', id); if (!pay(p)) return { err: 'Pas assez de cash.' };
+    (st.owned[id] = st.owned[id] || []).push({ paid: p, t: now(), ...(pr ? { pu: Date.parse(pr.end) } : {}) });
     if (it.series) st.lastUp = 'card';
     stat('itemBuy'); stat('itemsOwned', collCount(), true); tradeXp(5 + Math.min(xpCap(60), p / 40));
     emit('change'); return { p };
@@ -1060,8 +1071,9 @@
     const x = D.CITY_SHOP.find(o => o.id === id); if (!x) return { err: 'Introuvable.' };
     if (evOwned(id)) return { err: 'Tu l\'as déjà.' };
     if (st.lvl < (x.lvl || 1)) return { err: `Niveau ${x.lvl} requis.` };
-    if (x.lingots) { if (st.lingots < x.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-x.lingots); }
-    else if (!pay(x.cash)) return { err: 'Pas assez de cash.' };
+    const k = decoCost(x);
+    if (x.lingots) { if (st.lingots < k.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-k.lingots); }
+    else if (!pay(k.cash)) return { err: 'Pas assez de cash.' };
     (st.evItems = st.evItems || {})[id] = now(); (st.decoOff = st.decoOff || {})[id] = false;
     stat('decos'); addXp(10 + Math.min(xpCap(80), (x.cash || x.lingots * 20) / 50)); emit('change'); return { x };
   }
@@ -1255,10 +1267,10 @@
   const boosterFree = () => st.boosterDay !== today();
   const boosterCount = () => (st.boosters || 0) + (boosterFree() ? 1 : 0);
   function buyBooster() {
-    if (st.lingots < D.BOOSTER.cost) return { err: 'Pas assez de lingots.' };
-    addLingots(-D.BOOSTER.cost); st.boosters++; emit('change'); return { ok: true };
+    const n = boosterCost(); if (st.lingots < n) return { err: 'Pas assez de lingots.' };
+    addLingots(-n); st.boosters++; emit('change'); return { ok: true };
   }
-  function boosterPrice() { const B = D.KIOSK.booster; return cost(B.base + B.perLvl * st.lvl); }
+  function boosterPrice(full) { const B = D.KIOSK.booster, p = cost(B.base + B.perLvl * st.lvl); return full ? p : promoCut(p, 'booster', 'kiosk'); }
   function buyBoosterCash() {
     const B = D.KIOSK.booster; if (st.lvl < B.lvl) return { err: `Boosters au Kiosque au niveau ${B.lvl}.` };
     if (!pay(boosterPrice())) return { err: 'Pas assez de cash.' };
@@ -1301,7 +1313,7 @@
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
-    if (dup) { const n = sellPrice(c.id); addCash(n); return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup, sold: n }; }
+    if (dup) { const n = sellPrice(c.id, true); addCash(n); return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup, sold: n }; }
     st.owned[c.id] = [{ paid: 0, t: now(), booster: true }];
     return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup };
   }
@@ -1649,7 +1661,7 @@
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
     edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,
-    boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, seriesCards, seriesHave, seriesDone, claimSeries,
+    boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, boosterCost, promoOf, promoPct, promoCut, decoCost, lookCost, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,
     util: { rnd, pick, clamp, now }

@@ -201,7 +201,7 @@
         <div class="chips"><button class="chip ${c.mode === 'always' ? 'on' : ''}" data-mode="always">Toujours</button><button class="chip ${c.mode === 'dates' ? 'on' : ''}" data-mode="dates">Entre deux dates</button><button class="chip ${c.mode === 'hidden' ? 'on' : ''}" data-mode="hidden">Caché</button></div>
         <div id="ob-when" style="margin-top:12px"></div></div></section>`);
 
-      HC.main(`<div class="page-head"><div><h1>${isNew ? 'Nouvel objet' : esc(c.name)}</h1><div class="sub">${isNew ? '4 étapes. L\'aperçu à droite montre ce que voit le joueur.' : 'Change ce que tu veux, l\'aperçu suit.'}</div></div><button class="btn ghost" id="ob-back">← Tous les objets</button></div>
+      HC.main(`<div class="page-head"><div><h1>${isNew ? (P.get('back') === 'promos' ? 'Nouvel objet spécial' : 'Nouvel objet') : esc(c.name)}</h1><div class="sub">${isNew && P.get('back') === 'promos' ? '4 étapes, puis tu reviens à ta promo avec l\'objet déjà choisi. Astuce : à l\'étape 4, mets-le « entre deux dates » pour qu\'il ne soit en vente que pendant l\'événement. ' : ''}${isNew ? '4 étapes. L\'aperçu à droite montre ce que voit le joueur.' : 'Change ce que tu veux, l\'aperçu suit.'}</div></div><button class="btn ghost" id="ob-back">← Tous les objets</button></div>
         <div class="pm-ed"><div class="pm-steps">${steps.map(f => f()).join('')}
           <div class="pm-save">${!isNew && c.custom ? '<button class="btn red" id="ob-del">Retirer du jeu</button>' : ''}${!isNew && !c.custom && items[id] ? '<button class="btn ghost" id="ob-reset">Remettre comme avant</button>' : ''}
             <button class="btn ghost" id="ob-cancel">Annuler</button><button class="btn lg green" id="ob-go">${img('icon-check')}Publier</button></div></div>
@@ -299,7 +299,10 @@
       $$('[data-r]').forEach(b => b.onclick = () => { c.r = b.dataset.r; $$('[data-r]').forEach(x => x.classList.toggle('on', x === b)); prev(); });
       $$('[data-mode]').forEach(b => b.onclick = () => { c.mode = b.dataset.mode; if (c.mode === 'dates' && !c.from) { const [f, t] = [new Date(), new Date(Date.now() + 7 * 864e5)]; c.from = f.toISOString(); c.until = t.toISOString(); }
         $$('[data-mode]').forEach(x => x.classList.toggle('on', x === b)); when(); prev(); });
-      $('#ob-back').onclick = $('#ob-cancel').onclick = () => listView();
+      // ouvert depuis une promo (« Créer un objet spécial ») : on y retourne
+      const back = P.get('back') === 'promos' && isNew;
+      $('#ob-back').onclick = $('#ob-cancel').onclick = () => back ? HC.go('promos', { resume: 1 }) : listView();
+      if (back) $('#ob-back').textContent = '← Retour à la promo';
       if ($('#ob-del')) $('#ob-del').onclick = async () => {
         if (!(await HC.confirm('Retirer « ' + c.name + ' » du jeu ?', 'Il disparaît des boutiques. Les joueurs qui l\'ont déjà le gardent.', 'Retirer', 'red'))) return;
         const next = { ...items }; delete next[c.id]; await publish(next, 'Objet retiré des boutiques'); listView(); };
@@ -324,14 +327,15 @@
             url = (await HC.api('/admin/api/upload', { data, name: id0 })).url; c.id = id0;
           }
           const avail = c.mode === 'hidden' ? { hidden: true } : c.mode === 'dates' ? { from: c.from, until: c.until, ...(c.tag ? { tag: c.tag } : {}) } : {};
-          const next = { ...items };
+          const next = { ...items }; let saved = c.id;
           if (c.custom) {
-            const id1 = c.id || newId(name);
+            const id1 = saved = c.id || newId(name);
             next[id1] = { new: true, cat: c.cat, ...(isCard() ? { series: c.series } : {}), name, r: c.r, p0, p0first: (items[id1] || {}).p0first || p0, img: url, created: (items[id1] || {}).created || Date.now(), ...avail };
           } else {
             const x = {}; if (name !== o.name) x.name = name; if (p0 !== o.p0) x.p0 = p0; if (c.r !== o.r) x.r = c.r; if (c.cat !== o.cat) x.cat = c.cat; if (url) x.img = url; Object.assign(x, avail);
             if (Object.keys(x).length) next[c.id] = x; else delete next[c.id];
           }
+          if (back) { await publish(next, 'Objet créé : choisis la remise de ta promo'); return HC.go('promos', { pick: saved }); }
           await publish(next, isNew && isCard() ? 'Nouvelle carte : elle sort des boosters dans la minute' : isNew ? (c.mode === 'dates' && Date.parse(c.from) > Date.now() ? 'Objet programmé : il arrivera tout seul' : 'Nouvel objet en boutique : les joueurs le voient dans la minute') : 'Modifications publiées');
           listView();
         } catch (err) { btn.disabled = false; }

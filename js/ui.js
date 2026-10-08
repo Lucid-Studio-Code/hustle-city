@@ -1536,7 +1536,7 @@
   function campaignNow() {
     const t = Date.now(), c = (D.CAMPAIGNS || []).filter(x => x.on !== false && Date.parse(x.start) <= t && t < Date.parse(x.end)).sort((a, b) => Date.parse(a.start) - Date.parse(b.start))[0];
     if (!c) return null; const lk = (D.PROMO_LOOKS || {})[c.look] || D.PROMO_LOOKS.promo;
-    return { id: c.offer, off: c.kind === 'off' ? +c.value : 0, bonus: c.kind === 'bonus' ? +c.value : 0, title: c.title, desc: c.desc,
+    return { id: (c.target || 'iap') === 'iap' ? c.offer : null, target: c.target || 'iap', ref: c.ref, c, off: c.kind === 'off' ? +c.value : 0, bonus: c.kind === 'bonus' ? +c.value : 0, title: c.title, desc: c.desc,
       season: { id: 'c-' + c.id, name: c.name || 'Promo', img: has(lk[0]) ? lk[0] : 'ic-promo', color: lk[1], _end: new Date(Date.parse(c.end)) } };
   }
   const promoNow = () => { const cp = campaignNow(); if (cp) return cp; const se = seasonNow(); if (se) return { ...se.deal, season: se };
@@ -1599,7 +1599,39 @@
     const off = p && p.id === x.id && p.off;
     return `<button class="btn ${cls || 'gold'} iap-buy" data-act="iapSoon" data-id="${x.id}">${off ? `<s>${x.price}</s>${eur2(priceNum(x) * (1 - p.off / 100))}` : x.price}${x.per ? `<small class="iap-per">/ ${x.per}</small>` : ''}</button>`;
   }
+  // ---- promos du back office sur un achat DU JEU (objet, booster, déco, look) : prix barré + nouveau prix, badge « Promo »
+  const strike = (old, now) => old === now ? now : `<s class="pr-old">${old}</s>${now}`;
+  const promoTag = k => k ? `<span class="promo-tag">Promo −${k}\u00a0%</span>` : '';
+  const liveGamePromos = () => { const t = Date.now(); return (D.CAMPAIGNS || []).filter(c => c && c.on !== false && c.target && c.target !== 'iap' && Date.parse(c.start) <= t && t < Date.parse(c.end)).sort((a, b) => Date.parse(a.start) - Date.parse(b.start)); };
+  const lgt = n => `${ic('lingot')}${n}`;
+  function gamePromo(c) {   // ce qui est en promo : nom, image, ancien et nouveau prix (null si l'objet n'existe pas / plus)
+    const k = G.promoPct(c.target, c.ref), s = st(); if (!k) return null;
+    if (c.target === 'item') { const it = G.item(c.ref); if (!it || !G.avail(it)) return null; const cat = D.ITEM_CATS[it.cat] || {};
+      return { k, name: it.name, art: itemPic(it), old: short(G.buyPrice(it.id, true)), now: short(G.buyPrice(it.id)), where: ((SHOP_PLACES[cat.shop] || {}).title) || 'Le Comptoir', lock: !G.catUnlocked(it.cat) && cat.lvl, own: (s.owned[it.id] || []).length }; }
+    if (c.target === 'deco') { const x = D.CITY_SHOP.find(o => o.id === c.ref); if (!x) return null; const n = G.decoCost(x);
+      return { k, name: x.name, art: pic(decoImg(x), x.emo), old: x.lingots ? lgt(x.lingots) : short(x.cash), now: x.lingots ? lgt(n.lingots) : short(n.cash), where: 'Boutique · Ma ville', lock: s.lvl < (x.lvl || 1) && x.lvl, own: G.evOwned(x.id) }; }
+    if (c.target === 'look') { const L = D.CITY_LOOKS.find(o => o.id === c.ref); if (!L) return null; const n = G.lookCost(L);
+      return { k, name: L.name, art: pic(has('bg-city-' + L.id) ? 'bg-city-' + L.id : 'bg-city', '🏙️'), old: L.lingots ? lgt(L.lingots) : short(L.cash), now: L.lingots ? lgt(n.lingots) : short(n.cash), where: 'Boutique · Ma ville', lock: s.lvl < (L.lvl || 1) && L.lvl, own: G.looksOwned().includes(L.id) }; }
+    if (c.target === 'booster') { const kiosk = c.ref === 'kiosk', B = D.KIOSK.booster;
+      return { k, name: c.ref === 'all' ? 'Les boosters de cartes' : kiosk ? 'Booster du Kiosque' : 'Booster de cartes', art: pic('booster-pack', '🃏'), old: kiosk ? short(G.boosterPrice(true)) : lgt(D.BOOSTER.cost), now: kiosk ? short(G.boosterPrice()) : lgt(G.boosterCost()), where: kiosk ? 'Le Kiosque' : 'Boosters', lock: kiosk && s.lvl < B.lvl && B.lvl, own: false }; }
+    return null;
+  }
+  // la carte d'une promo du jeu (en haut de la Boutique) : en grand pour celle du bouton, en petit pour les autres
+  function gameHero(c, season) {
+    const g = gamePromo(c); if (!g) return ''; const lk = (D.PROMO_LOOKS || {})[c.look] || D.PROMO_LOOKS.promo, name = c.name || 'Promo';
+    return `<div class="shop-hero2 season gp-hero" style="--pm:${(season && season.color) || lk[1]}">${has('shop-hero') ? `<img class="sh2-bg" src="${src('shop-hero')}" alt="">` : '<i class="sh2-bills"></i>'}
+      <span class="sh2-for"><i>${ico('icon-star', '★')}</i>Spécial ${esc(name)}</span>
+      <div class="sh2-row"><div class="sh2-art gp-art">${g.art}<span class="sh2-badge">−${g.k} %</span></div>
+        <div class="sh2-info"><b>${c.title || `${g.name} à −${g.k}\u00a0%`}</b><small>${c.desc || g.where}</small><div class="gp-price">${strike(g.old, g.now)}</div></div></div>
+      <div class="sh2-buy"><button class="btn green big" data-act="promoGo" data-t="${c.target}" data-ref="${esc(c.ref)}">${g.own ? 'Déjà à toi' : g.lock ? `${ic('lock')} Niveau ${g.lock}` : 'J\'en profite'}</button><small>${ico('ic-timer', '⏱')} Finit dans ${leftTxt(Date.parse(c.end) - Date.now())}</small></div></div>`;
+  }
+  function gamePromoStrip(skip) {
+    const L = liveGamePromos().filter(c => c !== skip).map(c => [c, gamePromo(c)]).filter(([, g]) => g); if (!L.length) return '';
+    return `<h3 class="sec">En promo dans le jeu</h3><div class="gp-list">${L.map(([c, g]) => `<button class="card gp-card" data-act="promoGo" data-t="${c.target}" data-ref="${esc(c.ref)}">
+      <span class="gp-pic">${g.art}</span><span class="gp-txt"><b>${g.name}</b><small>${g.where}</small><span class="gp-price">${strike(g.old, g.now)}</span></span>${promoTag(g.k)}</button>`).join('')}</div>`;
+  }
   function shopHero() {
+    { const p = promoNow(); if (p && p.c && p.target !== 'iap') return gameHero(p.c, p.season); }
     const o = offerFor(); if (!o || !o.x) return ''; const { x, p } = o;
     const badge = p ? (p.off ? `−${p.off} %` : `+${p.bonus} %`) : '';
     return `<div class="shop-hero2 ${p && p.season ? 'season' : ''}" style="${p && p.season ? `--pm:${p.season.color}` : ''}">
@@ -1649,7 +1681,7 @@
     if (bqTab === 'vip') {
       const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {}, p = promoNow(), top = offerFor();
       const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
-      return `${shopHero()}${pass}
+      return `${shopHero()}${gamePromoStrip((promoNow() || {}).c)}${pass}
         <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
         ${adCard()}
         <div class="lg-grid">${L.map(x => { const bonus = p && p.id === x.id && p.bonus; return `<div class="lg-card ${x.best ? 'best' : ''}">
@@ -1659,23 +1691,23 @@
             ${done ? '<span class="iap-own">✓ Acheté</span>' : priceBtn(x, p, 'purple')}</div>`; }).join('')}</div>
 `;
     }
-    const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), can = x.lingots ? s.lingots >= x.lingots : s.cash >= x.cash;
-      const price = x.lingots ? `${ic('lingot')}${x.lingots}` : short(x.cash);
+    const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), n = G.decoCost(x), k = G.promoPct('deco', x.id), can = x.lingots ? s.lingots >= n.lingots : s.cash >= n.cash;
+      const price = strike(x.lingots ? lgt(x.lingots) : short(x.cash), x.lingots ? lgt(n.lingots) : short(n.cash));
       const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${used ? 'Ranger' : 'Poser en ville'}</button>`
         : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
-      return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
+      return `<div class="card ev-item ${used ? 'used' : ''}">${own ? '' : promoTag(k)}<div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
     // looks du quartier : en haut de l'onglet, avec un aperçu de la ville
     const own = G.looksOwned(), cur = s.cityLook || 'base';
     const look = L => { const ready = L.id === 'base' || (has('bg-city-' + L.id) && ['casino', 'appart', 'shop', 'balto', 'kiosque', 'six'].every(b => has(`bld-${b}-${L.id}`))), has_ = own.includes(L.id), on = cur === L.id, lock = s.lvl < L.lvl;
-      const price = L.lingots ? `${ic('lingot')}${L.lingots}` : short(L.cash), can = L.lingots ? s.lingots >= L.lingots : s.cash >= L.cash;
+      const n = G.lookCost(L), k = has_ ? 0 : G.promoPct('look', L.id), price = strike(L.lingots ? lgt(L.lingots) : short(L.cash), L.lingots ? lgt(n.lingots) : short(n.cash)), can = L.lingots ? s.lingots >= n.lingots : s.cash >= n.cash;
       const btn = !ready ? '<button class="btn xs" disabled>Bientôt</button>' : on ? '<span class="lk-on">✓ Ta ville</span>' : has_ ? `<button class="btn xs blue" data-act="lookBuy" data-id="${L.id}">Mettre</button>`
         : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${L.lvl}</button>` : `<button class="btn xs ${L.lingots ? 'gold' : 'green'}" data-act="lookBuy" data-id="${L.id}" ${can ? '' : 'disabled'}>${price}</button>`;
       // look en vente limitée : un compte à rebours à la place de « Spécial » ; passé la date, il n'est plus en vente (ceux qui l'ont le gardent)
       const left = L.until ? Date.parse(L.until) - Date.now() : 0, gone = L.until && left <= 0 && !has_;
       if (gone) return '';
       const tag = L.until && !has_ ? `<span class="lk-tag">${ico('ic-timer', '⏱')}<small>Encore</small><b>${left > 864e5 ? `${Math.ceil(left / 864e5)} j` : `${Math.max(1, Math.ceil(left / 36e5))} h`}</b></span>` : '';
-      return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}"><div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})">${tag}</div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
-    return `<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
+      return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${promoTag(k)}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})">${tag}</div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
+    return `${(p => p && p.c && p.target !== 'iap' ? gameHero(p.c, p.season) : '')(promoNow())}${gamePromoStrip((promoNow() || {}).c)}<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
       <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
   }
   // écran de pub (emplacement réservé : la vraie régie se branchera ici dans la version mobile)
@@ -1729,7 +1761,7 @@
       return `<div class="bst-hero">${packArt()}<div class="bst-count">${n ? `Tu as <b>${n}</b> booster${n > 1 ? 's' : ''} à ouvrir` : 'Aucun booster à ouvrir'}</div>
           <p class="hint-line">Le marchand de journaux vend aussi les paquets de cartes. Chaque booster : 3 récompenses et 1 carte de collection qui a une vraie cote.</p>
           ${n ? '<button class="btn green bst-open pulse" data-act="boosterOpen">Ouvrir un booster</button>' : ''}
-          <button class="btn ${n ? '' : 'green'}" data-act="kBooster" ${lock || s.cash < G.boosterPrice() ? 'disabled' : ''}>${lock ? `Niveau ${B.lvl}` : `Acheter un booster · ${short(G.boosterPrice())}`}</button>
+          <button class="btn ${n ? '' : 'green'}" data-act="kBooster" ${lock || s.cash < G.boosterPrice() ? 'disabled' : ''}>${lock ? `Niveau ${B.lvl}` : `Acheter un booster · ${strike(short(G.boosterPrice(true)), short(G.boosterPrice()))}`}</button>${lock ? '' : promoTag(G.promoPct('booster', 'kiosk'))}
           <button class="btn blue" data-act="collection">Voir mon classeur</button></div>`;
     }
     // en haut : le compte à rebours du prochain journal, bien visible, et comment un tuyau fait gagner
@@ -2049,11 +2081,12 @@
       // en rayon, une carte achetée reste visible mais grisée avec un tampon « Achetée » (elle se revend plus bas, dans « Tes cartes »)
       if (onShelf && mine) return `<div class="card item-card bought ${justBought && justBought.id === it.id && Date.now() - justBought.t < 900 ? 'just' : ''}"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
         <div class="ib-art">${itemPic(it)}<span class="ib-stamp">${ic('check')} ${boughtNow(it.id) ? 'Achetée' : 'Possédée'}</span></div></div>`;
-      return `<div class="card item-card"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>
+      const k = G.promoPct('item', it.id), bp = strike(short(G.buyPrice(it.id, true)), short(G.buyPrice(it.id)));
+      return `<div class="card item-card ${k && !mine ? 'promo' : ''}"><span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>${mine ? '' : promoTag(k)}
         ${it.cat === 'card' ? `<button class="zoom-btn" data-act="cardZoom" data-id="${it.id}" aria-label="Voir en grand">${itemPic(it)}</button>` : itemPic(it)}<h4>${it.name}</h4><div class="price"><small>Cote</small>${short(p)}</div><div class="chg">${pct(p, h[0])} ${sparkSvg(h.slice(-40), 60, 18, p >= h[0] ? '#1f9d55' : '#d33a2c')}</div>
-        <small class="muted own-line">${mine ? ownGain(it.id) : `Vendu ${short(G.buyPrice(it.id))} (${G.vintageOn() && st().vintage.id === it.id ? 'exclusivité : cote + 50 %' : 'cote + 5 %'})`}</small>
+        <small class="muted own-line">${mine ? ownGain(it.id) : k ? `En promo : −${k} % sur le prix` : `Vendu ${short(G.buyPrice(it.id))} (${G.vintageOn() && st().vintage.id === it.id ? 'exclusivité : cote + 50 %' : 'cote + 5 %'})`}</small>
         <div class="hstack" style="width:100%">${mine ? `<button class="btn xs red" style="flex:1" data-act="itSell" data-id="${it.id}">Vendre ${short(G.sellPrice(it.id))}</button>`
-          : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(it.id))}</button>`}</div></div>`;
+          : `<button class="btn xs green" style="flex:1" data-act="itBuy" data-id="${it.id}" ${s.cash >= G.buyPrice(it.id) ? '' : 'disabled'}>Acheter ${bp}</button>`}</div></div>`;
     };
     // cartes : les grandes cartes, puis les cartes des boosters vendues d'occasion, série par série
     const grid = shopTab === 'card'
@@ -2315,7 +2348,7 @@
       return `<div class="bst-hero">${packArt()}<div class="bst-count">${n ? `Tu as <b>${n}</b> booster${n > 1 ? 's' : ''} à ouvrir` : 'Plus de booster pour aujourd\'hui'}</div>
           <p class="hint-line">${free ? 'Ton <b>booster du jour</b> est gratuit !' : `Prochain booster gratuit dans <b>${mmss(untilMidnight())}</b>.`} Chaque booster : 3 récompenses + 1 carte de collection qui a une vraie cote.</p>
           <button class="btn green bst-open ${n ? 'pulse' : ''}" data-act="boosterOpen" ${n ? '' : 'disabled'}>Ouvrir un booster</button>
-          <button class="btn" data-act="boosterBuy" ${s.lingots >= D.BOOSTER.cost ? '' : 'disabled'}>Acheter un booster · ${ic('lingot')}${D.BOOSTER.cost}</button></div>
+          <button class="btn ${G.promoPct('booster', 'lingots') ? 'gold' : ''}" data-act="boosterBuy" ${s.lingots >= G.boosterCost() ? '' : 'disabled'}>Acheter un booster · ${strike(lgt(D.BOOSTER.cost), lgt(G.boosterCost()))}</button>${promoTag(G.promoPct('booster', 'lingots'))}</div>
         <h3 class="sec">Les chances dans un booster</h3>
         <div class="card bst-prob"><b>Les 3 récompenses</b><div class="bst-odds">${Object.entries(D.BOOSTER.weights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
           <b>La carte de collection</b><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div></div>
@@ -2788,8 +2821,14 @@
     admTest(el) { const t = TESTS[+el.dataset.i]; if (!t || !placing) return; const r = t[1](); toast(r || `${t[0]} : fait. Ça arrive dans quelques secondes si c'est une notification.`); refresh(); },
     valReset() { if (!confirm('Annuler tous tes changements de valeurs pas encore publiés ?')) return; try { localStorage.removeItem(VAL_KEY); } catch (e) {} location.reload(); },
     welcomeTest() { maybeWelcome(true); },
-    promo(el) { openBoutique(el && el.dataset && el.dataset.id === 'vip' ? 'vip' : promoMode === 'ville' ? 'deco' : 'vip'); },
+    promo(el) { const p = promoNow(); if (!(el && el.dataset && el.dataset.id) && p && (p.target === 'deco' || p.target === 'look')) return openBoutique('deco');   // promo sur une déco / un look : l'onglet « Ma ville »
+      openBoutique(el && el.dataset && el.dataset.id === 'vip' ? 'vip' : promoMode === 'ville' ? 'deco' : 'vip'); },
     agence() { if (window.AGENCE) AGENCE.open(); },
+    // une promo du jeu : on emmène le joueur là où ça s'achète
+    promoGo(el) { const t = el.dataset.t, ref = el.dataset.ref; closeModal();
+      if (t === 'item') { const it = G.item(ref); if (!it) return; if (!G.catUnlocked(it.cat)) return toast(`${D.ITEM_CATS[it.cat].name} : au niveau ${D.ITEM_CATS[it.cat].lvl}.`, true); setScene('city'); return openShop(it.cat, (D.ITEM_CATS[it.cat] || {}).shop); }
+      if (t === 'deco' || t === 'look') return openBoutique('deco');
+      if (t === 'booster') return ref === 'kiosk' ? (setScene('city'), openKiosk('booster')) : openBoosters('open'); },
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },

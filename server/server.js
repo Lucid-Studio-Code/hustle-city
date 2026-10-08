@@ -166,6 +166,29 @@ function cleanContent(c) {
   });
   return out;
 }
+// ------------------------------------------------------------------ promos (page Promos du back office, config live « campaigns »)
+// target : iap (offre en vrai argent, offer = id de D.IAP, remise off ou lingots en plus bonus), item (objet du jeu, y compris ceux ajoutés au back office),
+// booster (lingots = booster acheté en lingots, kiosk = au Kiosque, all = les deux), deco (déco de la ville), look (look du quartier) : −5 à −90 %.
+const PROMO_LOOKS = ['promo', 'halloween', 'bf', 'noel'], PROMO_TXT = (v, n) => String(v ?? '').replace(/[\u0000-\u001f\u007f<>`\\]/g, '').trim().slice(0, n);
+function cleanCampaigns(L, content) {
+  if (!Array.isArray(L)) return [];
+  const ids = a => new Set((a || []).map(x => x.id)), iap = new Map((GAME.IAP || []).map(x => [x.id, x])), deco = ids(GAME.CITY_SHOP), looks = ids((GAME.CITY_LOOKS || []).filter(x => x.id !== 'base'));
+  const items = new Set([...(GAME.ITEMS || []).filter(i => i.cat !== 'trophy').map(i => i.id), ...Object.entries((content || {}).items || {}).filter(([, e]) => e && e.new && e.cat !== 'trophy').map(([id]) => id)]);
+  const seen = new Set(), out = [];
+  L.slice(0, 200).forEach(c => {
+    if (!c || typeof c !== 'object' || typeof c.id !== 'string' || !/^[\w-]{1,48}$/.test(c.id) || seen.has(c.id)) return;
+    if (!isDate(c.start) || !isDate(c.end) || Date.parse(c.end) <= Date.parse(c.start)) return;
+    const t = c.target || 'iap', x = { id: c.id, target: t, look: PROMO_LOOKS.includes(c.look) ? c.look : 'promo', name: PROMO_TXT(c.name, 14), kind: 'off', value: 0,
+      start: new Date(c.start).toISOString(), end: new Date(c.end).toISOString(), on: c.on !== false, title: PROMO_TXT(c.title, 90), desc: PROMO_TXT(c.desc, 200) };
+    if (t === 'iap') { const o = iap.get(c.offer); if (!o) return; x.offer = c.offer; if (c.kind === 'bonus' && o.kind === 'lingots') x.kind = 'bonus'; }
+    else if ((t === 'item' && items.has(c.ref)) || (t === 'deco' && deco.has(c.ref)) || (t === 'look' && looks.has(c.ref)) || (t === 'booster' && ['lingots', 'kiosk', 'all'].includes(c.ref))) x.ref = c.ref;
+    else return;
+    const v = Math.round(+c.value); if (!Number.isFinite(v)) return;
+    x.value = x.kind === 'bonus' ? Math.min(300, Math.max(5, v)) : Math.min(90, Math.max(5, v));
+    seen.add(c.id); out.push(x);
+  });
+  return out;
+}
 function saveLive(cfg) {
   run("INSERT INTO config (k, v) VALUES ('live', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(cfg));
   run("INSERT INTO config (k, v) VALUES ('live_at', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", String(now()));
@@ -566,6 +589,7 @@ const admin = {
     const b = await body(req);
     // les objets du jeu ont leur propre page : une autre page qui ne les connaît pas ne doit jamais les effacer
     if (b.content) b.content = cleanContent(b.content); else { const cur = getCfg().content; if (cur) b.content = cur; }
+    if (b.campaigns != null) b.campaigns = cleanCampaigns(b.campaigns, b.content);   // promos : seulement des cibles qui existent, remise 5-90 %, dates valides
     saveLive(b); const { content, ...rest } = b; log('config', rest); send(res, 200, { ok: true });
   },
   async 'POST /admin/api/content'(req, res) {   // page « Objets du jeu » : remplace tout le contenu ajouté / modifié
