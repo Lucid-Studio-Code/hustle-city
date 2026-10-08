@@ -670,7 +670,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app.in-appart #btn-booster, #app.in-appart #btn-gift, #app.in-appart #btn-deal, #app.in-appart #quest { display: none; }
 #app.in-appart #trophy { top: auto; bottom: 108px; }
 .bst-mini { display: inline-grid; place-items: center; width: 26px; height: 34px; font-style: normal; vertical-align: middle; }
-.bst-mini img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 0 rgba(42,26,16,.4)); }
+.bst-mini img { width: 100%; height: 100%; object-fit: contain; }
 #app #btn-booster .bst-mini { width: 28px; height: 34px; }
 
 /* ---------- carte mission (apparaît quelques secondes) ---------- */
@@ -829,7 +829,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .bst-odds { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
 .bst-pack { position: relative; width: 140px; height: 190px; margin: 0 auto; display: grid; place-items: center; overflow: hidden; }
 .bst-pack .pic { width: 100%; height: 100%; }
-.bst-pack .pic img { filter: drop-shadow(0 4px 0 rgba(42,26,16,.35)); }
+.bst-pack .pic img { filter: none; }
 /* reflet : une bande de lumière qui traverse le paquet en continu, découpée à la forme du paquet (le masque ne bouge pas, seule la lumière glisse) */
 .bst-pack .bst-gloss { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 0 38%, rgba(255,255,255,.2) 44%, rgba(255,255,255,.7) 50%, rgba(255,255,255,.2) 56%, transparent 62% 100%) no-repeat; background-size: 300% 100%;
   animation: bstShine 3.6s linear infinite; -webkit-mask: url(../assets/img/booster-pack.png) center / contain no-repeat; mask: url(../assets/img/booster-pack.png) center / contain no-repeat; }
