@@ -2778,13 +2778,13 @@
       try { navigator.clipboard.writeText(code); toast('Code de sauvegarde copié : garde-le précieusement.'); } catch (e) { prompt('Copie ce code :', code); } },
     saveImport() { const c = prompt('Colle ton code de sauvegarde :'); if (!c) return;
       try { const j = JSON.parse(decodeURIComponent(escape(atob(c.trim().replace(/^HC1\./, ''))))); if (!j || typeof j.cash !== 'number' || !j.skin) throw 0;
-        if (!confirm(`Remplacer ta partie actuelle par celle-ci (niveau ${j.lvl}) ?`)) return; localStorage.setItem('hustleCity.v1', JSON.stringify(j)); localStorage.setItem('hustleCity.imported', '1'); location.reload(); }
+        if (!confirm(`Remplacer ta partie actuelle par celle-ci (niveau ${j.lvl}) ?`)) return; G.wipe(); localStorage.setItem('hustleCity.v1', JSON.stringify(j)); localStorage.setItem('hustleCity.imported', '1'); location.reload(); }
       catch (e) { toast('Ce code ne marche pas.', true); } },
     async restoreCode() {   // code de partie (« HC1.… » copié sur l'ancienne adresse ou dans Réglages) collé à la main
       let c = ''; try { c = (await navigator.clipboard.readText() || '').trim(); } catch (e) {}
       if (!/^HC1\./.test(c)) c = (prompt('Colle ton code de partie :') || '').trim(); if (!c) return;
       try { const raw = decodeURIComponent(escape(atob(c.replace(/^HC1\./, '')))), j = JSON.parse(raw); if (!j || !j.skin) throw 0;
-        localStorage.setItem('hustleCity.v1', raw); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
+        G.wipe(); localStorage.setItem('hustleCity.v1', raw); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
     installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
     tutoToggle() { const s = st(); s.noTuto = !s.noTuto; if (s.noTuto) { s.tutoDone = true; if (window.TUTO && TUTO.active) TUTO.skip(); } else { s.bldTuto = {}; s.featTutoFix = 0; }   /* seuls les lieux pas encore atteints auront leur tuto */ G.save(); toast(s.noTuto ? 'Tutos coupés.' : 'Tutos remis : Momo t\'expliquera les prochains lieux.'); setBody(settingsBody()); },
