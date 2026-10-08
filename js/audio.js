@@ -132,7 +132,10 @@
 
   // ---------------------------------------------------------------- la palette (t = moment de départ ; arg = détail optionnel)
   const S = {
-    tap: t => { tone(1500 * R(.06), t, .035, { vol: .035, a: .001, slide: .7, rev: 0 }); nz(t, .01, { vol: .012, f: 6500, type: 'highpass', rev: 0 }); },
+    // clic : un « pop » rond et doux (bulle qui éclate), plus de « tic » aigu ; deux variantes à écouter sur la page des sons
+    tap: t => { tone(620 * R(.04), t, .05, { vol: .09, a: .002, slide: .6, rev: .03 }); tone(165, t, .035, { vol: .045, a: .002, slide: .8, rev: 0 }); },
+    tapDrop: t => { tone(700 * R(.04), t, .06, { vol: .07, a: .002, slide: 1.9, slideT: .05, rev: .06 }); },   // variante « goutte » : petite note qui remonte
+    tapSoft: t => { tone(440 * R(.03), t, .07, { type: 'triangle', vol: .08, a: .003, lp: 1400, slide: .85, rev: .05 }); tone(880, t, .04, { vol: .02, a: .002, rev: 0 }); },   // variante « feutrée »
     tab: t => { tone(880 * R(.03), t, .05, { type: 'triangle', vol: .045, rev: .05 }); tone(1320, t + .035, .06, { type: 'triangle', vol: .03, rev: .1 }); },
     open: t => { nz(t, .24, { vol: .04, f: 450, sweep: 4.5, q: .8, a: .1, rev: .2 }); tone(330, t + .02, .16, { vol: .015, slide: 1.6, rev: .2 }); },
     close: t => { nz(t, .18, { vol: .03, f: 2200, sweep: .25, q: .8, a: .03, rev: .15 }); },
