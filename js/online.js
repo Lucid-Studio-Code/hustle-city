@@ -47,7 +47,8 @@
   // ---------------------------------------------------------- boîte de réception : cadeaux, réponses du SAV, restauration
   function inbox(list) {
     // restauration par le support : on coupe toute écriture de la partie en cours AVANT de poser la copie, sinon la partie actuelle la réécrasait
-    const rs = (list || []).find(m => m.gift && m.gift.restore);
+    const rsAll = (list || []).filter(m => m.gift && m.gift.restore), rs = rsAll[rsAll.length - 1];   // plusieurs restaurations en attente : la plus récente gagne
+    rsAll.slice(0, -1).forEach(m => post('/api/claim', { id: m.id }).catch(() => {}));
     let done = ''; try { done = sessionStorage.getItem('hc-rs') || ''; } catch (e) {}
     if (rs && String(rs.id) === done) post('/api/claim', { id: rs.id }).catch(() => {});   // déjà posée (le serveur n'avait pas reçu l'accusé) : on ne boucle pas
     else if (rs) { try { sessionStorage.setItem('hc-rs', String(rs.id)); } catch (e) {} G.wipe(); try { localStorage.setItem('hustleCity.v1', rs.gift.restore); } catch (e) {} post('/api/claim', { id: rs.id }).catch(() => {}).then(() => location.reload()); return; }
