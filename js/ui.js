@@ -2529,11 +2529,16 @@
     if (Date.now() - lbAt < 60000) return; lbAt = Date.now();
     if (window.ONLINE && ONLINE.on && ONLINE.leaderboard) ONLINE.leaderboard().then(r => { if (r && r.top) { LB = r; if ($('#modal .lb-card')) setBody(profileBody()); } });
   }
+  // photo d'un joueur du classement : son perso, son cadre et son pin's (comme dans son profil)
+  function lbAv(p) {
+    const ok = v => /^[a-z0-9-]{1,40}$/.test(v || ''), fr = ok(p.frame) && D.EV_SHOP.find(x => x.id === p.frame), pin = ok(p.avatar) && D.EV_SHOP.find(x => x.id === p.avatar);
+    return `<span class="lb-av-w"><span class="lb-av" ${fr && !frameImg(fr) ? `style="border-color:${fr.colors[0]};box-shadow:0 0 0 2px ${fr.colors[1]}"` : ''}>${skinPic(ok(p.skin) ? p.skin : '', true)}</span>${fr && frameImg(fr) ? `<img class="lb-fr" src="${src(frameImg(fr))}" alt="">` : ''}${pin ? `<span class="av-pin lb-pin">${pinArt(pin)}</span>` : ''}</span>`;
+  }
   function leaderHtml() {
     lbLoad();
     if (!LB) return `<h3 class="sec">Les plus riches du quartier</h3><div class="lb-card lb-off"><p class="hint-line center">${window.ONLINE && ONLINE.on ? 'Chargement du classement…' : 'Le classement des joueurs s\'affiche quand tu es connecté à internet.'}</p></div>`;
     const d = LB, rk = r => r === 1 ? ico('medal-gold', '🥇') : r === 2 ? ico('medal-silver', '🥈') : r === 3 ? ico('medal-bronze', '🥉') : r;
-    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span><span class="lb-av">${skinPic(/^[a-z0-9-]{1,40}$/.test(p.skin) ? p.skin : '', true)}</span><span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}${/^\d{1,6}$/.test(p.tag || '') ? ` <em class="lb-tag">#${p.tag}</em>` : ''}</b><small>Niveau ${Math.max(1, Math.min(99, +p.lvl | 0))}${p.home ? ` · ${ic('city')} ${esc(p.home)}` : ''}</small></span><b class="lb-w">${short(+p.worth || 0)}</b></div>`;
+    const row = (p, r) => `<div class="lb-row ${p.me ? 'me' : ''}"><span class="lb-rk">${rk(r)}</span>${lbAv(p)}<span class="lb-nm"><b>${esc(p.me ? `${p.name} (toi)` : p.name)}${/^\d{1,6}$/.test(p.tag || '') ? ` <em class="lb-tag">#${p.tag}</em>` : ''}</b><small>Niveau ${Math.max(1, Math.min(99, +p.lvl | 0))}${p.home ? ` · ${ic('city')} ${esc(p.home)}` : ''}</small></span><b class="lb-w">${short(+p.worth || 0)}</b></div>`;
     const inTop = d.rank <= 10, around = inTop ? [] : d.around;
     return `<h3 class="sec">Les plus riches du quartier <small>· ${d.total.toLocaleString('fr-FR')} joueurs</small></h3>
       <div class="lb-card"><div class="lb-me">Ta place : <b>${d.rank.toLocaleString('fr-FR')}<sup>${d.rank === 1 ? 'er' : 'e'}</sup></b> sur ${d.total.toLocaleString('fr-FR')}${d.rank > 1 ? ` · encore <b>${short(Math.max(0, ((inTop ? d.top[d.rank - 2] : d.around[d.rank - d.aroundStart - 1]) || {}).worth - G.worth() + 1))}</b> pour passer devant` : ' · tu es le plus riche !'}</div>

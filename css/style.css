@@ -3561,3 +3561,8 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .col-link .cl-ic { flex: 0 0 48px; width: 48px; height: 62px; display: grid; place-items: center; margin-right: 6px; } #app .col-link .cl-ic .bst-mini { width: 44px; height: 58px; } #app .col-link .cl-ic .bst-mini img { width: 100% !important; height: 100% !important; object-fit: contain; }
 #app .col-link { padding-top: 10px; padding-bottom: 10px; } #app .col-link .cl-ic { height: 52px; } #app .col-link .cl-ic .bst-mini { width: 38px; height: 50px; }
 #app .need .bst-mini, #app .rw-chips .bst-mini, #app .cs-rew .bst-mini, #app .cr-chips .bst-mini { display: inline-grid; place-items: center; width: 16px; height: 22px; overflow: visible; vertical-align: middle; } #app .need .bst-mini img, #app .rw-chips .bst-mini img, #app .cs-rew .bst-mini img, #app .cr-chips .bst-mini img { width: 100% !important; height: 100% !important; object-fit: contain; position: static; transform: none; }
+#app .lb-av-w { position: relative; flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; margin: 0 4px; }
+#app .lb-av-w .lb-av { width: 38px; height: 38px; flex: none; }
+#app .lb-av-w .lb-fr { position: absolute; inset: -18%; width: 136%; height: 136%; object-fit: contain; z-index: 2; pointer-events: none; }
+#app .lb-av-w .lb-pin { position: absolute; right: -6px; bottom: -4px; width: 20px; height: 20px; z-index: 3; }
+#app .lb-av-w .lb-pin img, #app .lb-av-w .lb-pin .crest, #app .lb-av-w .lb-pin .pic { width: 100%; height: 100%; }
