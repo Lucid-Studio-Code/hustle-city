@@ -147,8 +147,20 @@
   <script>
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
+  // musique dès l'écran de chargement : le navigateur exige un premier toucher ; on le capte dès maintenant (avant que le moteur de son
+  // soit chargé) et on débloque le son dans ce geste même (sur iPhone, seul un toucher « fini » le permet), le moteur reprend ensuite ce contexte
   (function () {
-    var V = '?v=465', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var evs = ['touchend', 'click', 'pointerdown', 'keydown'];
+    function go() {
+      evs.forEach(function (e) { document.removeEventListener(e, go, true); });
+      try { var A = window.AudioContext || window.webkitAudioContext; if (!A) return; var c = window.__AC = window.__AC || new A();
+        var b = c.createBuffer(1, 1, 22050), n = c.createBufferSource(); n.buffer = b; n.connect(c.destination); n.start(0); if (c.resume) c.resume(); } catch (e) {}
+      window.__gesture = true; if (window.AUDIO && AUDIO.start) AUDIO.start();
+    }
+    evs.forEach(function (e) { document.addEventListener(e, go, true); });
+  })();
+  (function () {
+    var V = '?v=466', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

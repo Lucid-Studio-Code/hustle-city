@@ -34,7 +34,7 @@
     return g;
   }
   function ac() {
-    if (!C) { C = new (window.AudioContext || window.webkitAudioContext)(); N = graph(C); N.mFilt.frequency.value = MOOD[mood]; T0 = C.currentTime; setTimeout(loadSamples, 0); }
+    if (!C) { C = window.__AC || new (window.AudioContext || window.webkitAudioContext)();   /* contexte débloqué dès l'écran de chargement */ N = graph(C); N.mFilt.frequency.value = MOOD[mood]; T0 = C.currentTime; setTimeout(loadSamples, 0); }
     if (C.state === 'suspended') C.resume();
     return C;
   }
@@ -347,10 +347,13 @@
   }
 
   // les navigateurs n'autorisent le son qu'après un premier geste : on démarre la musique au premier appui (dans le jeu seulement)
-  const unlock = () => { document.removeEventListener('pointerdown', unlock, true); if (on()) try { ac(); } catch (e) {} if (window.GAME && st().music !== false) music(true); };   // ac() lance aussi le chargement des enregistrements
-  document.addEventListener('pointerdown', unlock, true);
+  // dès le premier toucher (même pendant le chargement, voir game.html), la musique démarre
+  let started = false;
+  const unlock = () => { if (started) return; started = true; ['pointerdown', 'touchend', 'click'].forEach(e => document.removeEventListener(e, unlock, true)); try { ac(); } catch (e) {} if (st().music !== false) music(true); };   // ac() lance aussi le chargement des enregistrements
+  ['pointerdown', 'touchend', 'click'].forEach(e => document.addEventListener(e, unlock, true));
+  if (window.__gesture) setTimeout(unlock, 0);   // on a déjà touché l'écran pendant le chargement
   document.addEventListener('visibilitychange', () => { if (!C) return; document.hidden ? C.suspend() : C.resume(); });
 
-  window.AUDIO = { sfx: SFX, music, mood: setMood, duck, render, list: Object.keys(S),
+  window.AUDIO = { start: () => unlock(), sfx: SFX, music, mood: setMood, duck, render, list: Object.keys(S),
     samples: { files: SAMPLES, get ready() { return Object.keys(SMP); }, get on() { return useSmp; }, set on(v) { useSmp = !!v; }, load() { try { ac(); } catch (e) {} } }, get musicOn() { return musicOn; }, get section() { return section(); }, get moodNow() { return mood; } };
 })();
