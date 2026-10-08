@@ -3574,3 +3574,7 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 /* parking débloqué : il garde la place (invisible) de sa pastille « Achète une voiture », pour rester exactement
    là où il était posé quand il était verrouillé (c'est dans cet état qu'il a été placé, skin par skin) */
 #app .bld .plaque small.pq-ghost { visibility: hidden; }
+/* fiche d'un objet : de l'air entre le badge de rareté et le graphique ; un seul bouton Vendre, centré */
+#app .item-head { margin-bottom: 14px; }
+#app .it-sell-row { margin-top: 12px; }
+#app .it-sell-row > .btn { min-width: 60%; }

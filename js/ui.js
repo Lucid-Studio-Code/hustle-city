@@ -2151,7 +2151,7 @@
     const s = st(), it = G.item(id), a = s.owned[id] || [], h = s.market.hist[id];
     const paid = a.length ? a[0].paid : 0, sp = G.sellPrice(id), diff = sp - paid;
     const fromPark = !!document.querySelector('#modal .park-full');   // ouvert depuis le parking : on y revient en fermant
-    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, onClose: fromPark ? () => setTimeout(() => openParking(true), 0) : null, body: `<div class="center">
+    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, onClose: fromPark ? () => setTimeout(() => openParking(true), 0) : null, body: `<div class="center item-head">
       <div class="item-big">${itemPic(it)}</div><div class="big" style="font-size:20px">${it.name}</div>
       <span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}</div>
       <div class="card chart-card"><div class="cc-line"><span>Il y a 2 h</span><b>${trend(s.market.prices[id], h[0])}</b><span>Maintenant</span></div>${chartSvg(h)}</div>
@@ -2159,7 +2159,7 @@
         <div class="pos-line"><span>${paid ? 'Tu l\'as payé' : 'Gagné'}<b>${paid ? short(paid) : 'gratuit'}</b></span><i>→</i><span>Tu le revends<b>${short(sp)}</b></span><span class="pos-diff">${diff >= 0 ? 'Gagné' : 'Perdu'}<b>${diff >= 0 ? '+' : '−'}${short(Math.abs(diff))}</b></span></div>
         <p class="muted">Sa cote du jour est ${eur(s.market.prices[id])}. Le Comptoir te le reprend 10 % moins cher : c'est sa commission.</p></div>
       ${a.length > 1 ? `<p class="hint-line center">Tu en as ${a.length}.</p>` : ''}
-      <div class="grid2"><button class="btn red" data-act="itSell" data-id="${id}">Vendre ${short(sp)}</button><button class="btn" data-act="closeModal">Garder</button></div>` });
+      <div class="center it-sell-row"><button class="btn red" data-act="itSell" data-id="${id}">Vendre ${short(sp)}</button></div>` });
   }
 
 
