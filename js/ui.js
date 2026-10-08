@@ -57,7 +57,7 @@
   // l'ordinateur de l'appart suit le style de la machine à miner (pcv-r1…r4) ; la vieille tour garde le vieux PC
   const PC_LOOK = [0, 1, 2, 3, 4];   // niveau du PC acheté dans « Mon setup » → ordi affiché (même échelle que la machine)
   const pcFor = (r, pl = G.pcLvl()) => (r = Math.max(r, PC_LOOK[pl] || 0)) > 0 && has('pcv-r' + Math.min(r, 4)) ? 'pcv-r' + Math.min(r, 4) : has('pcv-0') ? 'pcv-0' : 'pc-0';   // machine 1 : le vieux PC de face (flèche verte)   // le PC suit la machine
-  const pcLook = () => pcFor(st().rig ? st().rig.lvl : 0);
+  const pcLook = () => pcFor(0);   // l'ordi de l'appart = le PC acheté dans « Mon setup » (sinon la machine affichait déjà le suivant et l'amélioration ne se voyait pas)
   // cadrage vertical des créatures communes dans leur fenêtre (0 = haut du dessin, 100 = bas) : le perso et ce qu'il fait
   const CREA_FY = { 'cr-pigeonnard': 8, 'cr-trotilezard': 12, 'cr-escargoat': 22, 'cr-taupecash': 50, 'cr-herissnik': 62, 'cr-poubellou': 45 };
   // mise à jour sans tout redessiner : on ne touche que ce qui a changé (les images déjà affichées restent en place).

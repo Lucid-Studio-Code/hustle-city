@@ -133,8 +133,10 @@
   // ---------------------------------------------------------------- la palette (t = moment de départ ; arg = détail optionnel)
   const S = {
     // clic : un « pop » rond et doux (bulle qui éclate), plus de « tic » aigu ; deux variantes à écouter sur la page des sons
-    tap: t => { tone(620 * R(.04), t, .05, { vol: .09, a: .002, slide: .6, rev: .03 }); tone(165, t, .035, { vol: .045, a: .002, slide: .8, rev: 0 }); },
-    tapDrop: t => { tone(700 * R(.04), t, .06, { vol: .07, a: .002, slide: 1.9, slideT: .05, rev: .06 }); },   // variante « goutte » : petite note qui remonte
+    // clic : la « goutte » choisie, arrondie (plus grave, attaque douce, un peu de corps dessous, aucune harmonique aiguë)
+    tap: t => { tone(360 * R(.03), t, .09, { vol: .1, a: .006, slide: 1.7, slideT: .06, rev: .05 }); tone(180 * R(.03), t, .07, { vol: .05, a: .006, slide: 1.5, slideT: .05, rev: 0 }); },
+    tapPop: t => { tone(620 * R(.04), t, .05, { vol: .09, a: .002, slide: .6, rev: .03 }); tone(165, t, .035, { vol: .045, a: .002, slide: .8, rev: 0 }); },   // l'ancien « pop »
+    tapDrop: t => { tone(700 * R(.04), t, .06, { vol: .07, a: .002, slide: 1.9, slideT: .05, rev: .06 }); },   // la goutte d'avant (plus aiguë)
     tapSoft: t => { tone(440 * R(.03), t, .07, { type: 'triangle', vol: .08, a: .003, lp: 1400, slide: .85, rev: .05 }); tone(880, t, .04, { vol: .02, a: .002, rev: 0 }); },   // variante « feutrée »
     tab: t => { tone(880 * R(.03), t, .05, { type: 'triangle', vol: .045, rev: .05 }); tone(1320, t + .035, .06, { type: 'triangle', vol: .03, rev: .1 }); },
     open: t => { nz(t, .24, { vol: .04, f: 450, sweep: 4.5, q: .8, a: .1, rev: .2 }); tone(330, t + .02, .16, { vol: .015, slide: 1.6, rev: .2 }); },
