@@ -190,8 +190,9 @@
   }
 
   // ------------------------------------------------------------ fenêtres
-  let modalClose = null, modalRefresh = null, tabHandler = null;
-  function openModal({ title, icon, body, tabs, tab, full, center, onClose, refresh, onTab, theme }) {
+  let modalClose = null, modalRefresh = null, tabHandler = null, modalArgs = null;
+  function openModal(args) {
+    const { title, icon, body, tabs, tab, full, center, onClose, refresh, onTab, theme } = args; modalArgs = args;
     const m = $('#modal');
     m.className = full ? 'full' : '';
     m.innerHTML = `<div class="sheet ${center ? 'center' : ''} ${theme ? 'th-' + theme : ''}">
@@ -200,6 +201,18 @@
       <div class="sheet-body">${body}</div></div>`;
     modalClose = onClose || null; modalRefresh = refresh || null; tabHandler = onTab || null; sfx.open(); musicMood(theme);
     m.onclick = e => { if (e.target === m) closeModal(); };
+  }
+  // une fiche ouverte depuis une autre fenêtre (collection, portefeuille, classeur…) : en la fermant on revient à cette fenêtre,
+  // au même onglet et au même endroit de la liste (mise à jour, au cas où l'objet a été vendu)
+  function backHere() {
+    if (!modalOpen() || !modalArgs) return null;
+    const a = modalArgs, tab = ($('#modal .tab.on') || {}).dataset?.tab, html = ($('#modal .sheet-body') || {}).innerHTML, y = ($('#modal .sheet-body') || {}).scrollTop || 0;
+    return () => setTimeout(() => {
+      if (modalOpen()) return;
+      openModal({ ...a, tab: tab || a.tab, body: html != null ? html : a.body });
+      try { if (a.refresh) a.refresh(); } catch (e) {}
+      const b = $('#modal .sheet-body'); if (b) b.scrollTop = y;
+    }, 0);
   }
   let liveTick = false;   // rafraîchissement automatique (chaque seconde) : on ne touche que ce qui change, sinon l'écran clignote sur Android
   function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; if (liveTick) morph(b, html); else b.innerHTML = html; b.scrollTop = y; } }
@@ -2151,7 +2164,7 @@
     const s = st(), it = G.item(id), a = s.owned[id] || [], h = s.market.hist[id];
     const paid = a.length ? a[0].paid : 0, sp = G.sellPrice(id), diff = sp - paid;
     const fromPark = !!document.querySelector('#modal .park-full');   // ouvert depuis le parking : on y revient en fermant
-    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, onClose: fromPark ? () => setTimeout(() => openParking(true), 0) : null, body: `<div class="center item-head">
+    openModal({ title: D.ITEM_CATS[it.cat].name, icon: 'trophy', center: true, onClose: fromPark ? () => setTimeout(() => openParking(true), 0) : backHere(), body: `<div class="center item-head">
       <div class="item-big">${itemPic(it)}</div><div class="big" style="font-size:20px">${it.name}</div>
       <span class="rtag r${it.r}">${{ C: 'Commun', R: 'Rare', E: 'Épique', L: 'Légendaire' }[it.r]}</span>${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}</div>
       <div class="card chart-card"><div class="cc-line"><span>Il y a 2 h</span><b>${trend(s.market.prices[id], h[0])}</b><span>Maintenant</span></div>${chartSvg(h)}</div>
