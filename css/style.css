@@ -3579,3 +3579,11 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .it-sell-row { margin-top: 12px; }
 #app .it-sell-row > .btn { min-width: 60%; }
 #app .bet-placed.live { background: #fff1dc; border-color: #e8483a; }
+/* appli installée (écran d'accueil) : le jeu couvre tout l'écran, jusqu'au bas (plus de bande blanche sous le jeu) */
+html { background-color: #120c24; }
+@media (display-mode: standalone) {
+  html, body { height: 100vh; min-height: -webkit-fill-available; }
+  #app { max-width: none; max-height: none; width: 100vw; height: 100vh; min-height: -webkit-fill-available; border-radius: 0; border: 0; }
+}
+#app .inst-code { margin: 10px 0; background: #e9f9df; border-color: #1f9d55; }
+#app .inst-code p { margin: 4px 0 0; font: 700 13px/1.35 var(--text); }

@@ -2605,6 +2605,7 @@
         <button class="set-row" data-act="tutoAgain"><span><b>Revoir le tuto</b></span><em>›</em></button>
         <div class="set-row"><span><b>Tutos de Momo</b><small>${st().noTuto ? 'Coupés : plus d\'explications quand un lieu s\'ouvre' : 'Momo t\'explique chaque nouveau lieu'}</small></span><button class="btn xs ${st().noTuto ? 'green' : ''}" data-act="tutoToggle">${st().noTuto ? 'Remettre' : 'Couper'}</button></div>
         ${isStandalone() ? '' : `<button class="set-row" data-act="installHelp"><span><b>Mettre le jeu sur mon écran d'accueil</b><small>Comme une appli, en plein écran</small></span><em>›</em></button>`}
+        <button class="set-row" data-act="restoreCode"><span><b>J'ai déjà une partie</b><small>Coller mon code pour la reprendre ici</small></span><em>›</em></button>
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button>
         <button class="set-row" data-act="mentions"><span><b>Mentions légales</b></span><em>›</em></button></div>
@@ -2836,13 +2837,16 @@
       let c = ''; try { c = (await navigator.clipboard.readText() || '').trim(); } catch (e) {}
       const isRec = x => /^[\w-]{4,64}\.[\w-]{8,128}$/.test(x);   // code de récupération (Réglages → Aide) : la partie est sur le serveur
       if (!/^HC1\./.test(c) && !isRec(c)) c = (prompt('Colle ton code de partie :') || '').trim(); if (!c) return;
+      if (st().skin && (st().lvl || 1) > 1 && !confirm(`La partie de cet appareil (niveau ${st().lvl}) va être remplacée par celle du code. On y va ?`)) return;
       if (isRec(c)) { if (!window.ONLINE || !ONLINE.restore) return toast('Pas de connexion au serveur.', true); try { G.wipe(); localStorage.setItem('hustleCity.imported', '1'); await ONLINE.restore(c); } catch (e) { setTimeout(() => location.reload(), 2000); } return; }
       try { const raw = decodeURIComponent(escape(atob(c.replace(/^HC1\./, '')))), j = JSON.parse(raw); if (!j || !j.skin) throw 0;
         G.wipe(); localStorage.setItem('hustleCity.v1', raw); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
     installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
     tutoToggle() { const s = st(); s.noTuto = !s.noTuto; if (s.noTuto) { s.tutoDone = true; if (window.TUTO && TUTO.active) TUTO.skip(); } else { s.bldTuto = {}; s.featTutoFix = 0; }   /* seuls les lieux pas encore atteints auront leur tuto */ G.save(); toast(s.noTuto ? 'Tutos coupés.' : 'Tutos remis : Momo t\'expliquera les prochains lieux.'); setBody(settingsBody()); },
-    installHelp() { openInstall(); },
+    installHelp() {   // sur iPhone, l'appli installée ne voit pas la partie de Safari : on copie son code pour la reprendre dans l'appli
+      let ok = false; try { if (window.ONLINE && ONLINE.on && ONLINE.code) { navigator.clipboard.writeText(ONLINE.code()); ok = true; } } catch (e) {}
+      openInstall(false, ok); },
     legal() { openModal({ title: 'Conditions', icon: 'star', body: `<div class="card legal-txt">
       <b>Un jeu, rien que le jeu.</b> Les billets, lingots, cryptos, actions et objets n'existent que dans le jeu : ils ne s'échangent jamais contre de l'argent réel, et on ne peut rien y gagner de réel.
       <b>Réservé aux adultes.</b> Le jeu contient des paris, un casino et des tickets à gratter, tous fictifs. Les vrais jeux d'argent sont interdits aux mineurs. Besoin d'aide ? Joueurs Info Service : 09 74 75 13 13 (appel non surtaxé).
@@ -3210,7 +3214,7 @@
   // mettre le jeu sur l'écran d'accueil du téléphone (comme une appli) : Android propose son bouton « Installer », iPhone se fait à la main
   let installEvt = null; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; });
   const isStandalone = () => window.matchMedia && matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.Capacitor;
-  function openInstall(arrived) {
+  function openInstall(arrived, copied) {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), chromeIos = /CriOS/.test(navigator.userAgent);
     const steps = ios ? [`Touche <b class="mv-key">⬆︎ Partager</b> ${chromeIos ? 'en haut à droite' : 'en bas de l\'écran'}.`, 'Fais défiler et touche <b>« Sur l\'écran d\'accueil »</b>.', 'Touche <b>« Ajouter »</b> en haut à droite.']
       : ['Touche <b class="mv-key">⋮</b> en haut à droite de ton navigateur.', 'Touche <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'appli »</b>.', 'Confirme : l\'icône Hustle City apparaît avec tes applis.'];
@@ -3219,6 +3223,7 @@
       <div class="inst-head">${has('logo') ? `<img src="${src('logo')}" alt="">` : ''}<b>Mets le jeu sur ton écran d'accueil</b><small>Il s'ouvrira en plein écran, comme une vraie appli, et ta partie sera toujours là.</small></div>
       ${installEvt ? '<div class="center"><button class="btn green" data-act="installNow">Installer Hustle City</button></div><p class="center hint-line">ou à la main :</p>' : ''}
       <ol class="mv-steps">${steps.map(x => `<li>${x}</li>`).join('')}</ol>
+      ${copied ? `<div class="card inst-code"><b>Ta partie te suit</b><p>L'appli démarre vide la première fois. Ton code de partie vient d'être copié : dans l'appli, touche <b>« J'ai déjà une partie »</b> et tout revient.</p></div>` : ''}
       <div class="center"><button class="btn" data-act="closeModal">${arrived ? 'Plus tard' : 'OK'}</button></div>` });
   }
   // arrivée sur le nouveau site avec une partie : on l'enregistre (après confirmation s'il y en a déjà une)
