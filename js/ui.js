@@ -41,7 +41,8 @@
   // chargé depuis internet (mise à jour auto) mais joué sur ton ordi : les images viennent de ton dossier, c'est bien plus rapide
   // (une image absente de ton dossier est reprise sur internet, voir plus bas)
   const IMG_LOCAL = /^https:\/\/cdn\.jsdelivr\.net\//.test(document.baseURI) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + '/' : '';
-  function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.png?v=${window.ASSET_V || 1}`; }
+  const JPG = new Set(window.ASSETS_JPG || []);   // images sans transparence : la version .jpg, bien plus légère
+  function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.${JPG.has(name) ? 'jpg' : 'png'}?v=${window.ASSET_V || 1}`; }
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
   function pic(name, emo, cls = '') { return `<span class="pic ${cls}">${has(name) ? `<img src="${src(name)}" alt="" draggable="false">` : `<span class="emo">${emo || EMO[name] || '❔'}</span>`}</span>`; }
   // « de » + un nom propre, à la française : de Les Paniers → des Paniers, de Le Royal → du Royal, de Axion → d'Axion

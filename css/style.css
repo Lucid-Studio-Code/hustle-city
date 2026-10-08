@@ -1523,7 +1523,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .phone-btn { display: none; }
 #app #phone-btn { position: absolute; z-index: 21; left: 10px; bottom: 98px; width: 54px; height: 66px; padding: 0; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 #app #phone-btn .ph-mini { position: relative; width: 38px; height: 54px; border-radius: 9px; border: 2px solid #2a1a10; box-shadow: 0 3px 0 #2a1a10;
-  background: url(../assets/img/phone-wall.png) center / cover, linear-gradient(160deg, #3a2a78, #c13a8c); display: block; }
+  background: url(../assets/img/phone-wall.jpg) center / cover, linear-gradient(160deg, #3a2a78, #c13a8c); display: block; }
 #app #phone-btn .ph-mini > i { position: absolute; left: 50%; top: 3px; width: 12px; height: 3px; margin-left: -6px; border-radius: 2px; background: #1b1433; }
 #app #phone-btn b { margin-top: -10px; position: relative; padding: 1px 6px 2px; border-radius: 8px; border: 2px solid #2a1a10; background: #fffdf6; font: 400 10px var(--title); color: #2a1a10; }
 #app #phone-btn .badge { position: absolute; top: -6px; right: 0; width: 22px; height: 22px; display: grid; place-items: center; color: #fff; font-size: 11px; }
@@ -3263,7 +3263,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 /* « ? » de l'appart : le même téléphone que le bouton Tél. (fond d'écran de la ville) */
 #app .help-phone { display: grid; place-items: center; }
 #app .help-phone .ph-mini { position: relative; display: block; width: 44px; height: 64px; border-radius: 10px; border: 2.5px solid #2a1a10; box-shadow: 0 3px 0 #2a1a10;
-  background: url(../assets/img/phone-wall.png) center / cover, linear-gradient(160deg, #3a2a78, #c13a8c); display: block;  }
+  background: url(../assets/img/phone-wall.jpg) center / cover, linear-gradient(160deg, #3a2a78, #c13a8c); display: block;  }
 #app .help-phone .ph-mini > i { position: absolute; left: 50%; top: 4px; width: 14px; height: 3px; margin-left: -7px; border-radius: 2px; background: #1b1433; }
 
 /* ---------------------------------------------------------------- La Coupe des Morts (Halloween) */
