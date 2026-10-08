@@ -98,7 +98,9 @@ const cleanHome = v => (GAME.HOMES || []).includes(v) ? v : null;   // seulement
 const prog = j => { try { const o = JSON.parse(j); return (+o.lvl || 0) * 1e9 + (+o.xp || 0); } catch (e) { return -1; } };
 function stale(p, b) {
   if (!b.dev || !p.save || b.force) return false;
-  if (!p.save_dev) return typeof b.save === 'string' && prog(b.save) < prog(p.save);
+  // garde-fou : une partie plus avancée (niveau puis XP) n'est jamais remplacée par une moins avancée, et inversement elle s'impose toujours
+  if (typeof b.save === 'string') { const a = prog(b.save), k = prog(p.save); if (a > k) return false; if (a < k) return true; }
+  if (!p.save_dev) return false;
   return p.save_dev !== String(b.dev) && (p.save_at || 0) > (+b.base || 0);
 }
 const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), worth: Math.round(num(s.worth)), cash: Math.round(num(s.cash)), lingots: Math.floor(num(s.lingots, 1e9)), boosters: Math.floor(num(s.boosters, 1e6)),
