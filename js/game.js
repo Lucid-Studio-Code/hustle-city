@@ -131,7 +131,9 @@
       st.xp -= xpNeed(); st.lvl++;
       const r = D.LEVEL_REWARD(st.lvl);
       st.cash = Math.round((st.cash + r.cash) * 100) / 100; st.lingots += r.lingots; st.boosters = (st.boosters || 0) + r.boosters;
-      emit('levelup', Object.assign({ lvl: st.lvl }, r));
+      const gift = D.ITEMS.find(i => i.gift === st.lvl && !(st.owned[i.id] || []).length);   // la voiture unique du niveau 40
+      if (gift) st.owned[gift.id] = [{ paid: 0, t: now(), gift: true }];
+      emit('levelup', Object.assign({ lvl: st.lvl, gift: gift && gift.id }, r));
     }
     emit('xp');
   }
@@ -1175,10 +1177,11 @@
     const x = D.CDM.shop.find(o => o.id === id); if (!x || x.noSale) return { err: 'Introuvable.' };
     if (!cdmOn()) return { err: 'La boutique de la Coupe est fermée.' };
     const S = cdmSt();
-    if (x.kind === 'booster') { if ((S.bought[id] || 0) >= x.max) return { err: 'Plus en stock pour cette Coupe.' }; } else if (evOwned(id)) return { err: 'Tu l\'as déjà.' };
+    if (x.kind === 'booster') { if ((S.bought[id] || 0) >= x.max) return { err: 'Plus en stock pour cette Coupe.' }; } else if (x.kind === 'card' ? (st.owned[id] || []).length : evOwned(id)) return { err: 'Tu l\'as déjà.' };
     if (S.candy < x.candy) return { err: 'Pas assez de bonbons.' };
     S.candy -= x.candy;
     if (x.kind === 'booster') { S.bought[id] = (S.bought[id] || 0) + 1; st.boosters = (st.boosters || 0) + x.n; }
+    else if (x.kind === 'card') st.owned[id] = [{ paid: 0, t: now(), booster: true }];
     else { grantEv(id); if (x.kind === 'avatar') st.avatar = id; if (x.kind === 'frame') st.frame = id; }
     addXp(5); emit('change'); return { x };
   }
@@ -1293,8 +1296,8 @@
   function collectionCard() {
     const rar = pickW(D.BOOSTER.colWeights);
     // pendant le tournoi, une partie des boosters donne une carte en édition limitée
-    const ev = sixCardsOn() && Math.random() < D.SIX.cardChance;
-    const all = D.ITEMS.filter(i => i.series && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === 'six' : !i.event));
+    const ev = cdmOn() && Math.random() < D.CDM.cardChance ? 'cdm' : sixCardsOn() && Math.random() < D.SIX.cardChance ? 'six' : null;
+    const all = D.ITEMS.filter(i => i.series && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === ev : !i.event));
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);

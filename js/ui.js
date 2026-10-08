@@ -519,7 +519,7 @@
       // arrêt de bus : dessiné dans le décor, on pose juste une zone à toucher et son enseigne
       if (b.spot) return `<button class="bld spot ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${b.w}%">${plaque(b, false)}<span class="spot-zone"></span></button>`;
       const locked = s.lvl < b.lvl || noCar;
-      const img = b.id === 'six' && G.panneau() === 'cdm' ? (has('ev-cdm-board') ? pic('ev-cdm-board') : cdmBoardArt()) : b.id === 'six' && G.eventOff() && !(['neon', 'hiver'].includes(look) && has(`bld-six-${look}`))   /* le Panneau rénové montre le rugby : hors événement, panneau d'affichage neutre */ ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
+      const img = b.id === 'six' && G.panneau() === 'cdm' ? (has('ev-cdm-board') ? pic('ev-cdm-board') : cdmBoardArt()) : b.id === 'six' && G.eventOff() && !(['neon', 'hiver', 'or'].includes(look) && has(`bld-six-${look}`))   /* le Panneau rénové montre le rugby : hors événement, panneau d'affichage neutre */ ? (has('bld-six-off') ? pic('bld-six-off') : `<span class="six-off-fb">${pic('bld-six')}</span>`) : has(`bld-${b.id}-${look}`) ? pic(`bld-${b.id}-${look}`) : has('bld-' + b.id) ? pic('bld-' + b.id) : b.id === 'six' ? sixBoardArt() : `<span class="ph" style="background:${cols[b.id]}">${EMO['bld-' + b.id]}</span>`;
       const k = (has(`bld-${b.id}-${look}`) && (D.BLD_SCALE || {})[`bld-${b.id}-${look}`]) || 1;   // le skin de la ville ne change pas la taille du bâtiment
       return `<button class="bld ${locked ? 'locked' : ''} ${b.flip ? 'flip' : ''}" data-act="bld" data-id="${b.id}" style="left:${b.x}%;top:${b.y}%;width:${(b.w * k).toFixed(2)}%">
         ${plaque(b, locked, noCar)}
@@ -725,7 +725,7 @@
     renderCity();
     $('#app').insertAdjacentHTML('beforeend', `<div id="placer" class="adm"><b>Back-office</b><span id="pl-cur">Fais glisser un bâtiment ou un objet</span>
       <span class="pl-size hidden"><button class="btn xs blue" id="pl-minus">−</button><button class="btn xs blue" id="pl-plus">+</button><button class="btn xs yellow" id="pl-flip">⇋ Miroir</button></span>
-      <span class="pl-looks">${['base', 'renov', 'neon', 'hiver'].map(k => `<button class="btn xs pl-look ${k === (st().cityLook || 'base') ? 'green' : ''}" data-look="${k}">${{ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver' }[k]}</button>`).join('')}<button class="btn xs" id="pl-same" title="Remettre l'objet choisi comme dans le look de base">= Base</button></span><button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-park">Parking</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
+      <span class="pl-looks">${['base', 'renov', 'neon', 'hiver', 'or'].map(k => `<button class="btn xs pl-look ${k === (st().cityLook || 'base') ? 'green' : ''}" data-look="${k}">${{ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver', or: 'Doré' }[k]}</button>`).join('')}<button class="btn xs" id="pl-same" title="Remettre l'objet choisi comme dans le look de base">= Base</button></span><button class="btn xs blue" id="pl-room">Appart</button><button class="btn xs blue" id="pl-club">Club</button><button class="btn xs blue" id="pl-park">Parking</button><button class="btn xs blue" id="pl-slot">Machine</button><button class="btn xs purple" id="pl-val">Valeurs</button><button class="btn xs purple" id="pl-test">Tests</button><button class="btn xs purple" id="pl-txt">✏️ Textes</button><button class="btn green xs" id="pl-pub">Publier</button><button class="btn xs" id="pl-reset">Annuler</button><textarea id="placer-out" readonly></textarea></div>`);
     const name = el => el.dataset.deco ? decos.find(d => d.id === el.dataset.deco).name : D.BUILDINGS.find(b => b.id === el.dataset.id).name;
     const box = el => { const r = (el.querySelector('.pic img, .pic, i') || el).getBoundingClientRect(), k = .18; return { l: r.left + r.width * k, r: r.right - r.width * k, t: r.top + r.height * k, b: r.bottom - r.height * k }; };
     const hit = (a, b) => a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
@@ -754,7 +754,7 @@
     });
     window.addEventListener('pointerup', () => { if (cur) { cur.el.classList.remove('dragging'); cur = null; save(); clashes(); } });
     const selObj = () => sel && tgt(sel.dataset.deco ? decos.find(x => x.id === sel.dataset.deco) : D.BUILDINGS.find(b => b.id === sel.dataset.id), 1);
-    const lookName = () => ({ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver' })[cityLookNow()] || cityLookNow();
+    const lookName = () => ({ base: 'Base', renov: 'Rénové', neon: 'Néon', hiver: 'Hiver', or: 'Doré' })[cityLookNow()] || cityLookNow();
     // choix du look à régler : chaque look garde ses propres places (sinon il reprend celles de la base)
     document.querySelectorAll('.pl-look').forEach(btn => btn.onclick = () => { admLook = btn.dataset.look; document.querySelectorAll('.pl-look').forEach(x => x.classList.toggle('green', x === btn)); sel = null; renderCity(); setTimeout(clashes, 300); $('#pl-cur').textContent = `Look ${lookName()} : fais glisser un bâtiment ou un objet`; });
     $('#pl-same').onclick = () => { const lk = cityLookNow(); if (!sel || lk === 'base') return toast('Choisis un objet dans un look autre que Base.'); const kind = sel.dataset.deco ? 'decos' : 'buildings', id = sel.dataset.deco || sel.dataset.id; delete ((D.LOOK_POS[lk] || {})[kind] || {})[id]; renderCity(); save(); toast('Remis comme dans le look de base.'); sel = null; };
@@ -1911,6 +1911,7 @@
   function evArt(x, mini) {
     if (x.kind === 'avatar') return mini ? pinArt(x) : `<span class="ev-avpin">${skinPic(st().skin, true)}<span class="av-pin">${pinArt(x)}</span></span>`;
     if (x.kind === 'frame') return frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : mini ? `<i class="cdm-emo">${x.emo}</i>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(st().skin, true)}<em>${x.emo}</em></span>`;
+    if (x.kind === 'card') { const it = G.item(x.id); return it && has(it.art) ? `<span class="cdm-cardart"><img src="${src(it.art)}" alt=""></span>` : '🃏'; }
     if (x.kind === 'booster') return mini ? packArt(true) : `<span class="cdm-pack">${pic('booster-pack', '🃏')}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`;
     return has(decoImg(x)) ? pic(decoImg(x)) : `<span class="ev-emo">${x.emo}</span>`;
   }
@@ -1935,14 +1936,14 @@
           ${got ? '<span class="cn-ok">✓</span>' : ok ? `<button class="btn xs green" data-act="cdmStep" data-i="${i}">Récupérer</button>` : `<span class="cs-left">encore ${fmtN(x.n - S.pts)}</span>`}</div>`; }).join('');
     }
     if (cdmTab === 'shop') {
-      const item = x => { const own = x.kind !== 'booster' && G.evOwned(x.id), used = own && G.evUsed(x.id), left = x.kind === 'booster' ? x.max - (S.bought[x.id] || 0) : 1;
-        const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="cdmUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
+      const item = x => { const own = x.kind === 'card' ? !!(st().owned[x.id] || []).length : x.kind !== 'booster' && G.evOwned(x.id), used = own && G.evUsed(x.id), left = x.kind === 'booster' ? x.max - (S.bought[x.id] || 0) : 1;
+        const btn = own && x.kind === 'card' ? '<span class="btn xs" disabled>Dans ton classeur</span>' : own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="cdmUse" data-id="${x.id}">${x.kind === 'deco' ? (used ? 'Ranger' : 'Poser en ville') : used ? 'Retirer' : 'Utiliser'}</button>`
           : !on ? '<button class="btn xs" disabled>Fermé</button>' : left <= 0 ? '<button class="btn xs" disabled>Épuisé</button>'
           : `<button class="btn xs gold cdm-buy" data-act="cdmBuy" data-id="${x.id}" ${S.candy >= x.candy ? '' : 'disabled'}>${candyIc()}${x.candy}</button>`;
         return `<div class="card ev-item ${used ? 'used' : ''}"><div class="ev-art">${evArt(x)}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Utilisé' : 'À toi'}</small>` : x.kind === 'booster' ? `<small class="muted">Encore ${left} en stock</small>` : x.desc ? `<small class="muted">${x.desc}</small>` : ''}${btn}</div>`; };
       const grp = (k, t, sub) => `<h3 class="sec">${t} <small>· ${sub}</small></h3><div class="grid2 ev-grid">${C.shop.filter(x => x.kind === k && !x.noSale).map(item).join('')}</div>`;
       return head + `<p class="hint-line">Tu payes en <b>bonbons</b> ${candyIc()} : 1 bonbon tous les ${C.perCandy} points. Tes objets restent à toi pour toujours.${on ? '' : ' <b>La boutique est fermée.</b>'}</p>` +
-        grp('deco', 'Pour la ville', 'posés sur la carte') + grp('avatar', 'Pin\'s', 'sur ta photo de profil') + grp('frame', 'Cadre', 'autour de ta photo') + grp('booster', 'Boosters', 'des cartes en plus');
+        grp('card', 'Carte légendaire', 'la plus rare de la série') + grp('deco', 'Pour la ville', 'posés sur la carte') + grp('avatar', 'Pin\'s', 'sur ta photo de profil') + grp('frame', 'Cadre', 'autour de ta photo') + grp('booster', 'Boosters', 'des cartes en plus');
     }
     // l'équipe : la course, ta part, le top 5, les récompenses de fin
     const top = B.top.map((r, k) => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${B.online ? k + 1 : '–'}</span><span class="sb-nm">${esc(r.me ? `${r.name} (toi)` : r.name)}</span><b>${fmtN(+r.pts || 0)} pts</b></div>`).join('');
@@ -2254,9 +2255,9 @@
   const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
   // numéro d'une carte dans SA collection (sport ou créatures) : 03/98
   // la série du Tournoi n'existe pour les joueurs qu'une fois le tournoi commencé (février 2027)
-  const seriesOn = se => se.id !== 'rugby' || !G.sixPhase || G.sixPhase() !== 'before' || G.TEST;
+  const seriesOn = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() !== 'before' : se.id === 'cdm' ? !['before', 'off'].includes(G.cdmPhase()) || Object.keys(st().owned).some(k => /^k-cdm-/.test(k) && st().owned[k].length) : true);
   // cartes d'événement : on ne relance le joueur que pendant l'événement (avant ou après, il ne peut plus les avoir)
-  const cardsNow = se => se.id !== 'rugby' || G.sixPhase() === 'on' || G.TEST;
+  const cardsNow = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() === 'on' : se.id === 'cdm' ? G.cdmPhase() === 'on' : true);
   const colOf = c => (D.SERIES.find(x => x.id === c.series) || {}).col || 'sport';
   const colCards = c => CARD_ALL.filter(x => colOf(x) === colOf(c));
   const cardNo = c => `${String(colCards(c).indexOf(c) + 1).padStart(2, '0')}/${colCards(c).length}`;
@@ -2909,6 +2910,7 @@
       <div class="lv-big stroke">NIVEAU ${e.lvl} !</div>
       <div class="gains"><span>${ic('cash')}+${short(e.cash, true)}</span><span>${ic('lingot')}+${e.lingots}</span><span>${packArt(true)}+1 booster</span></div>
       <p class="hint-line center">Mise max au Royal : <b>${G.betMax()}<i class="cur"></i></b></p>
+      ${e.gift ? `<div class="card lv-gift"><div class="item-big">${itemPic(G.item(e.gift))}</div><b>Cadeau : ${G.item(e.gift).name}</b><small>Une voiture unique au monde, garée dans ton parking. Elle n'existe nulle part ailleurs.</small></div>` : ''}
       ${un.length ? `<div class="ul-title">Nouveautés débloquées</div><div class="unlocks">${un.map(unlockTile).join('')}</div>${un.some(u => u.how) ? `<ul class="ul-hows">${un.filter(u => u.how).map(u => `<li><b>${u.name}</b><span>${u.how}</span></li>`).join('')}</ul>` : ''}` : ''}
       <div class="grid2"><button class="btn purple" data-act="boosterOpen">Ouvrir le booster</button>${un.find(x => x.go) ? `<button class="btn green" data-act="lvlGo" data-id="${un.find(x => x.go).go}">Aller voir !</button>` : '<button class="btn green" data-act="closeModal">Trop bien !</button>'}</div></div>` });
   }

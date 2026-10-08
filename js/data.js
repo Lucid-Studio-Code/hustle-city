@@ -50,7 +50,7 @@
   const PARK_FLOORS = [{ name: 'Niveau -2', lvl: 31, cost: 400000 }, { name: 'Niveau -3', lvl: 34, cost: 900000 }, { name: 'Niveau -4', lvl: 37, cost: 2000000 }, { name: 'Niveau -5', lvl: 40, cost: 4000000 }];
   const PARK_MAX = { car: 6, moto: 5 };
   // gabarit des véhicules (plus c'est gros, plus ça se gare au fond du parking) ; un véhicule ajouté au back-office compte 5
-  const VEH_SIZE = { 'v-van': 9, 'v-pickup': 8, 'v-muscle': 6, 'v-rally': 5, 'v-electric': 5, 'v-super': 4, 'v-hyper': 4, 'v-gti': 3, 'v-city': 2,
+  const VEH_SIZE = { 'v-unique': 5, 'v-van': 9, 'v-pickup': 8, 'v-muscle': 6, 'v-rally': 5, 'v-electric': 5, 'v-super': 4, 'v-hyper': 4, 'v-gti': 3, 'v-city': 2,
     'm-trike': 8, 'm-touring': 7, 'm-chopper': 6, 'm-road': 5, 'm-sport': 4, 'm-cafe': 4, 'm-cross': 3, 'm-scoot': 1 };   // places peintes du parking : jamais plus de 6 voitures et 5 motos
   // La Tour : l'immobilier (un loyer par jour, même hors ligne, max 3 jours en attente) et la bourse (actions fictives du quartier)
   const PROPS = [
@@ -360,6 +360,7 @@
     { id: 'm-touring', cat: 'moto', name: "Grosse routière", r: 'R', p0: 25000, vol: 0.035 },
     { id: 'm-trike', cat: 'moto', name: "Trike custom", r: 'E', p0: 40000, vol: 0.035 },
     // FIN-OBJETS-AJOUTES
+    { id: 'v-unique', cat: 'car', name: 'La Pièce unique', r: 'L', p0: 3000000, vol: 0.02, noBuy: true, gift: 40 },   // offerte au niveau 40, jamais en vente (hors du bloc régénéré)
     // trophées : on ne les achète pas, on les gagne. Ils ont une cote comme le reste.
     { id: 't-first',    cat: 'trophy',  name: 'Trophée « Premier pari gagné »', r: 'C', p0: 40,  vol: .03 },
     { id: 't-combi',    cat: 'trophy',  name: 'Trophée « Combiné de fou »',     r: 'R', p0: 400, vol: .04 },
@@ -431,6 +432,7 @@
     { id: 'staff',    name: 'Les coulisses',         sub: 'Coulisses', reward: { cash: 700, lingots: 10 } },
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
     { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
+    { id: 'cdm',      name: 'La Coupe des Morts', sub: 'Édition limitée · Halloween', reward: { cash: 2000, lingots: 20 } },
     { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } },
     // collection Créatures (onglet à part dans le classeur)
     { id: 'crea-og',     col: 'crea', name: 'Les Originaux',       sub: 'Créature', reward: { cash: 3000, lingots: 25 } },
@@ -509,6 +511,7 @@
       quest: [25, 250], chal: [20, 60], week: [40, 160], daily: [30, 30]
     },
     outsider: 1.2,          // l'équipe qui a le moins de joueurs : +20 % de points pour ceux qui la rejoignent (rééquilibre les camps)
+    cardChance: .35,        // pendant la Coupe, 35 % des cartes de booster viennent de sa série
     perCandy: 10,           // 1 bonbon tous les 10 points
     minReward: 50,          // il faut au moins 50 points pour toucher la récompense d'équipe
     // défis de la nuit : 3 par jour, tirés au sort (ils changent à minuit)
@@ -542,11 +545,16 @@
       { id: 'dc-toiles', kind: 'deco', img: 'deco-toiles', name: 'Toiles d\'araignée', emo: '🕸️', desc: 'Accrochées au lampadaire.', x: 70, y: 44, w: 8, candy: 50 },
       { id: 'dc-tombe', kind: 'deco', img: 'deco-tombe', name: 'Pierre tombale', emo: '🪦', desc: '« Ici repose ma série de défaites. »', x: 12, y: 78, w: 7, candy: 60 },
       { id: 'dc-chaudron', kind: 'deco', img: 'deco-chaudron', name: 'Chaudron qui bouillonne', emo: '🧪', desc: 'Personne ne sait ce qu\'il y a dedans.', x: 47, y: 74, w: 8, candy: 120 },
+      { id: 'k-cdm-coupe', kind: 'card', name: 'La Coupe des Morts', desc: 'Carte légendaire de la série.', candy: 400 },
       { id: 'bo-cdm-1', kind: 'booster', n: 1, name: '1 booster', candy: 25, max: 6 },
       { id: 'bo-cdm-3', kind: 'booster', n: 3, name: '3 boosters', candy: 65, max: 3 }
     ]
   };
   // la Coupe des Morts : un trophée à exposer sur tes étagères (une fois)
+  // les cartes de la Coupe : édition limitée, dans les boosters seulement pendant la Coupe (la Légendaire aussi en bonbons)
+  [['zombie', 'Le Zombie buteur', 'R'], ['vampire', 'Le Vampire dunkeur', 'R'], ['demon', 'Le Démon du smash', 'E'], ['fantome', 'Le Fantôme du rugby', 'E'],
+   ['citrouille', 'La Citrouille en or', 'E'], ['bal', 'Le Bal des morts', 'R'], ['lune', 'La Pleine lune', 'R'], ['coupe', 'La Coupe des Morts', 'L']]
+    .forEach(([k, n, r], i) => ITEMS.push({ id: 'k-cdm-' + k, cat: 'card', series: 'cdm', event: 'cdm', noBuy: true, kind: 'event', name: n, r, p0: Math.round(CARD_P0[r] * (0.9 + (i % 4) / 20)), vol: .06, img: 'art-cdm-' + k, art: 'art-cdm-' + k }));
   ITEMS.push({ id: 't-cdm', cat: 'trophy', name: 'La Coupe des Morts', r: 'E', p0: 666, vol: .03, img: 'ev-cdm-cup' });
   // la Coupe passe d'abord, le tournoi garde sa boutique : les deux boutiques ensemble (photo de profil, cadres, décos de la ville)
   const EV_SHOP = SIX.shop.concat(CDM.shop);
@@ -842,12 +850,13 @@
   // ---------------------------------------------------------------- Boutique (bouton du bas)
   // Décos pour la ville, achetées pour toujours. Chacune a SA place sur la carte (réglée dans le back-office, jamais deux au même endroit).
   // looks du quartier : toute la ville (fond + bâtiments) change d'apparence. Images bg-city-<id> et bld-<bâtiment>-<id>.
-  const BLD_SCALE = {'bld-appart-hiver': 1.028, 'bld-appart-neon': 0.999, 'bld-appart-renov': 1.049, 'bld-balto-hiver': 0.991, 'bld-balto-neon': 1.046, 'bld-balto-renov': 1.035, 'bld-casino-hiver': 1.001, 'bld-casino-neon': 1.003, 'bld-casino-renov': 1.002, 'bld-club-hiver': 0.984, 'bld-club-renov': 0.982, 'bld-kiosque-hiver': 0.819, 'bld-kiosque-neon': 0.82, 'bld-kiosque-renov': 0.806, 'bld-parking-hiver': 0.959, 'bld-parking-neon': 0.958, 'bld-parking-renov': 1.003, 'bld-shop-hiver': 0.967, 'bld-shop-neon': 0.964, 'bld-shop-renov': 0.963, 'bld-six-hiver': 1.045, 'bld-six-neon': 1.004, 'bld-six-renov': 1.05};   // généré par tools/bld-scale.py
+  const BLD_SCALE = {'bld-appart-hiver': 1.028, 'bld-appart-neon': 0.999, 'bld-appart-or': 1.011, 'bld-appart-renov': 1.049, 'bld-balto-hiver': 0.991, 'bld-balto-neon': 1.046, 'bld-balto-or': 1.023, 'bld-balto-renov': 1.035, 'bld-casino-hiver': 1.001, 'bld-casino-neon': 1.003, 'bld-casino-or': 1.005, 'bld-casino-renov': 1.002, 'bld-club-hiver': 0.984, 'bld-club-or': 0.978, 'bld-club-renov': 0.982, 'bld-kiosque-hiver': 0.819, 'bld-kiosque-neon': 0.82, 'bld-kiosque-or': 0.979, 'bld-kiosque-renov': 0.806, 'bld-parking-hiver': 0.959, 'bld-parking-neon': 0.958, 'bld-parking-or': 0.986, 'bld-parking-renov': 1.003, 'bld-shop-hiver': 0.967, 'bld-shop-neon': 0.964, 'bld-shop-or': 0.992, 'bld-shop-renov': 0.963, 'bld-six-hiver': 1.045, 'bld-six-neon': 1.004, 'bld-six-or': 1.006, 'bld-six-renov': 1.05};   // généré par tools/bld-scale.py
   const CITY_LOOKS = [
     { id: 'base',  name: 'Quartier d\'origine', desc: 'Le bitume, le vrai.', cash: 0, lvl: 1 },
     { id: 'renov', name: 'Quartier rénové',    desc: 'Façades repeintes, fleurs, fresques : ton quartier monte en gamme.', cash: 20000, lvl: 6 },
     { id: 'neon',  name: 'Nuit néon',          desc: 'La ville s\'allume en rose et cyan, comme dans un film.', lingots: 150, lvl: 8, special: true, until: '2027-01-01T00:00:00+01:00' },
-    { id: 'hiver', name: 'Hiver enneigé',      desc: 'Neige sur les toits, guirlandes et vitrines chaudes.', lingots: 150, lvl: 8, special: true, until: '2027-01-01T00:00:00+01:00' }
+    { id: 'hiver', name: 'Hiver enneigé',      desc: 'Neige sur les toits, guirlandes et vitrines chaudes.', lingots: 150, lvl: 8, special: true, until: '2027-01-01T00:00:00+01:00' },
+    { id: 'or',    name: 'Quartier doré',      desc: 'Marbre, dorures et palmiers : le quartier des millionnaires.', cash: 5000000, lvl: 40 }
   ];
   const CITY_SHOP = [
     { id: 'dc-bench',    kind: 'deco', name: 'Banc graffé',          emo: '🪑', desc: 'Le QG des discussions du quartier.', x: 36, y: 78, w: 7,  cash: 250,   lvl: 1 },

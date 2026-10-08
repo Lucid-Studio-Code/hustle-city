@@ -5,7 +5,7 @@ from PIL import Image
 D = os.path.join(os.path.dirname(__file__), '..', 'assets', 'img'); out = {}
 area = lambda f: (lambda im: (np.asarray(im.resize((400, max(1, round(400 * im.height / im.width)))).split()[-1]) > 128).sum())(Image.open(f).convert('RGBA'))
 for f in sorted(os.listdir(D)):
-    m = re.match(r'bld-([a-z0-9]+)-(renov|neon|hiver)\.png$', f)
+    m = re.match(r'bld-([a-z0-9]+)-(renov|neon|hiver|or)\.png$', f)
     if not m or not os.path.exists(os.path.join(D, f'bld-{m[1]}.png')): continue
     k = (area(os.path.join(D, f'bld-{m[1]}.png')) / area(os.path.join(D, f))) ** .5
     out[f[:-4]] = float(round(k, 3))
