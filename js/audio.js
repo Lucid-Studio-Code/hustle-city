@@ -226,10 +226,9 @@
       thump(t + .27, 70, .3, .35); brass([523, 659, 784, 1047], t + .27, 1.1, .022, 3800); nz(t + .27, 1.3, { vol: .045, f: 6500, type: 'highpass', rev: .4 });
     },
     trophy: t => { duck(.35, 2); [784, 988, 1175, 1568, 1976].forEach((f, i) => bell(f, t + i * .09, 1.1, { vol: .055, ratio: 2, idx: 1.1, pan: (i - 2) * .3, rev: .45 })); [392, 494, 587].forEach(f => tone(f, t + .3, 1.3, { type: 'triangle', vol: .025, a: .15, rev: .45 })); thump(t + .36, 80, .18, .3); },
-    notif: t => {   // le téléphone vibre deux fois puis « ding »
+    notif: t => {   // petit « ding » de téléphone (plus de bourdonnement de vibration : il sonnait comme un « tun tun » sans raison)
       if (smp('notif', t, { vol: SV.notif, rev: .05 })) return;
-      [0, .2].forEach(d => tone(150, t + d, .15, { type: 'sawtooth', vol: .05, a: .01, hold: .1, lp: 380, vib: 10, vibF: 30, rev: 0 }));
-      bell(1568, t + .45, .5, { vol: .05, ratio: 2, idx: .5, rev: .25 }); bell(2093, t + .53, .6, { vol: .045, ratio: 2, idx: .5, rev: .3 });
+      bell(1568, t, .5, { vol: .05, ratio: 2, idx: .5, rev: .25 }); bell(2093, t + .08, .6, { vol: .045, ratio: 2, idx: .5, rev: .3 });
     },
     gift: t => { duck(.4, 2.4); if (smp('gift', t, { vol: SV.gift, rev: .06 })) return; tone(300, t, .09, { vol: .06, slide: 2.2 }); nz(t, .08, { vol: .06, f: 1500, q: .7 }); [1047, 1175, 1319, 1568, 1760, 2093].forEach((f, i) => bell(f, t + .08 + i * .045, .5, { vol: .06, ratio: 2, idx: .8, pan: (i - 3.5) * .2, rev: .4 })); coins(t + .45, 8, .6, .06); },
     deco: t => { tone(500, t, .08, { vol: .1, slide: 2.4 }); nz(t, .05, { vol: .04, f: 3000 }); thump(t + .06, 140, .08, .1); },

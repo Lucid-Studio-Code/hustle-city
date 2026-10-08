@@ -13,6 +13,20 @@
   const queue = [], ev = (type, data) => { if (!off) { queue.push({ t: Date.now(), type, data }); if (queue.length > 400) queue.splice(0, queue.length - 400); } };
   const post = (p, b) => fetch(API + p, { method: 'POST', keepalive: JSON.stringify(b).length < 60000, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...b, pid: id.pid, secret: id.secret }) }).then(r => r.json());
   const ONLINE = window.ONLINE = { on: false, id, ev, banned: false, config: {} };
+  // même partie sur plusieurs appareils : chaque navigateur a son nom (dev) et retient la date de la dernière sauvegarde serveur qu'il a (base)
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) {} return null; };
+  let dev = ls('hustleCity.dev'); if (!dev) { dev = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); ls('hustleCity.dev', dev); }
+  // une partie plus récente existe (jouée sur un autre appareil) : on la reprend telle quelle, sans réécrire la nôtre par-dessus
+  async function pull() {
+    let t = 0; try { t = +sessionStorage.getItem('hc-pull') || 0; } catch (e) {} if (Date.now() - t < 20000) return;   // jamais en boucle
+    try {
+      const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid: id.pid, secret: id.secret }) }).then(x => x.json());
+      if (!r.ok || !r.save) return;
+      G.wipe(); ls('hustleCity.v1', r.save); ls('hustleCity.base', r.rev || Date.now()); ls('hustleCity.force', null);
+      try { sessionStorage.setItem('hc-pull', String(Date.now())); sessionStorage.setItem('hc-pulled', '1'); } catch (e) {}
+      location.reload();
+    } catch (e) {}
+  }
   // application : le téléphone donne son adresse de notification, on la garde sur le serveur
   ONLINE.pushToken = (token, platform) => { if (off) return; post('/api/push-token', { token, platform }).catch(() => {}); };
 
@@ -51,7 +65,7 @@
     rsAll.slice(0, -1).forEach(m => post('/api/claim', { id: m.id }).catch(() => {}));
     let done = ''; try { done = sessionStorage.getItem('hc-rs') || ''; } catch (e) {}
     if (rs && String(rs.id) === done) post('/api/claim', { id: rs.id }).catch(() => {});   // déjà posée (le serveur n'avait pas reçu l'accusé) : on ne boucle pas
-    else if (rs) { try { sessionStorage.setItem('hc-rs', String(rs.id)); } catch (e) {} G.wipe(); try { localStorage.setItem('hustleCity.v1', rs.gift.restore); } catch (e) {} post('/api/claim', { id: rs.id }).catch(() => {}).then(() => location.reload()); return; }
+    else if (rs) { try { sessionStorage.setItem('hc-rs', String(rs.id)); } catch (e) {} G.wipe(); try { localStorage.setItem('hustleCity.v1', rs.gift.restore); } catch (e) {} ls('hustleCity.force', 1); post('/api/claim', { id: rs.id }).catch(() => {}).then(() => location.reload()); return; }
     (list || []).filter(m => !(m.gift && m.gift.restore)).forEach(m => {
       const g = m.gift || {};
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
@@ -77,7 +91,9 @@
     if (off || !ONLINE.on || !G.st.skin) return;
     const events = queue.splice(0), ms = playMs; playMs = 0;
     try {
-      const r = await post('/api/sync', { summary: summary(), events, playMs: ms, save: withSave ? JSON.stringify(G.st) : undefined });
+      const r = await post('/api/sync', { summary: summary(), events, playMs: ms, save: withSave ? JSON.stringify(G.st) : undefined, dev, base: +ls('hustleCity.base') || 0, force: ls('hustleCity.force') ? 1 : undefined });
+      if (r.newer) return pull();   // l'autre appareil a joué depuis : on reprend sa partie
+      if (r.rev) { ls('hustleCity.base', r.rev); ls('hustleCity.force', null); }
       if (r.banned) banScreen(r.banReason); else banScreen(null);
       inbox(r.inbox);
       if (r.cfgAt && +r.cfgAt !== cfgAt) { cfgAt = +r.cfgAt; fetch(API + '/api/config').then(x => x.json()).then(applyConfig).catch(() => {}); }
@@ -94,7 +110,9 @@
       if (!r.ok) { if (r.retry) setTimeout(hello, (+r.retry + 5) * 1000); return; } ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
       if (ONLINE.importFlag()) { try { await post('/api/imported', {}); } catch (e) {} try { localStorage.removeItem('hustleCity.imported'); } catch (e) {} }   // partie collée depuis un code : pas d'alerte anti-triche
       sync(true); setInterval(() => sync(true), 60000);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) sync(true); });
+      document.addEventListener('visibilitychange', () => sync(true));   // en partant on envoie ; en revenant on vérifie qu'on n'a pas joué ailleurs entre-temps
+      let pulled = ''; try { pulled = sessionStorage.getItem('hc-pulled'); sessionStorage.removeItem('hc-pulled'); } catch (e) {}
+      if (pulled) setTimeout(() => U.toast('Partie mise à jour : tu reprends là où tu en étais sur ton autre appareil.'), 1500);
       window.addEventListener('pagehide', () => sync(false));   // en quittant : on envoie au moins les stats (la sauvegarde complète part avec la sync régulière)
     } catch (e) { helloTry = Math.min(helloTry * 2, 300000); setTimeout(hello, helloTry); }   // serveur injoignable : on réessaie (30 s, 1 min, 2 min… jusqu'à 5 min)
   }
@@ -116,7 +134,7 @@
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;
   ONLINE.restore = async code => { const [pid, secret] = String(code).trim().split('.'); const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, secret }) }).then(x => x.json());
-    if (!r.ok || !r.save) { U.toast('Ce code ne correspond à aucune partie.', true); throw new Error(r.err || 'Code inconnu.'); } G.wipe(); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };
+    if (!r.ok || !r.save) { U.toast('Ce code ne correspond à aucune partie.', true); throw new Error(r.err || 'Code inconnu.'); } G.wipe(); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); ls('hustleCity.base', r.rev || Date.now()); ls('hustleCity.force', null); location.reload(); };
 
   // ---------------------------------------------------------- classements des événements (vrais joueurs) : Coupe des Morts et Tournoi
   // Coupe : toutes les 30 s pendant l'événement, on envoie les points gagnés depuis la dernière fois et on reçoit les totaux des équipes.

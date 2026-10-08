@@ -119,7 +119,7 @@
   // ------------------------------------------------------------ sons (petits bips synthétisés, comme Mama Kana)
   let actx = null;
   function beep(freqs, dur = .08, type = 'square', vol = .05) {
-    if (!st().sound) return;
+    if (st().sound === false) return;
     try {
       actx = actx || new (window.AudioContext || window.webkitAudioContext)();
       freqs.forEach((f, i) => {
@@ -1346,7 +1346,7 @@
     const b = $('#phone-btn'); if (!b) return;
     const n = unseen(), bd = b.querySelector('.badge');
     bd.textContent = n > 9 ? '9+' : n; bd.classList.toggle('hidden', !n);
-    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); if (sound && !st().quiet && !phoneOpen() && Date.now() - lastPing > 30000) { lastPing = Date.now(); sfx.notif(); } }
+    if (ping) { b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring'); if (sound && !st().quiet && !phoneOpen() && Date.now() - lastPing > 120000) { lastPing = Date.now(); sfx.notif(); } }
   }
   // petite notification qui glisse en haut de l'écran, comme sur un vrai téléphone
   // une bannière se balaie du doigt vers le haut (ou sur le côté) pour la faire disparaître, comme sur iPhone ; un simple toucher l'ouvre toujours
@@ -2578,7 +2578,7 @@
   function settingsBody() {
     const s = st();
     return `<div class="tip-carousel" data-act="tipNext"><div class="tc-txt" id="tc-txt">${D.TIPS[tipI % D.TIPS.length]}</div><div class="tc-dots">${D.TIPS.slice(0, 8).map((_, k) => `<i class="${k === tipI % 8 ? 'on' : ''}"></i>`).join('')}</div></div>
-      <h3 class="sec">Son</h3><div class="card set-card">${setRow('setToggle" data-k="music', 'Musique', s.music !== false, 'Une instru rap, tranquille')}${setRow('soundToggle', 'Effets sonores', s.sound)}${setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Sur téléphone, quand tu gagnes')}</div>
+      <h3 class="sec">Son</h3><div class="card set-card">${setRow('setToggle" data-k="music', 'Musique', s.music !== false, 'Une instru rap, tranquille')}${setRow('soundToggle', 'Effets sonores', s.sound !== false)}${navigator.vibrate ? setRow('setToggle" data-k="vibrate', 'Vibrations', s.vibrate !== false, 'Petite vibration quand tu gagnes gros') : ''}</div>
       <h3 class="sec">Affichage</h3><div class="card set-card">${setRow('setToggle" data-k="calm', 'Animations réduites', !!s.calm, 'Moins de confettis et d\'effets')}<div class="set-row"><span><b>Langue</b></span><em>Français</em></div></div>
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
@@ -2807,7 +2807,7 @@
     freebetInfo() { openModal({ title: 'Pari gratuit', icon: 'ticket', center: true, body: `<p class="center">Tu as ${st().freebets.length} pari${st().freebets.length > 1 ? 's' : ''} gratuit${st().freebets.length > 1 ? 's' : ''} : ${st().freebets.map(n => eur(n)).join(', ')}.</p><p class="center muted">Au Royal, coche « Utiliser mon pari gratuit » sur ton ticket. La mise est offerte : si tu gagnes, tu touches le bénéfice.</p><button class="btn green wide" data-act="eventGoRoyal">Au Royal</button>` }); },
     eventGoRoyal() { closeModal(); questGo('balto'); },
     scratchGo() { questGo('scratch'); },
-    soundToggle() { st().sound = !st().sound; G.save(); setBody(settingsBody()); },
+    soundToggle() { st().sound = st().sound === false; G.save(); setBody(settingsBody()); },   // pas encore réglé = activé (comme le moteur de son)
     setToggle(el) { const k = el.dataset.k, s = st(); if (k === 'vibrate' || k === 'music') s[k] = s[k] === false; else s[k] = !s[k]; if (k === 'music' && window.AUDIO) AUDIO.music(s.music !== false); document.body.classList.toggle('calm', !!s.calm); G.save(); setBody(settingsBody()); },
     tipNext() { nextTip(); },
     leaveTest() { location.replace(location.href.split('#')[0]); setTimeout(() => location.reload(), 50); },

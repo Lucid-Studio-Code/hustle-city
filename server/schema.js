@@ -23,7 +23,9 @@ function initDb(db) {
   add('players', { xp: 'INT', boosters: 'INT', avatar: 'TEXT', frame: 'TEXT', tz: 'TEXT', lang: 'TEXT', screen: 'TEXT', ip: 'TEXT',
     country: 'TEXT', cc: 'TEXT', region: 'TEXT', city: 'TEXT', home: 'TEXT', lat: 'REAL', lon: 'REAL', geo_src: 'TEXT',
     // anti-triche : suspect = nombre de synchros refusées (valeurs qui montent trop vite), sync_at = dernière synchro, ac = repères du jour (JSON)
-    suspect: 'INT DEFAULT 0', sync_at: 'INT', ac: 'TEXT' });
+    suspect: 'INT DEFAULT 0', sync_at: 'INT', ac: 'TEXT',
+    // même partie sur plusieurs appareils : save_dev = l'appareil qui a envoyé la sauvegarde gardée (save_at = sa date)
+    save_dev: 'TEXT' });
   add('tickets', { created: 'INT' });
   db.exec(`CREATE INDEX IF NOT EXISTS pl_seen ON players(last_seen); CREATE INDEX IF NOT EXISTS tk_pid ON tickets(pid);`);
   // anciens statuts : « répondu » devient « en attente » (on attend la réponse du joueur)

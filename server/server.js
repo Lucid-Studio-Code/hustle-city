@@ -92,6 +92,15 @@ function cleanName(v) {
 }
 // le résumé envoyé à chaque synchro, nettoyé
 const cleanHome = v => (GAME.HOMES || []).includes(v) ? v : null;   // seulement une ville de la liste du jeu   // la ville choisie par le joueur (affichée au classement)
+// même partie sur plusieurs appareils (code de récupération collé ailleurs) : chaque appareil dit quelle sauvegarde il a reçue en dernier (base).
+// Si la sauvegarde gardée vient d'un AUTRE appareil et qu'elle est plus récente que sa base, il est en retard : on refuse son envoi et il recharge la bonne.
+// Première fois (save_dev vide, parties d'avant ce système) : on garde la plus avancée des deux (niveau puis XP).
+const prog = j => { try { const o = JSON.parse(j); return (+o.lvl || 0) * 1e9 + (+o.xp || 0); } catch (e) { return -1; } };
+function stale(p, b) {
+  if (!b.dev || !p.save || b.force) return false;
+  if (!p.save_dev) return typeof b.save === 'string' && prog(b.save) < prog(p.save);
+  return p.save_dev !== String(b.dev) && (p.save_at || 0) > (+b.base || 0);
+}
 const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), worth: Math.round(num(s.worth)), cash: Math.round(num(s.cash)), lingots: Math.floor(num(s.lingots, 1e9)), boosters: Math.floor(num(s.boosters, 1e6)),
   skin: cleanId(s.skin), avatar: cleanId(s.avatar), frame: cleanId(s.frame), name: cleanName(s.name), tag: cleanTag(s.tag) });
 
@@ -272,6 +281,8 @@ const api = {
   async 'POST /api/sync'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
     if (b.summary && 'home' in b.summary) run('UPDATE players SET home = ? WHERE pid = ?', cleanHome(b.summary.home), p.pid);
+    // même partie sur plusieurs appareils : un appareil qui n'a pas la dernière sauvegarde (faite ailleurs) ne l'écrase pas, il la récupère
+    if (stale(p, b)) { run('UPDATE players SET last_seen = ? WHERE pid = ?', now(), p.pid); return send(res, 200, { ok: true, newer: true, inbox: [] }); }
     const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), ms = Math.floor(num(b.playMs, 600000)), A = antiCheat(p, s);
     if (A.n) console.warn(`anti-triche : ${p.pid} (${A.n} valeur(s) rabotée(s))`);
     run('UPDATE players SET last_seen = ?, lvl = ?, worth = ?, cash = ?, lingots = ?, skin = ?, name = ?, tag = ?, play_ms = play_ms + ?, xp = ?, boosters = ?, avatar = ?, frame = ?, tz = COALESCE(?, tz), lang = COALESCE(?, lang), screen = COALESCE(?, screen), sync_at = ?, ac = ?, suspect = suspect + ? WHERE pid = ?',
@@ -282,7 +293,7 @@ const api = {
     if (se && now() - se.last < 30 * 60000) run('UPDATE sessions SET last = ?, ms = ms + ? WHERE id = ?', now(), ms, se.id);
     else { run('INSERT INTO sessions (pid, start, last, ms) VALUES (?, ?, ?, ?)', p.pid, now() - ms, now(), ms); run('UPDATE players SET sessions = sessions + 1 WHERE pid = ?', p.pid); }
     if (typeof b.save === 'string' && b.save.length < 1e6) {
-      run('UPDATE players SET save = ?, save_at = ? WHERE pid = ?', b.save, now(), p.pid);
+      run('UPDATE players SET save = ?, save_at = ?, save_dev = ? WHERE pid = ?', b.save, now(), txt(b.dev, 40) || null, p.pid);
       // historique : une copie toutes les 10 min au plus, les 20 dernières gardées (pour restaurer une partie abîmée)
       const last = q1('SELECT t FROM save_history WHERE pid = ? ORDER BY t DESC LIMIT 1', p.pid);
       if (!last || now() - last.t > 600000) {
@@ -294,7 +305,7 @@ const api = {
     const ins = db.prepare('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)'), T = now();
     (Array.isArray(b.events) ? b.events : []).slice(0, 500).forEach(e => { if (!e || !/^[\w-]{1,40}$/.test(String(e.type))) return; const t = +e.t;
       ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), (JSON.stringify(e.data && typeof e.data === 'object' ? e.data : {}) || '{}').slice(0, 2000)); });
-    send(res, 200, { ok: true, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
+    send(res, 200, { ok: true, rev: (q1('SELECT save_at FROM players WHERE pid = ?', p.pid) || {}).save_at || 0, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
   },
   // le joueur a collé un code de sauvegarde (partie d'un autre appareil) : la prochaine synchro repart comme une première (sinon l'anti-triche voit un bond).
   // Une fois par jour au plus, et le plafond absolu de la première synchro s'applique toujours.
@@ -338,7 +349,7 @@ const api = {
     send(res, 200, { ok: true });
   },
   async 'POST /api/restore'(req, res) {   // récupérer sa partie sur un nouvel appareil : pid + secret (le « code de récupération »)
-    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'Code inconnu.' }); send(res, 200, { ok: true, save: p.save });
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'Code inconnu.' }); send(res, 200, { ok: true, save: p.save, rev: p.save_at || 0 });
   },
   // -------- événements : classements en ligne (vrais joueurs seulement)
   async 'POST /api/six'(req, res) {   // Tournoi des 6 Quartiers : { ed, add, good, played } (points gagnés depuis la dernière fois, comme la Coupe) → top 10, ta place, tes voisins, took
