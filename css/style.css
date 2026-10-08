@@ -3540,3 +3540,4 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .gp-card .gp-price { align-self: flex-start; font-size: 13px; }
 #app .btn s.pr-old { -webkit-text-stroke: 0; text-shadow: none; color: #2a1a10; opacity: .7; font: 900 .72em var(--text); text-decoration-color: #2a1a10; } #app .btn s.pr-old .ic { width: 1em; height: 1em; } #app .btn s.pr-old .cur { opacity: .6; }
 #app .item-card > .promo-tag { top: 22px; right: -6px; }   /* sous l étiquette de rareté, jamais dessus */
+#pack .bst-pack .bst-gloss { display: none; }   /* pendant l'ouverture, le reflet clignotait en rectangle blanc */
