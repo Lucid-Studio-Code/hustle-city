@@ -1911,7 +1911,7 @@
   function evArt(x, mini) {
     if (x.kind === 'avatar') return mini ? pinArt(x) : `<span class="ev-avpin">${skinPic(st().skin, true)}<span class="av-pin">${pinArt(x)}</span></span>`;
     if (x.kind === 'frame') return frameImg(x) ? `<span class="ev-frame-only"><img src="${src(frameImg(x))}" alt=""></span>` : mini ? `<i class="cdm-emo">${x.emo}</i>` : `<span class="ev-frame" style="--f1:${x.colors[0]};--f2:${x.colors[1]}">${skinPic(st().skin, true)}<em>${x.emo}</em></span>`;
-    if (x.kind === 'card') { const it = G.item(x.id); return it && has(it.art) ? `<span class="cdm-cardart"><img src="${src(it.art)}" alt=""></span>` : '🃏'; }
+    if (x.kind === 'card') { const it = G.item(x.id); return it ? `<span class="cdm-cardart">${miniCard(it)}</span>` : '🃏'; }
     if (x.kind === 'booster') return mini ? packArt(true) : `<span class="cdm-pack">${pic('booster-pack', '🃏')}${x.n > 1 ? `<em>×${x.n}</em>` : ''}</span>`;
     return has(decoImg(x)) ? pic(decoImg(x)) : `<span class="ev-emo">${x.emo}</span>`;
   }
@@ -2223,10 +2223,11 @@
     D.EXT_PLACES.filter(b => b.lvl === L).forEach(b => u.push({ img: 'bld-' + b.id, name: b.name + ' (en bus)' }));
     D.PROPS.filter(p => p.lvl === L).forEach(p => u.push({ img: 'item-' + p.id, emo: p.icon, name: p.name, how: 'Un loyer qui tombe chaque jour' }));
     if (L === D.BOURSE.lvl) u.push({ img: 'item-st-kbc', emo: '📈', name: 'La bourse', how: 'Des actions et des dividendes' });
-    D.CITY_LOOKS.filter(x => x.lvl === L && (x.cash || x.lingots)).forEach(x => u.push({ img: 'bg-city-' + x.id, emo: '🏙️', name: x.name }));
+    // un nouveau look de ville : une vraie vitrine (le quartier en fond, deux bâtiments transformés devant, des rayons)
+    D.CITY_LOOKS.filter(x => x.lvl === L && (x.cash || x.lingots)).forEach(x => u.push({ look: true, name: x.name, html: `<span class="ul-look">${has('bg-city-' + x.id) ? `<img class="ull-bg" src="${src('bg-city-' + x.id)}" alt="">` : ''}<i class="ull-rays"></i>${['casino', 'appart'].map((b, k) => has(`bld-${b}-${x.id}`) ? `<img class="ull-b b${k}" src="${src(`bld-${b}-${x.id}`)}" alt="">` : '').join('')}<em>Nouveau look de ville</em></span>` }));
     return u;
   }
-  function unlockTile(u) { return `<div class="ul"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }
+  function unlockTile(u) { return `<div class="ul ${u.look ? 'ul-big' : ''}"><span class="ul-ic">${u.html || pic(u.img || '', u.emo || '⭐')}</span><span class="ul-nm">${u.name}</span></div>`; }
 
   // ------------------------------------------------------------ Cadeau du jour (série de 7 jours)
   function openDaily() {
