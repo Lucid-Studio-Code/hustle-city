@@ -91,7 +91,7 @@ function cleanName(v) {
   return n && (BAD_ANY.test(k.replace(/[^a-z]/g, '')) || k.split(/[^a-z]+/).some(w => BAD_WORD.test(w))) ? 'Joueur' : n;
 }
 // le résumé envoyé à chaque synchro, nettoyé
-const cleanHome = v => { const h = cleanName(String(v || '').slice(0, 24)).replace(/^Joueur$/, ''); return h ? h.slice(0, 24) : null; };   // la ville choisie par le joueur (affichée au classement)
+const cleanHome = v => (GAME.HOMES || []).includes(v) ? v : null;   // seulement une ville de la liste du jeu   // la ville choisie par le joueur (affichée au classement)
 const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), worth: Math.round(num(s.worth)), cash: Math.round(num(s.cash)), lingots: Math.floor(num(s.lingots, 1e9)), boosters: Math.floor(num(s.boosters, 1e6)),
   skin: cleanId(s.skin), avatar: cleanId(s.avatar), frame: cleanId(s.frame), name: cleanName(s.name), tag: cleanTag(s.tag) });
 

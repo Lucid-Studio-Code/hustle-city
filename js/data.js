@@ -661,6 +661,11 @@
     ] };
 
   // cartes d'anciens événements : de temps en temps, le Comptoir en remet UNE en vente quelques heures (plus chère), un pote prévient
+  // villes au choix (profil → affichée au classement) : les plus grandes de France et de Belgique, puis « Autre »
+  const HOMES = ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille', 'Rennes', 'Reims', 'Toulon', 'Saint-Étienne', 'Le Havre', 'Grenoble', 'Dijon', 'Angers', 'Nîmes', 'Villeurbanne',
+    'Clermont-Ferrand', 'Le Mans', 'Aix-en-Provence', 'Brest', 'Tours', 'Amiens', 'Limoges', 'Annecy', 'Perpignan', 'Metz', 'Besançon', 'Orléans', 'Rouen', 'Mulhouse', 'Caen', 'Nancy', 'Saint-Denis', 'Argenteuil', 'Montreuil', 'Roubaix',
+    'Tourcoing', 'Avignon', 'Nanterre', 'Créteil', 'Poitiers', 'Versailles', 'Pau', 'La Rochelle', 'Calais', 'Cannes', 'Ajaccio', 'Bastia', 'Saint-Denis (Réunion)', 'Fort-de-France', 'Pointe-à-Pitre', 'Cayenne',
+    'Bruxelles', 'Anvers', 'Gand', 'Charleroi', 'Liège', 'Namur', 'Mons', 'Genève', 'Lausanne', 'Luxembourg', 'Montréal', 'Québec', 'Autre ville'];
   const VINTAGE = { lvl: 5, firstH: [12, 36], everyH: [48, 96], hours: 3, markup: 1.5 };
 
   // ---------------------------------------------------------------- récompenses de niveau
@@ -963,6 +968,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, VEH_ADJ, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, HOMES, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

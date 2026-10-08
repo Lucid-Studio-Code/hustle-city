@@ -2504,6 +2504,7 @@
           <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}
+      <div class="card pf-home"><b>Ta ville</b><small>Elle s'affiche à côté de ton nom dans le classement.</small><select data-act-change="home" id="pf-home"><option value="">Ne pas afficher</option>${D.HOMES.map(h => `<option ${st().home === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
       <h3 class="sec">Tes chiffres</h3>
       <div class="pf-tiles">${tile(pic('nav-bets', '🎟️'), `${S.betsWon || 0}<small>/${S.bets || 0}</small>`, `paris gagnés${S.bets ? ` · ${winRate} %` : ''}`)}${tile(pic('item-c-holo', '🃏'), `${haveCards}<small>/${cards.length}</small>`, 'cartes collectionnées')}${tile(pic(has('app-objets') ? 'app-objets' : 'tip-market', '🏷️'), S.itemProfit || 0, 'reventes gagnantes')}
         ${tile(pic('hab-club', '🪩'), S.clubNights || 0, 'soirées au Club')}${tile(pic('cat-trophy', '🏆'), trophies.filter(x => x.has).length + '<small>/' + trophies.length + '</small>', 'trophées')}${tile(pic('casino-machine', '🎰'), (S.spins || 0) + (S.roulette || 0), 'tours au casino')}</div>
@@ -2563,7 +2564,6 @@
       <h3 class="sec">Notifications</h3><div class="card set-card">${setRow('setToggle" data-k="quiet', 'Bandeaux en jeu', !s.quiet, 'Les messages qui glissent en haut de l\'écran')}${setRow('setToggle" data-k="noPush', 'Rappels hors du jeu', !s.noPush, 'Récolte prête, loyers… (version téléphone)')}</div>
       <h3 class="sec">Compte</h3><div class="card set-card">
         <div class="set-row"><span><b>Ton pseudo</b><small>${esc(s.name || '')}</small></span><button class="btn xs blue" data-act="setName">Changer</button></div>
-        <div class="set-row"><span><b>Ta ville</b><small>${s.home ? esc(s.home) : 'Affichée à côté de ton nom dans le classement'}</small></span><button class="btn xs blue" data-act="setHome">${s.home ? 'Changer' : 'Ajouter'}</button></div>
         <div class="set-row"><span><b>Sauvegarder ma partie</b><small>Un code à garder pour la retrouver sur un autre appareil</small></span><button class="btn xs green" data-act="saveExport">Copier</button></div>
         <div class="set-row"><span><b>Récupérer une sauvegarde</b><small>Colle le code d'une partie</small></span><button class="btn xs yellow" data-act="saveImport">Coller</button></div>
         <div class="set-row"><span><b>Supprimer mes données</b><small>Efface ta partie et tout ce qui est gardé sur notre serveur</small></span><button class="btn xs red" data-act="deleteMe">Supprimer</button></div></div>
@@ -2717,7 +2717,6 @@
     pkFloor(el) { pkFloor = +el.dataset.f; setBody(parkingBody()); },
     floorUp() { const r = G.floorUp(); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 50); toast(`${r.floor.name} ouvert ! Tes plus belles voitures s'y garent toutes seules.`); pkFloor = G.parkFloors(); setBody(parkingBody()); },
     trophyList() { openModal({ title: 'Tes trophées', icon: 'cat-trophy', full: true, body: `<div class="pf-trophies">${trophyAll.join('')}</div>`, onClose: () => setTimeout(() => A.profile && A.profile(), 0) }); },
-    setHome() { const v = prompt('Ta ville (elle s\'affiche dans le classement) :', st().home || ''); if (v == null) return; st().home = v.replace(/[<>"'`&]/g, '').trim().slice(0, 16); G.save(); toast(st().home ? `Ville : ${st().home}` : 'Ville retirée.'); lbAt = 0; if (window.ONLINE && ONLINE.on) ONLINE.syncNow && ONLINE.syncNow(); setBody(settingsBody()); },
     goPlace(el) { const id = el.dataset.id; closeModal(); id === 'tour' ? openTower() : openShop(null, id); },
     safeUp() { const r = G.safeUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Coffre agrandi !'); refresh(); },
     garageUp() { const r = G.garageUp(); if (r.err) return toast(r.err, true); sfx.win(); toast('Parking agrandi !'); refresh(); },
@@ -2962,6 +2961,7 @@
   function refresh() { renderHud(); if (modalRefresh) modalRefresh(); if (scene === 'appart') renderAppart(); }
   function register(acts) { Object.assign(A, acts); }
 
+  document.addEventListener('change', e => { if (e.target.id !== 'pf-home') return; const v = e.target.value; st().home = D.HOMES.includes(v) ? v : ''; G.save(); lbAt = 0; toast(st().home ? `Ta ville : ${st().home}` : 'Ville masquée.'); if (window.ONLINE && ONLINE.syncNow) ONLINE.syncNow(); });
   document.addEventListener('click', e => {
     const tab = e.target.closest('#modal .tab');
     if (tab && !tab.disabled) { const id = tab.dataset.tab; document.querySelectorAll('#modal .tab').forEach(t => t.classList.toggle('on', t === tab)); if (tabHandler) tabHandler(id); return; }
