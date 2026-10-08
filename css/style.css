@@ -2691,11 +2691,11 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .pf-tag { margin-left: 6px; font: 800 13px var(--text); color: #8a7560; }
 #app #start:not(.welcome) #st-go { width: 100%; padding-left: 10px; padding-right: 10px; animation: none; }
 /* bâtiment verrouillé : « 🔒 Niveau 5 » dans une étiquette sombre bien lisible, sous le nom, centrée */
-#app .bld.locked .plaque { flex-wrap: wrap !important; justify-content: center; }
-#app .bld.locked .plaque small { flex: 0 0 auto; position: static !important; transform: none !important; display: inline-flex !important; align-items: center; justify-content: center; gap: 3px;
+#app .bld.locked .plaque, #app .bld .plaque:has(.pq-ghost) { flex-wrap: wrap !important; justify-content: center; }
+#app .bld.locked .plaque small, #app .bld .plaque small.pq-ghost { flex: 0 0 auto; position: static !important; transform: none !important; display: inline-flex !important; align-items: center; justify-content: center; gap: 3px;
   margin: 2px auto 0 !important; padding: 2px 8px 2px 5px; border-radius: 8px; background: rgba(42,26,16,.82); color: #ffe066 !important;  font: 900 10.5px/1.2 var(--text); white-space: nowrap; --o-w: 0px !important; text-shadow: calc(var(--o-w, 0px) * 1) 0px 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.866) calc(var(--o-w, 0px) * 0.5) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.5) calc(var(--o-w, 0px) * 0.866) 0 var(--o-c, #2a1a10), 0px calc(var(--o-w, 0px) * 1) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.5) calc(var(--o-w, 0px) * 0.866) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.866) calc(var(--o-w, 0px) * 0.5) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -1) 0px 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.866) calc(var(--o-w, 0px) * -0.5) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.5) calc(var(--o-w, 0px) * -0.866) 0 var(--o-c, #2a1a10), 0px calc(var(--o-w, 0px) * -1) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.5) calc(var(--o-w, 0px) * -0.866) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.866) calc(var(--o-w, 0px) * -0.5) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 1) var(--o-y, 0px) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.707) calc(var(--o-y, 0px) + var(--o-w, 0px) * 0.707) 0 var(--o-c, #2a1a10), 0px calc(var(--o-y, 0px) + var(--o-w, 0px) * 1) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.707) calc(var(--o-y, 0px) + var(--o-w, 0px) * 0.707) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -1) var(--o-y, 0px) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * -0.707) calc(var(--o-y, 0px) + var(--o-w, 0px) * -0.707) 0 var(--o-c, #2a1a10), 0px calc(var(--o-y, 0px) + var(--o-w, 0px) * -1) 0 var(--o-c, #2a1a10), calc(var(--o-w, 0px) * 0.707) calc(var(--o-y, 0px) + var(--o-w, 0px) * -0.707) 0 var(--o-c, #2a1a10), var(--o-g, 0 0 0 transparent) !important; }
-#app .bld.locked .plaque small .ic { width: 13px; height: 13px; }
-#app .bld.locked .plaque > b { flex: 0 0 100%; text-align: center; }
+#app .bld.locked .plaque small .ic, #app .bld .plaque small.pq-ghost .ic { width: 13px; height: 13px; }
+#app .bld.locked .plaque > b, #app .bld .plaque:has(.pq-ghost) > b { flex: 0 0 100%; text-align: center; }
 
 /* ---------- accueil : la rue du jeu en décor, le perso posé sur le trottoir ---------- */
 #app #start.acc { background: linear-gradient(rgba(27,20,51,0) 55%, rgba(27,20,51,.75)), var(--acc) center bottom / cover #1b1433; }
@@ -3571,6 +3571,6 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
    on arrondit l'image elle-même, sans filtre, et on force le découpage du cercle */
 .crest.tennis { overflow: hidden !important; isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); aspect-ratio: 1; }
 .crest.tennis img { filter: none !important; border-radius: 50% !important; }
-/* bâtiment verrouillé : la pastille « Niveau X / Achète une voiture » ne pèse pas dans la taille du bâtiment
-   (sinon le dessin remonte tant qu'il est verrouillé, puis retombe au déblocage) ; seule la copie visible des noms l'affiche */
-#app .bld.locked:not(.plq-copy) > .plaque small { display: none !important; }
+/* parking débloqué : il garde la place (invisible) de sa pastille « Achète une voiture », pour rester exactement
+   là où il était posé quand il était verrouillé (c'est dans cet état qu'il a été placé, skin par skin) */
+#app .bld .plaque small.pq-ghost { visibility: hidden; }
