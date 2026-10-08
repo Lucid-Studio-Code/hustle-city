@@ -2317,10 +2317,8 @@
           <button class="btn green bst-open ${n ? 'pulse' : ''}" data-act="boosterOpen" ${n ? '' : 'disabled'}>Ouvrir un booster</button>
           <button class="btn" data-act="boosterBuy" ${s.lingots >= D.BOOSTER.cost ? '' : 'disabled'}>Acheter un booster · ${ic('lingot')}${D.BOOSTER.cost}</button></div>
         <h3 class="sec">Les chances dans un booster</h3>
-        <div class="card bst-prob"><b>Les 3 récompenses</b> <small>(chacune tirée au hasard)</small><div class="bst-odds">${Object.entries(D.BOOSTER.weights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
-          <small class="muted">Commun : billets, 5 tickets ou expérience · Rare : 2 lingots, pari gratuit ou expérience · Épique : 5 lingots, crypto ou pari gratuit · Légendaire : 12 lingots ou grosse crypto. Dans chaque rareté, chaque récompense a la même chance.</small>
-          <b>La carte de collection</b><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
-          <small class="muted">Toutes les cartes d'une même rareté ont la même chance.${D.SIX && D.SIX.cardChance ? ` Pendant un tournoi, ${Math.round(D.SIX.cardChance * 100)} % des cartes viennent de l'édition limitée.` : ''} Une carte déjà possédée est revendue tout de suite au prix du Comptoir.</small></div>
+        <div class="card bst-prob"><b>Les 3 récompenses</b><div class="bst-odds">${Object.entries(D.BOOSTER.weights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div>
+          <b>La carte de collection</b><div class="bst-odds">${Object.entries(D.BOOSTER.colWeights).map(([k, w]) => `<span class="rtag r${k}">${RAR[k]} ${w} %</span>`).join('')}</div></div>
         <div class="bst-defis ${ready ? 'hot' : ''}"><div class="bd-ic">${ic('trophy')}</div><div class="bd-info"><b>Défis du jour · ${got}/3</b><small>${ch.bonus ? 'Booster du jour gagné ! Nouveaux défis demain.' : ready ? `${ready} défi${ready > 1 ? 's' : ''} à réclamer !` : 'Réussis les 3 défis : <b>1 booster + 2 lingots</b> offerts.'}</small>
           <div class="bd-dots">${ch.list.map(c => `<i class="bd-dot ${c.got ? 'got' : G.chalValue(c) >= c.goal ? 'ready' : ''}">${c.got ? '✓' : ''}</i>`).join('')}</div></div>
           <button class="btn ${ready ? 'green pulse' : ''}" data-act="goDefis">${ready ? 'Réclamer' : 'Voir'}</button></div>`;
