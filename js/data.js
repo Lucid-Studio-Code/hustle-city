@@ -291,7 +291,7 @@
     trophy:  { name: 'Trophées',  lvl: 1, icon: '🏆', noBuy: true, place: 'shelf' }   // sur les étagères de l'appart : ils prennent une place
   };
   const ITEMS = [
-    { id: 'c-rookie',   cat: 'card',    name: 'Carte rookie Ndiaye',     r: 'R', p0: 18,    vol: .05 },
+    { id: 'c-rookie',   cat: 'card',    name: 'La Pépite',     r: 'R', p0: 18,    vol: .05 },
     { id: 'c-dragon',   cat: 'card',    name: 'Carte Dragon Ardent',     r: 'R', p0: 35,    vol: .06 },
     { id: 'c-holo',     cat: 'card',    name: 'Carte holo Foudre',       r: 'R', p0: 120,   vol: .07 },
     { id: 'c-signed',   cat: 'card',    name: 'Carte dédicacée Real Banlieue', r: 'R', p0: 260, vol: .06 },
