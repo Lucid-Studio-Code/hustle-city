@@ -40,7 +40,7 @@ TOL = {'cr-leila': 140, **{n: 110 for n in ('item-w-pocket', 'item-w-unique', 'i
 # python3 tools/process.py --rim <nom> écrit /tmp/rim-<nom>.png avec les candidats numérotés et leur centre (x, y en fractions).
 RIM = {
     'cr-lola': [(.354, .021), (.254, .122), (.248, .204), (.731, .26)], 'cr-kim': [(.352, .277)], 'cr-sasha': [(.711, .372), (.283, .44), (.629, .796)],
-    'cr-eva': [(.235, .183), (.733, .206), (.756, .32)], 'cr-jade': [(.342, .039), (.274, .135)], 'cr-leila': [(.295, .249), (.303, .281)],
+    'cr-eva': [(.235, .183), (.733, .206), (.756, .32)], 'cr-jade': [(.342, .039), (.274, .135), (.376, .294), (.359, .317), (.62, .297)], 'cr-leila': [(.295, .249), (.303, .281)],
     'cr-mila': [(.439, .012), (.385, .018), (.274, .07), (.235, .103), (.647, .102), (.164, .248)], 'cr-rose': [(.321, .05)],
 }
 def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
@@ -66,7 +66,8 @@ def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
             d.rectangle((xs.min() - 2, ys.min() - 2, xs.max() + 2, ys.max() + 2), outline=(0, 200, 255), width=2); d.text((xs.max() + 4, ys.min()), str(k), fill=(0, 0, 0))
             print(k, (round(cx / w, 3), round(cy / h, 3)), int(sizes[i - 1]))
         v.save(debug); return im
-    kill = [i for i in cand if any(lab[min(h - 1, int(fy * h)), min(w - 1, int(fx * w))] == i or np.hypot(*(np.argwhere(lab == i).mean(axis=0) - (fy * h, fx * w))) < w * .012 for fx, fy in (pick or []))]
+    allc = [i + 1 for i in range(n) if 4 <= sizes[i] <= w * h * maxarea]   # un point choisi à la main vaut aussi un peu plus loin du bord
+    kill = [i for i in allc if any(lab[min(h - 1, int(fy * h)), min(w - 1, int(fx * w))] == i or np.hypot(*(np.argwhere(lab == i).mean(axis=0) - (fy * h, fx * w))) < w * .012 for fx, fy in (pick or []))]
     if kill:
         m = np.isin(lab, kill); m = ndimage.binary_dilation(m, iterations=1) & (rgb.min(axis=2) > 170)
         a[m, 3] = 0
