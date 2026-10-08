@@ -830,9 +830,10 @@ h3.sec { margin: 18px 6px 10px; }
 .bst-pack { position: relative; width: 140px; height: 190px; margin: 0 auto; display: grid; place-items: center; overflow: hidden; }
 .bst-pack .pic { width: 100%; height: 100%; }
 .bst-pack .pic img { filter: drop-shadow(0 4px 0 rgba(42,26,16,.35)); }
-.bst-pack .bst-gloss { position: absolute; inset: -40%; background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,.45) 50%, transparent 58%); animation: bstShine 2.6s linear infinite; pointer-events: none;
-  -webkit-mask: url(../assets/img/booster-pack.png) center / 58% no-repeat; mask: url(../assets/img/booster-pack.png) center / 58% no-repeat; }
-@keyframes bstShine { from { transform: translateX(-30%); } to { transform: translateX(30%); } }
+/* reflet : une bande de lumière qui traverse le paquet en continu, découpée à la forme du paquet (le masque ne bouge pas, seule la lumière glisse) */
+.bst-pack .bst-gloss { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 0 38%, rgba(255,255,255,.2) 44%, rgba(255,255,255,.7) 50%, rgba(255,255,255,.2) 56%, transparent 62% 100%) no-repeat; background-size: 300% 100%;
+  animation: bstShine 3.6s linear infinite; -webkit-mask: url(../assets/img/booster-pack.png) center / contain no-repeat; mask: url(../assets/img/booster-pack.png) center / contain no-repeat; }
+@keyframes bstShine { 0% { background-position: 100% 0; } 60%, 100% { background-position: 0% 0; } }
 #app .bst-defis { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px solid #2a1a10; border-radius: 16px; box-shadow: 0 3px 0 #2a1a10; background: #fffdf6; }
 #app .bst-defis.hot { background: linear-gradient(#ecfae2, #c9f5a0); }
 #app .bst-defis .bd-ic .ic { width: 38px; height: 38px; }
@@ -3515,3 +3516,5 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .levelup > .grid2:last-child { position: sticky; bottom: -2px; z-index: 5; margin: 8px -14px -14px; padding: 10px 14px 14px; background: linear-gradient(rgba(255, 246, 225, 0), #fff6e1 30%); }
 #app .unlocks .ul-big .ul-ic, #app .ul-look { height: 120px; } #app .unlocks .ul-look img.ull-b { height: 86px; }
 #app .lv-gift .item-big { max-height: 80px; } #app .lv-gift .item-big img { max-height: 80px; width: auto; }
+
+#app #btn-booster .bst-mini { width: 30px; height: 32px; } #app #btn-booster .bst-mini img { width: auto !important; height: 32px !important; max-width: 30px; object-fit: contain; }
