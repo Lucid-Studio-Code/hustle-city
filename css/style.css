@@ -3587,3 +3587,17 @@ html { background-color: #120c24; }
 }
 #app .inst-code { margin: 10px 0; background: #e9f9df; border-color: #1f9d55; }
 #app .inst-code p { margin: 4px 0 0; font: 700 13px/1.35 var(--text); }
+/* casino sur téléphone étroit : les jetons de mise rétrécissent pour tenir sur une ligne, le tableau des gains reste dans son cadre */
+#modal .th-casino .sm-bets { overflow: visible; padding: 4px 2px 6px; }
+#modal .th-casino .sm-chip { min-width: 0; padding: 0; font-size: clamp(11px, 3.6vw, 15px); }
+#modal .th-casino .paytable { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; }
+#modal .th-casino .pt-row { min-width: 0; gap: 4px; padding: 2px 6px; }
+#modal .th-casino .pt-row .pt-s { min-width: 0; }
+#modal .th-casino .pt-row .pt-s img { width: clamp(15px, 5.4vw, 26px) !important; height: clamp(15px, 5.4vw, 26px) !important; }
+#modal .th-casino .pt-row b { font-size: clamp(13px, 4.2vw, 18px) !important; white-space: nowrap; }
+#modal .th-casino .pt-row .pt-s em { font-size: clamp(9px, 2.8vw, 11px); }
+/* appli installée : les fenêtres et écrans plein cadre passent sous l'heure et la batterie → on les décale de la barre d'état */
+#modal { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+#modal .th-casino .paytable > .pt-row:last-child { grid-column: 1 / -1; }
+#pack, #cardzoom, #phone-layer { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box; }
+#app #toast { margin-bottom: env(safe-area-inset-bottom); }
