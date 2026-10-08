@@ -201,7 +201,7 @@
   }
   let liveTick = false;   // rafraîchissement automatique (chaque seconde) : on ne touche que ce qui change, sinon l'écran clignote sur Android
   function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; if (liveTick) morph(b, html); else b.innerHTML = html; b.scrollTop = y; } }
-  function closeModal() { const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
+  function closeModal() { const m = $('#modal'); m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
   function dialog(who, text, btn = 'OK', cb) {
@@ -490,6 +490,16 @@
     const b = posOf(D.BUILDINGS.find(x => x.id === id), 'buildings', cityLookNow()), map = $('#map');
     cam.x = -(cam.w * b.x / 100 - map.clientWidth / 2); cam.y = -(cam.h * (b.y - 8) / 100 - map.clientHeight * .5);
     clampCam(); applyCam();
+  }
+  // une déco qu'on vient d'acheter : en fermant la boutique, la caméra va dessus et elle brille un instant
+  let decoFocus = null;
+  function focusDeco(id) {
+    const x = D.EV_SHOP.concat(D.CITY_SHOP).find(o => o.id === id); if (!x || !G.evUsed(id)) return;
+    if (scene !== 'city') setScene('city');
+    const o = posOf(x, 'decos', cityLookNow()), map = $('#map');
+    cam.x = -(cam.w * o.x / 100 - map.clientWidth / 2); cam.y = -(cam.h * (o.y - 4) / 100 - map.clientHeight * .5); clampCam(); applyCam();
+    const el = $(`#map-inner .ev-deco[data-deco="${id}"]`); if (el) { el.classList.remove('just-placed'); void el.offsetWidth; el.classList.add('just-placed'); setTimeout(() => el.classList.remove('just-placed'), 2600); }
+    sfx.win && sfx.win();
   }
   // vue de départ : le haut de la place (casino) juste sous le bandeau, le reste en dessous
   function focusTop() { const map = $('#map'); cam.x = -(cam.w - map.clientWidth) / 2; cam.y = -cam.h * .06; clampCam(); applyCam(); }
@@ -2730,7 +2740,7 @@
     cdmJoin(el) { const r = G.cdmJoin(el.dataset.id); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 50); cdmTab = 'team'; openCdm('team'); renderHud(); toast(`Bienvenue chez les ${r.T.name} ! ${r.T.motto}`); },
     cdmNight(el) { const r = G.cdmNightClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', r.bonus ? 40 : 15); setBody(cdmBody()); renderHud(); },
     cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud(); },
-    cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.CDM.shop.find(o => o.id === el.dataset.id) || {}).kind === 'deco') decoFocus = el.dataset.id; sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmHow(el, e) { e && e.preventDefault(); cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },
     cdmRecapOk() { const claimed = G.cdmState().final.claimed; G.cdmRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 60); } closeModal(); renderCity(); renderHud(); },
@@ -2745,7 +2755,7 @@
     patGo(el) { const k = el.dataset.k, r = G.liquidate(G.upPrice(k)); if (r.err) return toast(r.err, true);
       const u = k === 'rig' ? G.rigUpgrade() : k === 'pc' ? G.pcUpgrade() : G.roomUpgrade(); if (u.err) return toast(u.err, true);
       sfx.win(); rain('confetti', 24); openUpgrades(); renderHud(); },
-    evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
+    evBuy(el) { const r = G.evBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.EV_SHOP.find(o => o.id === el.dataset.id) || {}).kind === 'deco') decoFocus = el.dataset.id; sfx.win(); rain('confetti', 20); setBody(sixBody()); renderCity(); renderHud(); },
     evUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); renderCity(); renderHud(); },
     sixPick(el) { const r = G.sixPick(+el.dataset.i, +el.dataset.p); if (r.err) return toast(r.err, true); sfx.tap(); setBody(sixBody()); },
     sixRecapOk() { const claimed = G.sixState().final.claimed; G.sixRecapSeen(); if (!claimed) { sfx.level(); rain('confetti', 50); } closeModal(); renderCity(); renderHud(); },
@@ -2841,7 +2851,7 @@
       if (t === 'item') { const it = G.item(ref); if (!it) return; if (!G.catUnlocked(it.cat)) return toast(`${D.ITEM_CATS[it.cat].name} : au niveau ${D.ITEM_CATS[it.cat].lvl}.`, true); setScene('city'); return openShop(it.cat, (D.ITEM_CATS[it.cat] || {}).shop); }
       if (t === 'deco' || t === 'look') return openBoutique('deco');
       if (t === 'booster') return ref === 'kiosk' ? (setScene('city'), openKiosk('booster')) : openBoosters('open'); },
-    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
+    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); sfx.coin(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: () => openProfile(),
