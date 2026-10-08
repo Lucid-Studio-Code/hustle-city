@@ -88,9 +88,9 @@ window.LAYOUT = {
    "flip": false
   },
   "dc-toiles": {
-   "x": 70,
-   "y": 44,
-   "w": 8,
+   "x": 47.5,
+   "y": 65.5,
+   "w": 11,
    "flip": false
   },
   "dc-tombe": {
