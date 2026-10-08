@@ -2827,7 +2827,7 @@
     tipNext() { nextTip(); },
     leaveTest() { location.replace(location.href.split('#')[0]); setTimeout(() => location.reload(), 50); },
     setName() { const n = prompt('Ton nouveau pseudo :', st().name || ''); if (n && n.trim()) { st().name = n.trim().slice(0, 16); G.save(); renderHud(); setBody(settingsBody()); toast('Pseudo changé !'); } },
-    saveExport() { G.save(); const code = 'HC1.' + btoa(unescape(encodeURIComponent(localStorage.getItem('hustleCity.v1') || JSON.stringify(st()))));
+    saveExport() { G.save(); const code = 'HC1.' + btoa(unescape(encodeURIComponent(withId(localStorage.getItem('hustleCity.v1') || JSON.stringify(st())))));
       try { navigator.clipboard.writeText(code); toast('Code de sauvegarde copié : garde-le précieusement.'); } catch (e) { prompt('Copie ce code :', code); } },
     saveImport() { const c = prompt('Colle ton code de sauvegarde :'); if (!c) return;
       try { const j = JSON.parse(decodeURIComponent(escape(atob(c.trim().replace(/^HC1\./, ''))))); if (!j || typeof j.cash !== 'number' || !j.skin) throw 0;
@@ -2840,7 +2840,7 @@
       if (st().skin && (st().lvl || 1) > 1 && !confirm(`La partie de cet appareil (niveau ${st().lvl}) va être remplacée par celle du code. On y va ?`)) return;
       if (isRec(c)) { if (!window.ONLINE || !ONLINE.restore) return toast('Pas de connexion au serveur.', true); try { G.wipe(); localStorage.setItem('hustleCity.imported', '1'); await ONLINE.restore(c); } catch (e) { setTimeout(() => location.reload(), 2000); } return; }
       try { const raw = decodeURIComponent(escape(atob(c.replace(/^HC1\./, '')))), j = JSON.parse(raw); if (!j || !j.skin) throw 0;
-        G.wipe(); localStorage.setItem('hustleCity.v1', raw); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
+        G.wipe(); localStorage.setItem('hustleCity.v1', adoptId(j)); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
     installNow() { if (!installEvt) return; installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; closeModal(); }); },
     tutoToggle() { const s = st(); s.noTuto = !s.noTuto; if (s.noTuto) { s.tutoDone = true; if (window.TUTO && TUTO.active) TUTO.skip(); } else { s.bldTuto = {}; s.featTutoFix = 0; }   /* seuls les lieux pas encore atteints auront leur tuto */ G.save(); toast(s.noTuto ? 'Tutos coupés.' : 'Tutos remis : Momo t\'expliquera les prochains lieux.'); setBody(settingsBody()); },
@@ -3196,7 +3196,7 @@
   const NEW_SITE = 'https://hustle.lucidstudio.fr/';
   function movedAway() {
     if (!/github\.io$/.test(location.hostname)) return false;
-    let code = '', me = null; try { const raw = localStorage.getItem('hustleCity.v1'); me = raw && JSON.parse(raw); if (me && me.skin) code = btoa(unescape(encodeURIComponent(raw))); else me = null; } catch (e) {}
+    let code = '', me = null; try { const raw = localStorage.getItem('hustleCity.v1'); me = raw && JSON.parse(raw); if (me && me.skin) code = btoa(unescape(encodeURIComponent(withId(raw)))); else me = null; } catch (e) {}
     const el = $('#start'); el.className = 'first'; startBg(el);
     const href = NEW_SITE + (code ? '#import=' + code : '');
     const steps = [
@@ -3226,6 +3226,13 @@
       ${copied ? `<div class="card inst-code"><b>Ta partie te suit</b><p>L'appli démarre vide la première fois. Ton code de partie vient d'être copié : dans l'appli, touche <b>« J'ai déjà une partie »</b> et tout revient.</p></div>` : ''}
       <div class="center"><button class="btn" data-act="closeModal">${arrived ? 'Plus tard' : 'OK'}</button></div>` });
   }
+  // une partie emmenée par code garde son identité en ligne (sinon chaque appareil créait un nouveau joueur, en double dans le back office)
+  function withId(raw) { try { const j = JSON.parse(raw); if (window.ONLINE && ONLINE.code) j._hcid = ONLINE.code(); return JSON.stringify(j); } catch (e) { return raw; } }
+  function adoptId(j) {   // à l'arrivée : on reprend l'identité de la partie, puis on retire la marque de la sauvegarde
+    const id = j && j._hcid; if (j) delete j._hcid;
+    if (typeof id === 'string' && /^[\w-]{4,64}\.[\w-]{8,128}$/.test(id)) { const [pid, secret] = id.split('.'); try { localStorage.setItem('hustleCity.online', JSON.stringify({ pid, secret })); localStorage.removeItem('hustleCity.base'); } catch (e) {} }
+    return JSON.stringify(j);
+  }
   // arrivée sur le nouveau site avec une partie : on l'enregistre (après confirmation s'il y en a déjà une)
   function importFromHash() {
     const m = location.hash.match(/^#import=([A-Za-z0-9+/=]+)/); if (!m) return;
@@ -3233,7 +3240,8 @@
     try { const raw = decodeURIComponent(escape(atob(m[1]))), j = JSON.parse(raw); if (!j || !j.skin) return;
       const cur = localStorage.getItem('hustleCity.v1'), c = cur && JSON.parse(cur);
       if (c && c.skin && (c.lvl || 1) >= (j.lvl || 1) && !confirm(`Tu as déjà une partie ici (niveau ${c.lvl}). La remplacer par celle que tu ramènes (niveau ${j.lvl}) ?`)) return;
-      localStorage.setItem('hustleCity.imported', '1'); localStorage.setItem('hustleCity.v1', raw); window.__imported = j.lvl || 1;
+      localStorage.setItem('hustleCity.imported', '1'); localStorage.setItem('hustleCity.v1', adoptId(j)); window.__imported = j.lvl || 1;
+      if (j._hcid === undefined && localStorage.getItem('hustleCity.online') && !(window.ONLINE && ONLINE.id && localStorage.getItem('hustleCity.online').includes(ONLINE.id.pid))) { sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); return; }   // identité reprise : on recharge pour se connecter sous ce joueur
     } catch (e) {}
   }
   function boot() {
