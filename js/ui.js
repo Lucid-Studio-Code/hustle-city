@@ -2507,7 +2507,7 @@
       ${(() => { const L = [...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${pic(has('ach-' + x.a.id) ? 'ach-' + x.a.id : 'icon-trophy')}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
         .sort((p, q) => q.done - p.done).map(x => x.html); trophyAll = L;   // les 6 premiers ici (gagnés d'abord), la liste complète dans une fenêtre
-        return `<div class="pf-trophies">${L.slice(0, 6).join('')}</div>${L.length > 6 ? `<div class="center"><button class="btn blue" data-act="trophyList">Voir la liste complète (${L.length})</button></div>` : ''}`; })()}
+        return `<div class="pf-trophies">${L.slice(0, 6).join('')}</div>${L.length > 6 ? `<div class="center pf-more"><button class="btn blue" data-act="trophyList">Voir la liste complète (${L.length})</button></div>` : ''}`; })()}
       ${leaderHtml()}`;
   }
   let trophyAll = [];

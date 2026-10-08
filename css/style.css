@@ -3550,3 +3550,4 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .card + .hint-line, #app .lb-card + *, #app .six-board-list + .hint-line, #app .grid2 + .hint-line, #app .six-rew + .hint-line { margin-top: 12px; }
 #app .lb-card ~ p, #app .lb-card ~ small { display: block; margin-top: 10px; padding: 0 12px; }
 #app .card > small:last-child, #app .card > p:last-child { margin-bottom: 0; }
+#app .pf-more { margin: 16px 0 6px; }
