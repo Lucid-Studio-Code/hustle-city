@@ -92,6 +92,7 @@
       await getModel();
       const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120), ...device() });
       if (!r.ok) { if (r.retry) setTimeout(hello, (+r.retry + 5) * 1000); return; } ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
+      if (ONLINE.importFlag()) { try { await post('/api/imported', {}); } catch (e) {} try { localStorage.removeItem('hustleCity.imported'); } catch (e) {} }   // partie collée depuis un code : pas d'alerte anti-triche
       sync(true); setInterval(() => sync(true), 60000);
       document.addEventListener('visibilitychange', () => { if (document.hidden) sync(true); });
       window.addEventListener('pagehide', () => sync(false));   // en quittant : on envoie au moins les stats (la sauvegarde complète part avec la sync régulière)
@@ -109,6 +110,7 @@
   // ---------------------------------------------------------- SAV et récupération de partie (paramètres)
   // « Supprimer mes données » : le serveur efface tout ce qui concerne ce joueur, puis le jeu ne lui envoie plus rien
   ONLINE.deleteMe = async () => { if (off) return true; try { const r = await post('/api/delete-me', {}); if (r && r.ok) { ONLINE.on = false; return true; } } catch (e) {} return false; };
+  ONLINE.importFlag = () => { try { return !!localStorage.getItem('hustleCity.imported'); } catch (e) { return false; } };
   ONLINE.support = text => post('/api/support', { text });
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;

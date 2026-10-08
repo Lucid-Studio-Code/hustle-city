@@ -294,6 +294,14 @@ const api = {
       ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), (JSON.stringify(e.data && typeof e.data === 'object' ? e.data : {}) || '{}').slice(0, 2000)); });
     send(res, 200, { ok: true, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
   },
+  // le joueur a collé un code de sauvegarde (partie d'un autre appareil) : la prochaine synchro repart comme une première (sinon l'anti-triche voit un bond).
+  // Une fois par jour au plus, et le plafond absolu de la première synchro s'applique toujours.
+  async 'POST /api/imported'(req, res) {
+    const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    const last = q1("SELECT t FROM admin_log WHERE action = 'import' AND data = ? ORDER BY t DESC LIMIT 1", JSON.stringify({ pid: p.pid }));
+    if (last && now() - last.t < DAY) return send(res, 429, { err: 'Déjà fait aujourd\'hui.' });
+    run('UPDATE players SET sync_at = NULL, ac = NULL WHERE pid = ?', p.pid); log('import', { pid: p.pid }); send(res, 200, { ok: true });
+  },
   async 'POST /api/claim'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
     const m = q1('SELECT gift FROM inbox WHERE id = ? AND pid = ? AND claimed = 0', +b.id || 0, p.pid), g = m && J(m.gift);
