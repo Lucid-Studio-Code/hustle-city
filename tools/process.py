@@ -35,6 +35,43 @@ NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load'
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
 TOL = {'cr-leila': 140, **{n: 110 for n in ('item-w-pocket', 'item-w-unique', 'item-o-bar100', 'item-o-bar10', 'item-g-roman')}}   # liseré clair autour du trait
 
+# persos : morceaux de fond blanc restés coincés entre deux mèches de cheveux (revue du 08/10/26).
+# Choisis à l'œil, jamais en automatique (un liseré blanc ou une basket blanche au bord du perso ressemblent à du fond) :
+# python3 tools/process.py --rim <nom> écrit /tmp/rim-<nom>.png avec les candidats numérotés et leur centre (x, y en fractions).
+RIM = {
+    'cr-lola': [(.354, .021), (.254, .122), (.248, .204), (.731, .26)], 'cr-kim': [(.352, .277)], 'cr-sasha': [(.711, .372), (.283, .44), (.629, .796)],
+    'cr-eva': [(.235, .183), (.733, .206), (.756, .32)], 'cr-jade': [(.342, .039), (.274, .135)], 'cr-leila': [(.295, .249), (.303, .281)],
+    'cr-mila': [(.439, .012), (.385, .018), (.274, .07), (.235, .103), (.647, .102), (.164, .248)], 'cr-rose': [(.321, .05)],
+}
+def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
+    """Petites zones blanches enfermées tout près du fond. Sans `pick` : rien n'est vidé (sauf en debug, qui les montre)."""
+    import numpy as np
+    from scipy import ndimage
+    im = im.convert('RGBA'); a = np.asarray(im).copy(); h, w = a.shape[:2]
+    bg = a[:, :, 3] < 20
+    rgb = a[:, :, :3].astype(int)
+    white = (rgb.min(axis=2) > 200) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 45) & ~bg
+    lab, n = ndimage.label(white)
+    if not n: return im
+    dist = ndimage.distance_transform_edt(~bg)
+    near = max(3, int(w * frac))
+    sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
+    mind = ndimage.minimum(dist, lab, range(1, n + 1))
+    cand = [i + 1 for i in range(n) if 12 <= sizes[i] <= w * h * maxarea and mind[i] <= near]
+    if debug:
+        from PIL import ImageDraw
+        v = Image.new('RGBA', im.size, (236, 110, 170, 255)); v.alpha_composite(im); d = ImageDraw.Draw(v)
+        for k, i in enumerate(cand):
+            ys, xs = np.nonzero(lab == i); cx, cy = xs.mean(), ys.mean()
+            d.rectangle((xs.min() - 2, ys.min() - 2, xs.max() + 2, ys.max() + 2), outline=(0, 200, 255), width=2); d.text((xs.max() + 4, ys.min()), str(k), fill=(0, 0, 0))
+            print(k, (round(cx / w, 3), round(cy / h, 3)), int(sizes[i - 1]))
+        v.save(debug); return im
+    kill = [i for i in cand if any(lab[min(h - 1, int(fy * h)), min(w - 1, int(fx * w))] == i or np.hypot(*(np.argwhere(lab == i).mean(axis=0) - (fy * h, fx * w))) < w * .012 for fx, fy in (pick or []))]
+    if kill:
+        m = np.isin(lab, kill); m = ndimage.binary_dilation(m, iterations=1) & (rgb.min(axis=2) > 170)
+        a[m, 3] = 0
+    return Image.fromarray(a)
+
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches
@@ -150,6 +187,7 @@ def run(name):
         jewel = name.startswith(('item-o-', 'item-g-', 'item-w-', 'item-m-', 'item-v-'))   # + motos et voitures : vides entre rayons, cadre, vitres   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
+        if name in RIM: im = rim(im, RIM[name])
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in ('art', 'full'):   # illustrations de cartes : pleine couleur (256 couleurs les abîmait), le jeu sert la version .jpg
@@ -163,6 +201,11 @@ def run(name):
         b.quantize(256, method=Image.FASTOCTREE).save(os.path.join(dst, name + '-bust.png'), optimize=True)
     print(name, im.size, os.path.getsize(os.path.join(dst, name + '.png')) // 1024, 'Ko')
 
+if sys.argv[1:2] == ['--rim']:   # candidats « fond coincé dans les cheveux », numérotés
+    for n in sys.argv[2:]:
+        im = Image.open(os.path.join(src, n + '.png')); im.thumbnail((900, 900))
+        im = cutout(im, POCKETS.get(n), tol=TOL.get(n, 60)); print(n); rim(im, debug=f'/tmp/rim-{n}.png')
+    sys.exit()
 if sys.argv[1:2] == ['--poches']:
     from PIL import ImageFont
     for n in sys.argv[2:]:

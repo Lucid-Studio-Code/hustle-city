@@ -3601,3 +3601,9 @@ html { background-color: #120c24; }
 #modal .th-casino .paytable > .pt-row:last-child { grid-column: 1 / -1; }
 #pack, #cardzoom, #phone-layer { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); box-sizing: border-box; }
 #app #toast { margin-bottom: env(safe-area-inset-bottom); }
+/* tout ce qui flotte au-dessus de la barre du bas suit sa vraie hauteur (plus haute en appli à cause de la barre de geste de l'iPhone) */
+#app #phone-btn { bottom: calc(var(--bot) + 12px); }
+#app.in-appart #trophy { bottom: calc(var(--bot) + 22px); }
+#app #toast { bottom: calc(var(--bot) + 12px); margin-bottom: 0; }
+#app #next-cap, #app #noads-nudge { bottom: calc(var(--bot) + 18px); }
+#test-banner { bottom: calc(var(--bot) + 10px); }
