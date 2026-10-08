@@ -688,6 +688,54 @@ window.LAYOUT = {
      "flip": true
     }
    }
+  },
+  "or": {
+   "buildings": {
+    "kiosque": {
+     "x": 57,
+     "y": 67,
+     "w": 20,
+     "flip": false
+    },
+    "shop": {
+     "x": 45.5,
+     "y": 57.5,
+     "w": 23,
+     "flip": false
+    }
+   },
+   "decos": {
+    "dc-bench": {
+     "x": 68,
+     "y": 68,
+     "w": 7,
+     "flip": false
+    },
+    "dc-arcade": {
+     "x": 88,
+     "y": 76.5,
+     "w": 9,
+     "flip": false
+    },
+    "dc-trophy": {
+     "x": 33,
+     "y": 56,
+     "w": 8,
+     "flip": false
+    },
+    "dc-car": {
+     "x": 14,
+     "y": 73,
+     "w": 21.5,
+     "flip": true
+    },
+    "dc-chaudron": {
+     "x": 10.5,
+     "y": 63.5,
+     "w": 8,
+     "flip": false
+    }
+   }
   }
  }
 };
