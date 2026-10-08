@@ -157,7 +157,7 @@
     const fx = $('#fx'), cols = ['#ffd23f', '#3ddc84', '#ff3cac', '#4fb3f0', '#9b5de5'];
     for (let i = 0; i < n; i++) {
       const el = document.createElement('div');
-      if (kind === 'bill') { el.className = 'bill'; el.textContent = Math.random() < .7 ? '💵' : '💰'; }
+      if (kind === 'bill') { el.className = 'bill'; el.innerHTML = ico(Math.random() < .7 ? 'icon-cash' : 'bonus-cash', ''); }
       else { el.className = 'confetti'; el.style.background = cols[i % cols.length]; }
       el.style.left = Math.random() * 100 + '%'; el.style.animationDuration = (1.4 + Math.random() * 1.6) + 's'; el.style.animationDelay = Math.random() * .5 + 's';
       fx.appendChild(el); setTimeout(() => el.remove(), 3800);
@@ -271,7 +271,8 @@
   }
   // icônes des conseils de Momo : l'emoji sert de clé (et de repli tant que l'image manque)
   const COACH_IC = { '🏆': 'icon-trophy', '🎁': 'icon-gift', '⚡': 'icon-bolt', '📩': 'app-msg', '📸': 'app-agence', '🃏': 'booster-pack', '🎃': 'ic-ev-cdm', '🏉': 'bld-six', '💬': 'app-msg',
-    '🛠️': 'btn-setup', '📒': 'app-binder', '🛍️': 'nav-shop', '💰': 'icon-cash', '🎟️': 'ticket-flash', '🎰': 'casino-machine', '📰': 'bld-kiosque', '⛏️': 'ic-pickaxe', '🌡️': 'ic-heat', '🎯': 'ic-target', '🔓': 'ic-unlock' };
+    '🛠️': 'btn-setup', '📒': 'app-binder', '🛍️': 'nav-shop', '💰': 'icon-cash', '🎟️': 'ticket-flash', '🎰': 'casino-machine', '📰': 'bld-kiosque', '⛏️': 'ic-pickaxe', '🌡️': 'ic-heat', '🎯': 'ic-target', '🔓': 'ic-unlock',
+    '⚽': 'ic-sport-foot', '🏀': 'ic-sport-basket', '🎾': 'ic-sport-tennis', '🔔': 'ic-bell', '🔥': 'ic-flame', '📈': 'nav-trading', '🍺': 'hab-drink', '🚬': 'hab-smoke', '🎉': 'hab-club' };
   const coachIc = e => ico(COACH_IC[e] || '', e);
   function coach() {
     const s = st(), L = [], add = (p, ic, t, d, go, now) => L.push({ p, ic, t, d, go, now: !!now });
@@ -1185,7 +1186,7 @@
     else if (m === 'bear') { c = calm; t = 'Garde plutôt tes billets'; d = `Quand ça baisse, mieux vaut attendre que ça reparte. Si tu veux quand même acheter, ${c.name} est la plus tranquille.`; btn = 'Voir'; }
     else { c = calm; t = `${c.name} : la plus tranquille`; d = 'Le marché dort : bon moment pour acheter sans stress, avant que ça bouge.'; btn = 'Voir'; }
     const h = s.crypto.hist[c.id], p = s.crypto.prices[c.id];
-    return `<div class="card mood-pick"><small>👀 À regarder maintenant</small><div class="mp-row">${coinIco(c)}<div class="grow"><b>${t}</b><p>${d}</p></div></div>
+    return `<div class="card mood-pick"><small>À regarder maintenant</small><div class="mp-row">${coinIco(c)}<div class="grow"><b>${t}</b><p>${d}</p></div></div>
       <div class="mp-foot"><span>${trend(p, h[Math.max(0, h.length - 60)])} <em>5 min</em></span><button class="btn sm ${btn === 'Vendre ?' ? 'red' : 'green'}" data-act="moodCoin" data-id="${c.id}">${btn === 'Voir' ? `Voir ${c.name}` : btn}</button></div></div>`;
   }
   function traderCard() {
@@ -1585,7 +1586,7 @@
       return has('shop-lingot-' + k) ? `<img src="${src('shop-lingot-' + k)}" alt="">` : `<span class="lg-stack n${Math.min(k, 4)}">${Array.from({ length: Math.min(k, 4) }, () => `<img src="${src('icon-lingot')}" alt="">`).join('')}</span>`; }
     const im = PACK_IMG[x.id]; if (im && has(im)) return `<img src="${src(im)}" alt="">`;
     const g = x.give || {}, n = [g.boosters, g.lingots, g.cash].filter(Boolean).length;
-    return `<span class="ip-compo n${n}">${g.boosters && has('booster-pack') ? `<img class="ip-a" src="${src('booster-pack')}" alt="">` : ''}${g.lingots && has('bonus-lingots') ? `<img class="ip-b" src="${src('bonus-lingots')}" alt="">` : ''}${g.cash && has('bonus-cash') ? `<img class="ip-c" src="${src('bonus-cash')}" alt="">` : ''}${g.noAds ? '<i class="ip-e">🚫</i>' : g.skin ? '<i class="ip-e">👑</i>' : ''}</span>`;
+    return `<span class="ip-compo n${n}">${g.boosters && has('booster-pack') ? `<img class="ip-a" src="${src('booster-pack')}" alt="">` : ''}${g.lingots && has('bonus-lingots') ? `<img class="ip-b" src="${src('bonus-lingots')}" alt="">` : ''}${g.cash && has('bonus-cash') ? `<img class="ip-c" src="${src('bonus-cash')}" alt="">` : ''}${g.noAds ? (has('pack-noads') ? `<img class="ip-e" src="${src('pack-noads')}" alt="">` : '') : g.skin && has(`skin-${g.skin}-bust`) ? `<img class="ip-e" src="${src(`skin-${g.skin}-bust`)}" alt="">` : ''}</span>`;
   }
   // l'offre mise en avant : choisie selon le joueur (nouveau, gros joueur de pubs, collectionneur, à court de lingots…)
   function offerFor() {
@@ -1684,7 +1685,7 @@
     const s = st();
     if (bqTab === 'vip') {
       const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {}, p = promoNow(), top = offerFor();
-      const pass = G.passOn() ? `<div class="explain center">🎟️ Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
+      const pass = G.passOn() ? `<div class="explain center">${ico('pack-pass', '')} Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
       return `${shopHero()}${gamePromoStrip((promoNow() || {}).c)}${pass}
         <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
         ${adCard()}
@@ -1828,7 +1829,7 @@
     if (sixTab === 'cards') {
       const cards = D.ITEMS.filter(i => i.event === 'six'), on = G.sixCardsOn();
       return head + `<p class="hint-line">Une série en <b>édition limitée</b> : ces cartes ne sortent des boosters que pendant le tournoi (environ 1 booster sur 3). Après, on ne peut plus en avoir : leur cote grimpe.</p>
-        <div class="explain center">${on ? '🃏 En ce moment dans les boosters !' : ph === 'before' ? 'Dans les boosters dès le début du tournoi.' : 'Plus dans les boosters : seulement d\'occasion, au Comptoir.'}</div>
+        <div class="explain center">${on ? `${ico('booster-pack', '')} En ce moment dans les boosters !` : ph === 'before' ? 'Dans les boosters dès le début du tournoi.' : 'Plus dans les boosters : seulement d\'occasion, au Comptoir.'}</div>
         <div class="grid2 six-cards">${cards.map(it => { const have = (s.owned[it.id] || []).length; return `<div class="card center ${have ? '' : 'missing'}">${itemPic(it)}<b>${it.name}</b><small class="muted">${have ? ownGain(it.id) : 'Pas encore'}</small></div>`; }).join('')}</div>
         ${on ? '<button class="btn green wide" data-act="boosters">Ouvrir mes boosters</button>' : ''}`;
     }
@@ -2504,7 +2505,7 @@
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b>${lock ? `<small class="muted">${ic('lock')} Niveau ${k.lvl}</small>` : on ? '<small class="muted">Porté</small>' : has ? '<span class="btn xs blue sk-btn">Mettre</span>' : `<span class="btn xs green sk-btn">${short(k.cost)}</span>`}</button>`; }).join('')}</div>
       <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
       ${(() => { const L = [...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
-        ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${has('ach-' + x.a.id) ? pic('ach-' + x.a.id) : '<span class="pf-tr-emo">🏆</span>'}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
+        ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${pic(has('ach-' + x.a.id) ? 'ach-' + x.a.id : 'icon-trophy')}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
         .sort((p, q) => q.done - p.done).map(x => x.html); trophyAll = L;   // les 6 premiers ici (gagnés d'abord), la liste complète dans une fenêtre
         return `<div class="pf-trophies">${L.slice(0, 6).join('')}</div>${L.length > 6 ? `<div class="center"><button class="btn blue" data-act="trophyList">Voir la liste complète (${L.length})</button></div>` : ''}`; })()}
       ${leaderHtml()}`;
@@ -2791,7 +2792,9 @@
       catch (e) { toast('Ce code ne marche pas.', true); } },
     async restoreCode() {   // code de partie (« HC1.… » copié sur l'ancienne adresse ou dans Réglages) collé à la main
       let c = ''; try { c = (await navigator.clipboard.readText() || '').trim(); } catch (e) {}
-      if (!/^HC1\./.test(c)) c = (prompt('Colle ton code de partie :') || '').trim(); if (!c) return;
+      const isRec = x => /^[\w-]{4,64}\.[\w-]{8,128}$/.test(x);   // code de récupération (Réglages → Aide) : la partie est sur le serveur
+      if (!/^HC1\./.test(c) && !isRec(c)) c = (prompt('Colle ton code de partie :') || '').trim(); if (!c) return;
+      if (isRec(c)) { if (!window.ONLINE || !ONLINE.restore) return toast('Pas de connexion au serveur.', true); try { G.wipe(); localStorage.setItem('hustleCity.imported', '1'); await ONLINE.restore(c); } catch (e) { setTimeout(() => location.reload(), 2000); } return; }
       try { const raw = decodeURIComponent(escape(atob(c.replace(/^HC1\./, '')))), j = JSON.parse(raw); if (!j || !j.skin) throw 0;
         G.wipe(); localStorage.setItem('hustleCity.v1', raw); localStorage.setItem('hustleCity.imported', '1'); sessionStorage.setItem('hc-imported', String(j.lvl || 1)); location.reload(); }
       catch (e) { toast('Ce code ne marche pas : vérifie qu\'il commence par HC1.', true); } },
@@ -3056,7 +3059,7 @@
       <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
   }
   G.on('achievement', a => queue(() => { sfx.win(); rain('confetti', 40);
-    openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${has('ach-' + a.id) ? pic('ach-' + a.id) : `<span class="ach-emo">🏆</span>`}</div>
+    openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${pic(has('ach-' + a.id) ? 'ach-' + a.id : 'icon-trophy')}</div>
       <div class="lv-big stroke">${a.name}</div><p class="trophy-how">${ico('icon-trophy', '🏆')} Gagné en réussissant : ${esc(a.txt)}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
   G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveaux <b>trophées</b> ! Tu viens d'en débloquer <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
@@ -3150,12 +3153,12 @@
     const el = $('#start'); el.className = 'first'; startBg(el);
     const href = NEW_SITE + (code ? '#import=' + code : '');
     const steps = [
-      `<div class="mv-ic">📦</div><h2>Le jeu a déménagé !</h2><p>Hustle City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
+      `<div class="mv-ic">${ico('logo', '')}</div><h2>Le jeu a déménagé !</h2><p>Hustle City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
        <button class="btn green" data-mv="1">Suivant</button>`,
-      code ? `<div class="mv-ic">🎒</div><h2>Emmène ta partie</h2><div class="mv-me">${skinPic(me.skin)}<span><b>${esc(me.name || 'Toi')}</b><small>Niveau ${me.lvl || 1} · ${short(me.cash || 0)}</small></span></div>
+      code ? `<div class="mv-ic">${ico('icon-treasure', '')}</div><h2>Emmène ta partie</h2><div class="mv-me">${skinPic(me.skin)}<span><b>${esc(me.name || 'Toi')}</b><small>Niveau ${me.lvl || 1} · ${short(me.cash || 0)}</small></span></div>
        <ol class="mv-steps"><li>Appuie sur <b>« Emmener ma partie »</b>.</li><li>Le nouveau site s'ouvre <b>avec ta partie</b> dedans.</li><li>C'est tout ! À partir de maintenant, joue <b>uniquement</b> là-bas.</li></ol>
        <a class="btn green" href="${href}" data-copy="HC1.${code}">Emmener ma partie</a><p class="mv-note">Ton code de partie est aussi copié : si ta partie n'apparaît pas, colle-le sur le nouveau site (« J'ai déjà une partie »).</p>`
-        : `<div class="mv-ic">🏙️</div><h2>Rendez-vous là-bas</h2><p>Aucune partie trouvée sur ce téléphone : tu commences directement sur le nouveau site.</p><a class="btn green" href="${href}">Y aller</a>`];
+        : `<div class="mv-ic">${ico('nav-city', '')}</div><h2>Rendez-vous là-bas</h2><p>Aucune partie trouvée sur ce téléphone : tu commences directement sur le nouveau site.</p><a class="btn green" href="${href}">Y aller</a>`];
     const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
       startBg(el); el.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => draw(+b.dataset.mv));
       el.querySelectorAll('[data-copy]').forEach(a => a.addEventListener('click', () => { try { navigator.clipboard.writeText(a.dataset.copy); } catch (e) {} })); };

@@ -116,7 +116,7 @@
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);
   ONLINE.code = () => id.pid + '.' + id.secret;
   ONLINE.restore = async code => { const [pid, secret] = String(code).trim().split('.'); const r = await fetch(API + '/api/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pid, secret }) }).then(x => x.json());
-    if (!r.ok || !r.save) throw new Error(r.err || 'Code inconnu.'); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };
+    if (!r.ok || !r.save) { U.toast('Ce code ne correspond à aucune partie.', true); throw new Error(r.err || 'Code inconnu.'); } G.wipe(); localStorage.setItem(ID_KEY, JSON.stringify({ pid, secret })); localStorage.setItem('hustleCity.v1', r.save); location.reload(); };
 
   // ---------------------------------------------------------- classements des événements (vrais joueurs) : Coupe des Morts et Tournoi
   // Coupe : toutes les 30 s pendant l'événement, on envoie les points gagnés depuis la dernière fois et on reçoit les totaux des équipes.

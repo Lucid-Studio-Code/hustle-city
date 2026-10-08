@@ -58,7 +58,7 @@
     <button id="next-tip" data-act="nextBuy"></button>
     <button id="next-cap" class="hidden" data-act="nextCap" aria-label="Prochain déblocage"></button>
     <button id="btn-upg" data-act="upgrades" aria-label="Améliorer mon setup"><i class="upg-ic"><img src="assets/img/btn-setup.png" alt=""></i><svg class="upg-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 L22 13 H16 V22 H8 V13 H2 Z" fill="#5fc73a" stroke="#2a1a10" stroke-width="2" stroke-linejoin="round"/></svg><span class="badge ok hidden">!</span></button>
-    <button id="btn-promo" data-act="promo" aria-label="Promos"><span class="pr-rib">PROMO</span><i class="pr-ic">💎</i><b id="promo-t"></b></button>
+    <button id="btn-promo" data-act="promo" aria-label="Promos"><span class="pr-rib">PROMO</span><i class="pr-ic"></i><b id="promo-t"></b></button>
     <button id="btn-deal" class="hidden" data-act="deal" aria-label="Bon plan"></button>
     <button id="phone-btn" data-act="phone" aria-label="Téléphone"><i class="ph-mini"><i></i></i><b>Tél.</b><span class="badge hidden"></span></button>
 
@@ -148,7 +148,7 @@
   // Chargement du jeu. En local : les fichiers du dossier. Mis à jour depuis internet (index.html) : le code vient
   // de raw.githubusercontent (rapide et toujours à jour), les images du dossier local quand on joue sur son ordi.
   (function () {
-    var V = '?v=429', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=431', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');
