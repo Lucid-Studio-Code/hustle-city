@@ -832,7 +832,7 @@ h3.sec { margin: 18px 6px 10px; }
 .bst-pack .pic img { filter: none; }
 /* reflet : une bande de lumière qui traverse le paquet en continu, découpée à la forme du paquet (le masque ne bouge pas, seule la lumière glisse) */
 .bst-pack .bst-gloss { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, transparent 0 38%, rgba(255,255,255,.2) 44%, rgba(255,255,255,.7) 50%, rgba(255,255,255,.2) 56%, transparent 62% 100%) no-repeat; background-size: 300% 100%;
-  animation: bstShine 3.6s linear infinite; -webkit-mask: url(../assets/img/booster-pack.png) center / contain no-repeat; mask: url(../assets/img/booster-pack.png) center / contain no-repeat; }
+  animation: bstShine 3.6s linear infinite; -webkit-mask: var(--pk) center / contain no-repeat; mask: var(--pk) center / contain no-repeat; }
 @keyframes bstShine { 0% { background-position: 100% 0; } 60%, 100% { background-position: 0% 0; } }
 #app .bst-defis { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px solid #2a1a10; border-radius: 16px; box-shadow: 0 3px 0 #2a1a10; background: #fffdf6; }
 #app .bst-defis.hot { background: linear-gradient(#ecfae2, #c9f5a0); }

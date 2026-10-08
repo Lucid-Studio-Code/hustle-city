@@ -2308,7 +2308,7 @@
   // ------------------------------------------------------------ Boosters et classeur (comme Mama Kana)
   let boosterTab = 'open', colTab = 'sport';
   const RAR = { C: 'Commune', R: 'Rare', E: 'Épique', L: 'Légendaire' }, RSYM = { C: '●', R: '◆', E: '★', L: '✦' };
-  function packArt(mini) { return mini ? `<i class="bst-mini">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}</i>` : `<div class="bst-pack">${pic('booster-pack', '🃏')}<i class="bst-gloss"></i></div>`; }
+  function packArt(mini) { return mini ? `<i class="bst-mini">${has('booster-pack') ? `<img src="${src('booster-pack')}" alt="">` : '🃏'}</i>` : `<div class="bst-pack" style="--pk:url(${new URL(src('booster-pack'), document.baseURI).href})">${pic('booster-pack', '🃏')}<i class="bst-gloss"></i></div>`; }
   const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
   // numéro d'une carte dans SA collection (sport ou créatures) : 03/98
   // la série du Tournoi n'existe pour les joueurs qu'une fois le tournoi commencé (février 2027)
