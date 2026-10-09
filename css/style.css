@@ -3617,3 +3617,5 @@ html { background-color: #120c24; }
 #modal.modal-under { z-index: 49; pointer-events: none; }
 #modal.modal-under * { pointer-events: none !important; }
 #modal.modal-under .sheet-close { visibility: hidden; }
+/* fenêtres : couleur du parchemin en secours sous le cadre (sur iPhone l'image du cadre peut arriver une seconde après, la fenêtre était transparente) */
+#modal .sheet:not([class*="th-"]) { background-color: #fceac9; background-clip: content-box; }

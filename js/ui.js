@@ -3261,6 +3261,8 @@
     } catch (e) {}
   }
   function boot() {
+    // cadres des fenêtres chargés et décodés dès le départ (gardés en mémoire) : la première fenêtre ne s'ouvre plus sans fond
+    window.__frames = ['ui-panel', 'ui-pill'].map(n => { const i = new Image(); i.src = 'assets/img/' + n + '.png'; if (i.decode) i.decode().catch(() => {}); return i; });
     if (movedAway()) return;
     importFromHash();
     try { const k = sessionStorage.getItem('hc-imported'); if (k) { sessionStorage.removeItem('hc-imported'); window.__imported = +k; } } catch (e) {}
