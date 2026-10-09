@@ -823,7 +823,7 @@
     const e = clubEntry(); if (st.cash < e) return { err: 'Pas assez de cash pour l\'entrée.' };
     if (clubWait()) addLingots(-D.LINGOT.club);
     pay(e);
-    st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false, acts: 0 };
+    st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false, acts: 0, cast: Object.fromEntries(Object.keys(D.CLUB.scenes).map(z => [z, D.CLUB.scenes[z].alt && Math.random() < .5 ? 1 : 0])) };   // qui est là ce soir, coin par coin
     st.clubNext = st.club.end + D.CLUB.cooldownMin * 60000;
     stat('clubNights'); clubHabitTick(); emit('change'); return { e };
   }
@@ -855,6 +855,8 @@
   }
   // ---- soirée en scènes : 2 actions par soirée, chaque coin une fois ; un choix peut lancer un dialogue (answer = numéro de la réponse)
   const clubActs = () => (st.club && st.club.acts) || 0;
+  // la scène d'un coin ce soir : le perso habituel ou son remplaçant (même fond)
+  const clubScene = zone => { const b = D.CLUB.scenes[zone]; if (!b) return null; return b.alt && st.club && st.club.cast && st.club.cast[zone] ? Object.assign({}, b, b.alt) : b; };
   const clubLeft = () => clubIn() ? Math.max(0, D.CLUB.acts - clubActs()) : 0;
   // tuyau glissé au Club : le prochain bruit de couloir sur un objet, juste ou faux selon la chance donnée
   function clubTip(sure) {
@@ -871,7 +873,7 @@
     const c = st.club; c.done = c.done || {};
     if (clubLeft() <= 0) return { err: 'Tu as fait tes 2 actions ce soir.' };
     if (c.done[zone]) return { err: 'Déjà fait ce soir.' };
-    const sc = D.CLUB.scenes[zone], ch = sc && sc.choices.find(x => x.id === choice); if (!ch) return { err: 'Inconnu.' };
+    const sc = clubScene(zone), ch = sc && sc.choices.find(x => x.id === choice); if (!ch) return { err: 'Inconnu.' };
     const ans = ch.talk ? ch.talk.answers[+answer] : null; if (ch.talk && !ans) return { err: 'Choisis une réponse.' };
     const outs = (ans || ch).out; let r = Math.random(), o = outs[outs.length - 1]; for (const x of outs) { if (r < x.p) { o = x; break; } r -= x.p; }
     const M = clubEntry(), X = D.CLUB.xp(st.lvl);
@@ -1699,7 +1701,7 @@
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
-    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, clubChoose, clubLeft, clubActs,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, clubChoose, clubLeft, clubActs, clubScene,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, boosterCost, promoOf, promoPct, promoCut, decoCost, lookCost, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,

@@ -1568,7 +1568,7 @@
     return list.map(g => `<span class="cg ${bad ? 'bad' : 'good'}">${g.cash != null ? `${bad ? '−' : '+'}${short(g.cash)} ${ic('cash')}` : g.lingots != null ? `${bad ? '−' : '+'}${g.lingots} ${ic('lingot')}` : g.xp != null ? `+${g.xp} XP` : g.booster ? `+${g.booster} ${packArt(true)}` : g.deal ? 'Un nouveau contact (regarde tes messages)' : g.dj ? 'La piste rapporte ×1,5' : g.tip ? `Tuyau : ${esc(G.item(g.tip.item).name)} va ${g.tip.up ? 'monter' : 'baisser'}` : ''}</span>`).join('');
   }
   function clubSceneBody() {
-    const C = D.CLUB, z = clubScene, sc = C.scenes[z.zone], s = st();
+    const C = D.CLUB, z = clubScene, sc = G.clubScene(z.zone), s = st();
     const face = has(sc.who) ? `<img class="csc-who" src="${src(sc.who)}" alt="">` : '';
     let say = sc.intro, acts = '';
     if (z.res) {
@@ -3029,7 +3029,7 @@
       clubScene = { zone: id }; setBody(clubBody()); musicMood('club');
     },
     clubPick(el) {
-      const ch = D.CLUB.scenes[clubScene.zone].choices.find(x => x.id === el.dataset.id); if (!ch) return;
+      const ch = G.clubScene(clubScene.zone).choices.find(x => x.id === el.dataset.id); if (!ch) return;
       if (ch.talk) { clubScene.talk = ch.id; return setBody(clubBody()); }
       clubResolve(ch.id);
     },

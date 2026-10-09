@@ -19,7 +19,7 @@ POCKETS = {
     'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
     'cr-leila': 'all', 'cr-jade': 'all', 'cr-kim': 'all', 'cr-lola': 'all', 'cr-sasha': 'all', 'cr-nora': 'all',
-    'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all', 'clubp-trader': 'all', 'clubp-boss': 'all',   # persos du Club : vides entre bras et corps
+    'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all', 'clubp-trader': 'all', 'clubp-boss': 'all', 'clubp-lea': 'all', 'clubp-chloe': 'all', 'clubp-djmax': 'all', 'clubp-valentina': 'all',   # persos du Club : vides entre bras et corps
     'cr-mila': {'n': [0]}, 'cr-ines': 'all', 'cr-rose': 'all', 'cr-eva': 'all', 'gear-cam': 'all', 'gear-sport': {'n': [0, 1, 2, 3, 4, 5]},
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
     'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
@@ -76,7 +76,7 @@ def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
 
 # hauteur gardée (fraction de la silhouette, depuis le haut) pour couper chaque perso du Club à mi-cuisse
 # persos du Club : hauteur des yeux et du menton, mesurées sur l'original ramené à 600 px de haut (règle tracée à la main)
-CLUB_HEAD = {'clubp-danseuse': (160, 233), 'clubp-trader': (130, 200), 'clubp-dj': (115, 182), 'clubp-boss': (82, 132), 'clubp-louche': (83, 138)}
+CLUB_HEAD = {'clubp-danseuse': (160, 233), 'clubp-trader': (130, 200), 'clubp-dj': (115, 182), 'clubp-boss': (82, 132), 'clubp-louche': (83, 138), 'clubp-lea': (91.5, 128.8), 'clubp-chloe': (79, 127.4), 'clubp-valentina': (90, 160.1), 'clubp-johnny': (75, 152.5), 'clubp-djmax': (105, 169)}
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches

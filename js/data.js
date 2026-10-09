@@ -733,14 +733,29 @@
     // chaque coin ouvre sa scène : 2 ou 3 choix ; un choix « talk » lance un mini-dialogue avec le portrait du coin.
     // Effets (nombres = multiples de la soirée : M = prix de l'entrée, X = XP d'une danse) : cash, xp, lingots, booster, tip (tuyau sur un objet : chance qu'il soit juste), deal (contact au téléphone), dj (la piste rapporte ×1,5)
     scenes: {
-      'z-dance': { bg: 'club-piste', who: 'clubp-danseuse', name: 'Kenza', ic: 'ic-club-dance', intro: 'La piste est pleine. Kenza danse au milieu, tout le monde la regarde.',
+      'z-dance': { alt: { who: 'clubp-lea', name: 'Léa', intro: 'Léa filme la piste pour sa story en dansant au milieu de la foule.',
+        choices: [
+          { id: 'go', label: 'Danser comme un fou', out: [{ p: .8, txt: 'Tu enflammes la piste, Léa te filme.', xp: 1, djx: true }, { p: .2, txt: 'Tu glisses en plein milieu. Ta veste part au pressing.', xp: .5, cash: -.5, djx: true }] },
+          { id: 'talk', label: 'Danser avec Léa', talk: { say: 'Si tu danses bien, je te mets dans ma story !', answers: [
+            { label: 'Regarde ça.', out: [{ p: .55, txt: 'Ta danse fait le tour des réseaux. On te reconnaît dans la rue.', xp: 1.2 }, { p: .45, txt: 'Tu rates ta figure en direct. Tu offres un verre pour faire oublier.', xp: .3, cash: -.3 }] },
+            { label: 'Je préfère rester discret.', out: [{ p: 1, txt: 'Elle rit : « Mystérieux, j\'aime bien. » Elle te glisse un contact.', xp: .3, deal: true }] },
+            { label: 'Tu fais quoi dans la vie ?', out: [{ p: 1, txt: 'Elle bosse dans la mode et sait ce qui va flamber.', tip: .7 }] }] } }] },
+         bg: 'club-piste', who: 'clubp-danseuse', name: 'Kenza', ic: 'ic-club-dance', intro: 'La piste est pleine. Kenza danse au milieu, tout le monde la regarde.',
         choices: [
           { id: 'go', label: 'Danser comme un fou', out: [{ p: .8, txt: 'Tu enflammes la piste, les gens font un cercle autour de toi.', xp: 1, djx: true }, { p: .2, txt: 'Tu glisses en plein milieu. Ta veste part au pressing.', xp: .5, cash: -.5, djx: true }] },
           { id: 'talk', label: 'Aborder Kenza', talk: { say: 'Toi, t\'as pas l\'air d\'ici. T\'es qui ?', answers: [
             { label: 'Le futur boss du quartier.', out: [{ p: .5, txt: 'Elle rit et te laisse son numéro : « Je connais des gens qui cherchent des mecs comme toi. »', xp: .5, deal: true }, { p: .5, txt: 'Elle lève les yeux au ciel et repart danser. Tu payes un verre pour te remettre.', cash: -.3 }] },
             { label: 'Je t\'offre un verre ?', out: [{ p: 1, txt: 'Au bar, elle se penche vers toi et te glisse un tuyau.', cash: -.4, tip: .75 }] },
             { label: 'On danse ?', out: [{ p: 1, txt: 'Vous dansez jusqu\'à la fin du morceau. Belle soirée.', xp: .6, djx: true }] }] } }] },
-      'z-bar': { bg: 'club-bar', who: 'clubp-trader', name: 'Hugo, trader', ic: 'ic-club-bar', intro: 'Au bar, un trader en costume a visiblement commencé sa soirée bien avant toi.',
+      'z-bar': { alt: { who: 'clubp-chloe', name: 'Chloé', intro: 'Au bar, Chloé, une influenceuse, cherche quelqu\'un pour sa prochaine vidéo.',
+        choices: [
+          { id: 'drink', label: 'Un verre', out: [{ p: 1, txt: 'Un cocktail bien frais. Tu te détends.', cash: -.3, xp: .4 }] },
+          { id: 'round', label: 'Tournée générale', out: [{ p: 1, txt: 'Tout le bar trinque à ta santé. La bande t\'offre un booster.', cash: -1.5, xp: 1.2, booster: 1 }] },
+          { id: 'talk', label: 'Parler à Chloé', talk: { say: 'Tu veux être dans ma vidéo ? Faut juste m\'offrir le cocktail sponsorisé.', answers: [
+            { label: 'Deal.', out: [{ p: .6, txt: 'La vidéo cartonne, tout le monde parle de toi.', cash: -.4, xp: 1 }, { p: .4, txt: 'La vidéo ne sort jamais. Cocktail payé pour rien.', cash: -.4 }] },
+            { label: 'C\'est moi qui devrais être payé.', out: [{ p: .5, txt: 'Elle éclate de rire et te rembourse ta soirée.', cash: .3, xp: .3 }, { p: .5, txt: 'Elle te tourne le dos. Tant pis.', xp: .1 }] },
+            { label: 'Qu\'est-ce qui buzze en ce moment ?', out: [{ p: 1, txt: 'Elle te montre ce qui cartonne sur son fil.', tip: .65 }] }] } }] },
+         bg: 'club-bar', who: 'clubp-trader', name: 'Hugo, trader', ic: 'ic-club-bar', intro: 'Au bar, un trader en costume a visiblement commencé sa soirée bien avant toi.',
         choices: [
           { id: 'drink', label: 'Un verre', out: [{ p: 1, txt: 'Un cocktail bien frais. Tu te détends.', cash: -.3, xp: .4 }] },
           { id: 'round', label: 'Tournée générale', out: [{ p: 1, txt: 'Tout le bar trinque à ta santé. La bande t\'offre un booster.', cash: -1.5, xp: 1.2, booster: 1 }] },
@@ -748,20 +763,41 @@
             { label: 'Balance.', out: [{ p: 1, txt: 'Il te souffle un nom à l\'oreille. Reste à savoir s\'il dit vrai.', tip: .6 }] },
             { label: 'Je te paie un verre si c\'est du lourd.', out: [{ p: 1, txt: 'Un verre plus tard, il te donne tous les détails.', cash: -.4, tip: .85 }] },
             { label: 'Laisse tomber, t\'es bourré.', out: [{ p: 1, txt: 'Sage décision. Tu gardes la tête froide.', xp: .2 }] }] } }] },
-      'z-dj': { bg: 'club-dj', who: 'clubp-dj', name: 'DJ Nyx', ic: 'ic-club-dj', intro: 'DJ Nyx fait sauter toute la salle.',
+      'z-dj': { alt: { who: 'clubp-djmax', name: 'DJ Max', intro: 'DJ Max enchaîne les morceaux et saute derrière ses platines.',
+        choices: [
+          { id: 'song', label: 'Demander ton son', out: [{ p: 1, txt: 'Ton son passe : la piste te rapportera ×1,5 ce soir.', cash: -.15, xp: .2, dj: true }] },
+          { id: 'talk', label: 'Monter derrière les platines', talk: { say: 'Tu veux mixer ? Un morceau. Si tu vides la piste, la tournée est pour toi.', answers: [
+            { label: 'Envoie le son le plus fort.', out: [{ p: .5, txt: 'La salle explose. Max te tape dans la main.', xp: 1.6 }, { p: .5, txt: 'Tu coupes le son par erreur. La tournée est pour toi.', cash: -1, xp: .2 }] },
+            { label: 'Juste un petit scratch.', out: [{ p: 1, txt: 'Petit scratch propre, quelques sifflets d\'approbation.', xp: .6 }] },
+            { label: 'Non, fais-toi plaisir.', out: [{ p: 1, txt: 'Il te glisse quelques lingots « pour le respect ».', lingots: [1, 2] }] }] } }] },
+         bg: 'club-dj', who: 'clubp-dj', name: 'DJ Nyx', ic: 'ic-club-dj', intro: 'DJ Nyx fait sauter toute la salle.',
         choices: [
           { id: 'song', label: 'Demander ton son', out: [{ p: 1, txt: 'Ton son passe : la piste te rapportera ×1,5 ce soir.', cash: -.15, xp: .2, dj: true }] },
           { id: 'talk', label: 'Prendre le micro', talk: { say: 'Tu veux le micro ? Vas-y, chauffe la salle !', answers: [
             { label: 'Faites du bruuuit !', out: [{ p: .6, txt: 'Ovation. La salle crie ton nom.', xp: 1.5 }, { p: .4, txt: 'Silence gênant… Tu rends le micro et tu offres un verre au DJ pour te faire pardonner.', xp: .2, cash: -.3 }] },
             { label: 'Une dédicace à ma mère !', out: [{ p: 1, txt: 'Toute la salle applaudit. Ta mère serait fière.', xp: .6 }] }] } }] },
-      'z-vip': { bg: 'club-vip', who: 'clubp-boss', name: 'Le Baron', ic: 'ic-club-vip', intro: 'Derrière le cordon rouge, le Baron reçoit. Pour approcher, il faut des lingots.',
+      'z-vip': { alt: { who: 'clubp-valentina', name: 'Valentina', intro: 'Valentina, reine des affaires, tient le carré VIP ce soir. Pour approcher, il faut des lingots.',
+        choices: [
+          { id: 'bottle', label: 'Commander une bouteille', out: [{ p: .4, txt: 'Valentina apprécie le geste et te fait un cadeau.', cash: -3, xp: .8, lingots: [3, 6] }, { p: .6, txt: 'La bouteille est bonne, mais personne ne te remarque.', cash: -3, xp: .8 }] },
+          { id: 'talk', label: 'S\'asseoir avec Valentina', lingots: 2, talk: { say: 'On m\'a parlé de toi. Montre-moi ce que tu vaux.', answers: [
+            { label: 'J\'ai un plan qui rapporte gros.', out: [{ p: .5, txt: 'Elle prend son téléphone : « Je t\'envoie quelqu\'un. »', xp: .8, deal: true }, { p: .5, txt: 'Elle sourit poliment : « Reviens quand tu seras sérieux. »', xp: .2 }] },
+            { label: 'Je suis là pour apprendre.', out: [{ p: 1, txt: 'Elle te donne une leçon de business… et un tuyau.', xp: .4, tip: .85 }] },
+            { label: 'J\'offre la tournée du carré.', out: [{ p: .7, txt: 'Elle apprécie : quelques lingots « pour l\'élégance ».', cash: -2, lingots: [3, 6] }, { p: .3, txt: 'Tout le monde boit, personne ne remercie.', cash: -2 }] }] } }] },
+         bg: 'club-vip', who: 'clubp-boss', name: 'Le Baron', ic: 'ic-club-vip', intro: 'Derrière le cordon rouge, le Baron reçoit. Pour approcher, il faut des lingots.',
         choices: [
           { id: 'bottle', label: 'Commander une bouteille', out: [{ p: .4, txt: 'Le Baron apprécie le geste et te fait un cadeau.', cash: -3, xp: .8, lingots: [3, 6] }, { p: .6, txt: 'La bouteille est bonne, mais personne ne te remarque.', cash: -3, xp: .8 }] },
           { id: 'talk', label: 'S\'asseoir avec le Baron', lingots: 2, talk: { say: 'Tu t\'assois à ma table sans y être invité ?', answers: [
             { label: 'Je viens parler affaires.', out: [{ p: .55, txt: 'Il sourit : « J\'aime les gens directs. » Il te passe un contact.', xp: .8, deal: true }, { p: .45, txt: 'Ses gars te raccompagnent vers la sortie. Ça t\'a coûté un lingot de plus.', lingots: [-1, -1] }] },
             { label: 'Pardon, je vous offre la bouteille.', out: [{ p: .8, txt: 'Bonne réponse. Il te glisse quelques lingots « pour le respect ».', cash: -2, lingots: [3, 6] }, { p: .2, txt: 'Il accepte la bouteille… et t\'ignore toute la soirée.', cash: -2 }] },
             { label: 'Je m\'éclipse.', out: [{ p: 1, txt: 'Tu te lèves poliment. Il te rend un hochement de tête.', xp: .2 }] }] } }] },
-      'z-wc': { bg: 'club-wc', who: 'clubp-louche', name: 'Le Vendeur', ic: 'ic-club-door', intro: 'Aux toilettes, un type en capuche t\'attend près des lavabos.',
+      'z-wc': { alt: { who: 'clubp-johnny', name: 'Johnny', intro: 'Aux toilettes, Johnny agite une poignée de tickets à gratter.',
+        choices: [
+          { id: 'fresh', label: 'Se refaire une beauté', out: [{ p: 1, txt: 'Coup de frais. Tu repars comme neuf.', xp: .3 }] },
+          { id: 'talk', label: 'Parler à Johnny', talk: { say: 'Tickets gagnants, frérot. Je les ai trouvés. Moitié prix.', answers: [
+            { label: 'Je prends.', out: [{ p: .35, txt: 'Un ticket gagnant ! Johnny n\'en revient pas.', cash: 1.4 }, { p: .65, txt: 'Ils étaient tous déjà grattés. Bien joué Johnny.', cash: -.6 }] },
+            { label: 'Gratte-en un devant moi.', out: [{ p: 1, txt: 'Perdant. Il hausse les épaules et te file un tuyau pour se faire pardonner.', tip: .5 }] },
+            { label: 'Non merci.', out: [{ p: 1, txt: 'Tu sors des toilettes en gardant ton argent.', xp: .1 }] }] } }] },
+         bg: 'club-wc', who: 'clubp-louche', name: 'Le Vendeur', ic: 'ic-club-door', intro: 'Aux toilettes, un type en capuche t\'attend près des lavabos.',
         choices: [
           { id: 'fresh', label: 'Se refaire une beauté', out: [{ p: 1, txt: 'Coup de frais. Tu repars comme neuf.', xp: .3 }] },
           { id: 'talk', label: 'Parler au type louche', talk: { say: 'Pssst. Montre de luxe, prix d\'ami. Ça t\'intéresse ?', answers: [
