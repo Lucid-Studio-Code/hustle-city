@@ -3654,3 +3654,5 @@ html { background-color: #120c24; }
 #app .club-scene .cg .ic, #app .club-scene .cg .bst-mini { width: 18px; height: 18px; }
 #app .club-scene .cg.good { background: #c9f5a0; color: #1f5e1f; }
 #app .club-scene .cg.bad { background: #ffd0c9; color: #8a1c10; }
+/* portraits du Club : posés en bas de l'écran, la coupure à la taille passe sous le bord et derrière la boîte de dialogue (avant, ils flottaient) */
+#app .club-scene .csc-who { bottom: 0; height: 74%; }
