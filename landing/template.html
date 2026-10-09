@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Biff City : jeu mobile de paris sportifs fictifs, investissements et collection</title>
-<meta name="description" content="Biff City, le jeu mobile où tu paries, investis et deviens riche : paris sportifs fictifs, crypto, casino et collection de cartes. Bêta gratuite dans ton navigateur.">
+<title>{{seo.title}}</title>
+<meta name="description" content="{{seo.desc}}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Biff City"><meta property="og:title" content="Biff City : parie, investis, deviens riche.">
 <meta property="og:description" content="Le jeu mobile de paris sportifs fictifs, d'investissements et de collection. Bientôt disponible.">
-<meta property="og:image" content="https://biffcity.fr/assets/img/load-8.jpg">
+<meta property="og:image" content="https://biffcity.fr{{hero.img}}">
 <meta name="theme-color" content="#1b1433">
 <link rel="canonical" href="https://biffcity.fr/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta property="og:url" content="https://biffcity.fr/"><meta property="og:locale" content="fr_FR">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Biff City : parie, investis, deviens riche."><meta name="twitter:image" content="https://biffcity.fr/assets/img/load-8.jpg">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Biff City","url":"https://biffcity.fr/","description":"Jeu mobile de paris sportifs fictifs, d'investissements et de collection : pars de rien et fais grimper ton patrimoine.","genre":["Simulation","Gestion","Jeu de cartes à collectionner"],"gamePlatform":["Navigateur web","iOS","Android"],"inLanguage":"fr","contentRating":"18+","image":"https://biffcity.fr/assets/img/load-8.jpg","publisher":{"@type":"Organization","name":"Lucid Studio","email":"contact@lucidstudio.fr"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Biff City : parie, investis, deviens riche."><meta name="twitter:image" content="https://biffcity.fr{{hero.img}}">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Biff City","url":"https://biffcity.fr/","description":"Jeu mobile de paris sportifs fictifs, d'investissements et de collection : pars de rien et fais grimper ton patrimoine.","genre":["Simulation","Gestion","Jeu de cartes à collectionner"],"gamePlatform":["Navigateur web","iOS","Android"],"inLanguage":"fr","contentRating":"18+","image":"https://biffcity.fr{{hero.img}}","publisher":{"@type":"Organization","name":"Lucid Studio","email":"contact@lucidstudio.fr"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
 <link rel="icon" href="/assets/img/skin-survet-bust.png">
 <style>
 @font-face { font-family: 'Lilita One'; src: url(/assets/fonts/lilita-latin.woff2) format('woff2'); font-display: swap; }
@@ -22,8 +22,8 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; background: var(--night); color: #fff; font: 700 16px/1.45 'Nunito', system-ui, sans-serif; }
 .bg { position: fixed; inset: 0; background: radial-gradient(circle at 50% 20%, #4a2a8a, var(--night) 70%); }
-.bg i { position: absolute; left: 0; right: 0; top: 120px; bottom: 0; background: url(/assets/img/load-8.jpg) center top / cover no-repeat; -webkit-mask-image: linear-gradient(transparent, #000 14%); mask-image: linear-gradient(transparent, #000 14%); transform-origin: 50% 0; animation: zoom 18s ease-in-out infinite alternate; }
-.art { display: block; position: relative; width: min(82vw, 360px); aspect-ratio: 4 / 4.4; margin: 22px auto 0; background: url(/assets/img/load-8.jpg) 50% 34% / cover; border: 4px solid var(--ink); border-radius: 26px; box-shadow: 0 8px 0 var(--ink), 0 22px 50px rgba(0,0,0,.5); transform: rotate(2deg); }
+.bg i { position: absolute; left: 0; right: 0; top: 120px; bottom: 0; background: url({{hero.img}}) center top / cover no-repeat; -webkit-mask-image: linear-gradient(transparent, #000 14%); mask-image: linear-gradient(transparent, #000 14%); transform-origin: 50% 0; animation: zoom 18s ease-in-out infinite alternate; }
+.art { display: block; position: relative; width: min(82vw, 360px); aspect-ratio: 4 / 4.4; margin: 22px auto 0; background: url({{hero.img}}) 50% 34% / cover; border: 4px solid var(--ink); border-radius: 26px; box-shadow: 0 8px 0 var(--ink), 0 22px 50px rgba(0,0,0,.5); transform: rotate(2deg); }
 .bg i { display: none; }
 .hero-cta { position: relative; z-index: 2; margin-top: -36px; }
 .bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(27,20,51,.55), rgba(27,20,51,.25) 30%, rgba(27,20,51,.65) 62%, rgba(27,20,51,.97) 92%); }
@@ -90,7 +90,7 @@ footer a { color: #fff; }
   main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); grid-template-areas: "logo art" "tag art" "soon art" "lead art" "feats art" "cast cast" "actus actus" "bientot bientot" "age age" "foot foot"; column-gap: 56px; align-content: center; justify-content: center; max-width: 1180px; margin: 0 auto; padding: 48px 32px; text-align: left; }
   .logo { grid-area: logo; justify-self: start; } .tag { grid-area: tag; justify-self: start; } .spacer { display: none; }
   .soon { grid-area: soon; margin-top: 28px; } .lead { grid-area: lead; margin: 0 0 18px; } .cta { grid-area: art; align-self: end; justify-self: center; margin: 0 0 64px; z-index: 2; transform: rotate(2deg); } .soon { margin-top: 28px !important; } .cta-note { grid-area: art; align-self: end; justify-self: center; margin: 0 0 30px; z-index: 2; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); } .feats { grid-area: feats; }
-  .art { display: block; grid-area: art; align-self: center; width: 100%; margin: 0; aspect-ratio: 1080 / 1935; background-position: center; max-height: 82vh; background: url(/assets/img/load-8.jpg) center / cover; border: 4px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink), 0 24px 60px rgba(0,0,0,.55); transform: rotate(2deg); }
+  .art { display: block; grid-area: art; align-self: center; width: 100%; margin: 0; aspect-ratio: 1080 / 1935; background-position: center; max-height: 82vh; background: url({{hero.img}}) center / cover; border: 4px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink), 0 24px 60px rgba(0,0,0,.55); transform: rotate(2deg); }
   .cast { grid-area: cast; } #actus { grid-area: actus; justify-self: center; } #bientot { grid-area: bientot; } .age { grid-area: age; justify-self: center; } footer { grid-area: foot; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { .bg { animation: none; } }
@@ -100,37 +100,32 @@ footer a { color: #fff; }
 <div class="bg" aria-hidden="true"><i></i></div>
 <main>
   <h1 class="logo">BIFF<span>CITY</span></h1>
-  <div class="tag">Parie. Investis. Deviens riche.</div>
+  <div class="tag">{{hero.slogan}}</div>
   <div class="art" aria-hidden="true"></div>
-  <a class="cta hero-cta" href="https://game.biffcity.fr/" data-lp="beta">Jouer à la bêta</a>
-  <p class="cta-note">Gratuit, dans ton navigateur, sans téléchargement</p>
+  <a class="cta hero-cta" href="https://game.biffcity.fr/" data-lp="beta">{{hero.cta}}</a>
+  <p class="cta-note">{{hero.ctaNote}}</p>
   <div class="spacer"></div>
-  <p class="soon">Bientôt disponible</p>
-  <p class="lead">Le jeu mobile où tu pars de rien et fais grimper ton patrimoine : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.</p>
+  <p class="soon">{{hero.soon}}</p>
+  <p class="lead">{{hero.lead}}</p>
   <div class="feats">
-    <div class="feat"><img src="/assets/img/app-bets.webp" alt=""><b>Parie</b><small>Foot, basket, tennis, rugby : des matchs en direct</small></div>
-    <div class="feat"><img src="/assets/img/app-crypto.webp" alt=""><b>Investis</b><small>Crypto, bourse, immobilier : achète bas, revends haut</small></div>
-    <div class="feat"><img src="/assets/img/app-boosters.webp" alt=""><b>Collectionne</b><small>Cartes, sneakers, montres, voitures de luxe</small></div>
+<!--@feats-->
   </div>
   <div class="cast" aria-hidden="true">
     <img src="/assets/img/skin-doudoune.png" alt=""><img src="/assets/img/skin-flambeur.png" alt=""><img src="/assets/img/skin-sportive.png" alt=""><img src="/assets/img/skin-survet.png" alt=""><img src="/assets/img/skin-boss.png" alt=""><img src="/assets/img/skin-hoodie.png" alt=""><img src="/assets/img/skin-gold.png" alt="">
   </div>
-  <section class="news" id="actus" aria-label="Actualités">
-    <h2>Actualités</h2>
+  <section class="news" id="actus" aria-label="{{actus.title}}">
+    <h2>{{actus.title}}</h2>
     <div class="car"><div class="slides">
-<article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-piste.webp);background-position:50% 35%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : des dialogues qui rapportent gros… ou te coûtent cher.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-lea.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-neon.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous fait peau neuve.</p></div></div><img class="bn-pop skin" src="/assets/img/skin-flambeur.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-vip.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>10 personnages au Club</b><p>Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-dj.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-or.jpg);background-position:50% 45%"><div class="bn-txt"><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.</p></div></div><img class="bn-pop skin" src="/assets/img/skin-survet.png" alt="" loading="lazy"></article>
+<!--@actus-->
     </div><div class="dots"></div></div>
   </section>
   <section class="blk" id="bientot">
-    <h2>Prochainement</h2>
+    <h2>{{bientot.title}}</h2>
     <div class="cards">
-      <article class="nc"><div class="ni"><img src="/assets/img/ev-cdm-bg.webp" alt="La ville pendant la Coupe des Morts" style="object-position:50% 30%"></div><div class="nt"><span class="chip ev" data-cd="2026-10-24T10:00:00+02:00" data-end="2026-11-02T23:59:00+01:00">Du 24 oct. au 2 nov.</span><b>La Coupe des Morts</b><p>L&#39;événement d&#39;Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/art-c-signed.webp" alt="Une carte rare de la collection" style="object-position:50% 30%"></div><div class="nt"><span class="chip live">Seulement pendant la bêta</span><b>La collection Bêta</b><p>Une série de cartes réservée à ceux qui jouent pendant la bêta. Elle ne sera plus jamais distribuée après la sortie.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/load-1.jpg" alt="Une joueuse envoie son avis depuis son téléphone" style="object-position:50% 22%"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Ton avis rapporte</b><p>Chaque retour utile sur une fonctionnalité te rapporte des lingots et des boosters. Il s&#39;envoie depuis les Réglages du jeu.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/load-2.jpg" alt="Le Survêt joue sur son téléphone" style="object-position:50% 38%"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Sur l&#39;App Store et Google Play</b><p>Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.</p></div></article>
+<!--@bientot-->
     </div>
   </section>
-  <div class="age"><b>18+</b> Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.</div>
+  <div class="age"><b>18+</b> {{age}}</div>
   <footer>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 </main>
 <script>

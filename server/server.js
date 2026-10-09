@@ -9,6 +9,7 @@ const { DatabaseSync } = require('node:sqlite');
 const { initDb } = require('./schema');
 const { clientIp, makeGeo } = require('./geo');
 const { makePush } = require('./push');
+const LANDING = require('../landing/render.js');   // la vitrine biffcity.fr, éditée depuis le back office (page « Landing »)
 const ROOT = path.join(__dirname, '..'), PORT = +process.env.PORT || 5300;
 const DBFILE = process.env.DB || path.join(__dirname, 'hustle.db');
 const TOKEN_FILE = path.join(__dirname, '.admin-token');
@@ -21,6 +22,9 @@ initDb(db);
 const PUSH = makePush(db);   // notifications téléphone (application iPhone / Android)
 const q = (sql, ...a) => db.prepare(sql).all(...a), q1 = (sql, ...a) => db.prepare(sql).get(...a), run = (sql, ...a) => db.prepare(sql).run(...a);
 const now = () => Date.now(), DAY = 86400000, ONLINE_MS = 150000;
+// vitrine : contenu enregistré (sinon celui de landing/content.json), page rendue gardée en mémoire jusqu'au prochain enregistrement
+const getLanding = () => { const r = q1("SELECT v FROM config WHERE k = 'landing'"); return r ? J(r.v) : null; };
+let landingHtml = null; const landingPage = () => landingHtml || (landingHtml = LANDING.render(getLanding()));
 const getCfg = () => { const r = q1("SELECT v FROM config WHERE k = 'live'"); return r ? JSON.parse(r.v) : {}; };
 const log = (action, data) => run('INSERT INTO admin_log (t, action, data) VALUES (?, ?, ?)', now(), action, JSON.stringify(data || {}));
 const J = s => { try { return JSON.parse(s || '{}') || {}; } catch (e) { return {}; } };
@@ -644,6 +648,16 @@ const admin = {
     fs.writeFileSync(path.join(UPLOADS, name), buf); log('upload', { name, size: buf.length });
     send(res, 200, { ok: true, url: '/media/' + name, size: buf.length });
   },
+  'GET /admin/api/landing'(req, res) {   // page « Landing » : le contenu + les images envoyées (la bibliothèque du jeu vient de /js/assets.js)
+    let media = []; try { media = fs.readdirSync(UPLOADS).filter(n => MEDIA_RE.test(n)).map(n => ({ url: '/media/' + n, t: fs.statSync(path.join(UPLOADS, n)).mtimeMs })).sort((a, b) => b.t - a.t).map(m => m.url); } catch (e) {}
+    send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media });
+  },
+  async 'POST /admin/api/landing-preview'(req, res) { const b = await body(req, 3e5); send(res, 200, { html: LANDING.render(b.content).replace(/<script(?![^>]*ld\+json)[^>]*>[\s\S]*?<\/script>/g, '') }); },   // aperçu sans scripts : ni mesure d'audience, ni blocage par la sécurité du back office
+  async 'POST /admin/api/landing'(req, res) {   // publier : la vitrine change tout de suite
+    const b = await body(req, 3e5), c = b.reset ? LANDING.defaults() : LANDING.clean(b.content);
+    run("INSERT INTO config (k, v) VALUES ('landing', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(c)); landingHtml = null;
+    log('landing', { reset: !!b.reset }); send(res, 200, { ok: true, content: c });
+  },
   'GET /admin/api/events'(req, res, u) {
     const type = u.searchParams.get('type'), before = +u.searchParams.get('before') || 0;
     const w = ["e.type != 'act'"], a = []; if (type) { w.push('e.type = ?'); a.push(type); } if (before) { w.push('e.t < ?'); a.push(before); }
@@ -726,7 +740,7 @@ http.createServer(async (req, res) => {
     let f = null, adm = false;
     // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
     const host = String(req.headers.host || '').toLowerCase().split(':')[0];
-    if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) p = '/landing/index.html';
+    if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); return res.end(req.method === 'HEAD' ? undefined : landingPage()); }
     // référencement : la vitrine est ouverte aux moteurs ; le jeu et le back office ne doivent pas apparaître dans Google
     if (p === '/robots.txt') { const lp = host === 'biffcity.fr';
       return send(res, 200, lp ? 'User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\n\nSitemap: https://biffcity.fr/sitemap.xml\n' : 'User-agent: *\nDisallow: /\n', 'text/plain; charset=utf-8'); }

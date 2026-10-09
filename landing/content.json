@@ -1,0 +1,126 @@
+{
+ "seo": {
+  "title": "Biff City : jeu mobile de paris sportifs fictifs, investissements et collection",
+  "desc": "Biff City, le jeu mobile où tu paries, investis et deviens riche : paris sportifs fictifs, crypto, casino et collection de cartes. Bêta gratuite dans ton navigateur."
+ },
+ "hero": {
+  "img": "/assets/img/load-8.jpg",
+  "slogan": "Parie. Investis. Deviens riche.",
+  "soon": "Bientôt disponible",
+  "lead": "Le jeu mobile où tu pars de rien et fais grimper ton patrimoine : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.",
+  "cta": "Jouer à la bêta",
+  "ctaNote": "Gratuit, dans ton navigateur, sans téléchargement"
+ },
+ "feats": [
+  {
+   "img": "/assets/img/app-bets.webp",
+   "title": "Parie",
+   "text": "Foot, basket, tennis, rugby : des matchs en direct"
+  },
+  {
+   "img": "/assets/img/app-crypto.webp",
+   "title": "Investis",
+   "text": "Crypto, bourse, immobilier : achète bas, revends haut"
+  },
+  {
+   "img": "/assets/img/app-boosters.webp",
+   "title": "Collectionne",
+   "text": "Cartes, sneakers, montres, voitures de luxe"
+  }
+ ],
+ "actus": {
+  "title": "Actualités",
+  "items": [
+   {
+    "bg": "/assets/img/club-piste.webp",
+    "bgPos": "50% 35%",
+    "pop": "/assets/img/clubp-lea.png",
+    "frame": "buste",
+    "chip": "Nouveau",
+    "color": "new",
+    "title": "Le Club ouvre ses portes",
+    "text": "Piste, bar, carré VIP, DJ et toilettes louches : des dialogues qui rapportent gros… ou te coûtent cher."
+   },
+   {
+    "bg": "/assets/img/bg-city-neon.jpg",
+    "bgPos": "50% 40%",
+    "pop": "/assets/img/skin-flambeur.png",
+    "frame": "pied",
+    "chip": "Nouveau",
+    "color": "new",
+    "title": "Le Lucky Palace relooké",
+    "text": "Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous fait peau neuve."
+   },
+   {
+    "bg": "/assets/img/club-vip.jpg",
+    "bgPos": "50% 40%",
+    "pop": "/assets/img/clubp-dj.png",
+    "frame": "buste",
+    "chip": "Nouveau",
+    "color": "new",
+    "title": "10 personnages au Club",
+    "text": "Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard."
+   },
+   {
+    "bg": "/assets/img/bg-city-or.jpg",
+    "bgPos": "50% 45%",
+    "pop": "/assets/img/skin-survet.png",
+    "frame": "pied",
+    "chip": "Bêta ouverte",
+    "color": "live",
+    "title": "Joue avant tout le monde",
+    "text": "Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages."
+   }
+  ]
+ },
+ "bientot": {
+  "title": "Prochainement",
+  "items": [
+   {
+    "img": "/assets/img/ev-cdm-bg.webp",
+    "alt": "La ville pendant la Coupe des Morts",
+    "imgPos": "50% 30%",
+    "chip": "Du 24 oct. au 2 nov.",
+    "color": "ev",
+    "start": "2026-10-24T10:00:00+02:00",
+    "end": "2026-11-02T23:59:00+01:00",
+    "title": "La Coupe des Morts",
+    "text": "L'événement d'Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives."
+   },
+   {
+    "img": "/assets/img/art-c-signed.webp",
+    "alt": "Une carte rare de la collection",
+    "imgPos": "50% 30%",
+    "chip": "Seulement pendant la bêta",
+    "color": "live",
+    "start": "",
+    "end": "",
+    "title": "La collection Bêta",
+    "text": "Une série de cartes réservée à ceux qui jouent pendant la bêta. Elle ne sera plus jamais distribuée après la sortie."
+   },
+   {
+    "img": "/assets/img/load-1.jpg",
+    "alt": "Une joueuse envoie son avis depuis son téléphone",
+    "imgPos": "50% 22%",
+    "chip": "Bientôt",
+    "color": "soon",
+    "start": "",
+    "end": "",
+    "title": "Ton avis rapporte",
+    "text": "Chaque retour utile sur une fonctionnalité te rapporte des lingots et des boosters. Il s'envoie depuis les Réglages du jeu."
+   },
+   {
+    "img": "/assets/img/load-2.jpg",
+    "alt": "Le Survêt joue sur son téléphone",
+    "imgPos": "50% 38%",
+    "chip": "Bientôt",
+    "color": "soon",
+    "start": "",
+    "end": "",
+    "title": "Sur l'App Store et Google Play",
+    "text": "Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra."
+   }
+  ]
+ },
+ "age": "Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels."
+}

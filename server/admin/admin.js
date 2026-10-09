@@ -170,6 +170,7 @@
     { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
     { id: 'support', label: 'SAV et avis bêta', icon: 'app-msg', badge: 'nb-sav' },
     { id: 'promos', label: 'Promos', icon: 'ic-promo' },
+    { id: 'landing', label: 'Landing biffcity.fr', icon: 'nav-city' },
     { id: 'items', label: 'Objets du jeu', icon: 'app-objets' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
