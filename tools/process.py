@@ -76,7 +76,7 @@ def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
 
 # hauteur gardée (fraction de la silhouette, depuis le haut) pour couper chaque perso du Club à mi-cuisse
 # persos du Club : hauteur des yeux et du menton, mesurées sur l'original ramené à 600 px de haut (règle tracée à la main)
-CLUB_HEAD = {'clubp-danseuse': (146, 216), 'clubp-trader': (135, 192), 'clubp-dj': (105, 158), 'clubp-boss': (84, 129), 'clubp-louche': (80, 136)}
+CLUB_HEAD = {'clubp-danseuse': (160, 228), 'clubp-trader': (130, 200), 'clubp-dj': (115, 182), 'clubp-boss': (82, 137), 'clubp-louche': (83, 138)}
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches

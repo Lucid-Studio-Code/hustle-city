@@ -3664,3 +3664,5 @@ html { background-color: #120c24; }
 #app .club-scene .csc-box { position: relative; left: auto; right: auto; bottom: auto; margin: 0 10px 10px; z-index: 2; flex: 0 0 auto; }
 #app .club-scene .csc-who { width: 160%; margin-left: -30%; margin-right: -30%; align-self: center; }   /* boîte plus large que l'écran : l'image est toujours calée sur la hauteur, même taille de tête pour tous */
 #app .club-scene .csc-who { flex: 0 0 auto; height: 64cqh; }   /* même hauteur quel que soit le nombre de choix sous le perso */
+/* les persos ne dépendent plus de la hauteur de la boîte : même place pour tous (la coupure reste cachée derrière la boîte) */
+#app .club-scene .csc-who { position: absolute; left: 50%; bottom: 6cqh; height: 82cqh; width: auto; max-width: none; margin: 0; transform: translateX(-50%); animation: cscIn .35s cubic-bezier(.3, 1.4, .5, 1); }
