@@ -91,7 +91,9 @@ main{max-width:780px;margin:0 auto;padding:6px 16px 40px}
 h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;text-shadow:0 3px 0 var(--ink)}
 .meta{color:#c9b8ee;font-size:14px;margin-bottom:18px}
 .hero{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border:4px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);background:#2a1a4a}
-.paper{margin-top:26px;background:#fffdf6;color:#3a2a1e;border:3px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);padding:26px clamp(18px,4vw,40px) 30px}
+.ticket{--n:10px;--g:32px;margin-top:26px;background:var(--ink);border-radius:25px;padding:3px 3px 9px;-webkit-mask:radial-gradient(circle var(--n) at 0 50%,#0000 97%,#000) 0 0/51% var(--g) repeat-y,radial-gradient(circle var(--n) at 100% 50%,#0000 97%,#000) 100% 0/51% var(--g) repeat-y;mask:radial-gradient(circle var(--n) at 0 50%,#0000 97%,#000) 0 0/51% var(--g) repeat-y,radial-gradient(circle var(--n) at 100% 50%,#0000 97%,#000) 100% 0/51% var(--g) repeat-y}
+.paper{background:#fffdf6;color:#3a2a1e;border-radius:22px;padding:26px clamp(26px,5vw,48px) 30px;-webkit-mask:radial-gradient(circle calc(var(--n) + 3px) at -3px 50%,#0000 97%,#000) 0 -3px/51% var(--g) repeat-y,radial-gradient(circle calc(var(--n) + 3px) at calc(100% + 3px) 50%,#0000 97%,#000) 100% -3px/51% var(--g) repeat-y;mask:radial-gradient(circle calc(var(--n) + 3px) at -3px 50%,#0000 97%,#000) 0 -3px/51% var(--g) repeat-y,radial-gradient(circle calc(var(--n) + 3px) at calc(100% + 3px) 50%,#0000 97%,#000) 100% -3px/51% var(--g) repeat-y}
+.perf{height:0;margin:22px -60px 4px;border-top:3px dashed #d9c4a2}
 .lead{font-size:19px;font-weight:800;color:var(--ink);margin-top:0}
 .paper h2{font:400 clamp(24px,4.6vw,30px)/1.15 'Lilita One',sans-serif;color:var(--ink);margin:30px 0 8px}
 .paper h3{font:400 21px/1.2 'Lilita One',sans-serif;color:var(--ink);margin:22px 0 6px}
@@ -113,7 +115,7 @@ h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;
 .card small{display:block;margin-top:auto;padding-top:12px;font-weight:800;color:#b4127a}
 .list{max-width:1080px}.list .intro{text-align:center;color:#e6dcff;max-width:640px;margin:0 auto 24px}
 footer{text-align:center;font-size:13px;color:#b9a8d9;padding:10px 16px 30px}
-@media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.paper{border-radius:20px}}`;
+@media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.ticket{--n:8px;--g:26px;border-radius:21px}.paper{border-radius:18px}}`;
 
 const HIT = slug => `<script>
 (function(){var q=new URLSearchParams(location.search),d={src:q.get('utm_source')||q.get('src')||'${slug}',ref:document.referrer?new URL(document.referrer).hostname:'',m:/Mobi|Android|iPhone/i.test(navigator.userAgent)?1:0};
@@ -169,11 +171,11 @@ function renderArticle(content, s) {
 <h1>${esc(a.h1 || a.title)}</h1>
 <div class="meta">Publié le ${dateFr(a.date)} · ${min} min de lecture</div>
 <img class="hero" src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}">
-<div class="paper">
-<p class="lead">${esc(a.lead)}</p>
+<div class="ticket"><div class="paper">
+<p class="lead">${esc(a.lead)}</p><div class="perf"></div>
 ${html}
 <p class="age">Biff City est réservé aux plus de 18 ans. Tout l'argent du jeu est fictif : il ne s'achète pas pour parier et ne se retire jamais.</p>
-</div>
+</div></div>
 </article>
 </main>
 <section class="rel"><h2>À lire aussi</h2><div class="grid">${rel.map(cardOf).join('')}</div></section>`;
