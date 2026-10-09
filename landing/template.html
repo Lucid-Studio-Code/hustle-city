@@ -193,13 +193,14 @@ footer a { color: #fff; }
 })();
 </script>
 <script>
-// « Le jeu en images » : la carte au centre passe au premier plan ; on démarre sur la 2e pour montrer qu'on peut défiler des deux côtés
+// « Le jeu en images » : la carte au centre passe au premier plan
 (function () {
   var r = document.querySelector('.shots'); if (!r) return; var c = r.children;
   function mark() { var mid = r.scrollLeft + r.clientWidth / 2, best = 0, d = 1e9; [].forEach.call(c, function (e, i) { var x = Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid); if (x < d) { d = x; best = i; } }); [].forEach.call(c, function (e, i) { e.classList.toggle('on', i === best); }); }
   r.addEventListener('scroll', function () { requestAnimationFrame(mark); }, { passive: true });
   [].forEach.call(c, function (e) { e.addEventListener('click', function (ev) { if (!e.classList.contains('on')) { ev.preventDefault(); r.scrollTo({ left: e.offsetLeft + e.offsetWidth / 2 - r.clientWidth / 2, behavior: 'smooth' }); } }); });
-  if (c[1]) r.scrollLeft = c[1].offsetLeft + c[1].offsetWidth / 2 - r.clientWidth / 2; mark();
+  var mid = c[Math.floor(c.length / 2)]; function center() { if (mid) r.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - r.clientWidth / 2; mark(); }
+  center(); window.addEventListener('load', center);   // départ sur la carte du milieu : autant de cartes de chaque côté
 })();
 </script>
 <script>
