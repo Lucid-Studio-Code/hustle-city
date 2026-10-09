@@ -647,3 +647,21 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .pm-pick small .cur, .pm-pick small .lgt { vertical-align: -2px; }
 .pm-offer .pm-emo { font-size: 20px; line-height: 26px; height: 26px; }
 .pm-ha .pm-emo { font-size: 44px; line-height: 64px; height: 64px; }
+/* carte « La vitrine biffcity.fr » */
+.lp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 10px 0 16px; }
+.lp-stats > div { padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+.lp-stats b { display: block; font: 400 30px/1 'Lilita One', sans-serif; color: #fff; }
+.lp-stats span { display: block; margin-top: 4px; font: 700 13px/1.2 'Nunito', sans-serif; color: #b9a8d9; }
+.lp-stats .hl { background: rgba(61,220,132,.12); border-color: rgba(61,220,132,.35); } .lp-stats .hl b { color: #3ddc84; }
+.lp-days { display: flex; align-items: flex-end; gap: 6px; height: 120px; padding: 0 2px; }
+.lp-days > div { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.lp-days i { position: relative; width: 100%; max-width: 34px; min-height: 2px; border-radius: 6px 6px 2px 2px; background: #6b5bd6; display: flex; align-items: flex-end; overflow: hidden; }
+.lp-days em { width: 100%; background: #3ddc84; }
+.lp-days small { font: 700 10px 'Nunito', sans-serif; color: #8f80b3; white-space: nowrap; }
+.lp-leg { display: flex; gap: 14px; margin: 8px 0 14px; font: 700 12px 'Nunito', sans-serif; color: #b9a8d9; } .lp-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; } .lp-leg .v { background: #6b5bd6; } .lp-leg .b { background: #3ddc84; }
+.lp-src-h { margin: 4px 0 8px; font: 400 16px 'Lilita One', sans-serif; color: #fff; }
+.lp-src { display: grid; grid-template-columns: 120px 1fr 48px 90px; align-items: center; gap: 10px; padding: 6px 0; font: 700 14px 'Nunito', sans-serif; color: #fff; border-top: 1px solid rgba(255,255,255,.06); }
+.lp-src .bar { height: 10px; border-radius: 5px; background: rgba(255,255,255,.06); overflow: hidden; } .lp-src .bar i { display: block; height: 100%; background: #ffd23f; border-radius: 5px; }
+.lp-src .v { text-align: right; } .lp-src .c { color: #3ddc84; font-size: 12px; text-align: right; }
+.lp-tip { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255,210,63,.08); font: 700 12.5px/1.4 'Nunito', sans-serif; color: #e8dcff; } .lp-tip b { color: #ffd23f; }
+@media (max-width: 700px) { .lp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lp-src { grid-template-columns: 90px 1fr 36px 72px; } }

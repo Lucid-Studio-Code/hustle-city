@@ -255,13 +255,26 @@
       </div>
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('hdr-levelup')}Jusqu'où ils montent<small><a href="#page=stats&s=progression">détails</a></small></div>${funnelHtml(o.funnel)}</div>
+      </div>
+      <div class="grid" style="margin-top:16px">
         <div class="card" id="lp-card"><div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>visites et clics vers la bêta</small></div><p class="muted">Chargement…</p></div>
       </div>`);
     // vitrine : visites, part mobile, clics « Jouer à la bêta », d'où viennent les visiteurs (TikTok, Instagram…)
     HC.api('/admin/api/lp?days=' + HC.period).then(L => { const c = document.getElementById('lp-card'); if (!c) return; const pc = (a, b) => b ? Math.round(a / b * 100) + ' %' : '—';
-      c.innerHTML = `<div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>${L.days} derniers jours</small></div>
-        <div class="kpis k4" style="margin:6px 0 10px">${HC.kpi(null, fmt(L.views), 'visites')}${HC.kpi(null, fmt(L.beta), 'clics « Jouer »')}${HC.kpi(null, pc(L.beta, L.views), 'des visiteurs cliquent')}${HC.kpi(null, pc(L.mobile, L.views), 'sur téléphone')}</div>
-        ${L.sources.length ? `<table class="tbl"><tr><th>Provenance</th><th>Visites</th><th>Clics</th></tr>${L.sources.map(r => `<tr><td>${esc(r.s)}</td><td>${fmt(r.views)}</td><td>${fmt(r.beta)}</td></tr>`).join('')}</table>` : '<p class="muted">Aucune visite pour l\'instant.</p>'}`; }).catch(() => {});
+      const by = L.byDay || [], mx = Math.max(1, ...by.map(d => d.views)), src = L.sources || [], smx = Math.max(1, ...src.map(r => r.views));
+      const label = x => ({ direct: 'Accès direct', tiktok: 'TikTok', insta: 'Instagram', instagram: 'Instagram', 'l.instagram.com': 'Instagram', 'www.tiktok.com': 'TikTok', 'www.google.com': 'Google', 'www.google.fr': 'Google' })[x] || x;
+      c.innerHTML = `<div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>${L.days} derniers jours · <a href="https://biffcity.fr" target="_blank">ouvrir</a></small></div>
+        <div class="lp-stats">
+          <div><b>${fmt(L.views)}</b><span>visites</span></div>
+          <div><b>${fmt(L.beta)}</b><span>clics « Jouer »</span></div>
+          <div class="hl"><b>${pc(L.beta, L.views)}</b><span>passent à la bêta</span></div>
+          <div><b>${pc(L.mobile, L.views)}</b><span>sur téléphone</span></div>
+        </div>
+        ${by.length ? `<div class="lp-days">${by.map(d => `<div title="${d.d} : ${d.views} visites, ${d.beta} clics"><i style="height:${Math.round(d.views / mx * 100)}%"><em style="height:${d.views ? Math.round(d.beta / d.views * 100) : 0}%"></em></i><small>${d.d.slice(8)}/${d.d.slice(5, 7)}</small></div>`).join('')}</div>
+          <div class="lp-leg"><span><i class="v"></i>visites</span><span><i class="b"></i>dont clics « Jouer »</span></div>` : ''}
+        <div class="lp-src-h">D'où viennent les visiteurs</div>
+        ${src.length ? src.map(r => `<div class="lp-src"><span class="n">${esc(label(r.s))}</span><span class="bar"><i style="width:${Math.round(r.views / smx * 100)}%"></i></span><span class="v">${fmt(r.views)}</span><span class="c">${pc(r.beta, r.views)} jouent</span></div>`).join('') : '<p class="muted">Aucune visite pour l\'instant.</p>'}
+        <p class="lp-tip">Astuce : mets <b>biffcity.fr/?src=tiktok</b> dans ta bio TikTok (et <b>?src=insta</b> sur Instagram) pour voir ici combien de visiteurs viennent de chaque réseau.</p>`; }).catch(() => {});
     const lab = s.map(x => dlabel(x.d));
     const ch = HC.chart('c-dau', { type: 'bar', data: { labels: lab, datasets: [
       { type: 'line', label: 'Joueurs actifs', data: s.map(x => x.dau), borderColor: HC.COL.yellow, borderWidth: 3, tension: .35, pointRadius: 0, pointHoverRadius: 5, fill: true, backgroundColor: c => grad(c.chart.ctx, HC.COL.yellow), order: 1 },
