@@ -2,6 +2,7 @@
 // Utilisé par server/server.js (page servie et aperçu du back office) et par tools/landing.js (landing/index.html pour les tests en local).
 'use strict';
 const fs = require('fs'), path = require('path');
+const FRAMES = JSON.parse(fs.readFileSync(path.join(__dirname, 'frames.json'), 'utf8'));   // crâne et menton de chaque personnage (fractions de la hauteur de l'image)
 const TPL = path.join(__dirname, 'template.html'), DEF = path.join(__dirname, 'content.json');
 const COLORS = ['new', 'live', 'ev', 'soon'], IMG_RE = /^\/(assets\/img|media)\/[\w.-]+\.(png|jpe?g|webp)$/, POS_RE = /^\d{1,3}% \d{1,3}%$/;
 
@@ -33,11 +34,18 @@ function clean(c) {
   };
 }
 
+// une image envoyée (sans mesure) est traitée comme un perso du Club : tête vers le haut de l'image
+function popImg(u) {
+  let n = (u.match(/\/([\w-]+)\.\w+$/) || [])[1];
+  if (/-bust$/.test(n) && FRAMES[n.replace(/-bust$/, '')]) { n = n.replace(/-bust$/, ''); u = `/assets/img/${n}.png`; }   // un buste s'arrêterait au milieu de la carte : on prend le perso entier
+  const f = FRAMES[n] || [.16, .39], h = f[1] - f[0];
+  return `<div class="bn-popw"><img class="bn-pop" src="${esc(u)}" alt="" loading="lazy" style="--hf:${(1 / h).toFixed(4)};--cf:${(f[0] / h).toFixed(4)}"></div>`;
+}
 function render(content) {
   const c = clean(content || defaults());
   const val = k => k.split('.').reduce((o, p) => o == null ? '' : o[p], c), art = sl => sl && c.articles.some(a => a.slug === sl);
   const feats = c.feats.map(f => `    <div class="feat"><img src="${esc(f.img)}" alt=""><b>${esc(f.title)}</b><small>${esc(f.text)}</small></div>`).join('\n');
-  const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" style="background-image:url(${esc(x.bg)});background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? `<img class="bn-pop ${x.frame === 'pied' ? 'skin' : 'perso'}" src="${esc(x.pop)}" alt="" loading="lazy">` : ''}</article>`).join('');
+  const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" style="background-image:url(${esc(x.bg)});background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? popImg(x.pop) : ''}</article>`).join('');
   const cards = c.bientot.items.map(x => `      <article class="nc"><div class="ni"><img src="${esc(x.img)}" alt="${esc(x.alt)}" style="object-position:${esc(x.imgPos)}"></div><div class="nt">${x.chip ? `<span class="chip ${x.color}"${x.start && x.end ? ` data-cd="${esc(x.start)}" data-end="${esc(x.end)}"` : ''}>${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="nc-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></article>`).join('\n');
   return fs.readFileSync(TPL, 'utf8')
     .replace('<!--@feats-->', () => feats).replace('<!--@actus-->', () => actus).replace('<!--@bientot-->', () => cards)
