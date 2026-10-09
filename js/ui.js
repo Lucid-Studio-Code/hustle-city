@@ -1600,7 +1600,7 @@
   }
   // dans le Club (salle et scènes) : plein écran comme l'appart, sans cadre de fenêtre ; à la porte, fenêtre normale
   function clubFrame() {
-    const m = $('#modal'), on = !!(m && m.querySelector('.sheet.th-club') && m.querySelector('.club-full, .club-door')); if (m) m.classList.toggle('club-fs', on);
+    const m = $('#modal'), on = !!(m && m.querySelector('.sheet.th-club') && m.querySelector('.club-full')); if (m) m.classList.toggle('club-fs', on);
     // le bouton Appart devient Ville dans le Club (comme dans l'appart)
     const btn = $('#btn-scene'); if (!btn) return; const want = on ? 'Ville' : scene === 'city' ? 'Appart' : 'Ville';
     if (btn.dataset.lbl !== want) { btn.dataset.lbl = want; btn.querySelector('b').textContent = want; const i = btn.querySelector('.ic'); if (i) i.outerHTML = ic(want === 'Ville' ? 'city' : 'home'); }
