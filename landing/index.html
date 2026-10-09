@@ -62,6 +62,25 @@ footer a { color: #fff; }
 .nt p { margin: 0; font: 700 14px/1.4 'Nunito', sans-serif; color: #5a4030; }
 .chip { display: inline-block; padding: 3px 10px 4px; border: 2px solid var(--ink); border-radius: 999px; font: 400 13px 'Lilita One', sans-serif; color: #fff; text-shadow: 0 1px 0 var(--ink); }
 .chip.new { background: var(--pink); } .chip.live { background: #3fae2e; } .chip.ev { background: #e8743a; } .chip.soon { background: #6b5bd6; }
+.news { width: 100vw; margin: 46px calc(50% - 50vw) 0; text-align: left; overflow: hidden; padding: 44px 0 30px; }
+.news h2 { margin: 0 0 6px; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
+.band { position: relative; transform: rotate(-2.5deg); margin: 90px -20px 0; background: linear-gradient(100deg, #ff3cac, #9b5de5 50%, #ff8a3c); border-top: 4px solid var(--ink); border-bottom: 4px solid var(--ink); box-shadow: 0 8px 0 var(--ink), 0 20px 50px rgba(255,60,172,.35); }
+.band::before, .band::after { content: ''; position: absolute; left: 0; right: 0; height: 8px; background: repeating-linear-gradient(90deg, #ffd23f 0 18px, transparent 18px 36px); } .band::before { top: 6px; } .band::after { bottom: 6px; }
+.track { display: flex; width: max-content; animation: defile 38s linear infinite; }
+.band:hover .track, .band:active .track { animation-play-state: paused; }
+@keyframes defile { to { transform: translateX(-50%); } }
+.ns { position: relative; display: flex; align-items: center; gap: 14px; width: min(80vw, 460px); flex: 0 0 auto; margin: 0 18px; padding: 22px 16px 22px 160px; }
+.ns img { position: absolute; left: 0; bottom: -4px; height: 250px; width: 160px; object-fit: contain; object-position: bottom; transition: transform .25s; }
+.ns::before { content: ''; position: absolute; left: 10px; bottom: 10px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, rgba(255,230,120,.55), transparent 68%); }
+.ns img.pop-obj { height: 150px; bottom: 40px; transform: rotate(-8deg); animation: flotte 3s ease-in-out infinite; }
+.ns:nth-child(even) img.pop-obj { animation-delay: -1.5s; }
+@keyframes flotte { 50% { transform: rotate(-4deg) translateY(-8px); } }
+.ns:hover img { transform: scale(1.08) rotate(-3deg); }
+.ns > div { background: rgba(255,253,246,.96); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 10px 14px 12px; box-shadow: 0 5px 0 var(--ink); }
+.ns b { display: block; margin: 5px 0 3px; font: 400 19px/1.1 'Lilita One', sans-serif; }
+.ns p { margin: 0; font: 700 13px/1.35 'Nunito', sans-serif; color: #5a4030; }
+@media (max-width: 520px) { .band { margin-top: 70px; } .ns { padding-left: 122px; } .ns img { width: 124px; height: 200px; } .ns img.pop-obj { height: 112px; bottom: 50px; } .ns b { font-size: 17px; } }
+@media (prefers-reduced-motion: reduce) { .track { animation-duration: 120s; } .ns img.pop-obj { animation: none; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
 @media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } .cast { height: 112px; } }
 @media (min-width: 900px) {
@@ -94,20 +113,16 @@ footer a { color: #fff; }
   <div class="cast" aria-hidden="true">
     <img src="/assets/img/skin-doudoune.png" alt=""><img src="/assets/img/skin-flambeur.png" alt=""><img src="/assets/img/skin-sportive.png" alt=""><img src="/assets/img/skin-survet.png" alt=""><img src="/assets/img/skin-boss.png" alt=""><img src="/assets/img/skin-hoodie.png" alt=""><img src="/assets/img/skin-gold.png" alt="">
   </div>
-  <section class="blk" id="actus">
+  <section class="news" id="actus" aria-label="Actualités">
     <h2>Actualités</h2>
-    <div class="cards">
-      <article class="nc"><div class="ni"><img src="/assets/img/club-salle.webp" alt="La salle du Club"></div><div class="nt"><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : 10 personnages, 2 actions par soirée, des dialogues qui rapportent gros… ou te coûtent cher.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/slot-seven.webp" alt="Le 7 de la machine à sous" class="contain"></div><div class="nt"><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous a eu droit à une vraie mise à jour.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/booster-pack.webp" alt="Un booster de cartes" class="contain"></div><div class="nt"><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>La bêta est gratuite, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages du jeu.</p></div></article>
-    </div>
+    <div class="band"><div class="track"><article class="ns"><img class="pop-perso" src="/assets/img/clubp-lea.png" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : 10 personnages et des dialogues qui rapportent gros… ou te coûtent cher.</p></div></article><article class="ns"><img class="pop-obj" src="/assets/img/slot-seven.webp" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous a eu sa vraie mise à jour.</p></div></article><article class="ns"><img class="pop-obj" src="/assets/img/booster-pack.webp" alt="" loading="lazy"><div><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.</p></div></article><article class="ns"><img class="pop-perso" src="/assets/img/clubp-dj.png" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>10 personnages au Club</b><p>Kenza, Léa, DJ Nyx, le Baron… chaque soirée, qui est là change au hasard.</p></div></article><article class="ns" aria-hidden="true"><img class="pop-perso" src="/assets/img/clubp-lea.png" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : 10 personnages et des dialogues qui rapportent gros… ou te coûtent cher.</p></div></article><article class="ns" aria-hidden="true"><img class="pop-obj" src="/assets/img/slot-seven.webp" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous a eu sa vraie mise à jour.</p></div></article><article class="ns" aria-hidden="true"><img class="pop-obj" src="/assets/img/booster-pack.webp" alt="" loading="lazy"><div><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.</p></div></article><article class="ns" aria-hidden="true"><img class="pop-perso" src="/assets/img/clubp-dj.png" alt="" loading="lazy"><div><span class="chip new">Nouveau</span><b>10 personnages au Club</b><p>Kenza, Léa, DJ Nyx, le Baron… chaque soirée, qui est là change au hasard.</p></div></article></div></div>
   </section>
   <section class="blk" id="bientot">
     <h2>Prochainement</h2>
     <div class="cards">
-      <article class="nc"><div class="ni"><img src="/assets/img/ev-cdm-cup.png" alt="La coupe de la Coupe des Morts" class="contain"></div><div class="nt"><span class="chip ev" data-cd="2026-10-24T10:00:00+02:00" data-end="2026-11-02T23:59:00+01:00">Du 24 oct. au 2 nov.</span><b>La Coupe des Morts</b><p>L'événement d'Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/bld-six.png" alt="Le panneau du Tournoi des 6 Quartiers" class="contain"></div><div class="nt"><span class="chip soon">Février 2027</span><b>Le Tournoi des 6 Quartiers</b><p>Le grand tournoi de rugby de la ville : pronostics, classement en ligne et une série de cartes dédiée.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/skin-survet-bust.png" alt="La mascotte de Biff City" class="contain"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Sur l'App Store et Google Play</b><p>Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.</p></div></article>
+      <article class="nc"><div class="ni"><img src="/assets/img/ev-cdm-bg.webp" alt="La ville pendant la Coupe des Morts" style="object-position:50% 30%"></div><div class="nt"><span class="chip ev" data-cd="2026-10-24T10:00:00+02:00" data-end="2026-11-02T23:59:00+01:00">Du 24 oct. au 2 nov.</span><b>La Coupe des Morts</b><p>L'événement d'Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives.</p></div></article>
+      <article class="nc"><div class="ni"><img src="/assets/img/card-bg-rugby.jpg" alt="Le stade du Tournoi des 6 Quartiers" style="object-position:50% 40%"></div><div class="nt"><span class="chip soon">Février 2027</span><b>Le Tournoi des 6 Quartiers</b><p>Le grand tournoi de rugby de la ville : pronostics, classement en ligne et une série de cartes dédiée.</p></div></article>
+      <article class="nc"><div class="ni"><img src="/assets/img/load-2.jpg" alt="Le Survêt joue sur son téléphone" style="object-position:50% 38%"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Sur l'App Store et Google Play</b><p>Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.</p></div></article>
     </div>
   </section>
   <div class="age"><b>18+</b> Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.</div>
