@@ -109,8 +109,8 @@ h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;
 .card{display:flex;flex-direction:column;background:#fffdf6;color:var(--ink);border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink);overflow:hidden;text-decoration:none;transition:transform .15s}
 .card:hover{transform:translateY(-3px)}
 .card img{width:100%;aspect-ratio:16/9;object-fit:cover;border-bottom:3px solid var(--ink)}
-.card div{padding:12px 14px 16px}.card b{display:block;font:400 20px/1.15 'Lilita One',sans-serif}.card p{margin:6px 0 0;font-size:14px;line-height:1.45;color:#5a4030}
-.card small{display:block;margin-top:10px;font-weight:800;color:#b4127a}
+.card div{padding:12px 14px 16px;display:flex;flex-direction:column;flex:1}.card time{font-size:12.5px;font-weight:800;color:#8a6a50;margin-bottom:4px}.card b{display:block;font:400 20px/1.15 'Lilita One',sans-serif}.card p{margin:6px 0 0;font-size:14px;line-height:1.45;color:#5a4030}
+.card small{display:block;margin-top:auto;padding-top:12px;font-weight:800;color:#b4127a}
 .list{max-width:1080px}.list .intro{text-align:center;color:#e6dcff;max-width:640px;margin:0 auto 24px}
 footer{text-align:center;font-size:13px;color:#b9a8d9;padding:10px 16px 30px}
 @media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.cta-box{flex-direction:column;text-align:center}.cta-box img{margin:-40px 0 0}.paper{border-radius:20px}}`;
@@ -147,7 +147,7 @@ ${HIT(slug)}
 </body>
 </html>`;
 }
-const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>En savoir plus</small></div></a>`;
+const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><time datetime="${a.date}">${dateFr(a.date)}</time><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>En savoir plus</small></div></a>`;
 
 function renderArticle(content, s) {
   const c = clean(content || defaults()), a = c.articles.find(x => x.slug === s); if (!a) return null;
