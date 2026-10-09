@@ -3612,3 +3612,8 @@ html { background-color: #120c24; }
 #pack[data-best=R] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 18px #4fb3f0); }
 #pack[data-best=E] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 22px #b06bff); }
 #pack[data-best=L] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 28px #ffd23f) drop-shadow(0 0 10px #fff); }
+#cardzoom .cz-card { touch-action: none; }
+/* la fenêtre d'en dessous, figée, reste visible derrière une petite fenêtre (elle ne réagit pas aux touches) */
+#modal.modal-under { z-index: 49; pointer-events: none; }
+#modal.modal-under * { pointer-events: none !important; }
+#modal.modal-under .sheet-close { visibility: hidden; }

@@ -194,6 +194,14 @@
   function openModal(args) {
     const { title, icon, body, tabs, tab, full, center, onClose, refresh, onTab, theme } = args; modalArgs = args;
     const m = $('#modal');
+    // une petite fenêtre (fiche d'objet, confirmation…) s'ouvre PAR-DESSUS la pièce où l'on est (parking, appart, collection…) :
+    // on garde une image figée de la fenêtre d'en dessous, au lieu de laisser voir la ville
+    { const under = document.querySelector('.modal-under');
+      if (center && !m.classList.contains('hidden') && m.innerHTML) {
+        // même identifiant que la vraie fenêtre (pour garder exactement son style), placée APRÈS elle : le jeu vise toujours la vraie
+        const u = under || document.createElement('div'); u.id = 'modal'; u.className = m.className + ' modal-under'; u.setAttribute('aria-hidden', 'true'); u.innerHTML = m.innerHTML;
+        const y = (m.querySelector('.sheet-body') || {}).scrollTop || 0; if (!under) m.after(u); const ub = u.querySelector('.sheet-body'); if (ub) ub.scrollTop = y;
+      } else if (under && !center) under.remove(); }
     m.className = full ? 'full' : '';
     m.innerHTML = `<div class="sheet ${center ? 'center' : ''} ${theme ? 'th-' + theme : ''}">
       <div class="sheet-head">${icon ? ic(icon) : ''}<span>${title}</span><button class="sheet-close" data-act="closeModal" aria-label="Fermer">×</button></div>
@@ -216,7 +224,7 @@
   }
   let liveTick = false;   // rafraîchissement automatique (chaque seconde) : on ne touche que ce qui change, sinon l'écran clignote sur Android
   function setBody(html) { const b = $('#modal .sheet-body'); if (b) { const y = b.scrollTop; if (liveTick) morph(b, html); else b.innerHTML = html; b.scrollTop = y; } }
-  function closeModal() { const m = $('#modal'); if (!m.classList.contains('hidden')) { sfx.close(); setTimeout(() => { if (!modalOpen()) musicMood(); }, 0); } m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) nextPending(); }, 250); }
+  function closeModal() { const m = $('#modal'); const mu = document.querySelector('.modal-under'); if (mu && !(modalClose)) mu.remove(); if (!m.classList.contains('hidden')) { sfx.close(); setTimeout(() => { if (!modalOpen()) musicMood(); }, 0); } m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) { const mu = document.querySelector('.modal-under'); if (mu) mu.remove(); nextPending(); } }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
   function dialog(who, text, btn = 'OK', cb) {
@@ -2433,14 +2441,22 @@
     el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
-    el.onpointermove = e => {
-      const r = card.getBoundingClientRect(), cl = v => Math.max(-.5, Math.min(.5, v)), x = cl((e.clientX - r.left) / r.width - .5), y = cl((e.clientY - r.top) / r.height - .5);   // doigt hors de la carte : on reste au bord (sinon le reflet se coupait)
-      card.classList.add('touched'); card.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 22).toFixed(1)}deg)`;
-      card.style.setProperty('--hx', `${((x + .5) * 100).toFixed(0)}%`); card.style.setProperty('--hy', `${((y + .5) * 100).toFixed(0)}%`);
+    const cl = v => Math.max(-.5, Math.min(.5, v));
+    const tilt = (x, y) => { card.classList.add('touched'); card.style.transform = `rotateY(${(x * 22).toFixed(1)}deg) rotateX(${(-y * 22).toFixed(1)}deg)`;
+      card.style.setProperty('--hx', `${((x + .5) * 100).toFixed(0)}%`); card.style.setProperty('--hy', `${((y + .5) * 100).toFixed(0)}%`); };
+    let touching = false;
+    el.onpointerdown = () => { touching = true; }; el.onpointerup = el.onpointercancel = () => { touching = false; };
+    el.onpointermove = e => {   // souris, ou doigt qui glisse sur la carte (l'écran ne défile plus pendant ce temps)
+      const r = card.getBoundingClientRect(); tilt(cl((e.clientX - r.left) / r.width - .5), cl((e.clientY - r.top) / r.height - .5));   // doigt hors de la carte : on reste au bord
     };
+    // téléphone : la carte penche quand on incline l'appareil (iPhone : autorisation demandée une fois, dans ce toucher)
+    let base = null; czOri = e => { if (touching || e.beta == null || e.gamma == null) return; if (!base) base = { b: e.beta, g: e.gamma }; tilt(cl((e.gamma - base.g) / 40), cl((e.beta - base.b) / 40)); };
+    const listen = () => window.addEventListener('deviceorientation', czOri);
+    try { if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') listen(); }).catch(() => {}); else if ('ontouchstart' in window) listen(); } catch (e) {}
     el.onclick = e => { if (e.target === el) closeZoom(); };
   }
-  function closeZoom() { const el = $('#cardzoom'); if (el) { el.className = ''; el.innerHTML = ''; } }
+  let czOri = null;
+  function closeZoom() { if (czOri) { window.removeEventListener('deviceorientation', czOri); czOri = null; } const el = $('#cardzoom'); if (el) { el.className = ''; el.innerHTML = ''; } }
   // ouverture comme à la main : le paquet tremble et s'ouvre, les cartes forment une pile ; touche = retourner, touche encore = la suivante
   function packOpening(cards) {
     let el = $('#pack'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="pack"></div>'); el = $('#pack'); }
