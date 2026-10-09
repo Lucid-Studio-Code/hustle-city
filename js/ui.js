@@ -1048,7 +1048,7 @@
     if (A_.offer()) return `<button class="obj-bubble hot" data-act="agence"><span><b>${ico('app-msg', '📩')} Elle hésite à partir</b><small>Touche vite</small></span></button>`;
     const p = A_.pending(), me = (D.SKINS.find(k => k.id === st().skin) || D.SKINS[0]).g === 'f';
     if (!st().agence || !st().agence.crew.length) return `<button class="obj-bubble" data-act="agence"><span><small>PrivéFans</small><b>${me ? 'Lance ta page' : 'Ouvre ton agence'}</b></span></button>`;
-    return `<button class="obj-bubble ${p >= 1 ? 'up' : ''}" data-act="agence"><span><small>PrivéFans</small><b>${p >= 1 ? `+${short(p)} à encaisser` : 'Ouvrir'}</b></span></button>`;
+    return `<button class="obj-bubble ${p >= 1 ? 'up' : ''}" data-act="agence"><span><small>${p >= 1 ? 'PrivéFans · à encaisser' : 'PrivéFans'}</small><b>${p >= 1 ? `+${short(p)}` : 'Ouvrir'}</b></span></button>`;
   }
   const BUBBLE_GAP = 1.2;   // écart (en % de la hauteur de la chambre) entre le haut de l'objet et la pointe de sa bulle
   window.addEventListener('resize', () => placeBubbles());
@@ -1079,6 +1079,7 @@
       }
       if (!moved) break;
     }
+    keepBubblesIn();
   }
   function renderAppart() {
     const s = st(), R = RP.on ? RP.room : s.room, r = D.ROOMS[R], el = $('#scene-appart');
@@ -1122,6 +1123,15 @@
         <div class="rt-row"><div class="room-title stroke">${r.name} · ${Math.min(owned.length, r.slots)}/${r.slots} places</div><button class="help-pin" data-act="roomHelp" aria-label="Comment ça marche ?">?</button></div>
       </div>`);
     placeBubbles(); el.querySelectorAll('img').forEach(i => { if (!i.complete) i.addEventListener('load', placeBubbles, { once: true }); });
+  }
+  // dernière règle : une bulle ne sort jamais de l'écran (on la décale vers l'intérieur, la pointe reste au-dessus de l'objet)
+  function keepBubblesIn() {
+    const sc = $('#scene-appart'); if (!sc) return; const W = sc.getBoundingClientRect();
+    sc.querySelectorAll('.bubble-at .obj-bubble').forEach(o => {
+      o.style.marginLeft = ''; const r = o.getBoundingClientRect(); if (!r.width) return;
+      const dx = r.right > W.right - 8 ? W.right - 8 - r.right : r.left < W.left + 8 ? W.left + 8 - r.left : 0;
+      if (dx) o.style.marginLeft = Math.round(dx * 2) + 'px';
+    });
   }
   function openRoomHelp() {
     openModal({ title: 'Ton appart', icon: 'home', center: true, body: `
