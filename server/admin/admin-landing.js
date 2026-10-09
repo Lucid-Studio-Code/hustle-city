@@ -16,7 +16,7 @@
     ['persos', 'Personnages', n => /^(skin-|clubp-|cr-[a-z]+$|player-|guide$)/.test(n)],
     ['icones', 'Icônes et objets', n => true]
   ];
-  let lpFiles = [], mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
+  let base = '', lpFiles = [], mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
 
   const dirty = () => JSON.stringify(C) !== saved;
   const at = (path, v) => { const k = path.split('.'); let o = C; while (k.length > 1) o = o[k.shift()]; if (v === undefined) return o[k[0]]; o[k[0]] = v; };
@@ -202,8 +202,8 @@
   }
 
   // ------------------------------------------------------------ les pages
-  async function load() { if (!C || !dirty()) { const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; lpFiles = r.lp || []; saved = JSON.stringify(C); } }
-  async function publish(msg) { const r = await HC.api('/admin/api/landing', { content: C }); C = r.content; saved = JSON.stringify(C); HC.toast(msg || 'Publié sur biffcity.fr', 'icon-lingot'); }
+  async function load() { if (!C || !dirty()) { const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; lpFiles = r.lp || []; base = r.at || ''; saved = JSON.stringify(C); } }
+  async function publish(msg) { const r = await HC.api('/admin/api/landing', { content: C, base }); C = r.content; saved = JSON.stringify(C); base = r.at || base; HC.toast(msg || 'Publié sur biffcity.fr', 'icon-lingot'); }
   const tools = () => `<div class="tools"><span class="lp-state" id="lp-state"></span><button class="btn ghost" id="lp-undo">Annuler les changements</button><button class="btn green" id="lp-pub">Publier</button></div>`;
 
   function mount(head, extra = '') {
@@ -251,7 +251,7 @@
     mount(`<div class="page-head"><div><h1>Landing</h1><div class="sub">La page d'accueil de <a href="https://biffcity.fr/" target="_blank" rel="noopener">biffcity.fr</a>. Les articles se modifient dans <a href="#page=blog">Blog</a>.</div></div>${tools()}</div>`, '<button class="lp-reset" id="lp-reset">Revenir au contenu d\'origine</button>');
     $('#lp-reset').onclick = async () => {
       if (!await HC.confirm('Revenir au contenu d\'origine ?', 'Tous les textes et images de la landing et des articles reprennent leur version de départ, et c\'est mis en ligne tout de suite.', 'Revenir à l\'origine', 'red')) return;
-      const r = await HC.api('/admin/api/landing', { reset: true }); C = r.content; saved = JSON.stringify(C); redraw(); HC.toast('Contenu d\'origine remis');
+      const r = await HC.api('/admin/api/landing', { reset: true }); C = r.content; saved = JSON.stringify(C); base = r.at || base; redraw(); HC.toast('Contenu d\'origine remis');
     };
   };
 

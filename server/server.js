@@ -652,13 +652,17 @@ const admin = {
   'GET /admin/api/landing'(req, res) {   // page « Landing » : le contenu + les images envoyées (la bibliothèque du jeu vient de /js/assets.js)
     let media = []; try { media = fs.readdirSync(UPLOADS).filter(n => MEDIA_RE.test(n)).map(n => ({ url: '/media/' + n, t: fs.statSync(path.join(UPLOADS, n)).mtimeMs })).sort((a, b) => b.t - a.t).map(m => m.url); } catch (e) {}
     let lp = []; try { lp = fs.readdirSync(path.join(ROOT, 'assets/lp')).filter(n => /^[\w-]+\.(webp|png|jpe?g)$/.test(n)).map(n => '/assets/lp/' + n); } catch (e) {}
-    send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media, lp });
+    const at = (q1("SELECT v FROM config WHERE k = 'landing_at'") || {}).v || '';
+    send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media, lp, at });
   },
   async 'POST /admin/api/landing-preview'(req, res) { const b = await body(req, 3e5); send(res, 200, { html: ((b.slug && LANDING.renderArticle(b.content, String(b.slug))) || LANDING.render(b.content)).replace(/<script(?![^>]*ld\+json)[^>]*>[\s\S]*?<\/script>/g, '') }); },   // aperçu sans scripts : ni mesure d'audience, ni blocage par la sécurité du back office
   async 'POST /admin/api/landing'(req, res) {   // publier : la vitrine change tout de suite
-    const b = await body(req, 3e5), c = b.reset ? LANDING.defaults() : LANDING.clean(b.content);
+    const b = await body(req, 3e5), at = (q1("SELECT v FROM config WHERE k = 'landing_at'") || {}).v || '';
+    if (b.base != null && at && String(b.base) !== at) return send(res, 409, { err: 'La landing a été modifiée ailleurs entre-temps (par Claude ou un autre onglet). Recharge la page pour repartir de la dernière version.' });   // jamais écraser une version plus récente
+    const c = b.reset ? LANDING.defaults() : LANDING.clean(b.content);
     run("INSERT INTO config (k, v) VALUES ('landing', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(c)); landingHtml = null;
-    log('landing', { reset: !!b.reset }); send(res, 200, { ok: true, content: c });
+    const nat = String(now()); run("INSERT INTO config (k, v) VALUES ('landing_at', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", nat);
+    log('landing', { reset: !!b.reset }); send(res, 200, { ok: true, content: c, at: nat });
   },
   'GET /admin/api/events'(req, res, u) {
     const type = u.searchParams.get('type'), before = +u.searchParams.get('before') || 0;
