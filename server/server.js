@@ -652,7 +652,7 @@ const admin = {
     let media = []; try { media = fs.readdirSync(UPLOADS).filter(n => MEDIA_RE.test(n)).map(n => ({ url: '/media/' + n, t: fs.statSync(path.join(UPLOADS, n)).mtimeMs })).sort((a, b) => b.t - a.t).map(m => m.url); } catch (e) {}
     send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media });
   },
-  async 'POST /admin/api/landing-preview'(req, res) { const b = await body(req, 3e5); send(res, 200, { html: LANDING.render(b.content).replace(/<script(?![^>]*ld\+json)[^>]*>[\s\S]*?<\/script>/g, '') }); },   // aperçu sans scripts : ni mesure d'audience, ni blocage par la sécurité du back office
+  async 'POST /admin/api/landing-preview'(req, res) { const b = await body(req, 3e5); send(res, 200, { html: ((b.slug && LANDING.renderArticle(b.content, String(b.slug))) || LANDING.render(b.content)).replace(/<script(?![^>]*ld\+json)[^>]*>[\s\S]*?<\/script>/g, '') }); },   // aperçu sans scripts : ni mesure d'audience, ni blocage par la sécurité du back office
   async 'POST /admin/api/landing'(req, res) {   // publier : la vitrine change tout de suite
     const b = await body(req, 3e5), c = b.reset ? LANDING.defaults() : LANDING.clean(b.content);
     run("INSERT INTO config (k, v) VALUES ('landing', ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v", JSON.stringify(c)); landingHtml = null;
@@ -739,13 +739,16 @@ http.createServer(async (req, res) => {
     let p; try { p = decodeURIComponent(u.pathname); } catch (e) { return send(res, 404, '404', 'text/plain'); }
     let f = null, adm = false;
     // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
-    const host = String(req.headers.host || '').toLowerCase().split(':')[0];
+    const host0 = String(req.headers.host || '').toLowerCase().split(':')[0], host = host0 === process.env.VITRINE_TEST_HOST ? 'biffcity.fr' : host0;   // VITRINE_TEST_HOST : voir la vitrine en local (tests)
+    const htmlOut = html => { res.writeHead(html ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); res.end(req.method === 'HEAD' ? undefined : html || '<!doctype html><meta charset="utf-8"><title>Page introuvable</title><p style="font-family:sans-serif">Cette page n\'existe pas. <a href="/actus">Voir les actus de Biff City</a></p>'); };
+    if (host === 'biffcity.fr' && (p === '/actus' || p === '/actus/')) return htmlOut(LANDING.renderIndex(getLanding()));
+    if (host === 'biffcity.fr' && /^\/actus\/[a-z0-9-]+$/.test(p)) return htmlOut(LANDING.renderArticle(getLanding(), p.slice(7)));
     if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); return res.end(req.method === 'HEAD' ? undefined : landingPage()); }
     // référencement : la vitrine est ouverte aux moteurs ; le jeu et le back office ne doivent pas apparaître dans Google
     if (p === '/robots.txt') { const lp = host === 'biffcity.fr';
       return send(res, 200, lp ? 'User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\n\nSitemap: https://biffcity.fr/sitemap.xml\n' : 'User-agent: *\nDisallow: /\n', 'text/plain; charset=utf-8'); }
     if (p === '/sitemap.xml' && host === 'biffcity.fr')
-      return send(res, 200, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://biffcity.fr/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`, 'application/xml; charset=utf-8');
+      return send(res, 200, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://biffcity.fr/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n  <url><loc>https://biffcity.fr/actus</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n${LANDING.articleSlugs(getLanding()).map(a => `  <url><loc>https://biffcity.fr/actus/${a.slug}</loc><lastmod>${a.date}</lastmod><priority>0.7</priority></url>\n`).join('')}</urlset>\n`, 'application/xml; charset=utf-8');
     if (p === '/') p = '/index.html';
     if (p === '/admin') { res.writeHead(301, { Location: '/admin/' }); return res.end(); }
     if (p === '/admin/') { f = path.join(__dirname, 'admin', 'index.html'); adm = true; }

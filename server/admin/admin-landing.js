@@ -15,7 +15,7 @@
     ['persos', 'Personnages', n => /^(skin-|clubp-)/.test(n)],
     ['icones', 'Icônes et objets', n => true]
   ];
-  let C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
+  let artOpen = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
 
   const dirty = () => JSON.stringify(C) !== saved;
   const at = (path, v) => { const k = path.split('.'); let o = C; while (k.length > 1) o = o[k.shift()]; if (v === undefined) return o[k[0]]; o[k[0]] = v; };
@@ -42,11 +42,17 @@
         <div class="lp-row">${pic(`actus.items.${i}.bg`, 'Scène de fond', { pos: `actus.items.${i}.bgPos` })}${pic(`actus.items.${i}.pop`, 'Personnage qui dépasse', { shelf: 'persos', tall: true })}</div>
         <div class="lp-2">${sel(`actus.items.${i}.bgPos`, 'Cadrage du fond', POS)}${sel(`actus.items.${i}.frame`, 'Le personnage est', [['buste', 'en buste (Club)'], ['pied', 'en pied (skin du jeu)']])}</div>
         <div class="lp-2">${txt(`actus.items.${i}.chip`, 'Étiquette', { max: 30 })}${color(`actus.items.${i}.color`)}</div>
-        ${txt(`actus.items.${i}.title`, 'Titre', { max: 60 })}${txt(`actus.items.${i}.text`, 'Texte', { area: true, rows: 2, max: 220 })}</div>`).join('') + `<button class="btn ghost lp-add" data-add="actus.items">+ Ajouter une bannière</button>`),
+        ${txt(`actus.items.${i}.title`, 'Titre', { max: 60 })}${txt(`actus.items.${i}.text`, 'Texte', { area: true, rows: 2, max: 220 })}<div class="lp-2">${sel(`actus.items.${i}.link`, 'Article lié', [['', 'Aucun bouton'], ...C.articles.map(a => [a.slug, a.h1 || a.title])])}${txt(`actus.items.${i}.btn`, 'Texte du bouton', { max: 30 })}</div></div>`).join('') + `<button class="btn ghost lp-add" data-add="actus.items">+ Ajouter une bannière</button>`),
       block('bientot', 'Prochainement', `${B.length} carte${B.length > 1 ? 's' : ''}`, txt('bientot.title', 'Titre de la section', { max: 40 }) + B.map((x, i) => `<div class="lp-it"><div class="lp-it-h">Carte ${i + 1}${listTools('bientot.items', i, B.length)}</div>
         <div class="lp-row">${pic(`bientot.items.${i}.img`, 'Scène', { pos: `bientot.items.${i}.imgPos` })}<div>${sel(`bientot.items.${i}.imgPos`, 'Cadrage', POS)}${txt(`bientot.items.${i}.chip`, 'Étiquette', { max: 30 })}${color(`bientot.items.${i}.color`)}</div></div>
-        ${txt(`bientot.items.${i}.title`, 'Titre', { max: 60 })}${txt(`bientot.items.${i}.text`, 'Texte', { area: true, rows: 2, max: 260 })}
+        ${txt(`bientot.items.${i}.title`, 'Titre', { max: 60 })}${txt(`bientot.items.${i}.text`, 'Texte', { area: true, rows: 2, max: 260 })}<div class="lp-2">${sel(`bientot.items.${i}.link`, 'Article lié', [['', 'Aucun bouton'], ...C.articles.map(a => [a.slug, a.h1 || a.title])])}${txt(`bientot.items.${i}.btn`, 'Texte du bouton', { max: 30 })}</div>
         <details class="lp-cd" ${x.start ? 'open' : ''}><summary>Compte à rebours (facultatif)</summary><div class="lp-2">${when(`bientot.items.${i}.start`, 'Début')}${when(`bientot.items.${i}.end`, 'Fin')}</div><small>L'étiquette affiche alors « Dans 3 jours », puis « En cours jusqu'au… », puis « Terminé ».</small></details></div>`).join('') + `<button class="btn ghost lp-add" data-add="bientot.items">+ Ajouter une carte</button>`),
+      block('articles', 'Articles', `${C.articles.length} articles sur biffcity.fr/actus`, `<p class="lp-help">Mise en forme du texte : <b>## Intertitre</b>, <b>- élément de liste</b>, <b>**gras**</b>, <b>[texte](/actus/adresse-d-un-article)</b> pour un lien vers un autre article, <b>[texte](jeu)</b> pour un lien vers le jeu. Un lien seul sur sa ligne vers le jeu devient un gros bouton vert.</p>` + C.articles.map((a, i) => `<details class="lp-it lp-art" ${artOpen === i ? 'open' : ''} data-art="${i}"><summary class="lp-it-h">${esc(a.h1 || a.title)}<a class="lp-see" href="https://biffcity.fr/actus/${esc(a.slug)}" target="_blank" rel="noopener">Voir</a></summary>
+        ${listTools('articles', i, C.articles.length)}
+        <div class="lp-row">${pic(`articles.${i}.img`, 'Image', { pos: `articles.${i}.imgPos` })}<div>${sel(`articles.${i}.imgPos`, 'Cadrage', POS)}${txt(`articles.${i}.alt`, 'Description de l\'image (Google Images)', { max: 140 })}</div></div>
+        ${txt(`articles.${i}.h1`, 'Titre affiché', { max: 110 })}<div class="lp-2">${txt(`articles.${i}.slug`, 'Adresse (biffcity.fr/actus/…)', { max: 80 })}<label class="lp-f"><span>Date</span><input type="date" data-k="articles.${i}.date" value="${esc(a.date)}"></label></div>
+        ${txt(`articles.${i}.title`, 'Titre dans Google', { max: 90 })}${txt(`articles.${i}.desc`, 'Description dans Google', { area: true, rows: 2, max: 170 })}
+        ${txt(`articles.${i}.lead`, 'Chapeau (en gras sous le titre)', { area: true, rows: 3, max: 500 })}${txt(`articles.${i}.body`, 'Texte de l\'article', { area: true, rows: 16, max: 20000 })}</details>`).join('') + `<button class="btn ghost lp-add" data-add="articles">+ Nouvel article</button>`),
       block('age', 'Mention 18+', 'En bas de page', txt('age', 'Texte', { area: true, rows: 2, max: 200 })),
       block('seo', 'Google', 'Titre et description dans les résultats', txt('seo.title', 'Titre', { max: 120 }) + txt('seo.desc', 'Description', { area: true, max: 300 }) + `<div class="lp-serp"><b>${esc(C.seo.title)}</b><span>biffcity.fr</span><p>${esc(C.seo.desc)}</p></div>`)
     ].join('');
@@ -55,7 +61,7 @@
   // ------------------------------------------------------------ aperçu
   async function preview() {
     clearTimeout(timer);
-    timer = setTimeout(async () => { try { const { html } = await HC.api('/admin/api/landing-preview', { content: C }); const f = $('#lp-frame'); if (f) f.srcdoc = html; } catch (e) {} }, 250);
+    timer = setTimeout(async () => { try { const a = open === 'articles' && C.articles[artOpen]; const { html } = await HC.api('/admin/api/landing-preview', { content: C, slug: a ? a.slug : '' }); const f = $('#lp-frame'); if (f) f.srcdoc = html; } catch (e) {} }, 250);
   }
   function fit() {   // l'aperçu ordinateur est une vraie page de 1280 px réduite pour tenir dans la colonne
     const w = $('#lp-view'), f = $('#lp-frame'); if (!w || !f) return;
@@ -122,10 +128,12 @@
       if (e.target.tagName === 'SELECT') return redraw();
       state(); preview();
     });
+    root.addEventListener('toggle', e => { const d = e.target.closest && e.target.closest('[data-art]'); if (d) { if (d.open) artOpen = +d.dataset.art; else if (artOpen === +d.dataset.art) artOpen = -1; preview(); } }, true);
     root.addEventListener('click', e => {
       const t = e.target.closest('button'); if (!t) return;
       const ds = t.dataset;
-      if (ds.tog) { open = open === ds.tog ? '' : ds.tog; HC.lsSet('hc.lp.open', open); $$('.lp-blk').forEach(b => b.classList.toggle('open', b.dataset.blk === open)); return; }
+      if (t.closest('.lp-see')) return;
+      if (ds.tog) { open = open === ds.tog ? '' : ds.tog; HC.lsSet('hc.lp.open', open); $$('.lp-blk').forEach(b => b.classList.toggle('open', b.dataset.blk === open)); preview(); return; }
       if (ds.pick) return library(ds.pick, ds.shelf);
       if (ds.col) { at(ds.col, ds.v); return redraw(); }
       if (ds.dev) { dev = ds.dev; HC.lsSet('hc.lp.dev', dev); $$('[data-dev]').forEach(b => b.classList.toggle('on', b === t)); $('#lp-view').className = 'lp-view ' + dev; return fit(); }
@@ -134,7 +142,7 @@
       if (ds.mv) { const j = i + +ds.d; [arr[i], arr[j]] = [arr[j], arr[i]]; }
       if (ds.dup) arr.splice(i + 1, 0, JSON.parse(JSON.stringify(arr[i])));
       if (ds.del) { if (arr.length <= 1) return HC.toast('Il faut garder au moins un élément', null, true); arr.splice(i, 1); }
-      if (ds.add) arr.push(JSON.parse(JSON.stringify(arr[arr.length - 1])));
+      if (ds.add) { const n = JSON.parse(JSON.stringify(arr[arr.length - 1])); if (list === 'articles') { Object.assign(n, { slug: 'nouvel-article-' + Date.now().toString(36).slice(-4), title: 'Nouvel article', h1: 'Nouvel article', desc: '', lead: '', body: '## Intertitre\nTon texte ici.\n\n[Jouer à la bêta](jeu)', date: new Date().toISOString().slice(0, 10) }); artOpen = arr.length; } arr.push(n); }
       redraw();
     });
     $('#lp-pub').onclick = async () => {

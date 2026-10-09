@@ -717,3 +717,9 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .lp-grid button:hover, .lp-grid button.on { border-color: var(--yellow); }
 .lp-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; } .lp-grid small { color: var(--mut); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 1000px) { .lp-ed { grid-template-columns: 1fr; height: auto; } .lp-form { overflow: visible; } .lp-view { height: 70vh; } }
+
+.lp-help { margin: 0; color: var(--mut); font-size: 13px; } .lp-help b { color: var(--txt); font-weight: 800; }
+.lp-art { padding: 0; } .lp-art > summary { list-style: none; cursor: pointer; padding: 12px; } .lp-art > summary::-webkit-details-marker { display: none; }
+.lp-art[open] { padding: 0 12px 12px; } .lp-art[open] > summary { padding: 12px 0 0; }
+.lp-see { margin-left: auto; font: 800 12px var(--text); color: var(--mut); }
+.lp-art textarea[data-k$=".body"] { font: 600 13px/1.5 ui-monospace, Menlo, monospace; }
