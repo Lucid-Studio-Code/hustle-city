@@ -3619,3 +3619,38 @@ html { background-color: #120c24; }
 #modal.modal-under .sheet-close { visibility: hidden; }
 /* fenêtres : couleur du parchemin en secours sous le cadre (sur iPhone l'image du cadre peut arriver une seconde après, la fenêtre était transparente) */
 #modal .sheet:not([class*="th-"]) { background-color: #fceac9; background-clip: content-box; }
+/* ---------- le Club en plein écran : la salle (5 coins), puis une scène par coin avec portrait, réplique et choix ---------- */
+#app #modal .sheet.th-club .sheet-body:has(.club-full) { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+#app .club-full { position: relative; flex: 1 1 auto; min-height: 60vh; container-type: size; overflow: hidden; background: #140b24; border-radius: 0 0 18px 18px; }
+#app .club-full .club-room.v2 { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100cqw, calc(100cqh * 1080 / 1446)); height: auto; aspect-ratio: 1080 / 1446; max-width: none; max-height: none; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+#app .club-full .club-room.v2 .cr-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+#app .club-full .club-spot { border: 2px dashed rgba(255,255,255,.35); background: rgba(255,255,255,.04); border-radius: 22px; animation: csPulse 2.4s ease-in-out infinite; }
+#app .club-full .club-spot .cs-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; }
+#app .club-full .club-spot .cs-tag .ic { width: 18px; height: 18px; }
+#app .club-full .club-spot.off { animation: none; border-color: transparent; background: transparent; }
+#app .club-full .club-spot.off .cs-tag { opacity: .55; }
+#app .club-full .club-spot.done .cs-tag { opacity: 1; background: #c9f5a0; }
+@keyframes csPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,60,172,0); } 50% { box-shadow: 0 0 18px 2px rgba(255,60,172,.55); } }
+#app .club-foot { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 12px 10px; text-align: center; color: #3b2412; }
+#app .club-foot b { font: 400 17px var(--title); }
+#app .club-foot small { font: 800 12px var(--text); color: #7a5a3a; }
+#app .club-foot .cf-acts { display: flex; gap: 6px; }
+#app .club-foot .cf-acts i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #2a1a10; background: #d8cbb6; }
+#app .club-foot .cf-acts i.on { background: #ff3cac; box-shadow: 0 0 8px #ff3cac; }
+/* scène */
+#app .club-scene { position: absolute; inset: 0; }
+#app .club-scene .csc-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#app .club-scene .csc-who { position: absolute; left: 50%; bottom: 30%; height: 52%; max-width: 92%; object-fit: contain; transform: translateX(-50%); filter: drop-shadow(0 6px 14px rgba(0,0,0,.55)); animation: cscIn .35s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes cscIn { from { transform: translateX(-50%) translateY(30px); opacity: 0; } }
+#app .club-scene .csc-box { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 12px 12px 10px; border: 3px solid #2a1a10; border-radius: 18px; background: rgba(255, 250, 240, .97); box-shadow: 0 4px 0 #2a1a10; max-height: 58%; overflow-y: auto; }
+#app .club-scene .csc-say { margin: 0 0 10px; font: 800 14.5px/1.35 var(--text); color: #2a1a10; }
+#app .club-scene .csc-name { display: block; font: 400 16px var(--title); color: #c2185b; margin-bottom: 2px; }
+#app .club-scene .csc-acts { display: flex; flex-direction: column; gap: 7px; align-items: stretch; }
+#app .club-scene .csc-ch { min-height: 46px; font-size: 16px; }
+#app .club-scene .csc-ch.talk { --b-c: var(--b-purple, #9b5de5); }
+#app .club-scene .csc-skip { align-self: center; border: 0; background: none; font: 800 13px var(--text); color: #7a5a3a; text-decoration: underline; padding: 4px; }
+#app .club-scene .csc-res { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+#app .club-scene .cg { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; border: 2px solid #2a1a10; font: 900 13px var(--text); }
+#app .club-scene .cg .ic, #app .club-scene .cg .bst-mini { width: 18px; height: 18px; }
+#app .club-scene .cg.good { background: #c9f5a0; color: #1f5e1f; }
+#app .club-scene .cg.bad { background: #ffd0c9; color: #8a1c10; }

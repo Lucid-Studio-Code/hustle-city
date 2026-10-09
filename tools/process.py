@@ -19,6 +19,7 @@ POCKETS = {
     'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
     'cr-leila': 'all', 'cr-jade': 'all', 'cr-kim': 'all', 'cr-lola': 'all', 'cr-sasha': 'all', 'cr-nora': 'all',
+    'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all',   # persos du Club : vides entre bras et corps
     'cr-mila': {'n': [0]}, 'cr-ines': 'all', 'cr-rose': 'all', 'cr-eva': 'all', 'gear-cam': 'all', 'gear-sport': {'n': [0, 1, 2, 3, 4, 5]},
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
     'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
@@ -29,7 +30,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, **{f'pcv-r{i}': 'all' for i in range(1, 5)}, 'medal-bronze': 'all', 'niche-cosplay': 'all', 'pin-gold': 'all', 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
+MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'clubp': 600, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond

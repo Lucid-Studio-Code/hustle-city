@@ -823,7 +823,7 @@
     const e = clubEntry(); if (st.cash < e) return { err: 'Pas assez de cash pour l\'entrée.' };
     if (clubWait()) addLingots(-D.LINGOT.club);
     pay(e);
-    st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false };
+    st.club = { start: now(), end: now() + D.CLUB.nightMin * 60000, done: {}, dj: false, acts: 0 };
     st.clubNext = st.club.end + D.CLUB.cooldownMin * 60000;
     stat('clubNights'); clubHabitTick(); emit('change'); return { e };
   }
@@ -853,8 +853,47 @@
     } else return { err: 'Inconnu.' };
     c.done[id] = now(); stat('clubSpots'); emit('change'); return out;
   }
+  // ---- soirée en scènes : 2 actions par soirée, chaque coin une fois ; un choix peut lancer un dialogue (answer = numéro de la réponse)
+  const clubActs = () => (st.club && st.club.acts) || 0;
+  const clubLeft = () => clubIn() ? Math.max(0, D.CLUB.acts - clubActs()) : 0;
+  // tuyau glissé au Club : le prochain bruit de couloir sur un objet, juste ou faux selon la chance donnée
+  function clubTip(sure) {
+    const mk = st.market, pool = rumorPool(); if (!pool.length) return null;
+    if (!mk.next) mk.next = { item: pick(pool).id, ru: Math.floor(Math.random() * D.RUMORS.length), k: 0, told: false };
+    const it = item(mk.next.item), ru = D.RUMORS[mk.next.ru], up = Math.random() < sure ? ru.up : !ru.up;
+    mk.next.told = true; mk.nextRumor = Math.min(mk.nextRumor || Infinity, now() + 8 * 60000);
+    const txt = `Au Club, on t'a glissé que ${what(it)} va ${up ? 'grimper' : 'chuter'} d'ici quelques minutes.`;
+    mk.news.unshift({ t: now(), txt, up, item: it.id, tip: true }); if (mk.news.length > 6) mk.news.length = 6;
+    emit('news', { txt, bad: false, item: it.id, up }); return { item: it.id, up };
+  }
+  function clubChoose(zone, choice, answer) {
+    if (!clubIn()) return { err: 'La soirée est finie : repasse par le videur.' };
+    const c = st.club; c.done = c.done || {};
+    if (clubLeft() <= 0) return { err: 'Tu as fait tes 2 actions ce soir.' };
+    if (c.done[zone]) return { err: 'Déjà fait ce soir.' };
+    const sc = D.CLUB.scenes[zone], ch = sc && sc.choices.find(x => x.id === choice); if (!ch) return { err: 'Inconnu.' };
+    const ans = ch.talk ? ch.talk.answers[+answer] : null; if (ch.talk && !ans) return { err: 'Choisis une réponse.' };
+    const outs = (ans || ch).out; let r = Math.random(), o = outs[outs.length - 1]; for (const x of outs) { if (r < x.p) { o = x; break; } r -= x.p; }
+    const M = clubEntry(), X = D.CLUB.xp(st.lvl);
+    const cashOut = o.cash < 0 ? Math.round(-o.cash * M) : 0;
+    if (st.lingots < (ch.lingots || 0)) return { err: `Il faut ${ch.lingots} lingots pour approcher.` };
+    if (st.cash < cashOut) return { err: 'Pas assez de cash.' };
+    const res = { zone, choice, txt: o.txt, good: [], bad: [] };
+    if (ch.lingots) { addLingots(-ch.lingots); res.bad.push({ lingots: ch.lingots }); }
+    if (cashOut) { pay(cashOut); res.bad.push({ cash: cashOut }); }
+    if (o.cash > 0) { const g = Math.round(o.cash * M); addCash(g); res.good.push({ cash: g }); }
+    if (o.xp) { const g = Math.round(o.xp * X * (o.djx && c.dj ? 1.5 : 1)); addXp(g); res.good.push({ xp: g }); }
+    if (o.lingots) { const [a, b] = o.lingots; const n = a + Math.floor(Math.random() * (b - a + 1)); if (n > 0) { addLingots(n); res.good.push({ lingots: n }); } else if (n < 0) { addLingots(Math.max(n, -st.lingots)); res.bad.push({ lingots: -n }); } }
+    if (o.booster) { st.boosters += o.booster; res.good.push({ booster: o.booster }); }
+    if (o.dj) { c.dj = true; res.good.push({ dj: true }); }
+    if (o.deal && !st.deal) { st.nextDealAt = 0; simDeal(false); if (st.deal) res.good.push({ deal: true }); }
+    if (o.tip) { const t = clubTip(o.tip); if (t) res.good.push({ tip: t }); }
+    c.done[zone] = now(); c.acts = clubActs() + 1; stat('clubSpots');
+    if (clubLeft() <= 0) { c.end = now(); st.clubNext = now() + D.CLUB.cooldownMin * 60000; res.over = true; }   // les 2 actions faites : la soirée se termine
+    emit('change'); return res;
+  }
   // compatibilité : l'ancienne « soirée » d'un coup = entrer puis danser
-  function clubNight(vipPass) { const r = clubEnter(vipPass); if (r.err) return r; const d = clubDo('dance'); return { e: r.e, xp: d.xp || 0, meet: false, vip: 0 }; }
+  function clubNight(vipPass) { const r = clubEnter(vipPass); if (r.err) return r; const d = clubChoose('z-dance', 'go'); return { e: r.e, xp: ((d.good || []).find(x => x.xp) || {}).xp || 0, meet: false, vip: 0 }; }
 
   // ------------------------------------------------------------ kiosque
   // le journal sort toutes les 30 min ; kShift avance l'horloge du joueur quand il paie un journal tout de suite
@@ -1660,7 +1699,7 @@
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
-    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, clubChoose, clubLeft, clubActs,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, boosterCost, promoOf, promoPct, promoCut, decoCost, lookCost, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,

@@ -1545,6 +1545,7 @@
   // Le Club : d'abord le videur (entrée), puis une vraie salle avec des coins à toucher (image club-room, sinon néons dessinés)
   function clubBody() {
     const s = st(), wait = G.clubWait(), e = G.clubEntry(), C = D.CLUB;
+    if (clubScene && clubScene.res && !placing) return clubSceneBody();   // le résultat reste affiché, même si c'était la dernière action de la soirée
     if (!G.clubIn() && !placing) {
       return `<div class="club-door">${has('club-door') ? `<img class="cd-bg" src="${src('club-door')}" alt="">` : '<div class="cd-bg neon"></div>'}
           <div class="cd-say"><b>${ico('ic-videur', '🚪')} Le videur</b><p>${wait ? `« Toi, je t'ai vu tout à l'heure. Reviens dans ${mmss(wait)}… ou fais-moi changer d'avis. »` : `« Ce soir c'est ${short(e)} l'entrée. Tu rentres ? »`}</p>
@@ -1552,14 +1553,35 @@
           ${wait ? `<button class="btn gold wide" style="margin-top:8px" data-act="clubVip" ${s.lingots >= D.LINGOT.club && s.cash >= e ? '' : 'disabled'}><span>Entrer quand même · ${ic('lingot')}${D.LINGOT.club} + ${short(e)}</span></button>` : ''}</div></div>
         ${habitsBody('club')}`;
     }
-    const c = G.clubIn() ? s.club : { end: Date.now() + 1, done: {}, dj: false }, left = c.end - Date.now();
-    const spots = C.spots.map(p => { const done = c.done[p.id];
-      return `<button class="club-spot ${done ? 'done' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico('ic-club-' + p.id, p.icon)} ${p.name}${done ? ' ✓' : ''}</span></button>`; }).join('');
-    return `<div class="club-room">${has('club-room') ? `<img class="cr-bg" src="${src('club-room')}" alt="">` : '<div class="cr-bg neon"><i class="ball"></i><i class="floor"></i></div>'}${spots}
-        <div class="club-timer">${placing ? `${ico('btn-setup', '🛠️')} Fais glisser les zones (− / + pour la taille), puis Publier` : `${ico('hab-club', '🎉')} Soirée : <b>${mmss(left)}</b>${c.dj ? ` · ${ico('ic-club-dj', '🎧')} ton son passe` : ''}`}</div></div>
-      ${placing ? '<div class="grid2" style="margin-top:8px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>' : ''}
-      <div class="club-legend">${C.spots.filter(p => p.id !== 'door').map(p => `<div class="${c.done[p.id] ? 'done' : ''}"><span>${ico('ic-club-' + p.id, p.icon)}</span><b>${p.name}</b><small>${p.id === 'bar' ? `${short(G.cost ? G.cost(C.drink(s.lvl)) : C.drink(s.lvl))} · ` : p.id === 'dj' ? `${short(C.djTip)} · ` : p.id === 'vip' ? `${C.vipLingots} lingots · ` : ''}${p.desc}</small></div>`).join('')}</div>
-      <h3 class="sec">Ton habitude</h3>${habitsBody('club')}`;
+    if (clubScene && G.clubIn() && !placing) return clubSceneBody();
+    const c = G.clubIn() ? s.club : { end: Date.now() + 1, done: {}, dj: false, acts: 0 }, left = c.end - Date.now(), rest = placing ? C.acts : G.clubLeft();
+    // la salle en plein écran (comme le parking) : chaque coin se touche, 2 actions par soirée
+    const spots = C.spots.map(p => { const done = c.done[p.id], off = !placing && (done || rest <= 0);
+      return `<button class="club-spot ${done ? 'done' : ''} ${off ? 'off' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico(C.scenes[p.id].ic, '')} ${p.name}${done ? ' ' + ic('check') : ''}</span></button>`; }).join('');
+    return `<div class="club-full"><div class="club-room v2">${has('club-salle') ? `<img class="cr-bg" src="${src('club-salle')}" alt="">` : '<div class="cr-bg neon"></div>'}${spots}</div></div>
+      <div class="club-foot">${placing ? `${ico('btn-setup', '')} Fais glisser les zones, puis Publier <div class="grid2" style="margin-top:6px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>`
+        : `<span class="cf-acts">${'<i class="on"></i>'.repeat(rest)}${'<i></i>'.repeat(Math.max(0, C.acts - rest))}</span><b>${rest ? `Encore ${rest} action${rest > 1 ? 's' : ''} ce soir` : 'Soirée terminée'}</b><small>${rest ? `Choisis bien : tu ne peux pas tout faire. ${mmss(left)}` : `Le videur te laisse revenir dans ${mmss(G.clubWait())}`}${c.dj && rest ? ` · ${ico('ic-club-dj', '')} ton son passe` : ''}</small>`}</div>`;
+  }
+  // une scène du Club : fond du coin, portrait, la réplique, et les choix ; puis le résultat (gains en vert, pertes en rouge)
+  let clubScene = null;
+  function clubGains(list, bad) {
+    return list.map(g => `<span class="cg ${bad ? 'bad' : 'good'}">${g.cash != null ? `${bad ? '−' : '+'}${short(g.cash)} ${ic('cash')}` : g.lingots != null ? `${bad ? '−' : '+'}${g.lingots} ${ic('lingot')}` : g.xp != null ? `+${g.xp} XP` : g.booster ? `+${g.booster} ${packArt(true)}` : g.deal ? 'Un nouveau contact (regarde tes messages)' : g.dj ? 'La piste rapporte ×1,5' : g.tip ? `Tuyau : ${esc(G.item(g.tip.item).name)} va ${g.tip.up ? 'monter' : 'baisser'}` : ''}</span>`).join('');
+  }
+  function clubSceneBody() {
+    const C = D.CLUB, z = clubScene, sc = C.scenes[z.zone], s = st();
+    const face = has(sc.who) ? `<img class="csc-who" src="${src(sc.who)}" alt="">` : '';
+    let say = sc.intro, acts = '';
+    if (z.res) {
+      say = z.res.txt;
+      acts = `<div class="csc-res">${clubGains(z.res.good)}${clubGains(z.res.bad, true)}</div><div class="center"><button class="btn green" data-act="clubBack">${z.res.over ? 'Fin de soirée' : 'Retour dans la salle'}</button></div>`;
+    } else if (z.talk != null) {
+      const ch = sc.choices.find(x => x.id === z.talk); say = `<b class="csc-name">${sc.name}</b> « ${ch.talk.say} »`;
+      acts = ch.talk.answers.map((a, i) => `<button class="btn csc-ch" data-act="clubAnswer" data-i="${i}">${a.label}</button>`).join('') + `<button class="csc-skip" data-act="clubTalkBack">Changer d'avis</button>`;
+    } else {
+      acts = sc.choices.map(ch => { const need = ch.lingots ? ` · ${ic('lingot')}${ch.lingots}` : ''; return `<button class="btn csc-ch ${ch.talk ? 'talk' : ''}" data-act="clubPick" data-id="${ch.id}" ${ch.lingots && s.lingots < ch.lingots ? 'disabled' : ''}>${ch.label}${need}</button>`; }).join('') + `<button class="csc-skip" data-act="clubBack">Retour dans la salle</button>`;
+    }
+    return `<div class="club-full"><div class="club-scene">${has(sc.bg) ? `<img class="csc-bg" src="${src(sc.bg)}" alt="">` : '<div class="csc-bg neon"></div>'}${face}
+      <div class="csc-box"><p class="csc-say">${say}</p><div class="csc-acts">${acts}</div></div></div></div>`;
   }
   // porte du Club : la carte du videur est en haut, on cale l'image pour que sa tête apparaisse juste en dessous
   function fitClubDoor() {
@@ -1570,7 +1592,14 @@
     img.style.objectPosition = `50% ${Math.round(Math.min(0, Math.max(H - ih, want)))}px`;
   }
   window.addEventListener('resize', fitClubDoor);
-  function openClub() { openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => { setBody(clubBody()); fitClubDoor(); } }); const im = document.querySelector('#modal .club-door img.cd-bg'); if (im) im.complete ? fitClubDoor() : im.addEventListener('load', fitClubDoor); }
+  function clubResolve(choice, answer) {
+    const r = G.clubChoose(clubScene.zone, choice, answer); if (r.err) return toast(r.err, true);
+    clubScene.res = r; delete clubScene.talk;
+    if (r.good.length && !r.bad.length) { sfx.win(); rain('confetti', 22); } else if (r.bad.length && !r.good.length) sfx.miss(); else sfx.coin();
+    setBody(clubBody()); renderHud();
+  }
+  function openClub() { clubScene = null;
+    openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => { setBody(clubBody()); fitClubDoor(); } }); const im = document.querySelector('#modal .club-door img.cd-bg'); if (im) im.complete ? fitClubDoor() : im.addEventListener('load', fitClubDoor); }
 
   // ------------------------------------------------------------ la Boutique (bouton du bas) : déco de la ville + achats intégrés
   let bqTab = 'deco';
@@ -2994,7 +3023,21 @@
     clubZone(el) { const p = D.CLUB.spots.find(x => x.id === clubSel); if (!p) return toast('Touche d\'abord une zone.'); const k = +el.dataset.k * 2; p.w = Math.max(8, p.w + k); p.h = Math.max(6, p.h + k * .6); saveClubZones(); setBody(clubBody()); },
     clubSpot(el) {
       if (placing) return;
-      const id = el.dataset.id; if (id === 'door') { closeModal(); return; }
+      const id = el.dataset.id; if (!D.CLUB.scenes[id]) return;
+      if (G.clubLeft() <= 0) return toast('Tu as fait tes 2 actions ce soir.', true);
+      if (st().club.done[id]) return toast('Déjà fait ce soir : choisis un autre coin.', true);
+      clubScene = { zone: id }; setBody(clubBody()); musicMood('club');
+    },
+    clubPick(el) {
+      const ch = D.CLUB.scenes[clubScene.zone].choices.find(x => x.id === el.dataset.id); if (!ch) return;
+      if (ch.talk) { clubScene.talk = ch.id; return setBody(clubBody()); }
+      clubResolve(ch.id);
+    },
+    clubAnswer(el) { clubResolve(clubScene.talk, +el.dataset.i); },
+    clubTalkBack() { delete clubScene.talk; setBody(clubBody()); },
+    clubBack() { clubScene = null; setBody(clubBody()); },
+    clubOld(el) {
+      const id = el.dataset.id;
       const r = G.clubDo(id); if (r.err) return toast(r.err, true);
       const msg = { dance: `Tu as mis le feu à la piste ! +${r.xp} XP`, dj: 'Le DJ passe ton son : la piste rapporte ×1,5.', bar: `Un cocktail au bar. +${r.xp} XP`,
         lounge: r.meet ? 'Tu as rencontré quelqu\'un qui a un plan pour toi… regarde tes messages.' : 'Bonne discussion, mais personne d\'intéressant ce soir.',

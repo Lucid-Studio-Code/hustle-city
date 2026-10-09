@@ -721,14 +721,54 @@
   // spots : zones à toucher sur l'image de la salle (x, y = centre, w, h en %), réglables plus tard au back-office.
   const CLUB = { lvl: 5, entryBase: 40, entryPer: 12, entry: lvl => CLUB.entryBase + lvl * CLUB.entryPer, xp: lvl => 30 + lvl * 8, meet: .4, vip: .06, cooldownMin: 20, nightMin: 20,
     drinkBase: 15, drinkPer: 4, drink: lvl => CLUB.drinkBase + lvl * CLUB.drinkPer, djTip: 10, vipLingots: 2,
+    acts: 2,   // une soirée = 2 actions : on ne peut pas tout faire, il faut choisir
+    // zones à toucher sur le fond de la salle (club-salle), en % de l'image ; placées au back-office (#placer → Club)
     spots: [
-      { id: 'dance', name: 'La piste',        icon: '🕺', x: 62, y: 81, w: 58, h: 20, desc: 'Danser : la grosse dose d\'XP de la soirée.' },
-      { id: 'dj',    name: 'Le DJ',           icon: '🎧', x: 38, y: 21, w: 40, h: 16, desc: 'Demander ton son : la piste rapporte ×1,5.' },
-      { id: 'bar',   name: 'Le bar',          icon: '🍸', x: 22, y: 53, w: 40, h: 20, desc: 'Un cocktail : un peu d\'XP pour bien finir la soirée.' },
-      { id: 'lounge', name: 'Les canapés',    icon: '🛋️', x: 80, y: 57, w: 38, h: 17, desc: 'Discuter : on y rencontre des gens qui ont des plans.' },
-      { id: 'vip',   name: 'Le carré VIP',    icon: '🍾', x: 80, y: 23, w: 36, h: 20, desc: 'Pour les lingots : un contact assuré et des lingots possibles.' },
-      { id: 'door',  name: 'Le videur',       icon: '🚪', x: 21, y: 85, w: 30, h: 20, desc: 'Sortir du Club.' }
-    ] };
+      { id: 'z-dance', name: 'La piste',         icon: '🕺', x: 46, y: 66, w: 46, h: 24 },
+      { id: 'z-bar',   name: 'Le bar',           icon: '🍸', x: 17, y: 38, w: 32, h: 26 },
+      { id: 'z-dj',    name: 'Le DJ',            icon: '🎧', x: 58, y: 18, w: 30, h: 16 },
+      { id: 'z-vip',   name: 'Le carré VIP',     icon: '🍾', x: 77, y: 40, w: 30, h: 20 },
+      { id: 'z-wc',    name: 'Les toilettes',    icon: '🚪', x: 79, y: 82, w: 22, h: 22 }
+    ],
+    // chaque coin ouvre sa scène : 2 ou 3 choix ; un choix « talk » lance un mini-dialogue avec le portrait du coin.
+    // Effets (nombres = multiples de la soirée : M = prix de l'entrée, X = XP d'une danse) : cash, xp, lingots, booster, tip (tuyau sur un objet : chance qu'il soit juste), deal (contact au téléphone), dj (la piste rapporte ×1,5)
+    scenes: {
+      'z-dance': { bg: 'club-piste', who: 'clubp-danseuse', name: 'Kenza', ic: 'ic-club-dance', intro: 'La piste est pleine. Kenza danse au milieu, tout le monde la regarde.',
+        choices: [
+          { id: 'go', label: 'Danser comme un fou', out: [{ p: .8, txt: 'Tu enflammes la piste, les gens font un cercle autour de toi.', xp: 1, djx: true }, { p: .2, txt: 'Tu glisses en plein milieu. Ta veste part au pressing.', xp: .5, cash: -.5, djx: true }] },
+          { id: 'talk', label: 'Aborder Kenza', talk: { say: 'Toi, t\'as pas l\'air d\'ici. T\'es qui ?', answers: [
+            { label: 'Le futur boss du quartier.', out: [{ p: .5, txt: 'Elle rit et te laisse son numéro : « Je connais des gens qui cherchent des mecs comme toi. »', xp: .5, deal: true }, { p: .5, txt: 'Elle lève les yeux au ciel et repart danser. Tu payes un verre pour te remettre.', cash: -.3 }] },
+            { label: 'Je t\'offre un verre ?', out: [{ p: 1, txt: 'Au bar, elle se penche vers toi et te glisse un tuyau.', cash: -.4, tip: .75 }] },
+            { label: 'On danse ?', out: [{ p: 1, txt: 'Vous dansez jusqu\'à la fin du morceau. Belle soirée.', xp: .6, djx: true }] }] } }] },
+      'z-bar': { bg: 'club-bar', who: 'clubp-trader', name: 'Hugo, trader', ic: 'ic-club-bar', intro: 'Au bar, un trader en costume a visiblement commencé sa soirée bien avant toi.',
+        choices: [
+          { id: 'drink', label: 'Un verre', out: [{ p: 1, txt: 'Un cocktail bien frais. Tu te détends.', cash: -.3, xp: .4 }] },
+          { id: 'round', label: 'Tournée générale', out: [{ p: 1, txt: 'Tout le bar trinque à ta santé. La bande t\'offre un booster.', cash: -1.5, xp: 1.2, booster: 1 }] },
+          { id: 'talk', label: 'Écouter le trader bourré', talk: { say: 'Psst… tu veux savoir un truc que personne sait ?', answers: [
+            { label: 'Balance.', out: [{ p: 1, txt: 'Il te souffle un nom à l\'oreille. Reste à savoir s\'il dit vrai.', tip: .6 }] },
+            { label: 'Je te paie un verre si c\'est du lourd.', out: [{ p: 1, txt: 'Un verre plus tard, il te donne tous les détails.', cash: -.4, tip: .85 }] },
+            { label: 'Laisse tomber, t\'es bourré.', out: [{ p: 1, txt: 'Sage décision. Tu gardes la tête froide.', xp: .2 }] }] } }] },
+      'z-dj': { bg: 'club-dj', who: 'clubp-dj', name: 'DJ Nyx', ic: 'ic-club-dj', intro: 'DJ Nyx fait sauter toute la salle.',
+        choices: [
+          { id: 'song', label: 'Demander ton son', out: [{ p: 1, txt: 'Ton son passe : la piste te rapportera ×1,5 ce soir.', cash: -.15, xp: .2, dj: true }] },
+          { id: 'talk', label: 'Prendre le micro', talk: { say: 'Tu veux le micro ? Vas-y, chauffe la salle !', answers: [
+            { label: 'Faites du bruuuit !', out: [{ p: .6, txt: 'Ovation. La salle crie ton nom.', xp: 1.5 }, { p: .4, txt: 'Silence gênant… Tu rends le micro et tu offres un verre au DJ pour te faire pardonner.', xp: .2, cash: -.3 }] },
+            { label: 'Une dédicace à ma mère !', out: [{ p: 1, txt: 'Toute la salle applaudit. Ta mère serait fière.', xp: .6 }] }] } }] },
+      'z-vip': { bg: 'club-vip', who: 'clubp-boss', name: 'Le Baron', ic: 'ic-club-vip', intro: 'Derrière le cordon rouge, le Baron reçoit. Pour approcher, il faut des lingots.',
+        choices: [
+          { id: 'bottle', label: 'Commander une bouteille', out: [{ p: .4, txt: 'Le Baron apprécie le geste et te fait un cadeau.', cash: -3, xp: .8, lingots: [3, 6] }, { p: .6, txt: 'La bouteille est bonne, mais personne ne te remarque.', cash: -3, xp: .8 }] },
+          { id: 'talk', label: 'S\'asseoir avec le Baron', lingots: 2, talk: { say: 'Tu t\'assois à ma table sans y être invité ?', answers: [
+            { label: 'Je viens parler affaires.', out: [{ p: .55, txt: 'Il sourit : « J\'aime les gens directs. » Il te passe un contact.', xp: .8, deal: true }, { p: .45, txt: 'Ses gars te raccompagnent vers la sortie. Ça t\'a coûté un lingot de plus.', lingots: [-1, -1] }] },
+            { label: 'Pardon, je vous offre la bouteille.', out: [{ p: .8, txt: 'Bonne réponse. Il te glisse quelques lingots « pour le respect ».', cash: -2, lingots: [3, 6] }, { p: .2, txt: 'Il accepte la bouteille… et t\'ignore toute la soirée.', cash: -2 }] },
+            { label: 'Je m\'éclipse.', out: [{ p: 1, txt: 'Tu te lèves poliment. Il te rend un hochement de tête.', xp: .2 }] }] } }] },
+      'z-wc': { bg: 'club-wc', who: 'clubp-louche', name: 'Le Vendeur', ic: 'ic-club-door', intro: 'Aux toilettes, un type en capuche t\'attend près des lavabos.',
+        choices: [
+          { id: 'fresh', label: 'Se refaire une beauté', out: [{ p: 1, txt: 'Coup de frais. Tu repars comme neuf.', xp: .3 }] },
+          { id: 'talk', label: 'Parler au type louche', talk: { say: 'Pssst. Montre de luxe, prix d\'ami. Ça t\'intéresse ?', answers: [
+            { label: 'Fais voir.', out: [{ p: .45, txt: 'Une vraie ! Tu la revends le lendemain avec un joli bénéfice.', cash: 1.5 }, { p: .55, txt: 'C\'est du toc. Tu viens de te faire avoir.', cash: -1 }] },
+            { label: 'T\'as autre chose ?', out: [{ p: 1, txt: 'Il regarde autour de lui et te souffle un tuyau.', tip: .5 }] },
+            { label: 'Non merci.', out: [{ p: 1, txt: 'Tu sors des toilettes en gardant ton argent.', xp: .1 }] }] } }] }
+    } };
   const QUIT_H = 48;                 // durée du sevrage
   // Santé : chaque point sous 100 rend tout 0,5 % plus cher (pharmacie, fatigue, mauvaises décisions)
   const HEALTH_COST = .005;
