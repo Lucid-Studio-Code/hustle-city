@@ -1,4 +1,4 @@
-// Hustle City : d'où viennent les joueurs.
+// Biff City : d'où viennent les joueurs.
 // 1) l'adresse IP (service gratuit ip-api.com, sans clé, résultat gardé en base par IP) ;
 // 2) si l'IP est privée/locale (ou si le service ne répond pas) : on déduit pays et ville approximatifs du fuseau horaire du téléphone.
 // Ne bloque jamais la réponse au joueur : la recherche part en arrière-plan.

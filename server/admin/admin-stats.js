@@ -1,4 +1,4 @@
-/* Hustle City · back office : l'onglet Statistiques (audience, rétention, sessions, progression, économie, argent, usage, répartition, SAV). */
+/* Biff City · back office : l'onglet Statistiques (audience, rétention, sessions, progression, économie, argent, usage, répartition, SAV). */
 (function () {
   'use strict';
   const HC = window.HC, { esc, img, fmt, cash, lingots, eur, pct, minTxt, flag, dlabel, delta } = HC;

@@ -1,4 +1,4 @@
-/* Hustle City : l'agence « PrivéFans » (app du téléphone + ring light dans l'appart)
+/* Biff City : l'agence « PrivéFans » (app du téléphone + ring light dans l'appart)
    Tu recrutes des créatrices, tu organises leurs activités, tu touches ta part de leurs abonnements.
    Tout se calcule au temps réel (ça continue quand on n'est pas là). Réglages : AGENCE dans data.js. */
 (function () {

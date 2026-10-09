@@ -1,4 +1,4 @@
-// Hustle City : serveur du jeu en ligne + back office.
+// Biff City : serveur du jeu en ligne + back office.
 // Lancer : node server/server.js   (variables : PORT=5300, ADMIN_TOKEN=…, DB=server/hustle.db, TZ=Europe/Paris, AD_EUR=0.012)
 // Il sert le jeu (/game.html), l'API des joueurs (/api/…) et le back office (/admin/, protégé par ADMIN_TOKEN).
 // Base : SQLite intégré à Node (aucun service externe, sauf la localisation des IP via ip-api.com, gratuite et sans clé).
@@ -563,9 +563,9 @@ const admin = {
       pids = q(`SELECT pid FROM players WHERE ${w.join(' AND ')}`, ...a).map(r => r.pid);
     } else pids = [b.pid];
     if (b.dry) return send(res, 200, { ok: true, n: pids.length, phones: PUSH.count(pids), pushOn: PUSH.on });
-    const ins = db.prepare('INSERT INTO inbox (pid, t, title, text, gift) VALUES (?, ?, ?, ?, ?)'); pids.forEach(pid => ins.run(pid, now(), b.title || 'Hustle City', b.text || '', gift));
+    const ins = db.prepare('INSERT INTO inbox (pid, t, title, text, gift) VALUES (?, ?, ?, ?, ?)'); pids.forEach(pid => ins.run(pid, now(), b.title || 'Biff City', b.text || '', gift));
     // et en notification sur le téléphone (application), si demandé
-    if (b.push !== false && PUSH.on) PUSH.toPlayers(pids, b.title || 'Hustle City', (b.text || '').slice(0, 180)).then(n => n && log('push', { title: b.title, n })).catch(() => {});
+    if (b.push !== false && PUSH.on) PUSH.toPlayers(pids, b.title || 'Biff City', (b.text || '').slice(0, 180)).then(n => n && log('push', { title: b.title, n })).catch(() => {});
     log(b.pid === '*' ? 'broadcast' : 'gift', { ...b, n: pids.length }); send(res, 200, { ok: true, n: pids.length, phones: PUSH.on ? PUSH.count(pids) : 0 });
   },
   async 'POST /admin/api/ban'(req, res) { const b = await body(req); run('UPDATE players SET banned = ?, ban_reason = ? WHERE pid = ?', b.ban ? 1 : 0, b.reason || '', b.pid); log(b.ban ? 'ban' : 'unban', b); send(res, 200, { ok: true }); },
@@ -597,7 +597,7 @@ const admin = {
     if (b.text || gift) {
       const text = b.text || 'Petit geste du support, merci pour ta patience !';
       run('INSERT INTO ticket_msgs (ticket, t, from_admin, text) VALUES (?, ?, 1, ?)', t.id, now(), text + (gift ? ' [cadeau : ' + Object.entries(JSON.parse(gift)).map(([k, v]) => `${v} ${k}`).join(', ') + ']' : ''));
-      run('INSERT INTO inbox (pid, t, title, text, gift) VALUES (?, ?, ?, ?, ?)', t.pid, now(), 'Support Hustle City', text, gift);
+      run('INSERT INTO inbox (pid, t, title, text, gift) VALUES (?, ?, ?, ?, ?)', t.pid, now(), 'Support Biff City', text, gift);
     }
     run('UPDATE tickets SET status = ?, t = ? WHERE id = ?', b.status || 'en attente', now(), t.id);
     log('reply', { ticket: t.id, pid: t.pid, status: b.status || 'en attente', gift: gift ? JSON.parse(gift) : null }); send(res, 200, { ok: true });
@@ -646,7 +646,7 @@ const admin = {
   async 'POST /admin/api/push'(req, res) {   // { title, body, filter, at? (ms), dry? }
     const b = await body(req), pids = pushTargets(b.filter || {});
     if (b.dry) return send(res, 200, { ok: true, n: pids.length, phones: PUSH.count(pids), on: PUSH.on });
-    const title = String(b.title || 'Hustle City').slice(0, 60), text = String(b.body || '').slice(0, 180);
+    const title = String(b.title || 'Biff City').slice(0, 60), text = String(b.body || '').slice(0, 180);
     if (!text) return send(res, 400, { err: 'texte vide' });
     const at = +b.at > now() + 30000 ? +b.at : now();
     const r = db.prepare('INSERT INTO push_plan (at, title, body, filter, sent, n) VALUES (?, ?, ?, ?, 0, 0)').run(at, title, text, JSON.stringify(b.filter || {}));
@@ -727,4 +727,4 @@ http.createServer(async (req, res) => {
     if (e.code === 413) { res.setHeader('Connection', 'close'); send(res, 413, { err: 'Trop gros.' }); return res.on('finish', () => req.destroy()); }
     console.error(e); send(res, 500, { err: 'Erreur du serveur.' });
   }
-}).listen(PORT, () => console.log(`Hustle City en ligne sur http://localhost:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));
+}).listen(PORT, () => console.log(`Biff City en ligne sur http://localhost:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));

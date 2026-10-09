@@ -1,4 +1,4 @@
-// Hustle City : structure de la base (partagée par server.js et tools/demo-backoffice.js).
+// Biff City : structure de la base (partagée par server.js et tools/demo-backoffice.js).
 // Les colonnes ajoutées après coup sont posées avec ALTER TABLE : une ancienne base se met à jour toute seule.
 function initDb(db) {
   db.exec(`

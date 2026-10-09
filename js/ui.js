@@ -1,4 +1,4 @@
-/* Hustle City : interface (HUD, ville, appart, fenêtres) */
+/* Biff City : interface (HUD, ville, appart, fenêtres) */
 (function () {
   'use strict';
   const D = window.DATA, G = window.GAME;
@@ -1751,7 +1751,7 @@
   const OFFER_TXT = {
     'x-start': ['Le pack du débutant', 'Pour démarrer fort dans le quartier. Proposé <b>une seule fois</b> par compte.'],
     'x-noads': ['Fini les pubs', 'Plus aucune pub qui coupe ton jeu (après tes montées de niveau), <b>pour toujours</b>. Tu peux toujours regarder une pub quand tu veux pour gagner des lingots.'],
-    'x-pass': ['Le Pass Hustle', 'Un <b>abonnement mensuel</b> : des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b>. Sans engagement, tu l\'arrêtes quand tu veux.'],
+    'x-pass': ['Le Pass Biff', 'Un <b>abonnement mensuel</b> : des lingots tout de suite, puis <b>15 lingots et 1 booster chaque jour</b>. Sans engagement, tu l\'arrêtes quand tu veux.'],
     'x-collec': ['Pour ton classeur', '<b>20 boosters</b> d\'un coup pour compléter tes séries plus vite.'],
     'x-magnat': ['Le pack Magnat', 'Tout pour devenir le patron du quartier, skin Gold compris.']
   };
@@ -1777,7 +1777,7 @@
     const s = st();
     if (bqTab === 'vip') {
       const L = D.IAP.filter(x => x.kind === 'lingots'), P = D.IAP.filter(x => x.kind === 'pack'), owned = s.iapOwned || {}, p = promoNow(), top = offerFor();
-      const pass = G.passOn() ? `<div class="explain center">${ico('pack-pass', '')} Pass Hustle actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
+      const pass = G.passOn() ? `<div class="explain center">${ico('pack-pass', '')} Pass Biff actif : 15 lingots et 1 booster en plus avec ton cadeau du jour, encore ${Math.ceil((s.passUntil - Date.now()) / 86400000)} j.</div>` : '';
       return `${shopHero()}${gamePromoStrip((promoNow() || {}).c)}${pass}
         <h3 class="sec">Lingots <small>· plus le sac est gros, plus il y a de bonus</small></h3>
         ${adCard()}
@@ -1813,7 +1813,7 @@
     let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
     let left = D.ADS.watchS;
     const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}<button class="ad-x" data-act="adQuit" aria-label="Fermer">×</button></div>
-      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / D.ADS.watchS) * 100)}%"></i></div>
       ${left > 0 ? `<p class="ad-hint">Encore ${left} s pour gagner tes ${D.ADS.reward} lingots</p>` : `<button class="btn green wide ad-claim" data-act="adClaim">Récupérer +${D.ADS.reward} lingots</button>`}`; };
     el.className = 'on'; draw(); clearInterval(adTimer);
@@ -1835,7 +1835,7 @@
     let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
     let left = FORCED_S;
     const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}</div>
-      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>HUSTLE CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / FORCED_S) * 100)}%"></i></div>
       ${left > 0 ? '<p class="ad-hint">Le jeu reprend juste après</p>' : '<button class="btn green wide ad-claim" data-act="adForcedEnd">Continuer</button>'}
       `; };
@@ -2436,7 +2436,7 @@
       <div class="tcg-art">${d.art}</div>
       <div class="tcg-line">${d.label}</div>
       <div class="tcg-txt"><b>${d.ability}</b><p>${d.text}</p></div>
-      <div class="tcg-foot"><span class="tcg-rsym">${RSYM[d.rarity]}</span><span>${RAR[d.rarity]}</span><span class="tcg-no">${d.no || 'Hustle City'}</span></div>
+      <div class="tcg-foot"><span class="tcg-rsym">${RSYM[d.rarity]}</span><span>${RAR[d.rarity]}</span><span class="tcg-no">${d.no || 'Biff City'}</span></div>
       </div><i class="tcg-holo"></i></div></div>`;
   }
   function boostersBody() {
@@ -2516,7 +2516,7 @@
     const best = deck.reduce((a, c) => Math.max(a, ORD[c.rarity]), 0);
     el.dataset.best = 'CREL'[best];
     el.innerHTML = `<div class="pk-stage">${packArt()}</div><i class="pk-rays"></i><i class="pk-flash"></i><b class="pk-rar stroke"></b>
-      <div class="pk-stack">${deck.map((c, i) => `<div class="pk-card r${c.rarity}" style="--i:${i};--n:${deck.length - i};z-index:${deck.length - i}"><div class="pk-in"><div class="pk-back">${has('card-back') ? '' : has('logo') ? `<img src="${src('logo')}" alt="">` : 'HUSTLE CITY'}</div><div class="pk-front">${front(c)}</div></div></div>`).join('')}</div>
+      <div class="pk-stack">${deck.map((c, i) => `<div class="pk-card r${c.rarity}" style="--i:${i};--n:${deck.length - i};z-index:${deck.length - i}"><div class="pk-in"><div class="pk-back">${has('card-back') ? '' : has('logo') ? `<img src="${src('logo')}" alt="">` : 'BIFF CITY'}</div><div class="pk-front">${front(c)}</div></div></div>`).join('')}</div>
       <p class="pk-hint stroke">Touche la carte pour la retourner</p>
       <div class="pk-recap hidden">${deck.map(c => `<div class="pk-mini">${front(c)}</div>`).join('')}</div>
       <button class="btn green pk-done hidden" data-act="packDone">Super !</button>`;
@@ -2684,7 +2684,7 @@
         <button class="set-row" onclick="location.hash='#test'"><span><b>Partie test</b><small>Tout débloqué, cash illimité</small></span><em>›</em></button>
         <button class="set-row" onclick="location.hash='#neuf'"><span><b>Nouvelle partie d'essai</b><small>Depuis le début, avec le tuto</small></span><em>›</em></button></div>` : ''}
       <button class="btn red wide" style="margin-top:12px" data-act="resetAsk">Recommencer à zéro</button>
-      <p class="muted center" style="margin-top:10px">Hustle City v${((document.querySelector('script[src*="ui.js"]') || {}).src || '').match(/v=(\d+)/)?.[1] || ''} · un jeu : l'argent du jeu est fictif, il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>`;
+      <p class="muted center" style="margin-top:10px">Biff City v${((document.querySelector('script[src*="ui.js"]') || {}).src || '').match(/v=(\d+)/)?.[1] || ''} · un jeu : l'argent du jeu est fictif, il ne s'achète pas et ne vaut rien en vrai. Les vrais jeux d'argent sont interdits aux mineurs.</p>`;
   }
   function openSettings() {
     openModal({ title: 'Réglages', icon: 'hdr-settings', full: true, body: settingsBody(), onClose: () => clearInterval(tipTimer) });
@@ -2707,9 +2707,9 @@
     let ok = false; try { ok = localStorage.getItem('hustleCity.age18') === '1'; } catch (e) {}
     if (ok || G.TEST || (window.HC_DEV && /^#neuf/.test(location.hash))) return then();
     const el = $('#start'); el.className = 'first age';
-    const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '';
+    const logo = has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : '';
     el.innerHTML = `<div class="logo">${logo}</div><div class="age-card"><b>Réservé aux plus de 18 ans</b>
-      <p>Hustle City contient des paris sportifs, un casino et des tickets à gratter. Tout est fictif : on n'y mise et on n'y gagne jamais d'argent réel.</p>
+      <p>Biff City contient des paris sportifs, un casino et des tickets à gratter. Tout est fictif : on n'y mise et on n'y gagne jamais d'argent réel.</p>
       <div class="age-btns"><button class="btn green" id="age-yes">J'ai 18 ans ou plus</button><button class="btn" id="age-no">J'ai moins de 18 ans</button></div></div>`;
     startBg(el);
     $('#age-yes').onclick = () => { try { localStorage.setItem('hustleCity.age18', '1'); } catch (e) {} then(); };
@@ -2717,10 +2717,10 @@
   }
   function startScreen() {
     const el = $('#start'); el.className = 'first';
-    const logo = has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : '<div class="t1">HUSTLE</div><div class="t2">CITY</div>';
+    const logo = has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : '<div class="t1">BIFF</div><div class="t2">CITY</div>';
     let sel = 'survet'; if (!st().tag) st().tag = String(1000 + Math.floor(Math.random() * 9000));
     const draw = () => {
-      el.innerHTML = `<div class="logo">${logo}<div class="tagline">Deviens riche. Facilement.*<small>*ou pas</small></div></div>
+      el.innerHTML = `<div class="logo">${logo}<div class="tagline">Parie. Investis. Deviens riche.</div></div>
         <div class="form">
           <div class="skins">${D.SKINS.filter(k => !k.iap).map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
           <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
@@ -2740,7 +2740,7 @@
   }
   function intro() {
     const s = st();
-    dialog('Ton cousin Momo', `Wesh ${esc(s.name)} ! Bienvenue à Hustle City. T'as 200<i class="cur"></i> en poche et un vieux PC. Commence par <b>ton appart</b> : relance le minage et achète un peu de crypto.`, 'Vas-y', () => {
+    dialog('Ton cousin Momo', `Wesh ${esc(s.name)} ! Bienvenue à Biff City. T'as 200<i class="cur"></i> en poche et un vieux PC. Commence par <b>ton appart</b> : relance le minage et achète un peu de crypto.`, 'Vas-y', () => {
       dialog('Ton cousin Momo', 'Et au <b>Royal</b>, en face, y a les paris sur le foot. Mais retiens : le patron gagne toujours plus que les clients.', 'Compris', () => { s.tutoDone = true; G.save(); });
     });
   }
@@ -3108,7 +3108,7 @@
   G.on('asleep', () => {
     if (document.getElementById('tab-lock')) return;
     const el = document.createElement('div'); el.id = 'tab-lock';
-    el.innerHTML = `<div class="tl-box"><b>Ta partie est ouverte ailleurs</b><p>Hustle City tourne dans un autre onglet. Pour ne rien perdre, on joue dans un seul onglet à la fois : celui-ci est en pause.</p><button class="btn green wide">Jouer dans cet onglet</button></div>`;
+    el.innerHTML = `<div class="tl-box"><b>Ta partie est ouverte ailleurs</b><p>Biff City tourne dans un autre onglet. Pour ne rien perdre, on joue dans un seul onglet à la fois : celui-ci est en pause.</p><button class="btn green wide">Jouer dans cet onglet</button></div>`;
     el.querySelector('button').onclick = () => location.reload();
     document.body.appendChild(el);
   });
@@ -3287,13 +3287,13 @@
     const el = $('#start'); el.className = 'first'; startBg(el);
     const href = NEW_SITE + (code ? '#import=' + code : '');
     const steps = [
-      `<div class="mv-ic">${ico('logo', '')}</div><h2>Le jeu a déménagé !</h2><p>Hustle City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
+      `<div class="mv-ic">${ico('logo', '')}</div><h2>Le jeu a déménagé !</h2><p>Biff City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
        <button class="btn green" data-mv="1">Suivant</button>`,
       code ? `<div class="mv-ic">${ico('icon-treasure', '')}</div><h2>Emmène ta partie</h2><div class="mv-me">${skinPic(me.skin)}<span><b>${esc(me.name || 'Toi')}</b><small>Niveau ${me.lvl || 1} · ${short(me.cash || 0)}</small></span></div>
        <ol class="mv-steps"><li>Appuie sur <b>« Emmener ma partie »</b>.</li><li>Le nouveau site s'ouvre <b>avec ta partie</b> dedans.</li><li>C'est tout ! À partir de maintenant, joue <b>uniquement</b> là-bas.</li></ol>
        <a class="btn green" href="${href}" data-copy="HC1.${code}">Emmener ma partie</a><p class="mv-note">Ton code de partie est aussi copié : si ta partie n'apparaît pas, colle-le sur le nouveau site (« J'ai déjà une partie »).</p>`
         : `<div class="mv-ic">${ico('nav-city', '')}</div><h2>Rendez-vous là-bas</h2><p>Aucune partie trouvée sur ce téléphone : tu commences directement sur le nouveau site.</p><a class="btn green" href="${href}">Y aller</a>`];
-    const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Hustle City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
+    const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
       startBg(el); el.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => draw(+b.dataset.mv));
       el.querySelectorAll('[data-copy]').forEach(a => a.addEventListener('click', () => { try { navigator.clipboard.writeText(a.dataset.copy); } catch (e) {} })); };
     draw(0); return true;
@@ -3304,11 +3304,11 @@
   function openInstall(arrived, copied) {
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), chromeIos = /CriOS/.test(navigator.userAgent);
     const steps = ios ? [`Touche <b class="mv-key">⬆︎ Partager</b> ${chromeIos ? 'en haut à droite' : 'en bas de l\'écran'}.`, 'Fais défiler et touche <b>« Sur l\'écran d\'accueil »</b>.', 'Touche <b>« Ajouter »</b> en haut à droite.']
-      : ['Touche <b class="mv-key">⋮</b> en haut à droite de ton navigateur.', 'Touche <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'appli »</b>.', 'Confirme : l\'icône Hustle City apparaît avec tes applis.'];
-    openModal({ title: arrived ? 'Ta partie est arrivée !' : 'Hustle City en appli', icon: 'star', center: true, body: `
+      : ['Touche <b class="mv-key">⋮</b> en haut à droite de ton navigateur.', 'Touche <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'appli »</b>.', 'Confirme : l\'icône Biff City apparaît avec tes applis.'];
+    openModal({ title: arrived ? 'Ta partie est arrivée !' : 'Biff City en appli', icon: 'star', center: true, body: `
       ${arrived ? `<p class="center hint-line">🎉 Tout est là, niveau ${arrived}. Dernière étape :</p>` : ''}
       <div class="inst-head">${has('logo') ? `<img src="${src('logo')}" alt="">` : ''}<b>Mets le jeu sur ton écran d'accueil</b><small>Il s'ouvrira en plein écran, comme une vraie appli, et ta partie sera toujours là.</small></div>
-      ${installEvt ? '<div class="center"><button class="btn green" data-act="installNow">Installer Hustle City</button></div><p class="center hint-line">ou à la main :</p>' : ''}
+      ${installEvt ? '<div class="center"><button class="btn green" data-act="installNow">Installer Biff City</button></div><p class="center hint-line">ou à la main :</p>' : ''}
       <ol class="mv-steps">${steps.map(x => `<li>${x}</li>`).join('')}</ol>
       ${copied ? `<div class="card inst-code"><b>Ta partie te suit</b><p>L'appli démarre vide la première fois. Ton code de partie vient d'être copié : dans l'appli, touche <b>« J'ai déjà une partie »</b> et tout revient.</p></div>` : ''}
       <div class="center"><button class="btn" data-act="closeModal">${arrived ? 'Plus tard' : 'OK'}</button></div>` });
@@ -3343,10 +3343,10 @@
     if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), () => ageGate(startScreen));
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
-    const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Hustle City">` : '<div class="logo"><div class="t1">HUSTLE</div><div class="t2">CITY</div></div>'}<span class="st-tag">Deviens riche. Facilement.*</span></div>
+    const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Biff City">` : '<div class="logo"><div class="t1">BIFF</div><div class="t2">CITY</div></div>'}<span class="st-tag">Parie. Investis. Deviens riche.</span></div>
       <div class="st-hero">${skinPic(s.skin)}</div>
       <div class="st-bottom"><p class="st-hello"><span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
-      <p class="start-note">*ou pas. Réservé aux adultes</p></div>`;
+      <p class="start-note">Réservé aux adultes</p></div>`;
     preload(html, () => { el.className = 'welcome'; el.innerHTML = html; startBg(el); welcomeGo(); if (window.__imported) $('#st-go').click(); });   // partie ramenée : on entre direct dans le jeu
     const welcomeGo = () => $('#st-go').onclick = () => {
       sfx.tap(); el.classList.add('gone'); setTimeout(() => el.remove(), 400);

@@ -1,4 +1,4 @@
-// Lot d'images Hustle City : à coller dans la console de Chrome, sur magnific.com/app/ai-image-generator
+// Lot d'images Biff City : à coller dans la console de Chrome, sur magnific.com/app/ai-image-generator
 // Avant : mode Unlimited sur ON, qualité « 2K · High », Smart prompt sur OFF. Le script s'arrête tout seul sinon (jamais de crédits).
 // Outil d'automatisation Magnific (à coller dans la page magnific.com/app/ai-image-generator)
 window.HC = {
@@ -80,7 +80,7 @@ HC.LOT = [["act-collab","1:1","2D mobile game art, polished cartoon illustration
   for (const [name, , p] of HC.LOT) { const hit = all.find(x => x.url && x.name && (x.name === p || (x.name.length >= 300 && p.startsWith(x.name.replace(/…$/, ''))))); if (hit) found[name] = hit.url; }
   const n = Object.keys(found).length, miss = HC.LOT.map(x => x[0]).filter(k => !found[k]);
   const txt = Object.entries(found).map(([k, v]) => k + ' ' + v).join('\n');
-  box.innerHTML = `<b>Hustle City</b><br>${n} / ${HC.LOT.length} images retrouvées${miss.length ? '<br><span style="color:#ff8a7a">Pas encore faites : ' + miss.join(', ') + '</span>' : ''}`;
+  box.innerHTML = `<b>Biff City</b><br>${n} / ${HC.LOT.length} images retrouvées${miss.length ? '<br><span style="color:#ff8a7a">Pas encore faites : ' + miss.join(', ') + '</span>' : ''}`;
   const b = document.createElement('button'); b.textContent = 'Copier les résultats'; b.style.cssText = 'display:block;width:100%;margin-top:10px;padding:10px;border:0;border-radius:10px;background:#5fc73a;color:#fff;font:700 14px sans-serif;cursor:pointer';
   b.onclick = () => { navigator.clipboard.writeText(txt); b.textContent = 'Copié ! Colle-le à Claude'; }; box.appendChild(b);
 })();

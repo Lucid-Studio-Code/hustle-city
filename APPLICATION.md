@@ -1,4 +1,4 @@
-# Hustle City en application (iPhone et Android)
+# Biff City en application (iPhone et Android)
 
 Le jeu est déjà emballé en application avec **Capacitor** (gratuit). Les deux projets sont prêts :
 - `ios/` : le projet iPhone (s'ouvre dans Xcode)

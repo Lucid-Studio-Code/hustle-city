@@ -1,4 +1,4 @@
-/* Hustle City : tickets à gratter façon tabac (parodies des vrais tickets).
+/* Biff City : tickets à gratter façon tabac (parodies des vrais tickets).
    Le gain est tiré à l'achat ; on fabrique ensuite une grille qui le montre, avec des cases qu'on gratte une à une. */
 (function () {
   'use strict';
@@ -93,7 +93,7 @@
       <div class="tk-top">${U.pic(t.emblem, '🎟️', 'tk-emb')}<div class="tk-title"><b class="tk-name">${t.name}</b><span class="tk-max">Jusqu'à ${money(top)}</span></div><span class="tk-price"><small>Prix</small><b>${money(t.price)}</b></span></div>
       <div class="tk-game g-${t.game}">${gameHtml()}</div>
       <p class="tk-rule">${t.rule}</p>
-      <div class="tk-foot"><i class="barcode"></i><small>N° ${ticket.no} · Jeu fictif Hustle City · aucun gain réel · interdit aux mineurs</small></div>
+      <div class="tk-foot"><i class="barcode"></i><small>N° ${ticket.no} · Jeu fictif Biff City · aucun gain réel · interdit aux mineurs</small></div>
       ${ticket.done ? `<div class="tk-result ${ticket.prize ? 'won' : 'lost'}"><b class="stroke">${ticket.prize ? `GAGNÉ ${money(ticket.prize)}` : 'PERDU'}</b><small>${ticket.prize ? 'Le buraliste te paie en billets.' : 'Pas cette fois. Comme 3 tickets sur 4.'}</small></div>` : ''}
     </div>`;
   }

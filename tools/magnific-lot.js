@@ -1,4 +1,4 @@
-// Lot d'images Hustle City : à coller dans la console de Chrome, sur magnific.com/app/ai-image-generator
+// Lot d'images Biff City : à coller dans la console de Chrome, sur magnific.com/app/ai-image-generator
 // Avant : mode Unlimited sur ON, qualité « 2K · High », Smart prompt sur OFF. Le script s'arrête tout seul sinon (jamais de crédits).
 // Outil d'automatisation Magnific (à coller dans la page magnific.com/app/ai-image-generator)
 window.HC = {
@@ -64,7 +64,7 @@ HC.LOT = [["sheet-crests-r", "3:2", "2D mobile game art, polished cartoon illust
   const box = document.createElement('div');
   box.style.cssText = 'position:fixed;z-index:99999;right:16px;bottom:16px;width:280px;padding:14px;border-radius:14px;background:#2a1a10;color:#fff;font:600 14px sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4)';
   document.body.appendChild(box);
-  const show = () => { const n = Object.keys(HC.results).length; box.innerHTML = `<b>Hustle City</b><br>${n} / ${HC.LOT.length} images faites${HC.log.length ? '<br><span style="color:#ff8a7a">' + HC.log.join('<br>') + '</span>' : ''}`; };
+  const show = () => { const n = Object.keys(HC.results).length; box.innerHTML = `<b>Biff City</b><br>${n} / ${HC.LOT.length} images faites${HC.log.length ? '<br><span style="color:#ff8a7a">' + HC.log.join('<br>') + '</span>' : ''}`; };
   const t = setInterval(show, 2000); show();
   await HC.run(HC.LOT); clearInterval(t); show();
   const b = document.createElement('button'); b.textContent = 'Copier les résultats'; b.style.cssText = 'display:block;width:100%;margin-top:10px;padding:10px;border:0;border-radius:10px;background:#5fc73a;color:#fff;font:700 14px sans-serif;cursor:pointer';

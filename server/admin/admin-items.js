@@ -1,4 +1,4 @@
-/* Hustle City · back office : les OBJETS DU JEU (voir, modifier, ajouter).
+/* Biff City · back office : les OBJETS DU JEU (voir, modifier, ajouter).
    Tout ce qui est fait ici part dans la config « live » sous la clé content.items (route POST /admin/api/content) :
    - un objet du jeu modifié : seulement ce qui change (nom, prix de départ, rareté, boutique, image, caché, dates) ;
    - un nouvel objet : { new: true, cat, name, r, p0, img, series… }. Les images vont sur le serveur (/admin/api/upload → /media/…).

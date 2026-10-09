@@ -1,4 +1,4 @@
-/* Hustle City : données du jeu (tout ce qui est réglable est ici) */
+/* Biff City : données du jeu (tout ce qui est réglable est ici) */
 (function () {
   'use strict';
 
@@ -965,7 +965,7 @@
       desc: '300 lingots, 5 boosters, 2 000 de cash et ta machine passe au niveau 2' },
     { id: 'x-noads',  kind: 'pack', once: true, name: 'Sans pub', price: '3,99 €', tag: 'Pour toujours', give: { lingots: 100, noAds: true },
       desc: 'Plus aucune pub qui coupe ton jeu, pour toujours (les pubs pour gagner des lingots restent au choix). +100 lingots offerts' },
-    { id: 'x-pass',   kind: 'pack', name: 'Pass Hustle', price: '4,99 €', per: 'mois', sub: true, tag: 'Abonnement · sans engagement', give: { lingots: 150, passDays: 30 },
+    { id: 'x-pass',   kind: 'pack', name: 'Pass Biff', price: '4,99 €', per: 'mois', sub: true, tag: 'Abonnement · sans engagement', give: { lingots: 150, passDays: 30 },
       desc: 'Abonnement mensuel, sans engagement : 150 lingots tout de suite, puis 15 lingots et 1 booster chaque jour' },
     { id: 'x-collec', kind: 'pack', name: 'Pack Collectionneur', price: '9,99 €', give: { boosters: 20, lingots: 150 },
       desc: '20 boosters de cartes et 150 lingots' },
@@ -979,7 +979,7 @@
   const PROMOS = [
     { id: 'x-start',  off: 50, title: 'Pack de départ à −50 %',     desc: '300 lingots, 5 boosters, 2 000 de cash et la machine niveau 2' },
     { id: 'l-600',    bonus: 30, title: 'Sac de lingots +30 %',      desc: '780 lingots au lieu de 600' },
-    { id: 'x-pass',   off: 40, title: 'Pass Hustle à −40 %',        desc: 'Le 1er mois de l\'abonnement : 150 lingots, puis 15 lingots et 1 booster par jour' },
+    { id: 'x-pass',   off: 40, title: 'Pass Biff à −40 %',        desc: 'Le 1er mois de l\'abonnement : 150 lingots, puis 15 lingots et 1 booster par jour' },
     { id: 'x-collec', off: 30, title: 'Pack Collectionneur à −30 %', desc: '20 boosters de cartes et 150 lingots' },
     { id: 'l-1300',   bonus: 25, title: 'Coffre de lingots +25 %',   desc: '1 625 lingots au lieu de 1 300' }
   ];

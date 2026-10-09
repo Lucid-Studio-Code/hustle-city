@@ -1,4 +1,4 @@
-# Préparer des lots d'images Hustle City (session cloud)
+# Préparer des lots d'images Biff City (session cloud)
 
 Ton seul rôle : **écrire des lots d'images** (fichiers `tools/lot-*.js`) et les pousser sur `main`.
 Tu ne touches PAS au code du jeu (js/, css/, game.html, assets/). Une autre session (en local) installe les images et pousse le jeu.

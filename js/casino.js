@@ -1,4 +1,4 @@
-/* Hustle City : Lucky Palace (machine à sous + roulette européenne) */
+/* Biff City : Lucky Palace (machine à sous + roulette européenne) */
 (function () {
   'use strict';
   const D = window.DATA, G = window.GAME, U = window.UI;

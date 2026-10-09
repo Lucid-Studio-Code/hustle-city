@@ -1,4 +1,4 @@
-/* Hustle City : tutoriel guidé (projecteur + flèche + bulle du cousin Momo). Chaque étape avance quand le joueur fait le geste. */
+/* Biff City : tutoriel guidé (projecteur + flèche + bulle du cousin Momo). Chaque étape avance quand le joueur fait le geste. */
 (function () {
   'use strict';
   const D = window.DATA, G = window.GAME, U = window.UI;

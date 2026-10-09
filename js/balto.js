@@ -1,4 +1,4 @@
-/* Hustle City : Le Royal (paris sportifs + tickets à gratter), version visuelle :
+/* Biff City : Le Royal (paris sportifs + tickets à gratter), version visuelle :
    écussons des équipes, chances de chaque issue, terrain animé pendant le direct, « BUT ! », ticket papier. */
 (function () {
   'use strict';

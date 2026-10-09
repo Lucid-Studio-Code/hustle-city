@@ -1,4 +1,4 @@
-/* Hustle City : logique pure (état, sauvegarde, simulation). Aucun DOM ici. */
+/* Biff City : logique pure (état, sauvegarde, simulation). Aucun DOM ici. */
 (function () {
   'use strict';
   const D = window.DATA;
@@ -1658,7 +1658,7 @@
     const day = dailyDay(), r = dailyReward(day);
     st.daily.claimedDay = today(); st.daily.streak = day;
     addCash(r.cash); addLingots(r.lingots); st.boosters += r.boosters; cdmGain('daily');
-    if (passOn()) { addLingots(15); st.boosters++; r.pass = true; }   // Pass Hustle : 15 lingots et 1 booster en plus chaque jour
+    if (passOn()) { addLingots(15); st.boosters++; r.pass = true; }   // Pass Biff : 15 lingots et 1 booster en plus chaque jour
     emit('change'); return { r, day };
   }
   function dailyState() { return { can: dailyReady(), idx: dailyDay() - 1 }; }

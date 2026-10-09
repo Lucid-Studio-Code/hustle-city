@@ -1,4 +1,4 @@
-/* Hustle City : notifications sur le téléphone (seulement dans l'application iPhone / Android, rien sur le web).
+/* Biff City : notifications sur le téléphone (seulement dans l'application iPhone / Android, rien sur le web).
    - Rappels programmés sur le téléphone lui-même (pas besoin d'internet) : récolte prête, cadeau du jour, prono du tournoi, retour après une absence.
    - Notifications envoyées depuis le back office (message à tous) : le téléphone s'inscrit et donne son adresse au serveur.
    On ne demande l'autorisation qu'après le tutoriel, et rien n'est envoyé si le joueur coupe « Rappels hors du jeu » dans les réglages. */

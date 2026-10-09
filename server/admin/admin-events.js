@@ -1,4 +1,4 @@
-/* Hustle City · back office : ÉVÉNEMENTS ET NOUVEAUTÉS, en simple.
+/* Biff City · back office : ÉVÉNEMENTS ET NOUVEAUTÉS, en simple.
    Un bloc = une chose (maintenance, annonces, prochain tournoi, pubs). Chaque bloc s'enregistre tout seul et arrive dans le jeu dans la minute.
    Remplace l'ancienne page (admin-ops.js) : même config « live » côté serveur. */
 (function () {

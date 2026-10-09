@@ -1,4 +1,4 @@
-/* Hustle City · back office : les NOTIFICATIONS sur le téléphone des joueurs (jeu fermé, application iPhone / Android).
+/* Biff City · back office : les NOTIFICATIONS sur le téléphone des joueurs (jeu fermé, application iPhone / Android).
    - Envoyer une notification maintenant ou à une date, à tous ou à un groupe.
    - Les rappels automatiques (récolte, cadeau du jour, prono, absence) : on / off et textes. Enregistrés dans la config « live » : notifs. */
 (function () {
@@ -74,7 +74,7 @@
       const t = m.title || $('#nf-t').placeholder, b = m.body || $('#nf-b').placeholder;
       $('#nf-prev').innerHTML = `<div class="prev-lbl">Ce que voit le joueur</div>
         <div class="nf-phone"><div class="nf-clock"><small>${new Date(m.at || Date.now()).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</small><b>${new Date(m.at || Date.now()).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</b></div>
-          <div class="nf-notif"><div class="nf-app">${img('logo')}<span>HUSTLE CITY</span><small>maintenant</small></div><b>${esc(t)}</b><p>${esc(b)}</p></div></div>
+          <div class="nf-notif"><div class="nf-app">${img('logo')}<span>BIFF CITY</span><small>maintenant</small></div><b>${esc(t)}</b><p>${esc(b)}</p></div></div>
         <small class="help">Un appui sur la notification ouvre le jeu.</small>`;
       $('#nf-tc').textContent = `${m.title.length}/60`; $('#nf-bc').textContent = `${m.body.length}/180`;
       $('#nf-go span').textContent = m.at ? 'Programmer' : 'Envoyer maintenant';

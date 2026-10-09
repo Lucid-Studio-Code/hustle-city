@@ -1,4 +1,4 @@
-// Hustle City : données de DÉMO pour le back office (≈ 400 joueurs fictifs sur 60 jours).
+// Biff City : données de DÉMO pour le back office (≈ 400 joueurs fictifs sur 60 jours).
 // Remplit une base SÉPARÉE (server/demo.db) : la vraie base server/hustle.db n'est jamais touchée.
 //   node tools/demo-backoffice.js
 //   DB=server/demo.db PORT=5301 node server/server.js   →   http://localhost:5301/admin/
@@ -264,7 +264,7 @@ TICKETS.forEach((T0, k) => {
   T0.m.forEach((txt, j) => { const admin = j % 2 === 1; t += admin ? RI(4, 600) * MIN : RI(2, 180) * MIN; if (t > NOW - MIN) t = NOW - RI(1, 30) * MIN; msgs.push([t, admin ? 1 : 0, txt + (admin && T0.gift && j === T0.m.length - 1 - (T0.m.length % 2 ? 1 : 0) ? ' [cadeau : ' + Object.entries(T0.gift).map(([a, b]) => `${b} ${a}`).join(', ') + ']' : '')]); });
   const r = insT.run(p.pid, msgs[msgs.length - 1][0], msgs[0][0], T0.st, T0.s);
   msgs.forEach(m => insM.run(r.lastInsertRowid, m[0], m[1], m[2]));
-  if (T0.gift) insI.run(p.pid, msgs[1][0], 'Support Hustle City', T0.m[1], JSON.stringify(T0.gift), 1);
+  if (T0.gift) insI.run(p.pid, msgs[1][0], 'Support Biff City', T0.m[1], JSON.stringify(T0.gift), 1);
 });
 
 // ---------------------------------------------------------------- réglages en direct (comme si elle avait déjà publié)

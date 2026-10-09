@@ -1,4 +1,4 @@
-/* Hustle City · back office : le socle (connexion, navigation, outils communs, avatar des joueurs), le tableau de bord et la carte.
+/* Biff City · back office : le socle (connexion, navigation, outils communs, avatar des joueurs), le tableau de bord et la carte.
    Les autres onglets : admin-stats.js (statistiques), admin-players.js (joueurs + fiche), admin-ops.js (SAV, événements, message à tous, journal).
    Parle à server/server.js (API /admin/api/…, jeton Bearer). */
 (function () {
@@ -223,7 +223,7 @@
   HC.PAGES.dash = async () => {
     const [o, L] = await Promise.all([HC.api('/admin/api/overview?days=' + HC.period), HC.api('/admin/api/live')]);
     const k = o.kpi, s = o.series, pv = o.prev, hello = new Date().getHours() < 18 ? 'Bonjour' : 'Bonsoir';
-    HC.main(`<div class="page-head"><div><h1>${hello} patronne !</h1><div class="sub">Ce qui se passe dans Hustle City, en un coup d'œil · ${HC.period} derniers jours</div></div><div class="tools">${HC.periodChips()}<button class="btn sm ghost" data-go="dash">Actualiser</button></div></div>
+    HC.main(`<div class="page-head"><div><h1>${hello} patronne !</h1><div class="sub">Ce qui se passe dans Biff City, en un coup d'œil · ${HC.period} derniers jours</div></div><div class="tools">${HC.periodChips()}<button class="btn sm ghost" data-go="dash">Actualiser</button></div></div>
       <div class="kpis k4">
         ${HC.kpi(null, `<span id="k-on">${fmt(L.online.length)}</span>`, 'joueurs en ligne maintenant', { cls: 'live', color: 'var(--green)', html: '<span class="dot" style="width:16px;height:16px"></span>', go: 'map' })}
         ${HC.kpi('icon-bolt', fmt(k.dau), 'joueurs aujourd\'hui', { color: 'var(--yellow)', delta: delta(k.dau, pv.avgDau), title: 'Comparé à la moyenne par jour de la période précédente' })}

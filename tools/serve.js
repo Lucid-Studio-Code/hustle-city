@@ -34,4 +34,4 @@ http.createServer((req, res) => {
   const f = path.join(root, p), rel = path.relative(root, f).split(path.sep);
   if (!f.startsWith(root + path.sep) || rel.some(x => x.startsWith('.')) || ['server', 'tools', 'originals-2k', 'node_modules'].includes(rel[0]) || /\.(md|db|db-wal|db-shm|p8|pem|key|sqlite)$/i.test(f)) { res.writeHead(404); return res.end('404'); }
   fs.readFile(f, (e, b) => { if (e) { res.writeHead(404); return res.end('404'); } res.writeHead(200, { 'Access-Control-Allow-Origin': '*', 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(b); });
-}).listen(port, '127.0.0.1', () => console.log('Hustle City sur http://localhost:' + port + ' (seulement sur ce Mac)'));
+}).listen(port, '127.0.0.1', () => console.log('Biff City sur http://localhost:' + port + ' (seulement sur ce Mac)'));

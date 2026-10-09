@@ -1,4 +1,4 @@
-/* Hustle City · back office : liste des joueurs et fiche joueur (photo, inventaire, activité, actions). */
+/* Biff City · back office : liste des joueurs et fiche joueur (photo, inventaire, activité, actions). */
 (function () {
   'use strict';
   const HC = window.HC, D = HC.D, { $, $$, esc, img, has, src, first, fmt, short, cash, lingots, eur, ago, dt, day, hm, dur, flag } = HC;
@@ -152,8 +152,8 @@
     $('#g-go').onclick = async () => {
       const gift = { lingots: +$('#g-l').value || 0, cash: +$('#g-c').value || 0, boosters: +$('#g-b').value || 0 }, title = $('#g-t').value.trim(), text = $('#g-x').value.trim();
       if (!text && !title && !gift.lingots && !gift.cash && !gift.boosters) return HC.toast('Écris un message ou choisis un cadeau', null, true);
-      if (!(await HC.confirm('Envoyer à ' + (p.name || 'ce joueur') + ' ?', `${esc(title || 'Hustle City')}${text ? '<br>« ' + esc(text) + ' »' : ''}${giftTxt(gift) ? '<br>Cadeau : <b>' + giftTxt(gift) + '</b>' : ''}`, 'Envoyer'))) return;
-      await HC.api('/admin/api/gift', { pid, title: title || 'Hustle City', text, gift }); HC.toast('Envoyé ! Il le reçoit à sa prochaine connexion', 'icon-gift'); HC.route();
+      if (!(await HC.confirm('Envoyer à ' + (p.name || 'ce joueur') + ' ?', `${esc(title || 'Biff City')}${text ? '<br>« ' + esc(text) + ' »' : ''}${giftTxt(gift) ? '<br>Cadeau : <b>' + giftTxt(gift) + '</b>' : ''}`, 'Envoyer'))) return;
+      await HC.api('/admin/api/gift', { pid, title: title || 'Biff City', text, gift }); HC.toast('Envoyé ! Il le reçoit à sa prochaine connexion', 'icon-gift'); HC.route();
     };
     $('#pn-s').onclick = async () => { await HC.api('/admin/api/notes', { pid, notes: $('#pn').value }); $('#pn-st').textContent = 'Enregistré ✓'; HC.toast('Note enregistrée', 'icon-check'); };
     const ban = async () => { const why = $('#b-r') && $('#b-r').value.trim() || await HC.prompt('Suspendre ' + (p.name || 'ce joueur'), 'Le motif s\'affiche au joueur sur son écran.', 'Ex. : triche, insultes…'); if (why === null) return; await HC.api('/admin/api/ban', { pid, ban: true, reason: why }); HC.toast('Compte suspendu', 'icon-lock'); HC.route(); };

@@ -1,4 +1,4 @@
-/* Hustle City : lien avec le serveur (sauvegarde en ligne, statistiques, SAV, cadeaux, réglages en direct).
+/* Biff City : lien avec le serveur (sauvegarde en ligne, statistiques, SAV, cadeaux, réglages en direct).
    Sans serveur joignable, ce fichier ne fait rien : le jeu marche comme avant, tout en local.
    Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300 ou en ligne, ex. hustle.lucidstudio.fr), sinon localStorage « hc.api ». */
 (function () {
@@ -48,7 +48,7 @@
     Object.entries(c.values || {}).forEach(([p, v]) => { try { setPath(D, p, v); } catch (e) {} });
     // annonces : chacune une seule fois, dans le téléphone
     const seen = G.st.seenNews = G.st.seenNews || {};
-    (c.news || []).forEach(n => { if (n && n.id && !seen[n.id] && (!n.until || Date.parse(n.until) > Date.now())) { seen[n.id] = Date.now(); U.notify('missions', n.title || 'Hustle City', n.text || ''); } });
+    (c.news || []).forEach(n => { if (n && n.id && !seen[n.id] && (!n.until || Date.parse(n.until) > Date.now())) { seen[n.id] = Date.now(); U.notify('missions', n.title || 'Biff City', n.text || ''); } });
     maintenance(c.maintenance && c.maintenance.on ? c.maintenance.text || 'Le jeu est en maintenance, reviens dans un petit moment.' : null);
   }
   function overlay(id_, html) {
@@ -70,8 +70,8 @@
       const g = m.gift || {};
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
       const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`].filter(Boolean).join(', ');
-      if (/support/i.test(m.title)) U.chatPush('Support Hustle City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
-      U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Hustle City', (m.text || '') + (gl ? ` ${gl} !` : ''));
+      if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
+      U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Biff City', (m.text || '') + (gl ? ` ${gl} !` : ''));
       ev('gift_received', { id: m.id, g: gl });
       post('/api/claim', { id: m.id }).catch(() => {});
     });

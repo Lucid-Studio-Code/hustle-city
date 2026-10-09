@@ -1,4 +1,4 @@
-# Hustle City
+# Biff City
 
 Jeu mobile en HTML/CSS/JS (sans framework) : un jeune lascar veut devenir riche « facilement » entre paris sportifs, tickets à gratter, casino, crypto et cartes à collectionner.
 Dérivé du moteur de Mama Kana Farm, avec un univers et des visuels différents.

@@ -1,4 +1,4 @@
-// Hustle City : notifications sur le téléphone des joueurs (jeu fermé). Gratuit, aucun service payant.
+// Biff City : notifications sur le téléphone des joueurs (jeu fermé). Gratuit, aucun service payant.
 //  - Android : Firebase Cloud Messaging. Clé « compte de service » Firebase dans server/fcm-key.json (ou FCM_KEY = chemin).
 //  - iPhone  : directement chez Apple (APNs). Clé .p8 dans server/apns-key.p8 (ou APNS_KEY = chemin) + APNS_KEY_ID + APNS_TEAM_ID
 //              (+ APNS_PROD=1 une fois l'appli sur l'App Store ; bundle : APNS_TOPIC, par défaut com.lucidstudio.hustlecity).

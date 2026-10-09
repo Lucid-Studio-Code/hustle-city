@@ -1,4 +1,4 @@
-/* Hustle City : les objets ajoutés ou modifiés depuis le back office (page « Objets du jeu »).
+/* Biff City : les objets ajoutés ou modifiés depuis le back office (page « Objets du jeu »).
    Le serveur les envoie avec les réglages en direct (clé « content ») ; on les garde aussi sur l'appareil,
    pour que tout marche hors ligne dès le lancement suivant.
    - un objet existant peut changer de nom, de prix de départ, de rareté, d'image, être caché ou n'être en vente qu'entre deux dates ;

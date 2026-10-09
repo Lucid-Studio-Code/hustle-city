@@ -2,7 +2,7 @@
   "name": "hustle-city",
   "version": "1.0.0",
   "private": true,
-  "description": "Hustle City : le jeu (web) + l'application iPhone / Android (Capacitor)",
+  "description": "Biff City : le jeu (web) + l'application iPhone / Android (Capacitor)",
   "scripts": {
     "app:build": "node tools/build-app.js",
     "app:sync": "node tools/build-app.js && npx cap sync",

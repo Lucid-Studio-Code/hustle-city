@@ -1,4 +1,4 @@
-/* Hustle City : sons et musique, fabriqués en direct (Web Audio). Quelques bruits réels (caisse, sifflet, foule, cadeau) sont de vrais
+/* Biff City : sons et musique, fabriqués en direct (Web Audio). Quelques bruits réels (caisse, sifflet, foule, cadeau) sont de vrais
    enregistrements libres de droits (assets/sons, licences dans assets/sons/LICENCES.md), chargés après le premier geste ; tant qu'ils
    ne sont pas là (ou s'ils échouent), la version synthétisée prend le relais.
    Chaque effet est en couches (attaque + corps + traîne), avec un peu de réverb (réponse impulsionnelle générée),

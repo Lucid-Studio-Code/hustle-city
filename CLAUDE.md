@@ -1,4 +1,4 @@
-# Hustle City : consignes pour Claude
+# Biff City : consignes pour Claude
 
 Jeu mobile HTML/CSS/JS sans framework, dérivé du moteur de Mama Kana Farm (autre projet, **à ne jamais modifier**).
 Pitch : un jeune lascar veut devenir riche « facilement » avec les paris sportifs, les tickets à gratter, le casino, la crypto et les cartes à collectionner.

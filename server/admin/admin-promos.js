@@ -1,4 +1,4 @@
-/* Hustle City · back office : les PROMOS, une par une.
+/* Biff City · back office : les PROMOS, une par une.
    Une promo = un look de bouton + ce qui est en promo + une remise + des dates. Pendant ses dates, le jeu l'affiche tout seul
    (bouton Promo à gauche de la ville, offre mise en avant dans la boutique). Enregistré dans la config « live » : campaigns.
    Ce qui est en promo (target) : une offre en euros (iap, offer = id de D.IAP), un objet du jeu (item, ref = id, y compris ceux créés
@@ -68,7 +68,7 @@
     const bfEnd = new Date(bf); bfEnd.setDate(bfEnd.getDate() + 4);
     return [
       { id: 'c-halloween-' + y, look: 'halloween', name: 'Halloween', offer: 'x-collec', kind: 'off', value: 40, start: at(10, 24), end: at(11, 1), on: true, title: 'Boosters de l\'horreur : −40 %', desc: '20 boosters de cartes et 150 lingots, juste avant Halloween' },
-      { id: 'c-bf-' + y, look: 'bf', name: 'Black Friday', offer: 'x-pass', kind: 'off', value: 60, start: bf.toISOString(), end: bfEnd.toISOString(), on: true, title: 'Black Friday : Pass Hustle −60 %', desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' },
+      { id: 'c-bf-' + y, look: 'bf', name: 'Black Friday', offer: 'x-pass', kind: 'off', value: 60, start: bf.toISOString(), end: bfEnd.toISOString(), on: true, title: 'Black Friday : Pass Biff −60 %', desc: '150 lingots, puis 15 lingots et 1 booster par jour pendant 30 jours' },
       { id: 'c-noel-' + y, look: 'noel', name: 'Noël', offer: 'l-1300', kind: 'bonus', value: 50, start: at(12, 15), end: at(12, 27), on: true, title: 'Coffre de Noël : +50 % de lingots', desc: '1 950 lingots au lieu de 1 300' }
     ];
   }

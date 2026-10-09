@@ -1,4 +1,4 @@
-/* Hustle City · back office : SAV (messagerie), Événements et nouveautés (réglages en direct + aperçus), Message à tous, Journal. */
+/* Biff City · back office : SAV (messagerie), Événements et nouveautés (réglages en direct + aperçus), Message à tous, Journal. */
 (function () {
   'use strict';
   const HC = window.HC, D = HC.D, { $, $$, esc, img, has, src, fmt, cash, eur, ago, dt, day, hm, flag } = HC;
@@ -12,7 +12,7 @@
     ['Désolé, un geste', 'Désolé pour ce bug ! On t\'a envoyé un petit geste pour te faire pardonner.'],
     ['Ça se débloque', 'Ça se débloque en montant de niveau : continue tes missions avec Momo, tu y es presque !'],
     ['Bonne idée', 'Super idée, on la note pour une prochaine mise à jour !'],
-    ['Merci !', 'Merci, ça fait super plaisir ! Bon jeu dans Hustle City.']
+    ['Merci !', 'Merci, ça fait super plaisir ! Bon jeu dans Biff City.']
   ];
   const GESTES = [['+10', { lingots: 10 }, 'lgt'], ['+25', { lingots: 25 }, 'lgt'], ['+2', { boosters: 2 }, 'bst'], ['+1 000', { cash: 1000 }, 'cur']];
   const ST = { status: 'ouvert', q: '' };
@@ -112,7 +112,7 @@
     const PV = {
       news() { const now = new Date(), L = S.news.filter(n => n.title || n.text).slice(0, 3);
         return `<div class="prev-lbl">Ce que voit le joueur</div><div class="phone"><div class="scr"><div class="clock"><small>${esc(now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}</small>${hm(now)}</div>
-          ${L.map((n, i) => `<div class="notif" style="${i ? 'opacity:.85' : ''}">${img('app-missions')}<div><div class="nh"><span>Hustle City</span><span>${i ? 'il y a ' + (i * 5) + ' min' : 'maintenant'}</span></div><b>${esc(n.title || 'Hustle City')}</b><p>${esc(n.text || '')}</p></div></div>`).join('') || `<div class="notif">${img('app-missions')}<div><b>Ton annonce ici</b><p>Écris un titre et un message à gauche.</p></div></div>`}</div></div>`; },
+          ${L.map((n, i) => `<div class="notif" style="${i ? 'opacity:.85' : ''}">${img('app-missions')}<div><div class="nh"><span>Biff City</span><span>${i ? 'il y a ' + (i * 5) + ' min' : 'maintenant'}</span></div><b>${esc(n.title || 'Biff City')}</b><p>${esc(n.text || '')}</p></div></div>`).join('') || `<div class="notif">${img('app-missions')}<div><b>Ton annonce ici</b><p>Écris un titre et un message à gauche.</p></div></div>`}</div></div>`; },
       maint() { const m = S.maintenance; return `<div class="prev-lbl">Ce que voit le joueur</div><div class="gamescr">${m.on ? `<div class="maint"><div><b>Maintenance</b><p>${esc(m.text || 'Le jeu est en maintenance, reviens dans un petit moment.')}</p></div></div>` : '<div class="off">Le jeu tourne normalement</div>'}</div>`; },
       next() { const ne = S.nextEvent ? new Date(S.nextEvent) : null, left = ne ? ne - Date.now() : 0, cd = left > 0 ? [Math.floor(left / 864e5), Math.floor(left / 36e5) % 24, Math.floor(left / 6e4) % 60] : null;
         return `<div class="prev-lbl">Le Panneau de la place</div><div class="board">${img('bld-six-off')}<b>Prochain événement</b>${cd ? `<div class="cd"><span>${cd[0]}<small>jours</small></span><span>${cd[1]}<small>heures</small></span><span>${cd[2]}<small>min</small></span></div><p>Reviens le ${esc(longDate(ne))} à ${hm(ne)}</p>` : ne ? '<p style="margin-top:10px">Cette date est déjà passée.</p>' : '<p style="margin-top:10px">Bientôt…</p>'}</div>`; },
@@ -255,9 +255,9 @@
       </div>
       <div class="prev"><div class="prev-lbl">Ce que voit le joueur</div><div class="phone"><div class="scr"><div class="clock"><small>${esc(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}</small>${hm(Date.now())}</div><div id="bc-prev"></div></div></div></div></div>
       ${HC.secTitle('hdr-missions', 'Déjà envoyés')}
-      <div class="card">${hist.map(h => { let d = {}; try { d = JSON.parse(h.data); } catch (e) {} const g = HC.giftTxt(d.gift || {}); return `<div class="log-row"><span class="li">${img(g ? 'icon-gift' : 'app-msg')}</span><span class="lt"><b>${esc(d.title || 'Hustle City')}</b> · ${esc(d.text || '')}<br>${g ? `<span class="tag ok">${esc(g)}</span> ` : ''}<span class="tag">${fmt(d.n)} joueurs</span></span><time>${dt(h.t)}</time></div>`; }).join('') || HC.empty('Aucun message envoyé pour l\'instant.', 'icon-gift')}</div>`);
+      <div class="card">${hist.map(h => { let d = {}; try { d = JSON.parse(h.data); } catch (e) {} const g = HC.giftTxt(d.gift || {}); return `<div class="log-row"><span class="li">${img(g ? 'icon-gift' : 'app-msg')}</span><span class="lt"><b>${esc(d.title || 'Biff City')}</b> · ${esc(d.text || '')}<br>${g ? `<span class="tag ok">${esc(g)}</span> ` : ''}<span class="tag">${fmt(d.n)} joueurs</span></span><time>${dt(h.t)}</time></div>`; }).join('') || HC.empty('Aucun message envoyé pour l\'instant.', 'icon-gift')}</div>`);
     const gift = () => ({ lingots: +$('#bc-l').value || 0, cash: +$('#bc-c').value || 0, boosters: +$('#bc-b').value || 0 });
-    const prev = () => { const g = HC.giftTxt(gift()); $('#bc-prev').innerHTML = `<div class="notif">${img('app-missions')}<div><div class="nh"><span>Hustle City</span><span>maintenant</span></div><b>${esc($('#bc-t').value || 'Ton titre')}</b><p>${esc($('#bc-x').value || 'Ton message apparaîtra ici.')}${g ? ' ' + esc(g) + ' !' : ''}</p>${g ? `<span class="gl">${img('icon-gift', 'ico')} ${esc(g)}</span>` : ''}</div></div>`; };
+    const prev = () => { const g = HC.giftTxt(gift()); $('#bc-prev').innerHTML = `<div class="notif">${img('app-missions')}<div><div class="nh"><span>Biff City</span><span>maintenant</span></div><b>${esc($('#bc-t').value || 'Ton titre')}</b><p>${esc($('#bc-x').value || 'Ton message apparaîtra ici.')}${g ? ' ' + esc(g) + ' !' : ''}</p>${g ? `<span class="gl">${img('icon-gift', 'ico')} ${esc(g)}</span>` : ''}</div></div>`; };
     let ct; const count = () => { clearTimeout(ct); ct = setTimeout(async () => { T.filter = { active7: $('#bc-who .on').dataset.w === 'active7', cc: $('#bc-cc').value || undefined, minLvl: +$('#bc-lv').value || undefined }; const r = await HC.api('/admin/api/gift', { pid: '*', dry: true, filter: T.filter }); $('#bc-n').textContent = fmt(r.n); $('#bc-ph').textContent = r.pushOn ? `(${fmt(r.phones)} avec l'application)` : '(pas encore actif : il faut l\'application et la clé Firebase)'; }, 150); };
     ['#bc-t', '#bc-x', '#bc-l', '#bc-c', '#bc-b'].forEach(s => $(s).oninput = prev);
     $$('[data-qg]').forEach(b => b.onclick = () => { const g = JSON.parse(b.dataset.qg); if (g.l) $('#bc-l').value = +$('#bc-l').value + g.l; if (g.c) $('#bc-c').value = +$('#bc-c').value + g.c; if (g.b) $('#bc-b').value = +$('#bc-b').value + g.b; prev(); });
@@ -266,8 +266,8 @@
     $('#bc-cc').onchange = count; $('#bc-lv').onchange = count;
     $('#bc-go').onclick = async () => {
       const title = $('#bc-t').value.trim(), text = $('#bc-x').value.trim(), g = gift(); if (!title && !text) return HC.toast('Écris au moins un titre ou un message', null, true);
-      if (!(await HC.confirm(`Envoyer à ${$('#bc-n').textContent} joueurs ?`, `<b>${esc(title || 'Hustle City')}</b><br>${esc(text)}${HC.giftTxt(g) ? '<br>Cadeau : <b>' + HC.giftTxt(g) + '</b>' : ''}<br><br>On ne peut pas l'annuler une fois envoyé.`, 'Envoyer à tous'))) return;
-      const r = await HC.api('/admin/api/gift', { pid: '*', title: title || 'Hustle City', text, gift: g, filter: T.filter, push: $('#bc-push').checked }); HC.toast(`Envoyé à ${fmt(r.n)} joueurs`, 'icon-gift'); HC.route();
+      if (!(await HC.confirm(`Envoyer à ${$('#bc-n').textContent} joueurs ?`, `<b>${esc(title || 'Biff City')}</b><br>${esc(text)}${HC.giftTxt(g) ? '<br>Cadeau : <b>' + HC.giftTxt(g) + '</b>' : ''}<br><br>On ne peut pas l'annuler une fois envoyé.`, 'Envoyer à tous'))) return;
+      const r = await HC.api('/admin/api/gift', { pid: '*', title: title || 'Biff City', text, gift: g, filter: T.filter, push: $('#bc-push').checked }); HC.toast(`Envoyé à ${fmt(r.n)} joueurs`, 'icon-gift'); HC.route();
     };
     prev(); count();
   };
