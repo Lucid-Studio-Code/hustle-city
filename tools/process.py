@@ -14,7 +14,7 @@ src, dst = os.path.join(root, 'originals-2k'), os.path.join(root, 'assets/img')
 POCKETS = {
     'ic-shop-ville': 'all', 'item-v-electric': [], 'item-v-van': [], 'item-v-city': [], 'item-m-scoot': [],   # carrosseries blanches : pas de trous 'item-g-earrings': [], 'niche-gaming': 'all', 'niche-mode': 'all', 'frame-cdm': 'all', 'ev-cdm-cup': 'sides',   # vides entre le palmier et le banc
     # revue du 03/10 : fonds restés coincés dans des formes fermées
-    'slot-bell': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
+    'slot-bell': 'all', 'slot-cherry': 'all', 'slot-seven': 'all', 'slot-bar': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
     'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
