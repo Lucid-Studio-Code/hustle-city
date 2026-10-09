@@ -3680,3 +3680,5 @@ html { background-color: #120c24; }
 #app:has(#modal.club-fs) #phone-btn, #app:has(#modal.club-fs) #btn-deal, #app:has(#modal.club-fs) #btn-upg, #app:has(#modal.club-fs) #btn-next, #app:has(#modal.club-fs) #btn-gift, #app:has(#modal.club-fs) #btn-booster, #app:has(#modal.club-fs) #trophy, #app:has(#modal.club-fs) #next-cap, #app:has(#modal.club-fs) #quest { display: none !important; }
 #app .trophy-full { background: #fff1dc; border-color: #e8483a; text-align: left; } #app .trophy-full p { margin: 4px 0 0; font: 700 13px/1.35 var(--text); }
 /* le bas de la fenêtre : la marge de la barre de geste de l'iPhone était comptée deux fois (fenêtre + feuille), d'où un vide sous la dernière carte en appli */
+/* roulette : la ligne d'état garde toujours la même hauteur (avant, pendant et après le tour), rien ne bouge en dessous */
+#modal .th-casino .rl-status { font-size: 18px !important; line-height: 22px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
