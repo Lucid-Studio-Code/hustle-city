@@ -368,5 +368,43 @@
    "lead": "Acheter au plus bas, revendre au plus haut, résister à la panique quand tout plonge : dans Biff City, tu t'y essaies avec des cryptos fictives et zéro risque.",
    "body": "## Six cryptos qui ne dorment jamais\nDepuis le PC de ton appartement, tu suis six cryptomonnaies inventées : **Axion, Vektor, Nova, PigeonCoin, KebabCoin et Zéphyr**. Leur cours bouge en continu, avec des alertes « flash » quand l'une bondit ou s'effondre d'un coup. Les ordres automatiques te permettent de vendre ou d'acheter à un prix fixé, même quand tu n'es pas là.\n\n## La machine de minage\nDans un coin de l'appart, ta machine de minage tourne. Tu choisis la durée : courte et sûre, ou longue et plus rentable. Mais elle chauffe, et si tu ne la refroidis pas, elle peut griller.\n\n## La bourse et l'immobilier\nPour diversifier, six actions fictives s'échangent à la Bourse, et quatre biens immobiliers rapportent des loyers à encaisser.\n\n## Pourquoi un jeu plutôt que la vraie crypto\nL'argent de Biff City est entièrement **fictif**. C'est un terrain d'essai pour comprendre la volatilité, la tentation de tout vendre trop tôt, ou celle de croire une rumeur. D'ailleurs, les tuyaux du Kiosque et du [Club](/actus/club-biff-city) ne sont pas toujours vrais.\n\n## Le capital de départ\nTes premières cryptos s'achètent avec ce que tu gagnes ailleurs, par exemple avec les [paris sportifs fictifs du Royal](/actus/jeu-paris-sportifs-fictifs).\n\n[Ouvre ton portefeuille crypto](jeu)"
   }
- ]
+ ],
+ "jeu": {
+  "title": "Le jeu en images",
+  "sub": "Une vraie ville à faire tourner, pas un simple site de pronos.",
+  "items": [
+   {
+    "img": "/assets/lp/jeu-paris.webp",
+    "alt": "Écran des paris au Royal : un match de foot, ses cotes et un ticket combiné",
+    "title": "Parie sur des matchs en direct",
+    "text": "Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.",
+    "link": "jeu-paris-sportifs-fictifs"
+   },
+   {
+    "img": "/assets/lp/jeu-ville.webp",
+    "alt": "La ville de Biff City vue de dessus avec ses bâtiments",
+    "title": "Une ville entière à conquérir",
+    "text": "Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.",
+    "link": "fonctionnalites-biff-city"
+   },
+   {
+    "img": "/assets/lp/jeu-appart.webp",
+    "alt": "L'appartement de luxe avec le PC, la machine de minage et les étagères de collection",
+    "title": "Ton appart grandit avec toi",
+    "text": "Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.",
+    "link": "appartement-et-minage"
+   },
+   {
+    "img": "/assets/lp/jeu-cartes.webp",
+    "alt": "Une carte holographique Dragon Ardent ouverte en grand",
+    "title": "Des cartes qui brillent",
+    "text": "Ouvre des boosters, collectionne des cartes holographiques et des objets rares qui prennent de la valeur.",
+    "link": "boosters-et-cartes"
+   }
+  ]
+ },
+ "final": {
+  "title": "Prêt à devenir riche ?",
+  "text": "La bêta est gratuite et se joue tout de suite dans ton navigateur."
+ }
 }

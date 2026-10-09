@@ -277,6 +277,7 @@
           <div class="lp-leg"><span><i class="v"></i>visites</span><span><i class="b"></i>dont clics « Jouer »</span></div>` : ''}
         <div class="lp-src-h">D'où viennent les visiteurs</div>
         ${src.length ? src.map(r => `<div class="lp-src"><span class="n">${esc(label(r.s))}</span><span class="bar"><i style="width:${Math.round(r.views / smx * 100)}%"></i></span><span class="v">${fmt(r.views)}</span><span class="c">${pc(r.beta, r.views)} jouent</span></div>`).join('') : '<p class="muted">Aucune visite pour l\'instant.</p>'}
+        ${(L.byPlace || []).length ? `<div class="lp-src-h" style="margin-top:14px">Quel bouton fait jouer</div>${(() => { const PL = { 'beta-hero': 'Bouton du haut', 'beta-jeu': 'Après « Le jeu en images »', 'beta-fin': 'Bouton de fin de page', 'beta-sticky': 'Bouton qui suit (mobile)', 'beta-article': 'Depuis un article', beta: 'Ancien bouton' }, mx = Math.max(1, ...L.byPlace.map(r => r.n)); return L.byPlace.map(r => `<div class="lp-src"><span class="n">${esc(PL[r.k] || r.k)}</span><span class="bar"><i style="width:${Math.round(r.n / mx * 100)}%"></i></span><span class="v">${fmt(r.n)}</span></div>`).join(''); })()}` : ''}
         <p class="lp-tip">Astuce : mets <b>biffcity.fr/?src=tiktok</b> dans ta bio TikTok (et <b>?src=insta</b> sur Instagram) pour voir ici combien de visiteurs viennent de chaque réseau.</p>`; }).catch(() => {});
     const lab = s.map(x => dlabel(x.d));
     const ch = HC.chart('c-dau', { type: 'bar', data: { labels: lab, datasets: [

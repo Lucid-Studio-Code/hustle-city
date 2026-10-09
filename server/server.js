@@ -349,7 +349,7 @@ const api = {
   // vitrine biffcity.fr : visites et clics vers la bêta (sans cookie, rien de personnel : type d'action, provenance, mobile ou non)
   async 'POST /api/lp'(req, res) {
     const b = await body(req, 2000); if (!limit('lp:' + clientIp(req), 30, 60000)) return send(res, 204, '', 'text/plain');
-    const k = ['view', 'beta'].includes(b.k) ? b.k : null; if (!k) return send(res, 400, { err: 'k' });
+    const k = b.k === 'view' || /^beta(-(hero|jeu|fin|sticky|article))?$/.test(String(b.k)) ? b.k : null;   // beta-… : l'endroit de la page où on a cliqué if (!k) return send(res, 400, { err: 'k' });
     run('INSERT INTO lp (t, k, src, ref, m) VALUES (?, ?, ?, ?, ?)', now(), k, txt(b.src, 40) || '', txt(b.ref, 80) || '', b.m ? 1 : 0); send(res, 204, '', 'text/plain');
   },
   async 'POST /api/support'(req, res) {
@@ -515,10 +515,11 @@ const online = p => p.last_seen >= now() - ONLINE_MS;
 const admin = {
   'GET /admin/api/lp'(req, res, u) {
     const days = Math.max(1, Math.min(90, +u.searchParams.get('days') || 30)), t0 = now() - days * DAY;
-    const tot = k => (q1('SELECT count(*) n FROM lp WHERE k = ? AND t > ?', k, t0) || {}).n || 0;
+    const tot = k => (q1(k === 'beta' ? "SELECT count(*) n FROM lp WHERE k LIKE 'beta%' AND t > ?" : 'SELECT count(*) n FROM lp WHERE k = ? AND t > ?', ...(k === 'beta' ? [t0] : [k, t0])) || {}).n || 0;
     send(res, 200, { days, views: tot('view'), beta: tot('beta'), mobile: (q1("SELECT count(*) n FROM lp WHERE k = 'view' AND m = 1 AND t > ?", t0) || {}).n || 0,
-      sources: q("SELECT CASE WHEN src != '' THEN src WHEN ref != '' THEN ref ELSE 'direct' END s, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY s ORDER BY views DESC LIMIT 12", t0),
-      byDay: q("SELECT date(t / 1000, 'unixepoch', 'localtime') d, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY d ORDER BY d", t0) });
+      sources: q("SELECT CASE WHEN src != '' THEN src WHEN ref != '' THEN ref ELSE 'direct' END s, sum(k = 'view') views, sum(k LIKE 'beta%') beta FROM lp WHERE t > ? GROUP BY s ORDER BY views DESC LIMIT 12", t0),
+      byPlace: q("SELECT k, count(*) n FROM lp WHERE k LIKE 'beta%' AND t > ? GROUP BY k ORDER BY n DESC", t0),
+      byDay: q("SELECT date(t / 1000, 'unixepoch', 'localtime') d, sum(k = 'view') views, sum(k LIKE 'beta%') beta FROM lp WHERE t > ? GROUP BY d ORDER BY d", t0) });
   },
   'GET /admin/api/overview'(req, res, u) { send(res, 200, overview(Math.max(7, Math.min(90, +u.searchParams.get('days') || 30)))); },
   'GET /admin/api/live'(req, res) {   // en ce moment : joueurs en ligne + derniers événements

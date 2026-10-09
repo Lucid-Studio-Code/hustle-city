@@ -4,7 +4,7 @@
 const fs = require('fs'), path = require('path');
 const FRAMES = JSON.parse(fs.readFileSync(path.join(__dirname, 'frames.json'), 'utf8'));   // crâne et menton de chaque personnage (fractions de la hauteur de l'image)
 const TPL = path.join(__dirname, 'template.html'), DEF = path.join(__dirname, 'content.json');
-const COLORS = ['new', 'live', 'ev', 'soon'], IMG_RE = /^\/(assets\/img|media)\/[\w.-]+\.(png|jpe?g|webp)$/, POS_RE = /^\d{1,3}% \d{1,3}%$/;
+const COLORS = ['new', 'live', 'ev', 'soon'], IMG_RE = /^\/(assets\/img|assets\/lp|media)\/[\w.-]+\.(png|jpe?g|webp)$/, POS_RE = /^\d{1,3}% \d{1,3}%$/;
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const defaults = () => JSON.parse(fs.readFileSync(DEF, 'utf8'));
@@ -30,6 +30,8 @@ function clean(c) {
     articles: (Array.isArray(c.articles) ? c.articles : d.articles || []).slice(0, 60).filter(x => slug(x.slug)).map(x => ({
       slug: slug(x.slug), date: /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : new Date().toISOString().slice(0, 10), img: im(x.img, d.hero.img), imgPos: pos(x.imgPos, '50% 50%'), alt: txt(x.alt, 140, ''),
       title: txt(x.title, 90, ''), desc: txt(x.desc, 170, ''), h1: txt(x.h1, 110, ''), lead: txt(x.lead, 500, ''), body: txt(x.body, 20000, '') })),
+    jeu: { title: txt((c.jeu || {}).title, 50, d.jeu.title), sub: txt((c.jeu || {}).sub, 160, d.jeu.sub), items: (Array.isArray((c.jeu || {}).items) ? c.jeu.items : d.jeu.items).slice(0, 6).map(x => ({ img: im(x.img, d.jeu.items[0].img), alt: txt(x.alt, 160, ''), title: txt(x.title, 60, ''), text: txt(x.text, 180, ''), link: slug(x.link) })) },
+    final: { title: txt((c.final || {}).title, 60, d.final.title), text: txt((c.final || {}).text, 200, d.final.text) },
     age: txt(c.age, 200, d.age)
   };
 }
@@ -47,8 +49,9 @@ function render(content) {
   const feats = c.feats.map(f => `    <div class="feat"><img src="${esc(f.img)}" alt=""><b>${esc(f.title)}</b><small>${esc(f.text)}</small></div>`).join('\n');
   const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" style="background-image:url(${esc(x.bg)});background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? popImg(x.pop) : ''}</article>`).join('');
   const cards = c.bientot.items.map(x => `      <article class="nc"><div class="ni"><img src="${esc(x.img)}" alt="${esc(x.alt)}" style="object-position:${esc(x.imgPos)}"></div><div class="nt">${x.chip ? `<span class="chip ${x.color}"${x.start && x.end ? ` data-cd="${esc(x.start)}" data-end="${esc(x.end)}"` : ''}>${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="nc-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></article>`).join('\n');
+  const shots = c.jeu.items.map(x => `      <a class="shot" href="${art(x.link) ? '/actus/' + x.link : 'https://game.biffcity.fr/'}"${art(x.link) ? '' : ' data-lp="beta-jeu"'}><figure><img src="${esc(x.img)}" alt="${esc(x.alt)}" loading="lazy" width="540" height="1169"></figure><div><b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? '<span class="go">En savoir plus ›</span>' : ''}</div></a>`).join('\n');
   return fs.readFileSync(TPL, 'utf8')
-    .replace('<!--@feats-->', () => feats).replace('<!--@actus-->', () => actus).replace('<!--@bientot-->', () => cards)
+    .replace('<!--@feats-->', () => feats).replace('<!--@actus-->', () => actus).replace('<!--@bientot-->', () => cards).replace('<!--@jeu-->', () => shots)
     .replace(/\{\{([\w.]+)\}\}/g, (m, k) => esc(val(k)));
 }
 
@@ -63,7 +66,7 @@ const words = t => (t.match(/\S+/g) || []).length;
 function md(t, slugs) {
   const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, href) => {
     href = href.replace(/&amp;/g, '&');
-    if (href === 'jeu') return `<a href="${GAME}" data-lp="beta">${label}</a>`;
+    if (href === 'jeu') return `<a href="${GAME}" data-lp="beta-article">${label}</a>`;
     const a = /^\/actus\/([a-z0-9-]+)$/.exec(href); if (a && slugs.includes(a[1])) return `<a href="${href}">${label}</a>`;
     if (href === '/' || href === '/actus') return `<a href="${href}">${label}</a>`;
     return label;
@@ -150,7 +153,7 @@ function shell({ title, desc, url, img, ld, body, slug }) {
 <style>${STYLE}</style>
 </head>
 <body>
-<header class="top"><a class="brand" href="/">BIFF <span>CITY</span></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta">Jouer</a></nav></header>
+<header class="top"><a class="brand" href="/">BIFF <span>CITY</span></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
 ${body}
 <footer>Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 ${HIT(slug)}
@@ -164,7 +167,7 @@ function renderArticle(content, s) {
   const slugs = c.articles.map(x => x.slug), url = `${SITE}/actus/${a.slug}`, min = Math.max(1, Math.ceil(words(a.lead + ' ' + a.body) / 220));
   // l'encart « joue maintenant » se glisse avant le 3e intertitre (ou à la fin)
   let html = md(a.body, slugs); const parts = html.split('<h2>');
-  const box = `<div class="cta-bn"><div class="cta-card"><div class="cta-txt"><span class="chip">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="cta-btn" href="${GAME}" data-lp="beta">Jouer à la bêta</a></div></div><img class="cta-pop" src="/assets/img/skin-survet.png" alt=""></div>`;
+  const box = `<div class="cta-bn"><div class="cta-card"><div class="cta-txt"><span class="chip">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="cta-btn" href="${GAME}" data-lp="beta-article">Jouer à la bêta</a></div></div><img class="cta-pop" src="/assets/img/skin-survet.png" alt=""></div>`;
   if (parts.length > 3) { parts[2] = parts[2] + box; html = parts.join('<h2>'); } else html += box;
   // à lire aussi : d'abord les articles cités dans le texte, puis les plus récents
   const cited = [...a.body.matchAll(/\(\/actus\/([a-z0-9-]+)\)/g)].map(m => m[1]);
