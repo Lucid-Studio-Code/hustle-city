@@ -1572,7 +1572,7 @@
     const face = has(sc.who) ? `<img class="csc-who" src="${src(sc.who)}" alt="">` : '';
     let say = sc.intro, acts = '';
     if (z.res) {
-      say = z.res.txt;
+      say = z.res.txt.replace(/ »/g, '\u00a0»').replace(/« /g, '«\u00a0');   // guillemets jamais seuls en bout de ligne
       acts = `<div class="csc-res">${clubGains(z.res.good)}${clubGains(z.res.bad, true)}</div><div class="center"><button class="btn green" data-act="clubBack">${z.res.over ? 'Fin de soirée' : 'Retour dans la salle'}</button></div>`;
     } else if (z.talk != null) {
       const ch = sc.choices.find(x => x.id === z.talk); say = `<b class="csc-name">${sc.name}</b> « ${ch.talk.say} »`;

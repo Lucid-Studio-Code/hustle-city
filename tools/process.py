@@ -19,7 +19,7 @@ POCKETS = {
     'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
     'cr-leila': 'all', 'cr-jade': 'all', 'cr-kim': 'all', 'cr-lola': 'all', 'cr-sasha': 'all', 'cr-nora': 'all',
-    'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all',   # persos du Club : vides entre bras et corps
+    'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all', 'clubp-trader': 'all', 'clubp-boss': 'all',   # persos du Club : vides entre bras et corps
     'cr-mila': {'n': [0]}, 'cr-ines': 'all', 'cr-rose': 'all', 'cr-eva': 'all', 'gear-cam': 'all', 'gear-sport': {'n': [0, 1, 2, 3, 4, 5]},
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
     'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
