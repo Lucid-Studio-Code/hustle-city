@@ -24,6 +24,10 @@ POCKETS = {
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
     'skin-flambeur': [(.384, .252)], 'skin-gold': [(.733, .519)], 'skin-doudoune': [(.676, .446)],
     'skin-sportive': 'all', 'skin-boss': 'all', 'skin-survet': 'all',
+    # player-t1 : sa chemise blanche touchait le fond, l'original a reçu un contour en arc (copie d'origine : player-t1.orig.bak)
+    # portraits de tennis (revue du 09/10) : fond entre cheveux et épaules, cordage de raquette ; jamais les cols ni les maillots blancs
+    'player-t2': {'n': [2]}, 'player-t3': {'n': [2]}, 'player-t6': {'n': [1]}, 'player-t10': {'n': [1]},
+    'player-t11': {'n': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19]},
     # objets à anses ou à structure ajourée
     'graded-slab': 'all',   # boîtier de carte gradée : fenêtre et étiquette vides (la carte s'affiche dessous)
     'item-t-collect': 'all', 'item-t-first': 'all', 'item-t-jackpot': 'all', 'item-t-hodl': 'all',
