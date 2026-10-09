@@ -77,7 +77,7 @@
         /* écran de chargement : une grande scène du jeu en fond (tirée au hasard), le logo qui rebondit, une barre en or qui se remplit de billets */
         #start.loading { background: #1b1433; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 26px); overflow: hidden; }
         #start .ld-bg { position: absolute; inset: 0; background: radial-gradient(circle at 50% 38%, #4a2a8a, #1b1433 72%); }
-        #start .ld-bg i { position: absolute; inset: 7% -3% -3%; background: var(--ld) center top / cover no-repeat; transform-origin: 50% 0; -webkit-mask-image: linear-gradient(transparent, #000 9%); mask-image: linear-gradient(transparent, #000 9%); opacity: 0; transition: opacity .6s; animation: ldZoom 14s ease-in-out infinite alternate; }
+        #start .ld-bg i { position: absolute; inset: calc(7% + var(--ldy, 0%)) -3% -3%; background: var(--ld) center top / cover no-repeat; transform-origin: 50% 0; -webkit-mask-image: linear-gradient(transparent, #000 9%); mask-image: linear-gradient(transparent, #000 9%); opacity: 0; transition: opacity .6s; animation: ldZoom 14s ease-in-out infinite alternate; }
         #start .ld-bg.on i { opacity: 1; }
         #start .ld-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(27,20,51,.55), transparent 26%, transparent 55%, rgba(27,20,51,.92) 88%); }
         @keyframes ldZoom { from { transform: scale(1); } to { transform: scale(1.07) translateY(-1%); } }
@@ -121,7 +121,7 @@
         var el = document.getElementById('start'), fill = el.querySelector('.ld-fill'), txt = el.querySelector('.ld-txt'), coin = el.querySelector('.ld-coin');
         // une scène au hasard parmi les images de chargement (celles qui existent) ; l'accueil « Continuer » garde la même
         var NB = 8, pick = [], tryBg = function () { if (!pick.length) return; var n = pick.shift(), im = new Image();
-          im.onload = function () { var b = el.querySelector('.ld-bg'); b.style.setProperty('--ld', 'url(' + im.src + ')'); b.classList.add('on'); window.HC_BG = im.src; }; var ext = ['webp', 'jpg', 'png'], k = 0; im.onerror = function () { if (++k < ext.length) im.src = 'assets/img/load-' + n + '.' + ext[k]; else tryBg(); }; im.src = 'assets/img/load-' + n + '.webp'; };   /* la version légère d'abord (webp ou jpg selon l'image) */
+          im.onload = function () { var b = el.querySelector('.ld-bg'); b.style.setProperty('--ld', 'url(' + im.src + ')'); b.style.setProperty('--ldy', ({ 1: '13%', 4: '17%', 7: '9%' })[n] || '0%');   /* images où la tête est haut : on les descend sous le logo */ b.classList.add('on'); window.HC_BG = im.src; }; var ext = ['webp', 'jpg', 'png'], k = 0; im.onerror = function () { if (++k < ext.length) im.src = 'assets/img/load-' + n + '.' + ext[k]; else tryBg(); }; im.src = 'assets/img/load-' + n + '.webp'; };   /* la version légère d'abord (webp ou jpg selon l'image) */
         for (var k = 1; k <= NB; k++) pick.push(k); pick.sort(function () { return Math.random() - .5; }); tryBg();
         var rain = el.querySelector('.ld-rain'); for (var r = 0; r < 14; r++) { var b = document.createElement('b'); if (r % 3 === 0) b.className = 'c';
           b.style.left = (Math.random() * 100) + '%'; b.style.animationDuration = (4 + Math.random() * 5) + 's'; b.style.animationDelay = (-Math.random() * 8) + 's'; rain.appendChild(b); }
@@ -160,7 +160,7 @@
     evs.forEach(function (e) { document.addEventListener(e, go, true); });
   })();
   (function () {
-    var V = '?v=496', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=497', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');
