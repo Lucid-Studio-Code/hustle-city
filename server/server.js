@@ -651,7 +651,8 @@ const admin = {
   },
   'GET /admin/api/landing'(req, res) {   // page « Landing » : le contenu + les images envoyées (la bibliothèque du jeu vient de /js/assets.js)
     let media = []; try { media = fs.readdirSync(UPLOADS).filter(n => MEDIA_RE.test(n)).map(n => ({ url: '/media/' + n, t: fs.statSync(path.join(UPLOADS, n)).mtimeMs })).sort((a, b) => b.t - a.t).map(m => m.url); } catch (e) {}
-    send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media });
+    let lp = []; try { lp = fs.readdirSync(path.join(ROOT, 'assets/lp')).filter(n => /^[\w-]+\.(webp|png|jpe?g)$/.test(n)).map(n => '/assets/lp/' + n); } catch (e) {}
+    send(res, 200, { content: LANDING.clean(getLanding() || LANDING.defaults()), media, lp });
   },
   async 'POST /admin/api/landing-preview'(req, res) { const b = await body(req, 3e5); send(res, 200, { html: ((b.slug && LANDING.renderArticle(b.content, String(b.slug))) || LANDING.render(b.content)).replace(/<script(?![^>]*ld\+json)[^>]*>[\s\S]*?<\/script>/g, '') }); },   // aperçu sans scripts : ni mesure d'audience, ni blocage par la sécurité du back office
   async 'POST /admin/api/landing'(req, res) {   // publier : la vitrine change tout de suite

@@ -16,7 +16,7 @@
     ['persos', 'Personnages', n => /^(skin-|clubp-|cr-[a-z]+$|player-|guide$)/.test(n)],
     ['icones', 'Icônes et objets', n => true]
   ];
-  let mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
+  let lpFiles = [], mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
 
   const dirty = () => JSON.stringify(C) !== saved;
   const at = (path, v) => { const k = path.split('.'); let o = C; while (k.length > 1) o = o[k.shift()]; if (v === undefined) return o[k[0]]; o[k[0]] = v; };
@@ -49,6 +49,9 @@
     return [
       block('hero', 'En-tête', 'Image, slogan, bouton', pic('hero.img', 'Image principale', { tall: true }) + txt('hero.slogan', 'Slogan', { max: 60 }) + `<div class="lp-2">${txt('hero.cta', 'Texte du bouton', { max: 30 })}${txt('hero.ctaNote', 'Sous le bouton', { max: 120 })}</div>` + txt('hero.soon', 'Titre', { max: 60 }) + txt('hero.lead', 'Présentation', { area: true, max: 400 })),
       block('feats', 'Les 3 atouts', 'Les cartes sous la présentation', C.feats.map((f, i) => `<div class="lp-it"><div class="lp-it-h">Atout ${i + 1}</div><div class="lp-row">${pic(`feats.${i}.img`, 'Icône', { shelf: 'icones' })}<div>${txt(`feats.${i}.title`, 'Titre', { max: 30 })}${txt(`feats.${i}.text`, 'Texte', { max: 120 })}</div></div></div>`).join('')),
+      block('jeu', 'Le jeu en images', `${C.jeu.items.length} visuels au format téléphone, la carte du milieu s'affiche en premier`, txt('jeu.title', 'Titre de la section', { max: 50 }) + txt('jeu.sub', 'Sous-titre', { max: 160 }) + C.jeu.items.map((x, i) => `<div class="lp-it"><div class="lp-it-h">Visuel ${i + 1}${listTools('jeu.items', i, C.jeu.items.length)}</div>
+        <div class="lp-row">${pic(`jeu.items.${i}.img`, 'Visuel (format 9:16)', { tall: true, shelf: 'lp' })}<div>${txt(`jeu.items.${i}.title`, 'Titre (dans l\'image)', { max: 60 })}${txt(`jeu.items.${i}.text`, 'Phrase courte', { area: true, rows: 2, max: 180 })}${sel(`jeu.items.${i}.link`, 'Article lié', [['', 'Aucun (vers le jeu)'], ...C.articles.map(a => [a.slug, a.h1 || a.title])])}</div></div>
+        ${txt(`jeu.items.${i}.alt`, 'Description de l\'image (Google Images)', { max: 160 })}</div>`).join('') + `<button class="btn ghost lp-add" data-add="jeu.items">+ Ajouter un visuel</button>`),
       block('actus', 'Actualités', `${A.length} bannière${A.length > 1 ? 's' : ''} qui défilent`, txt('actus.title', 'Titre de la section', { max: 40 }) + A.map((x, i) => `<div class="lp-it"><div class="lp-it-h">Bannière ${i + 1}${listTools('actus.items', i, A.length)}</div>
         <div class="lp-row">${pic(`actus.items.${i}.bg`, 'Scène de fond', { pos: `actus.items.${i}.bgPos` })}${pic(`actus.items.${i}.pop`, 'Personnage qui dépasse', { shelf: 'persos', tall: true })}</div>
         <div class="lp-2">${sel(`actus.items.${i}.bgPos`, 'Cadrage du fond', POS)}</div>
@@ -164,13 +167,14 @@
   function library(path, shelf) {
     const bg = document.createElement('div'); bg.className = 'modal-bg';
     bg.innerHTML = `<div class="modal lp-lib"><div class="lp-lib-h"><h3>Bibliothèque</h3><input id="lb-q" placeholder="Chercher une image (club, skin, load…)"><label class="btn green sm">Envoyer une image<input type="file" accept="image/png,image/jpeg,image/webp" hidden id="lb-up"></label><button class="btn ghost sm" data-x>Fermer</button></div>
-      <div class="lp-tabs">${[['mine', 'Mes images'], ...SHELVES].map(([id, t]) => `<button data-sh="${id}" class="${id === shelf ? 'on' : ''}">${t}</button>`).join('')}</div><div class="lp-grid" id="lb-g"></div></div>`;
+      <div class="lp-tabs">${[['mine', 'Mes images'], ['lp', 'Visuels de la vitrine'], ...SHELVES].map(([id, t]) => `<button data-sh="${id}" class="${id === shelf ? 'on' : ''}">${t}</button>`).join('')}</div><div class="lp-grid" id="lb-g"></div></div>`;
     document.body.appendChild(bg);
     const cur = at(path);
     const fill = () => {
       const qv = $('#lb-q', bg).value.trim().toLowerCase();
       let items;
       if (shelf === 'mine') items = media.map(u => ({ url: u, name: u.split('/').pop() }));
+      else if (shelf === 'lp') items = lpFiles.map(u => ({ url: u, name: u.split('/').pop() }));
       else { const sh = SHELVES.findIndex(s => s[0] === shelf); items = (window.ASSETS || []).filter(n => SHELVES.findIndex(s => s[2](n)) === sh).map(n => ({ url: fileOf(n), name: n })); }
       if (qv) items = items.filter(i => i.name.toLowerCase().includes(qv));
       $('#lb-g', bg).innerHTML = items.length ? items.map(i => `<button class="${i.url === cur ? 'on' : ''}" data-u="${esc(i.url)}" title="${esc(i.name)}"><img src="${esc(shown(i.url))}" alt="" loading="lazy"><small>${esc(i.name)}</small></button>`).join('')
@@ -178,7 +182,7 @@
     };
     fill();
     // une image trop petite devient floue sur une bannière large : on la signale (taille réelle lue au chargement)
-    bg.addEventListener('load', e => { const im = e.target; if (im.tagName !== 'IMG' || !im.closest('.lp-grid') || shelf === 'persos') return; if (im.naturalWidth < 1000) { const b = im.closest('button'); if (b && !b.querySelector('.lp-small')) b.insertAdjacentHTML('beforeend', '<em class="lp-small">Petite : floue en bannière</em>'); } }, true);
+    bg.addEventListener('load', e => { const im = e.target; if (im.tagName !== 'IMG' || !im.closest('.lp-grid') || shelf === 'persos' || shelf === 'lp') return; if (im.naturalWidth < 1000) { const b = im.closest('button'); if (b && !b.querySelector('.lp-small')) b.insertAdjacentHTML('beforeend', '<em class="lp-small">Petite : floue en bannière</em>'); } }, true);
     $('#lb-q', bg).oninput = fill;
     $('#lb-up', bg).onchange = async e => {
       const f = e.target.files[0]; if (!f) return; if (f.size > 4 * 1048576) return HC.toast('Image trop lourde (4 Mo au plus)', null, true);
@@ -198,7 +202,7 @@
   }
 
   // ------------------------------------------------------------ les pages
-  async function load() { if (!C || !dirty()) { const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; saved = JSON.stringify(C); } }
+  async function load() { if (!C || !dirty()) { const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; lpFiles = r.lp || []; saved = JSON.stringify(C); } }
   async function publish(msg) { const r = await HC.api('/admin/api/landing', { content: C }); C = r.content; saved = JSON.stringify(C); HC.toast(msg || 'Publié sur biffcity.fr', 'icon-lingot'); }
   const tools = () => `<div class="tools"><span class="lp-state" id="lp-state"></span><button class="btn ghost" id="lp-undo">Annuler les changements</button><button class="btn green" id="lp-pub">Publier</button></div>`;
 
