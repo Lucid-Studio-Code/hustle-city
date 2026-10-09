@@ -8,7 +8,9 @@ const COLORS = ['new', 'live', 'ev', 'soon'], IMG_RE = /^\/(assets\/img|assets\/
 
 // image allégée (assets/lp/o, faite par tools/lp-images.py) quand elle existe : la vitrine charge 3 à 6 fois moins lourd
 const OPT = path.join(__dirname, '..', 'assets/lp/o'), optSeen = new Map();
-const opt = u => { const m = /^\/assets\/img\/([\w.-]+)\.(png|jpe?g|webp)$/.exec(u || ''); if (!m) return u; if (!optSeen.has(m[1])) optSeen.set(m[1], fs.existsSync(path.join(OPT, m[1] + '.webp'))); return optSeen.get(m[1]) ? `/assets/lp/o/${m[1]}.webp` : u; };
+const ASSET_H = (() => { try { const t = fs.readFileSync(path.join(__dirname, '..', 'js/assets.js'), 'utf8'); return JSON.parse(/window\.ASSET_H = (\{.*?\});/.exec(t)[1]); } catch (e) { return {}; } })();
+const ver = (u, n) => ASSET_H[n] ? `${u}?v=${ASSET_H[n]}` : u;   // une image corrigée change d'adresse : le navigateur ne garde pas l'ancienne
+const opt = u => { const m = /^\/assets\/img\/([\w.-]+)\.(png|jpe?g|webp)$/.exec(u || ''); if (!m) return u; if (!optSeen.has(m[1])) optSeen.set(m[1], fs.existsSync(path.join(OPT, m[1] + '.webp'))); return ver(optSeen.get(m[1]) ? `/assets/lp/o/${m[1]}.webp` : u, m[1]); };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const defaults = () => JSON.parse(fs.readFileSync(DEF, 'utf8'));
 

@@ -7,6 +7,7 @@
   const HC = window.HC, { $, $$, esc } = HC;
   const JPG = new Set(window.ASSETS_JPG || []), WEBP = new Set(window.ASSETS_WEBP || []);
   const fileOf = n => `/assets/img/${n}.${JPG.has(n) ? 'jpg' : WEBP.has(n) ? 'webp' : 'png'}`;
+  const shown = u => { const m = /\/assets\/img\/([\w-]+)\.\w+$/.exec(u || ''); const h = m && (window.ASSET_H || {})[m[1]]; return h ? `${u}?v=${h}` : u; };   // aperçu : version de l'image dans l'adresse, sinon le navigateur montre l'ancienne
   const COLORS = [['new', 'Rose', '#ff3cac'], ['live', 'Vert', '#3fae2e'], ['ev', 'Orange', '#e8743a'], ['soon', 'Violet', '#6b5bd6']];
   const POS = [['50% 15%', 'Haut'], ['50% 35%', 'Un peu haut'], ['50% 50%', 'Centre'], ['50% 70%', 'Un peu bas'], ['50% 90%', 'Bas']];
   // rayons de la bibliothèque : on range les images du jeu par famille de nom
@@ -24,7 +25,7 @@
   const txt = (path, label, o = {}) => `<label class="lp-f"><span>${label}${o.max ? `<i>${(at(path) || '').length}/${o.max}</i>` : ''}</span>${o.area
     ? `<textarea data-k="${path}" rows="${o.rows || 3}" maxlength="${o.max || 400}">${esc(at(path))}</textarea>`
     : `<input data-k="${path}" value="${esc(at(path))}" maxlength="${o.max || 120}">`}</label>`;
-  const pic = (path, label, o = {}) => `<div class="lp-f"><span>${label}</span><button class="lp-pic ${o.tall ? 'tall' : ''}" data-pick="${path}" data-shelf="${o.shelf || 'scenes'}" ${o.pos ? `style="background-position:${esc(at(o.pos))}"` : ''}><img src="${esc(at(path))}" alt="" ${o.pos ? `style="object-position:${esc(at(o.pos))}"` : ''}><em>Changer</em></button></div>`;
+  const pic = (path, label, o = {}) => `<div class="lp-f"><span>${label}</span><button class="lp-pic ${o.tall ? 'tall' : ''}" data-pick="${path}" data-shelf="${o.shelf || 'scenes'}" ${o.pos ? `style="background-position:${esc(at(o.pos))}"` : ''}><img src="${esc(shown(at(path)))}" alt="" ${o.pos ? `style="object-position:${esc(at(o.pos))}"` : ''}><em>Changer</em></button></div>`;
   const sel = (path, label, opts) => `<label class="lp-f"><span>${label}</span><select data-k="${path}">${opts.map(([v, t]) => `<option value="${esc(v)}" ${at(path) === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
   const color = path => `<div class="lp-f"><span>Couleur de l'étiquette</span><div class="lp-cols">${COLORS.map(([v, t, c]) => `<button class="${at(path) === v ? 'on' : ''}" data-col="${path}" data-v="${v}" style="--c:${c}" title="${t}"></button>`).join('')}</div></div>`;
   const dtl = v => { if (!v) return ''; const d = new Date(v); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
@@ -172,7 +173,7 @@
       if (shelf === 'mine') items = media.map(u => ({ url: u, name: u.split('/').pop() }));
       else { const sh = SHELVES.findIndex(s => s[0] === shelf); items = (window.ASSETS || []).filter(n => SHELVES.findIndex(s => s[2](n)) === sh).map(n => ({ url: fileOf(n), name: n })); }
       if (qv) items = items.filter(i => i.name.toLowerCase().includes(qv));
-      $('#lb-g', bg).innerHTML = items.length ? items.map(i => `<button class="${i.url === cur ? 'on' : ''}" data-u="${esc(i.url)}" title="${esc(i.name)}"><img src="${esc(i.url)}" alt="" loading="lazy"><small>${esc(i.name)}</small></button>`).join('')
+      $('#lb-g', bg).innerHTML = items.length ? items.map(i => `<button class="${i.url === cur ? 'on' : ''}" data-u="${esc(i.url)}" title="${esc(i.name)}"><img src="${esc(shown(i.url))}" alt="" loading="lazy"><small>${esc(i.name)}</small></button>`).join('')
         : `<div class="empty">${shelf === 'mine' ? 'Aucune image envoyée pour l\'instant : bouton « Envoyer une image » en haut.' : 'Aucune image ne correspond.'}</div>`;
     };
     fill();
