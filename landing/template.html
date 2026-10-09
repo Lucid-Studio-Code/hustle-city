@@ -7,13 +7,14 @@
 <meta name="description" content="{{seo.desc}}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Biff City"><meta property="og:title" content="Biff City : parie, investis, deviens riche.">
 <meta property="og:description" content="Le jeu mobile de paris sportifs fictifs, d'investissements et de collection. Bientôt disponible.">
-<meta property="og:image" content="https://biffcity.fr{{hero.img}}">
+<meta property="og:image" content="https://biffcity.fr{{hero.imgFull}}">
 <meta name="theme-color" content="#1b1433">
 <link rel="canonical" href="https://biffcity.fr/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta property="og:url" content="https://biffcity.fr/"><meta property="og:locale" content="fr_FR">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Biff City : parie, investis, deviens riche."><meta name="twitter:image" content="https://biffcity.fr{{hero.img}}">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Biff City","url":"https://biffcity.fr/","description":"Jeu mobile de paris sportifs fictifs, d'investissements et de collection : pars de rien et fais grimper ton patrimoine.","genre":["Simulation","Gestion","Jeu de cartes à collectionner"],"gamePlatform":["Navigateur web","iOS","Android"],"inLanguage":"fr","contentRating":"18+","image":"https://biffcity.fr{{hero.img}}","publisher":{"@type":"Organization","name":"Lucid Studio","email":"contact@lucidstudio.fr"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Biff City : parie, investis, deviens riche."><meta name="twitter:image" content="https://biffcity.fr{{hero.imgFull}}">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Biff City","url":"https://biffcity.fr/","description":"Jeu mobile de paris sportifs fictifs, d'investissements et de collection : pars de rien et fais grimper ton patrimoine.","genre":["Simulation","Gestion","Jeu de cartes à collectionner"],"gamePlatform":["Navigateur web","iOS","Android"],"inLanguage":"fr","contentRating":"18+","image":"https://biffcity.fr{{hero.imgFull}}","publisher":{"@type":"Organization","name":"Lucid Studio","email":"contact@lucidstudio.fr"},"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"}}</script>
+<link rel="preload" as="image" href="{{hero.img}}" fetchpriority="high">
 <link rel="icon" href="/assets/img/icon-cash.png">
 <link rel="apple-touch-icon" href="/assets/img/icon-cash.png">
 <style>
@@ -33,7 +34,8 @@ main { position: relative; min-height: 100vh; min-height: 100dvh; display: flex;
 .logo { font: 400 clamp(52px, 14vw, 104px)/.88 'Lilita One', sans-serif; letter-spacing: 1px; transform: rotate(-4deg); margin: 0;
   color: var(--gold); -webkit-text-stroke: 0; text-shadow: 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 3px 0 var(--ink), 0 -3px 0 var(--ink), 2px 2px 0 var(--ink), -2px 2px 0 var(--ink), 2px -2px 0 var(--ink), -2px -2px 0 var(--ink), 0 8px 0 var(--ink), 0 12px 24px rgba(0,0,0,.45); }
 .logo span { display: block; color: #fff; }
-.tag { display: inline-block; margin-top: 12px; padding: 6px 18px 9px; background: var(--pink); border: 3px solid var(--ink); border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 5px 0 var(--ink); font: 400 clamp(18px, 4.6vw, 26px) 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.tag { display: inline-block; margin-top: 12px; padding: 6px 18px 9px; background: #c8137c; border: 3px solid var(--ink); border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 5px 0 var(--ink); font: 400 clamp(18px, 4.6vw, 26px) 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
 .spacer { display: none; }
 .soon { margin-top: 26px !important; }
 .soon { font: 400 clamp(28px, 7vw, 44px)/1.05 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink), 0 0 24px rgba(255,210,63,.5); margin: 0 0 8px; }
@@ -65,7 +67,7 @@ footer a { color: #fff; }
 .nt b { display: block; margin: 6px 0 4px; font: 400 20px/1.1 'Lilita One', sans-serif; }
 .nt p { margin: 0; font: 700 14px/1.4 'Nunito', sans-serif; color: #5a4030; }
 .chip { display: inline-block; padding: 3px 10px 4px; border: 2px solid var(--ink); border-radius: 999px; font: 400 13px 'Lilita One', sans-serif; color: #fff; text-shadow: 0 1px 0 var(--ink); }
-.chip.new { background: var(--pink); } .chip.live { background: #3fae2e; } .chip.ev { background: #e8743a; } .chip.soon { background: #6b5bd6; }
+.chip.new { background: #c8137c; } .chip.live { background: #237a18; } .chip.ev { background: #b4501a; } .chip.soon { background: #6b5bd6; }
 .news { width: 100%; max-width: 980px; margin: 34px auto 0; text-align: left; }
 .news h2 { margin: 0; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
 .car { position: relative; }
@@ -108,8 +110,8 @@ footer a { color: #fff; }
 @media (min-width: 900px) { .sticky-cta { display: none; } }
 @media (max-width: 760px) { .shots { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; gap: 14px; padding: 4px 16px 14px; margin: 0 -16px; } .shots::-webkit-scrollbar { display: none; } .shot { flex: 0 0 64%; scroll-snap-align: center; } }
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
-.dots button { width: 10px; height: 10px; padding: 0; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); cursor: pointer; transition: width .25s, background .25s; }
-.dots button.on { width: 28px; background: var(--gold); }
+.dots { gap: 2px !important; } .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; } .dots button::after { content: ''; width: 10px; height: 10px; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); transition: width .25s, background .25s; }
+.dots button.on { width: 34px; } .dots button.on::after { width: 28px; background: var(--gold); }
 @media (max-width: 520px) { .bn { --head: 82px; --crown: -21px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 79%; } .bn-card { height: 232px; } .bn-txt { left: 14px; width: 60%; } .bn-txt p { font-size: 12.5px; } .bn-txt { width: 54%; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
 @media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } .cast { height: 112px; } }
@@ -127,7 +129,7 @@ footer a { color: #fff; }
 <body>
 <div class="bg" aria-hidden="true"><i></i></div>
 <main>
-  <h1 class="logo">BIFF<span>CITY</span></h1>
+  <h1 class="logo">BIFF <span>CITY</span><b class="sr"> : le jeu mobile de paris sportifs fictifs</b></h1>
   <div class="tag">{{hero.slogan}}</div>
   <div class="art" aria-hidden="true"></div>
   <a class="cta hero-cta" href="https://game.biffcity.fr/" data-lp="beta-hero">{{hero.cta}}</a>

@@ -6,6 +6,9 @@ const FRAMES = JSON.parse(fs.readFileSync(path.join(__dirname, 'frames.json'), '
 const TPL = path.join(__dirname, 'template.html'), DEF = path.join(__dirname, 'content.json');
 const COLORS = ['new', 'live', 'ev', 'soon'], IMG_RE = /^\/(assets\/img|assets\/lp|media)\/[\w.-]+\.(png|jpe?g|webp)$/, POS_RE = /^\d{1,3}% \d{1,3}%$/;
 
+// image allégée (assets/lp/o, faite par tools/lp-images.py) quand elle existe : la vitrine charge 3 à 6 fois moins lourd
+const OPT = path.join(__dirname, '..', 'assets/lp/o'), optSeen = new Map();
+const opt = u => { const m = /^\/assets\/img\/([\w.-]+)\.(png|jpe?g|webp)$/.exec(u || ''); if (!m) return u; if (!optSeen.has(m[1])) optSeen.set(m[1], fs.existsSync(path.join(OPT, m[1] + '.webp'))); return optSeen.get(m[1]) ? `/assets/lp/o/${m[1]}.webp` : u; };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const defaults = () => JSON.parse(fs.readFileSync(DEF, 'utf8'));
 
@@ -41,17 +44,19 @@ function popImg(u) {
   let n = (u.match(/\/([\w-]+)\.\w+$/) || [])[1];
   if (/-bust$/.test(n) && FRAMES[n.replace(/-bust$/, '')]) { n = n.replace(/-bust$/, ''); u = `/assets/img/${n}.png`; }   // un buste s'arrêterait au milieu de la carte : on prend le perso entier
   const f = FRAMES[n] || [.16, .39], h = f[1] - f[0];
-  return `<div class="bn-popw"><img class="bn-pop" src="${esc(u)}" alt="" loading="lazy" style="--hf:${(1 / h).toFixed(4)};--cf:${(f[0] / h).toFixed(4)}"></div>`;
+  return `<div class="bn-popw"><img class="bn-pop" src="${esc(opt(u))}" alt="" loading="lazy" style="--hf:${(1 / h).toFixed(4)};--cf:${(f[0] / h).toFixed(4)}"></div>`;
 }
 function render(content) {
   const c = clean(content || defaults());
   const val = k => k.split('.').reduce((o, p) => o == null ? '' : o[p], c), art = sl => sl && c.articles.some(a => a.slug === sl);
-  const feats = c.feats.map(f => `    <div class="feat"><img src="${esc(f.img)}" alt=""><b>${esc(f.title)}</b><small>${esc(f.text)}</small></div>`).join('\n');
-  const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" style="background-image:url(${esc(x.bg)});background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? popImg(x.pop) : ''}</article>`).join('');
-  const cards = c.bientot.items.map(x => `      <article class="nc"><div class="ni"><img src="${esc(x.img)}" alt="${esc(x.alt)}" style="object-position:${esc(x.imgPos)}"></div><div class="nt">${x.chip ? `<span class="chip ${x.color}"${x.start && x.end ? ` data-cd="${esc(x.start)}" data-end="${esc(x.end)}"` : ''}>${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="nc-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></article>`).join('\n');
+  const feats = c.feats.map(f => `    <div class="feat"><img src="${esc(opt(f.img))}" alt="" width="64" height="64"><b>${esc(f.title)}</b><small>${esc(f.text)}</small></div>`).join('\n');
+  const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" style="background-image:url(${esc(opt(x.bg))});background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? popImg(x.pop) : ''}</article>`).join('');
+  const cards = c.bientot.items.map(x => `      <article class="nc"><div class="ni"><img src="${esc(opt(x.img))}" loading="lazy" alt="${esc(x.alt)}" style="object-position:${esc(x.imgPos)}"></div><div class="nt">${x.chip ? `<span class="chip ${x.color}"${x.start && x.end ? ` data-cd="${esc(x.start)}" data-end="${esc(x.end)}"` : ''}>${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="nc-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></article>`).join('\n');
   const shots = c.jeu.items.map(x => `      <a class="shot" href="${art(x.link) ? '/actus/' + x.link : 'https://game.biffcity.fr/'}"${art(x.link) ? '' : ' data-lp="beta-jeu"'}><figure><img src="${esc(x.img)}" alt="${esc(x.alt)}" loading="lazy" width="540" height="1169"></figure><div><b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? '<span class="go">En savoir plus ›</span>' : ''}</div></a>`).join('\n');
   return fs.readFileSync(TPL, 'utf8')
     .replace('<!--@feats-->', () => feats).replace('<!--@actus-->', () => actus).replace('<!--@bientot-->', () => cards).replace('<!--@jeu-->', () => shots)
+    .replace(/\{\{hero\.img\}\}/g, () => esc(opt(c.hero.img))).replace('{{hero.imgFull}}', () => esc(c.hero.img))
+    .replace(/<img src="(\/assets\/img\/[\w.-]+)"/g, (m, u) => `<img src="${opt(u)}"`)
     .replace(/\{\{([\w.]+)\}\}/g, (m, k) => esc(val(k)));
 }
 
@@ -160,7 +165,7 @@ ${HIT(slug)}
 </body>
 </html>`;
 }
-const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><time datetime="${a.date}">${dateFr(a.date)}</time><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>En savoir plus</small></div></a>`;
+const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(opt(a.img))}" loading="lazy" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><time datetime="${a.date}">${dateFr(a.date)}</time><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>En savoir plus</small></div></a>`;
 
 function renderArticle(content, s) {
   const c = clean(content || defaults()), a = c.articles.find(x => x.slug === s); if (!a) return null;
@@ -181,7 +186,7 @@ function renderArticle(content, s) {
 <article>
 <h1>${esc(a.h1 || a.title)}</h1>
 <div class="meta">Publié le ${dateFr(a.date)} · ${min} min de lecture</div>
-<img class="hero" src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}">
+<img class="hero" src="${esc(opt(a.img))}" fetchpriority="high" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}">
 <div class="ticket"><div class="paper">
 <p class="lead">${esc(a.lead)}</p><div class="perf"></div>
 ${html}
