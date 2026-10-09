@@ -176,6 +176,8 @@
         : `<div class="empty">${shelf === 'mine' ? 'Aucune image envoyée pour l\'instant : bouton « Envoyer une image » en haut.' : 'Aucune image ne correspond.'}</div>`;
     };
     fill();
+    // une image trop petite devient floue sur une bannière large : on la signale (taille réelle lue au chargement)
+    bg.addEventListener('load', e => { const im = e.target; if (im.tagName !== 'IMG' || !im.closest('.lp-grid') || shelf === 'persos') return; if (im.naturalWidth < 1000) { const b = im.closest('button'); if (b && !b.querySelector('.lp-small')) b.insertAdjacentHTML('beforeend', '<em class="lp-small">Petite : floue en bannière</em>'); } }, true);
     $('#lb-q', bg).oninput = fill;
     $('#lb-up', bg).onchange = async e => {
       const f = e.target.files[0]; if (!f) return; if (f.size > 4 * 1048576) return HC.toast('Image trop lourde (4 Mo au plus)', null, true);
