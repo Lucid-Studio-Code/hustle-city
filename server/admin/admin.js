@@ -163,22 +163,23 @@
   HC.periodChips = () => `<div class="chips">${[7, 30, 90].map(d => `<button class="chip ${HC.period === d ? 'on' : ''}" data-period="${d}">${d} jours</button>`).join('')}</div>`;
 
   // ------------------------------------------------------------ navigation
+  // la barre latérale : rangée par thème, libellés courts (le Journal est en bas, à côté de « Se déconnecter »)
   const NAV = [
-    { id: 'dash', label: 'Tableau de bord', icon: 'nav-trading' },
-    { id: 'map', label: 'Carte des joueurs', icon: 'nav-city' },
-    { id: 'stats', label: 'Statistiques', icon: 'app-crypto' },
-    { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
-    { id: 'support', label: 'SAV et avis bêta', icon: 'app-msg', badge: 'nb-sav' },
-    { id: 'promos', label: 'Promos', icon: 'ic-promo' },
-    { id: 'landing', label: 'Landing biffcity.fr', icon: 'nav-city' },
-    { id: 'items', label: 'Objets du jeu', icon: 'app-objets' },
-    { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
-    { id: 'broadcast', label: 'Message à tous', icon: 'gift-big' },
-    { id: 'notifs', label: 'Notifications', icon: 'app-msg' },
-    { id: 'logs', label: 'Journal', icon: 'hdr-missions' }
+    { id: 'dash', label: 'Tableau de bord', icon: 'nav-trading', grp: 'Suivi' },
+    { id: 'stats', label: 'Statistiques', icon: 'app-crypto', grp: 'Suivi' },
+    { id: 'map', label: 'Carte', icon: 'nav-city', grp: 'Suivi' },
+    { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true, grp: 'Joueurs' },
+    { id: 'support', label: 'SAV et avis', icon: 'app-msg', badge: 'nb-sav', grp: 'Joueurs' },
+    { id: 'items', label: 'Objets', icon: 'app-objets', grp: 'Le jeu' },
+    { id: 'live', label: 'Événements', icon: 'bld-six', grp: 'Le jeu' },
+    { id: 'promos', label: 'Promos', icon: 'ic-promo', grp: 'Le jeu' },
+    { id: 'broadcast', label: 'Message à tous', icon: 'gift-big', grp: 'Messages' },
+    { id: 'notifs', label: 'Notifications', icon: 'icon-bolt', grp: 'Messages' },
+    { id: 'landing', label: 'Landing', icon: 'icon-cash', grp: 'Site' },
+    { id: 'logs', label: 'Journal', icon: 'hdr-missions', foot: true }
   ];
   const PARENT = { player: 'players' };
-  $('#nav').innerHTML = NAV.map(n => `<button data-go="${n.id}"><span class="ni">${n.round ? `<img src="${src(n.icon)}" alt="" style="border-radius:50%;object-fit:cover;object-position:50% 10%;background:radial-gradient(circle at 50% 35%,#ffe9f6,#c9a4ff);border:2px solid #2a1a10;width:28px;height:28px">` : img(n.icon)}</span><span>${n.label}</span>${n.badge ? `<i class="badge" id="${n.badge}"></i>` : ''}</button>`).join('');
+  $('#nav').innerHTML = NAV.filter(n => !n.foot).map((n, i, l) => (n.grp !== (l[i - 1] || {}).grp ? `<div class="nav-grp">${n.grp}</div>` : '') + `<button data-go="${n.id}"><span class="ni">${n.round ? `<img src="${src(n.icon)}" alt="" style="border-radius:50%;object-fit:cover;object-position:50% 10%;background:radial-gradient(circle at 50% 35%,#ffe9f6,#c9a4ff);border:2px solid #2a1a10;width:28px;height:28px">` : img(n.icon)}</span><span>${n.label}</span>${n.badge ? `<i class="badge" id="${n.badge}"></i>` : ''}</button>`).join('');
   const params = () => new URLSearchParams(location.hash.slice(1));
   HC.go = (page, extra = {}) => { const p = new URLSearchParams({ page, ...extra }); const h = '#' + p.toString(); if (location.hash === h) route(); else location.hash = h; };
   HC.params = params;

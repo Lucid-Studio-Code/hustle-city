@@ -41,7 +41,7 @@
     "title": "Le Club ouvre ses portes",
     "text": "Piste, bar, carré VIP, DJ et toilettes louches : des dialogues qui rapportent gros… ou te coûtent cher.",
     "link": "club-biff-city",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "bg": "/assets/img/bg-city-neon.jpg",
@@ -53,7 +53,7 @@
     "title": "Le Lucky Palace relooké",
     "text": "Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous fait peau neuve.",
     "link": "machine-a-sous-gratuite",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "bg": "/assets/img/club-vip.jpg",
@@ -65,7 +65,7 @@
     "title": "10 personnages au Club",
     "text": "Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard.",
     "link": "personnages-du-club",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "bg": "/assets/img/bg-city-or.jpg",
@@ -77,7 +77,7 @@
     "title": "Joue avant tout le monde",
     "text": "Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.",
     "link": "jeu-paris-sportifs-fictifs",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    }
   ]
  },
@@ -95,7 +95,7 @@
     "title": "La Coupe des Morts",
     "text": "L'événement d'Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives.",
     "link": "coupe-des-morts",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "img": "/assets/img/bg-lp-beta.jpg",
@@ -108,7 +108,7 @@
     "title": "La collection Bêta",
     "text": "Une série de cartes réservée à ceux qui jouent pendant la bêta. Elle ne sera plus jamais distribuée après la sortie.",
     "link": "collection-beta",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "img": "/assets/img/bg-lp-avis.jpg",
@@ -121,7 +121,7 @@
     "title": "Ton avis rapporte",
     "text": "Chaque retour utile sur une fonctionnalité te rapporte des lingots et des boosters. Il s'envoie depuis les Réglages du jeu.",
     "link": "avis-beta-recompense",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    },
    {
     "img": "/assets/img/load-2.jpg",
@@ -134,7 +134,7 @@
     "title": "Sur l'App Store et Google Play",
     "text": "Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.",
     "link": "biff-city-iphone-android",
-    "btn": "Lire l'article"
+    "btn": "En savoir plus"
    }
   ]
  },

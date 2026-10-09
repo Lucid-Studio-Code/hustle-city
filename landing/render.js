@@ -22,10 +22,10 @@ function clean(c) {
     feats: (Array.isArray(c.feats) ? c.feats : d.feats).slice(0, 3).map((f, i) => ({ img: im(f.img, d.feats[i].img), title: txt(f.title, 30, ''), text: txt(f.text, 120, '') })),
     actus: { title: txt(a.title, 40, d.actus.title), items: (Array.isArray(a.items) ? a.items : d.actus.items).slice(0, 8).map(x => ({
       bg: im(x.bg, d.actus.items[0].bg), bgPos: pos(x.bgPos, '50% 50%'), pop: im(x.pop, ''), frame: x.frame === 'pied' ? 'pied' : 'buste',
-      chip: txt(x.chip, 30, ''), color: col(x.color), title: txt(x.title, 60, ''), text: txt(x.text, 220, ''), link: slug(x.link), btn: txt(x.btn, 30, 'Lire l\'article') })) },
+      chip: txt(x.chip, 30, ''), color: col(x.color), title: txt(x.title, 60, ''), text: txt(x.text, 220, ''), link: slug(x.link), btn: txt(x.btn, 30, 'En savoir plus') })) },
     bientot: { title: txt(b.title, 40, d.bientot.title), items: (Array.isArray(b.items) ? b.items : d.bientot.items).slice(0, 8).map(x => ({
       img: im(x.img, d.bientot.items[0].img), alt: txt(x.alt, 120, ''), imgPos: pos(x.imgPos, '50% 50%'), chip: txt(x.chip, 30, ''), color: col(x.color),
-      start: date(x.start), end: date(x.end), title: txt(x.title, 60, ''), text: txt(x.text, 260, ''), link: slug(x.link), btn: txt(x.btn, 30, 'Lire l\'article') })) },
+      start: date(x.start), end: date(x.end), title: txt(x.title, 60, ''), text: txt(x.text, 260, ''), link: slug(x.link), btn: txt(x.btn, 30, 'En savoir plus') })) },
     articles: (Array.isArray(c.articles) ? c.articles : d.articles || []).slice(0, 60).filter(x => slug(x.slug)).map(x => ({
       slug: slug(x.slug), date: /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : new Date().toISOString().slice(0, 10), img: im(x.img, d.hero.img), imgPos: pos(x.imgPos, '50% 50%'), alt: txt(x.alt, 140, ''),
       title: txt(x.title, 90, ''), desc: txt(x.desc, 170, ''), h1: txt(x.h1, 110, ''), lead: txt(x.lead, 500, ''), body: txt(x.body, 20000, '') })),
@@ -147,7 +147,7 @@ ${HIT(slug)}
 </body>
 </html>`;
 }
-const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>Lire l'article</small></div></a>`;
+const cardOf = a => `<a class="card" href="/actus/${a.slug}"><img src="${esc(a.img)}" alt="${esc(a.alt)}" style="object-position:${esc(a.imgPos)}"><div><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>En savoir plus</small></div></a>`;
 
 function renderArticle(content, s) {
   const c = clean(content || defaults()), a = c.articles.find(x => x.slug === s); if (!a) return null;

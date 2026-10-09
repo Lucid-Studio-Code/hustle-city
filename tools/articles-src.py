@@ -233,7 +233,7 @@ c['articles'] = A
 links = {'Le Club ouvre ses portes': 'club-biff-city', 'Le Lucky Palace relooké': 'machine-a-sous-gratuite', '10 personnages au Club': 'personnages-du-club', 'Joue avant tout le monde': 'jeu-paris-sportifs-fictifs',
          'La Coupe des Morts': 'coupe-des-morts', 'La collection Bêta': 'collection-beta', 'Ton avis rapporte': 'avis-beta-recompense', "Sur l'App Store et Google Play": 'biff-city-iphone-android'}
 for x in c['actus']['items'] + c['bientot']['items']:
-    x['link'] = links.get(x['title'], ''); x['btn'] = 'Lire l\'article'
+    x['link'] = links.get(x['title'], ''); x['btn'] = 'En savoir plus'
 for x in c['bientot']['items']:
     if x['title'] == 'La collection Bêta': x['img'] = '/assets/img/bg-lp-beta.jpg'; x['imgPos'] = '50% 40%'; x['alt'] = 'Le Survêt ouvre un paquet de cartes holographiques'
 p.write_text(json.dumps(c, ensure_ascii=False, indent=1))
