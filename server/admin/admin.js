@@ -251,7 +251,13 @@
       </div>
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><div class="card-h">${img('hdr-levelup')}Jusqu'où ils montent<small><a href="#page=stats&s=progression">détails</a></small></div>${funnelHtml(o.funnel)}</div>
+        <div class="card" id="lp-card"><div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>visites et clics vers la bêta</small></div><p class="muted">Chargement…</p></div>
       </div>`);
+    // vitrine : visites, part mobile, clics « Jouer à la bêta », d'où viennent les visiteurs (TikTok, Instagram…)
+    HC.api('/admin/api/lp?days=' + HC.period).then(L => { const c = document.getElementById('lp-card'); if (!c) return; const pc = (a, b) => b ? Math.round(a / b * 100) + ' %' : '—';
+      c.innerHTML = `<div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>${L.days} derniers jours</small></div>
+        <div class="kpis k4" style="margin:6px 0 10px">${HC.kpi(null, fmt(L.views), 'visites')}${HC.kpi(null, fmt(L.beta), 'clics « Jouer »')}${HC.kpi(null, pc(L.beta, L.views), 'des visiteurs cliquent')}${HC.kpi(null, pc(L.mobile, L.views), 'sur téléphone')}</div>
+        ${L.sources.length ? `<table class="tbl"><tr><th>Provenance</th><th>Visites</th><th>Clics</th></tr>${L.sources.map(r => `<tr><td>${esc(r.s)}</td><td>${fmt(r.views)}</td><td>${fmt(r.beta)}</td></tr>`).join('')}</table>` : '<p class="muted">Aucune visite pour l\'instant.</p>'}`; }).catch(() => {});
     const lab = s.map(x => dlabel(x.d));
     const ch = HC.chart('c-dau', { type: 'bar', data: { labels: lab, datasets: [
       { type: 'line', label: 'Joueurs actifs', data: s.map(x => x.dau), borderColor: HC.COL.yellow, borderWidth: 3, tension: .35, pointRadius: 0, pointHoverRadius: 5, fill: true, backgroundColor: c => grad(c.chart.ctx, HC.COL.yellow), order: 1 },

@@ -15,6 +15,7 @@ function initDb(db) {
     CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY, pid TEXT, start INT, last INT, ms INT DEFAULT 0);
     CREATE INDEX IF NOT EXISTS se_start ON sessions(start); CREATE INDEX IF NOT EXISTS se_pid ON sessions(pid, start);
     CREATE TABLE IF NOT EXISTS save_history (id INTEGER PRIMARY KEY, pid TEXT, t INT, lvl INT, worth REAL, save TEXT);
+    CREATE TABLE IF NOT EXISTS lp (id INTEGER PRIMARY KEY, t INT, k TEXT, src TEXT, ref TEXT, m INT);
     CREATE INDEX IF NOT EXISTS sh_pid ON save_history(pid, t);
     CREATE TABLE IF NOT EXISTS geo_cache (ip TEXT PRIMARY KEY, t INT, data TEXT);
   `);
