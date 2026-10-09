@@ -54,7 +54,7 @@ main { position: relative; min-height: 100vh; min-height: 100dvh; display: flex;
 .cast img { height: 100%; width: auto; margin: 0 -10px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
 .cast img:nth-child(4) { height: 112%; z-index: 2; }
 .age { margin-top: 26px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(0,0,0,.35); font-size: 13px; color: #e8dcff; }
-.age b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #e8483a; border: 2px solid #fff; font: 400 13px 'Lilita One', sans-serif; color: #fff; }
+.age b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #b8261a; border: 2px solid #fff; font: 400 13px 'Lilita One', sans-serif; color: #fff; }
 footer { margin-top: 18px; font-size: 12px; color: #b9a8d9; }
 footer a { color: #fff; }
 .blk { width: 100%; max-width: 980px; margin: 34px auto 0; text-align: left; }
@@ -169,6 +169,15 @@ footer a { color: #fff; }
   <footer>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 </main>
 <a class="sticky-cta" id="sticky-cta" href="https://game.biffcity.fr/" data-lp="beta-sticky" aria-hidden="true" tabindex="-1">{{hero.cta}}</a>
+<script>
+// fonds des bannières : chargés seulement à l'approche de l'écran (l'image principale passe d'abord)
+(function () {
+  var els = document.querySelectorAll('[data-bg]'), set = function (e) { e.style.backgroundImage = 'url(' + e.dataset.bg + ')'; e.removeAttribute('data-bg'); };
+  if (!('IntersectionObserver' in window)) return els.forEach(set);
+  var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { set(e.target); io.unobserve(e.target); } }); }, { rootMargin: '300px 600px' });
+  els.forEach(function (e) { io.observe(e); });
+})();
+</script>
 <script>
 // mobile : bouton « Jouer » qui suit le défilement, caché quand un autre bouton est déjà visible
 (function () {
