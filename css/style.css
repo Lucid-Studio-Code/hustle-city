@@ -3666,3 +3666,15 @@ html { background-color: #120c24; }
 #app .club-scene .csc-who { flex: 0 0 auto; height: 64cqh; }   /* même hauteur quel que soit le nombre de choix sous le perso */
 /* les persos ne dépendent plus de la hauteur de la boîte : même place pour tous (la coupure reste cachée derrière la boîte) */
 #app .club-scene .csc-who { position: absolute; left: 50%; bottom: 6cqh; height: 82cqh; width: auto; max-width: none; margin: 0; transform: translateX(-50%); animation: cscIn .35s cubic-bezier(.3, 1.4, .5, 1); }
+/* le Club, une fois entré : plein écran comme l'appart (le HUD et la barre du bas restent visibles), sans cadre ni titre de fenêtre */
+#app #modal.club-fs { inset: var(--top) 0 var(--bot) 0; padding: 0; background: #140b24; z-index: 19; }
+#app #modal.club-fs .sheet { margin: 0 !important; padding: 0 !important; height: 100% !important; max-height: 100% !important; border: 0 !important; border-image: none !important; background: #140b24 !important; box-shadow: none !important; animation: none; }
+#app #modal.club-fs .sheet-head, #app #modal.club-fs .tabs { display: none; }
+#app #modal.club-fs .sheet-body { padding: 0 !important; overflow: hidden; display: flex; flex-direction: column; }
+#app #modal.club-fs .club-full { border-radius: 0; }
+#app #modal.club-fs .club-foot { background: rgba(20,11,36,.92); color: #fff; }
+#app #modal.club-fs .club-foot small { color: #e8c99a; }
+#app .club-exit { position: absolute; z-index: 5; left: 10px; top: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px 6px 8px; border: 2px solid #2a1a10; border-radius: 999px; background: #fffdf6; box-shadow: 0 3px 0 #2a1a10; font: 400 14px var(--title); color: #2a1a10; }
+#app .club-exit .ic { width: 18px; height: 18px; }
+/* dans le Club plein écran : les boutons flottants de la ville ne passent plus par-dessus la salle */
+#app:has(#modal.club-fs) #phone-btn, #app:has(#modal.club-fs) #btn-deal, #app:has(#modal.club-fs) #btn-upg, #app:has(#modal.club-fs) #btn-next, #app:has(#modal.club-fs) #btn-gift, #app:has(#modal.club-fs) #btn-booster, #app:has(#modal.club-fs) #trophy, #app:has(#modal.club-fs) #next-cap, #app:has(#modal.club-fs) #quest { display: none !important; }

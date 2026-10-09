@@ -1558,7 +1558,7 @@
     // la salle en plein écran (comme le parking) : chaque coin se touche, 2 actions par soirée
     const spots = C.spots.map(p => { const done = c.done[p.id], off = !placing && (done || rest <= 0);
       return `<button class="club-spot ${done ? 'done' : ''} ${off ? 'off' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico(C.scenes[p.id].ic, '')} ${p.name}${done ? ' ' + ic('check') : ''}</span></button>`; }).join('');
-    return `<div class="club-full"><div class="club-room v2">${has('club-salle') ? `<img class="cr-bg" src="${src('club-salle')}" alt="">` : '<div class="cr-bg neon"></div>'}${spots}</div></div>
+    return `<div class="club-full"><button class="club-exit" data-act="closeModal">${ic('city')} Sortir</button><div class="club-room v2">${has('club-salle') ? `<img class="cr-bg" src="${src('club-salle')}" alt="">` : '<div class="cr-bg neon"></div>'}${spots}</div></div>
       <div class="club-foot">${placing ? `${ico('btn-setup', '')} Fais glisser les zones, puis Publier <div class="grid2" style="margin-top:6px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>`
         : `<span class="cf-acts">${'<i class="on"></i>'.repeat(rest)}${'<i></i>'.repeat(Math.max(0, C.acts - rest))}</span><b>${rest ? `Encore ${rest} action${rest > 1 ? 's' : ''} ce soir` : 'Soirée terminée'}</b><small>${rest ? `Choisis bien : tu ne peux pas tout faire. ${mmss(left)}` : `Le videur te laisse revenir dans ${mmss(G.clubWait())}`}${c.dj && rest ? ` · ${ico('ic-club-dj', '')} ton son passe` : ''}</small>`}</div>`;
   }
@@ -1580,7 +1580,7 @@
     } else {
       acts = sc.choices.map(ch => { const need = ch.lingots ? ` · ${ic('lingot')}${ch.lingots}` : ''; return `<button class="btn csc-ch ${ch.talk ? 'talk' : ''}" data-act="clubPick" data-id="${ch.id}" ${ch.lingots && s.lingots < ch.lingots ? 'disabled' : ''}>${ch.label}${need}</button>`; }).join('') + `<button class="csc-skip" data-act="clubBack">Retour dans la salle</button>`;
     }
-    return `<div class="club-full"><div class="club-scene">${has(sc.bg) ? `<img class="csc-bg" src="${src(sc.bg)}" alt="">` : '<div class="csc-bg neon"></div>'}${face}
+    return `<div class="club-full"><button class="club-exit" data-act="${z.res ? 'clubBack' : 'clubBack'}">${ic('city')} Salle</button><div class="club-scene">${has(sc.bg) ? `<img class="csc-bg" src="${src(sc.bg)}" alt="">` : '<div class="csc-bg neon"></div>'}${face}
       <div class="csc-box"><p class="csc-say">${say}</p><div class="csc-acts">${acts}</div></div></div></div>`;
   }
   // porte du Club : la carte du videur est en haut, on cale l'image pour que sa tête apparaisse juste en dessous
@@ -1598,6 +1598,9 @@
     if (r.good.length && !r.bad.length) { sfx.win(); rain('confetti', 22); } else if (r.bad.length && !r.good.length) sfx.miss(); else sfx.coin();
     setBody(clubBody()); renderHud();
   }
+  // dans le Club (salle et scènes) : plein écran comme l'appart, sans cadre de fenêtre ; à la porte, fenêtre normale
+  function clubFrame() { const m = $('#modal'); if (!m || !m.querySelector('.sheet.th-club')) return; m.classList.toggle('club-fs', !!m.querySelector('.club-full')); }
+  new MutationObserver(clubFrame).observe(document.documentElement, { childList: true, subtree: true });
   function openClub() { clubScene = null;
     openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => { setBody(clubBody()); fitClubDoor(); } }); const im = document.querySelector('#modal .club-door img.cd-bg'); if (im) im.complete ? fitClubDoor() : im.addEventListener('load', fitClubDoor); }
 
