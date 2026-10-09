@@ -1417,7 +1417,7 @@
   function purgeOld() {
     const lim = Date.now() - MSG_TTL;
     Object.keys(chats()).forEach(k => { if (phoneOpen() && phoneApp === 'chat' && chatOpen === k) return;
-      const c = chats()[k]; c.msgs = c.msgs.filter(m => (m.t || 0) >= lim);
+      const c = chats()[k]; c.msgs = c.msgs.filter(m => (m.t || 0) >= lim || (m.card && !m.done));
       if (!c.msgs.length) delete chats()[k]; else c.unread = Math.min(c.unread, c.msgs.filter(m => m.from === 'them').length); });
     st().notifs = notifs().filter(n => (n.t || 0) >= lim);
     renderPhoneBtn(); if (phoneOpen() && phoneApp !== 'chat') drawPhone();
@@ -1432,6 +1432,7 @@
     let extra = '';
     if (m.offer) { const it = G.item(m.offer.id); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>${(f => m.offer.type === 'sell' ? `Il te ${f} vend` : `Il te ${f} rachète`)(/^la /.test(G.what(it)) ? 'la' : 'le')} <strong>${short(m.offer.price)}</strong>${m.offer.type === 'buy' && paidFor(m.offer.id) != null ? `<br>${gainTxt(m.offer.id, m.offer.price)}` : ` · cote ${short(st().market.prices[m.offer.id])}`}</small></span></div>`; }
     if (m.match) { const x = G.match(m.match); if (x) extra = `<div class="bub in offer match"><span class="of-crests">${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.home), 'mini')}${teamCrest(x.sport, D.TEAMS[x.sport].findIndex(t => t[0] === x.away), 'mini')}</span><span><b>${x.home} – ${x.away}</b><small>${x.state === 'soon' ? `Coup d'envoi dans ${mmss(x.kickoff - Date.now())}` : x.state === 'live' ? 'En direct' : 'Terminé'}</small></span></div>`; }
+    if (m.card) { const it = G.item(m.card); if (it) extra = `<div class="bub in offer gift-card"><span class="of-card">${tcgCard({ id: it.id }, 'mini')}</span><span><b>${it.name}</b><small>Carte ${RAR[it.r].toLowerCase()} · Édition bêta</small></span></div>`; }
     if (m.item && !m.offer) { const it = G.item(m.item); extra = `<div class="bub in offer"><span class="of-art">${itemPic(it)}</span><span><b>${G.what(it, true)}</b><small>Cote ${short(st().market.prices[m.item])}</small></span></div>`; }
     // réponses rapides : seulement sur le dernier message encore ouvert
     let acts = '';
@@ -3059,6 +3060,7 @@
         setTimeout(() => chatPush(c.name, null, { from: 'them', txt: !live ? 'Trop tard, j\'ai trouvé quelqu\'un d\'autre.' : ok ? pick(['Marché conclu 🤝', 'Plaisir de faire affaire.', 'T\'as eu le flair.']) : a.act === 'dealNo' ? pick(['Ok, tant pis 🤷', 'Comme tu veux, la prochaine fois.', 'Dommage, c\'était une affaire.']) : 'Hmm, ça n\'a pas marché.' }), 700);
         return drawPhone();
       }
+      if (a.act === 'openCard') { closePhone(); const it = G.item(a.id); return packOpening([{ kind: 'col', rarity: it.r, id: it.id, name: it.name, dup: false }]); }   // carte offerte par le support : on l'ouvre comme un booster
       if (a.act === 'bet') { closePhone(); return window.BALTO.openWithPick(a.m, a.p); }
       if (a.act === 'crypto') { closePhone(); setScene('appart'); return openCrypto(a.id); }
       if (a.act === 'vintage') { closePhone(); return G.vintageOn() ? openShop('card', 'comptoir') : toast('Trop tard : elle est partie.', true); }

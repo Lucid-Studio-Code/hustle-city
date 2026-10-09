@@ -3706,3 +3706,8 @@ html { background-color: #120c24; }
 #start .st-err:not(:empty) { display: block; width: max-content; max-width: 100%; margin: 10px auto 2px; padding: 6px 14px 7px; border-radius: 12px; background: #e8483a; border: 2px solid #2a1a10; box-shadow: 0 3px 0 #2a1a10; }
 #start .name.bad { border-color: #e8483a !important; box-shadow: 0 0 0 3px rgba(232,72,58,.35) !important; animation: stShake .35s; }
 @keyframes stShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+/* message du support avec une carte jointe (collection Bêta) */
+#app .bub.gift-card { display: flex; align-items: center; gap: 10px; }
+#app .bub.gift-card .of-card { width: 64px; flex: 0 0 64px; }
+#app .bub.gift-card .of-card .tcg { width: 64px; }

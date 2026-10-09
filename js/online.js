@@ -72,11 +72,13 @@
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
       const cob = +g.cobaye ? G.giveBetaLegend() : null;   // retour utile : la carte légendaire de la collection Bêta
       const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`, cob && (cob.dup ? 'Cobaye n°1 déjà dans ton classeur : +20 lingots' : 'la carte légendaire « Le Cobaye n°1 »')].filter(Boolean).join(', ');
-      if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
-      U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Biff City', (m.text || '') + (gl ? ` ${gl} !` : ''));
+      if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl && !(cob && !cob.dup) ? ` (${gl} offerts)` : '') });
+      // la légendaire arrive dans le téléphone : un message du Support avec la carte jointe, à ouvrir d'un geste
+      if (cob && !cob.dup) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: 'Ta carte est arrivée ! Ouvre-la quand tu veux.', card: cob.id, acts: [{ label: 'Ouvrir ma carte', act: 'openCard', id: cob.id }] });
+      U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Biff City', cob && !cob.dup ? 'Une carte légendaire t\'attend dans tes messages !' : (m.text || '') + (gl ? ` ${gl} !` : ''));
       ev('gift_received', { id: m.id, g: gl });
       // la légendaire arrive comme un booster qu'on ouvre : paquet qui tremble, carte retournée, effet légendaire
-      if (cob && !cob.dup) setTimeout(() => { try { U.closeModal(); U.packOpening([{ kind: 'col', rarity: 'L', id: cob.id, name: G.item(cob.id).name, dup: false }]); } catch (e) {} }, 900);
+
       post('/api/claim', { id: m.id }).catch(() => {});
     });
     if ((list || []).length) { G.save(); U.refresh(); }

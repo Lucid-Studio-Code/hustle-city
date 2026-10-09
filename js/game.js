@@ -1387,7 +1387,8 @@
   }
   const seriesCards = id => D.ITEMS.filter(i => i.series === id && cardOk(i));
   const seriesHave = id => seriesCards(id).filter(c => st.owned[c.id] && st.owned[c.id].length).length;
-  const seriesDone = id => seriesCards(id).length > 1 && seriesHave(id) === seriesCards(id).length;
+  // une série n'est complète que si TOUTES ses cartes existent dans le jeu (une illustration manquante ne doit pas raccourcir la série)
+  const seriesDone = id => seriesCards(id).length > 1 && seriesCards(id).length === D.ITEMS.filter(i => i.series === id && !i.hidden).length && seriesHave(id) === seriesCards(id).length;
   function claimSeries(id) {
     const se = D.SERIES.find(x => x.id === id);
     if (!se || !seriesDone(id) || st.colClaimed[id]) return { err: 'Série incomplète.' };
