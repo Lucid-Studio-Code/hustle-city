@@ -3678,3 +3678,4 @@ html { background-color: #120c24; }
 #app .club-exit .ic { width: 18px; height: 18px; }
 /* dans le Club plein écran : les boutons flottants de la ville ne passent plus par-dessus la salle */
 #app:has(#modal.club-fs) #phone-btn, #app:has(#modal.club-fs) #btn-deal, #app:has(#modal.club-fs) #btn-upg, #app:has(#modal.club-fs) #btn-next, #app:has(#modal.club-fs) #btn-gift, #app:has(#modal.club-fs) #btn-booster, #app:has(#modal.club-fs) #trophy, #app:has(#modal.club-fs) #next-cap, #app:has(#modal.club-fs) #quest { display: none !important; }
+#app .trophy-full { background: #fff1dc; border-color: #e8483a; text-align: left; } #app .trophy-full p { margin: 4px 0 0; font: 700 13px/1.35 var(--text); }

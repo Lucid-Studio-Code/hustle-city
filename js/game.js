@@ -761,18 +761,26 @@
     const p = sellPrice(id); addCash(p);
     const profit = p - e.paid; if (profit > 0 && e.paid > 0) stat('itemProfit');
     // pas d'XP à la revente : sinon acheter / revendre en boucle fait monter de niveau
-    emit('change'); return { p, profit, paid: e.paid };
+    placeWaiting(); emit('change'); return { p, profit, paid: e.paid };
   }
+  // un trophée prend une place sur les étagères : appart plein = il attend (st.trophyWait) qu'une place se libère, il n'est jamais perdu
   function giveTrophy(id) {
     if (st.owned[id] && st.owned[id].length) return false;
+    st.trophyWait = st.trophyWait || []; if (st.trophyWait.includes(id)) return false;
+    if (ownedCount() >= roomSlots()) { st.trophyWait.push(id); emit('trophy', item(id), true); emit('change'); return true; }
     (st.owned[id] = st.owned[id] || []).push({ paid: 0, t: now() });
     emit('trophy', item(id)); emit('change'); return true;
+  }
+  function placeWaiting() {   // une place s'est libérée (revente, déménagement) : le trophée en attente s'installe
+    const w = st.trophyWait || []; let n = 0;
+    while (w.length && ownedCount() < roomSlots()) { const id = w.shift(); if (!(st.owned[id] && st.owned[id].length)) { (st.owned[id] = st.owned[id] || []).push({ paid: 0, t: now() }); n++; emit('trophyPlaced', item(id)); } }
+    if (n) emit('change'); return n;
   }
   function itemsValue() { return Object.entries(st.owned).reduce((s, [id, a]) => s + a.length * sellPrice(id), 0); }
   function roomUpgrade(mix) {
     const nx = D.ROOMS[st.room + 1]; if (!nx) return { err: 'Déjà le plus bel appart.' };
     if (!(mix ? payMix(cost(nx.cost)) : pay(cost(nx.cost)))) return { err: mix ? 'Pas assez de lingots.' : 'Pas assez de cash.' };
-    st.room++; st.lastUp = 'room'; addXp(100 + nx.cost / 100); emit('change'); return { ok: true };
+    st.room++; st.lastUp = 'room'; addXp(100 + nx.cost / 100); placeWaiting(); emit('change'); return { ok: true };
   }
 
   // ------------------------------------------------------------ habitudes
@@ -888,7 +896,10 @@
     if (o.lingots) { const [a, b] = o.lingots; const n = a + Math.floor(Math.random() * (b - a + 1)); if (n > 0) { addLingots(n); res.good.push({ lingots: n }); } else if (n < 0) { addLingots(Math.max(n, -st.lingots)); res.bad.push({ lingots: -n }); } }
     if (o.booster) { st.boosters += o.booster; res.good.push({ booster: o.booster }); }
     if (o.dj) { c.dj = true; res.good.push({ dj: true }); }
-    if (o.deal && !st.deal) { st.nextDealAt = 0; simDeal(false); if (st.deal) res.good.push({ deal: true }); }
+    if (o.deal) {   // le contact du Club écrit TOUJOURS sur le téléphone : il remplace une offre en attente ; s'il n'a rien à proposer, il donne un tuyau
+      const keep = st.tutoDone; st.tutoDone = true; st.deal = null; st.nextDealAt = 0; simDeal(false); st.tutoDone = keep;
+      if (st.deal) res.good.push({ deal: true }); else { const t = clubTip(.8); if (t) res.good.push({ tip: t }); }
+    }
     if (o.tip) { const t = clubTip(o.tip); if (t) res.good.push({ tip: t }); }
     c.done[zone] = now(); c.acts = clubActs() + 1; stat('clubSpots');
     if (clubLeft() <= 0) { c.end = now(); st.clubNext = now() + D.CLUB.cooldownMin * 60000; res.over = true; }   // les 2 actions faites : la soirée se termine
@@ -1701,7 +1712,7 @@
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
-    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, clubChoose, clubLeft, clubActs, clubScene,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, placeWaiting, trophyWait: () => st.trophyWait || [], clubChoose, clubLeft, clubActs, clubScene,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, boosterCost, promoOf, promoPct, promoCut, decoCost, lookCost, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,

@@ -1558,7 +1558,7 @@
     // la salle en plein écran (comme le parking) : chaque coin se touche, 2 actions par soirée
     const spots = C.spots.map(p => { const done = c.done[p.id], off = !placing && (done || rest <= 0);
       return `<button class="club-spot ${done ? 'done' : ''} ${off ? 'off' : ''} cs-${p.id}" data-act="clubSpot" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%"><span class="cs-tag">${ico(C.scenes[p.id].ic, '')} ${p.name}${done ? ' ' + ic('check') : ''}</span></button>`; }).join('');
-    return `<div class="club-full"><button class="club-exit" data-act="closeModal">${ic('city')} Sortir</button><div class="club-room v2">${has('club-salle') ? `<img class="cr-bg" src="${src('club-salle')}" alt="">` : '<div class="cr-bg neon"></div>'}${spots}</div></div>
+    return `<div class="club-full"><div class="club-room v2">${has('club-salle') ? `<img class="cr-bg" src="${src('club-salle')}" alt="">` : '<div class="cr-bg neon"></div>'}${spots}</div></div>
       <div class="club-foot">${placing ? `${ico('btn-setup', '')} Fais glisser les zones, puis Publier <div class="grid2" style="margin-top:6px"><button class="btn xs blue" data-act="clubZone" data-k="-1">− taille</button><button class="btn xs blue" data-act="clubZone" data-k="1">+ taille</button></div>`
         : `<span class="cf-acts">${'<i class="on"></i>'.repeat(rest)}${'<i></i>'.repeat(Math.max(0, C.acts - rest))}</span><b>${rest ? `Encore ${rest} action${rest > 1 ? 's' : ''} ce soir` : 'Soirée terminée'}</b><small>${rest ? `Choisis bien : tu ne peux pas tout faire. ${mmss(left)}` : `Le videur te laisse revenir dans ${mmss(G.clubWait())}`}${c.dj && rest ? ` · ${ico('ic-club-dj', '')} ton son passe` : ''}</small>`}</div>`;
   }
@@ -1599,7 +1599,12 @@
     setBody(clubBody()); renderHud();
   }
   // dans le Club (salle et scènes) : plein écran comme l'appart, sans cadre de fenêtre ; à la porte, fenêtre normale
-  function clubFrame() { const m = $('#modal'); if (!m || !m.querySelector('.sheet.th-club')) return; m.classList.toggle('club-fs', !!m.querySelector('.club-full')); }
+  function clubFrame() {
+    const m = $('#modal'), on = !!(m && m.querySelector('.sheet.th-club') && m.querySelector('.club-full')); if (m) m.classList.toggle('club-fs', on);
+    // le bouton Appart devient Ville dans le Club (comme dans l'appart)
+    const btn = $('#btn-scene'); if (!btn) return; const want = on ? 'Ville' : scene === 'city' ? 'Appart' : 'Ville';
+    if (btn.dataset.lbl !== want) { btn.dataset.lbl = want; btn.querySelector('b').textContent = want; const i = btn.querySelector('.ic'); if (i) i.outerHTML = ic(want === 'Ville' ? 'city' : 'home'); }
+  }
   new MutationObserver(clubFrame).observe(document.documentElement, { childList: true, subtree: true });
   function openClub() { clubScene = null;
     openModal({ title: 'Le Club', icon: 'bld-club', full: true, theme: 'club', body: clubBody(), refresh: () => { setBody(clubBody()); fitClubDoor(); } }); const im = document.querySelector('#modal .club-door img.cd-bg'); if (im) im.complete ? fitClubDoor() : im.addEventListener('load', fitClubDoor); }
@@ -2233,7 +2238,8 @@
           <small>${paid ? `Payé ${short(paid)} → <span class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${short(Math.abs(d))}</span>` : '<span class="up">Gagné gratuitement</span>'}</small></span></button>
         <div class="own-val"><b>${short(sp)}</b><button class="btn red xs" data-act="itSell" data-id="${id}">Vendre</button></div></div>`;
     }).join('');
-    return `<div class="card center"><div class="muted">Patrimoine total</div><div class="big" style="font-size:34px">${eur(w)}</div></div>
+    const tw = G.trophyWait();
+    return `${tw.length ? `<div class="card trophy-full"><b>${tw.length > 1 ? `${tw.length} trophées attendent` : 'Un trophée attend'} une place</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}) : revends un objet ci-dessous, ${esc(G.item(tw[0]).name)} s'installera tout seul.</p></div>` : ''}<div class="card center"><div class="muted">Patrimoine total</div><div class="big" style="font-size:34px">${eur(w)}</div></div>
       <div class="card" style="margin-top:8px">
         <div class="hstack" style="justify-content:space-between"><b class="wl-k">${ic('cash')} Cash</b><b>${eur(s.cash)}</b></div>${bar(s.cash, '#3ddc84')}
         <div class="hstack" style="justify-content:space-between;margin-top:8px"><b class="wl-k">${ico('coin-btk', '🪙')} Crypto</b><b>${eur(cv)}</b></div>${bar(cv, '#f7931a')}
@@ -2771,7 +2777,7 @@
     noop() {},
     closeModal,
     bld: el => { if (!placing) openBuilding(el.dataset.id); },
-    toggleScene: () => setScene(scene === 'city' ? 'appart' : 'city'),
+    toggleScene: () => { if ($('#modal.club-fs')) { closeModal(); setScene('city'); return; } setScene(scene === 'city' ? 'appart' : 'city'); },   // dans le Club : retour en ville
     pc: () => openCrypto(),
     rig: () => openRig(),
     rigUpOpen: () => { openRig(); setTimeout(() => { const c = $('#modal .up-card'), b = $('#modal .sheet-body'); if (c && b) b.scrollTop = c.offsetTop - b.offsetTop - 40; }, 30); },
@@ -2817,6 +2823,7 @@
     itBuy(el) { const r = G.buyItem(el.dataset.id); if (r.err) return toast(r.err, true); justBought = { id: el.dataset.id, t: Date.now() }; sfx.buy(); flyTo(el, '#pill-cash', 4); refresh(); },
     itSell(el) { const r = G.sellItem(el.dataset.id); if (r.err) return toast(r.err, true); floatTxt(`+${eur(r.p)}`); toast(r.paid ? (r.profit >= 0 ? `Vendu avec ${eur(r.profit)} de bénéfice` : `Vendu à perte : ${eur(r.profit)}`) : `Vendu ${eur(r.p)}`, r.paid && r.profit < 0); if ($('#modal .sheet.center')) closeModal(); refresh(); },
     itemInfo: el => openItem(el.dataset.id),
+    trophyMakeRoom() { closeModal(); setTimeout(() => openWallet(), 0); },
     wallet: () => openWallet(),
     quests: () => openRewards(),
     rewards: () => openRewards(),
@@ -3165,20 +3172,22 @@
     if (it.id === 't-cdm') return 'Tu as participé à la Coupe des Morts (Halloween).';
     return '';
   }
-  function showTrophy(it) {
+  function showTrophy(it, wait) {
     sfx.trophy(); rain('confetti', 50);
     openModal({ title: 'Trophée gagné !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${itemPic(it)}</div>
       <div class="lv-big stroke">${it.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</div>
       ${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}
-      <p class="hint-line center">Il rejoint tes étagères, dans ton appart.</p>
-      <button class="btn green wide" data-act="closeModal">Trop fort !</button></div>` });
+      ${wait ? `<div class="card trophy-full"><b>Plus de place chez toi !</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}). Ton trophée attend au chaud : revends un objet ou déménage pour l'exposer.</p></div>
+      <div class="grid2"><button class="btn green" data-act="trophyMakeRoom">Libérer une place</button><button class="btn" data-act="closeModal">Plus tard</button></div>`
+        : `<p class="hint-line center">Il rejoint tes étagères, dans ton appart.</p><button class="btn green wide" data-act="closeModal">Trop fort !</button>`}</div>` });
   }
   G.on('achievement', a => queue(() => { sfx.trophy(); rain('confetti', 40);
     openModal({ title: 'Nouveau trophée !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${pic(has('ach-' + a.id) ? 'ach-' + a.id : 'icon-trophy')}</div>
       <div class="lv-big stroke">${a.name}</div><p class="trophy-how">${ico('icon-trophy', '🏆')} Gagné en réussissant : ${esc(a.txt)}</p><div class="gains"><span>${ic('lingot')}+${a.lingots}</span></div>
       <button class="btn green wide" data-act="closeModal">Trop bien !</button></div>` }); }));
   G.on('achBulk', L => queue(() => dialog('Trophées', `Nouveaux <b>trophées</b> ! Tu viens d'en débloquer <b>${L.length}</b>, soit <b>+${L.reduce((t, a) => t + a.lingots, 0)} lingots</b>. Retrouve-les dans ton profil.`, 'Génial')));
-  G.on('trophy', it => { if (it) queue(() => showTrophy(it)); });
+  G.on('trophy', (it, wait) => { if (it) queue(() => showTrophy(it, wait)); });
+  G.on('trophyPlaced', it => toast(`${it.name} est maintenant exposé sur tes étagères.`));
   G.on('bailout', line => dialog('Coup de pouce', `${line}<br><b>+${D.BAILOUT.amount}<i class="cur"></i></b>`, 'Merci'));
   G.on('betResult', ({ b, offline }) => {
     const l = b.legs[0], what = b.legs.length > 1 ? `Combiné ×${b.legs.length}` : l.home ? `${l.home} – ${l.away}` : 'Ton pari';

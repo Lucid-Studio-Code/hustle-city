@@ -30,7 +30,7 @@ POCKETS = {
     **{f'rig-{i}': 'all' for i in range(5)}, **{f'rigv-{i}': 'all' for i in range(5)},
     **{f'minerv-{i}': 'all' for i in range(5)}, **{f'pc-{i}': 'all' for i in range(3)}, **{f'pcv-{i}': 'all' for i in range(3)}, **{f'pcv-r{i}': 'all' for i in range(1, 5)}, 'medal-bronze': 'all', 'niche-cosplay': 'all', 'pin-gold': 'all', 'pcv-1': [], 'minerv-1': [], 'minerv-2': [], 'ringlight': {'n': [1, 2, 3]},   # {'n': [...]} = poches par numéro (--poches)   # écrans blancs / emblèmes blancs : aucun vide à retirer
 }
-MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'clubp': 600, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
+MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room': 1080, 'club': 1080, 'clubp': 1400, 'tkbg': 640, 'bld': 640, 'skin': 560, 'ui': 900, 'default': 420}
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
@@ -188,7 +188,8 @@ def run(name):
         im.putalpha(m.resize((w, h), Image.LANCZOS)); m_ = MAX.get(kind, MAX['default']); im.thumbnail((m_, m_), Image.LANCZOS)
         im.save(os.path.join(dst, name + '.png'), optimize=True); print(name, im.size); return
     if kind not in NOCUT:
-        im.thumbnail((900, 900)) if max(im.size) > 900 else None
+        lim = 1800 if name in CLUB_HEAD else 900   # persos du Club : on garde du détail (ils s'affichent en grand)
+        im.thumbnail((lim, lim)) if max(im.size) > lim else None
         jewel = name.startswith(('item-o-', 'item-g-', 'item-w-', 'item-m-', 'item-v-'))   # + motos et voitures : vides entre rayons, cadre, vitres   # bijoux et montres : les creux (chaîne, anneau, bracelet) sont des trous
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
