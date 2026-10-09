@@ -348,13 +348,6 @@ const api = {
     const k = ['view', 'beta'].includes(b.k) ? b.k : null; if (!k) return send(res, 400, { err: 'k' });
     run('INSERT INTO lp (t, k, src, ref, m) VALUES (?, ?, ?, ?, ?)', now(), k, txt(b.src, 40) || '', txt(b.ref, 80) || '', b.m ? 1 : 0); send(res, 204, '', 'text/plain');
   },
-  'GET /admin/api/lp'(req, res, u) {
-    const days = Math.max(1, Math.min(90, +u.searchParams.get('days') || 30)), t0 = now() - days * DAY;
-    const tot = k => (q1('SELECT count(*) n FROM lp WHERE k = ? AND t > ?', k, t0) || {}).n || 0;
-    send(res, 200, { days, views: tot('view'), beta: tot('beta'), mobile: (q1("SELECT count(*) n FROM lp WHERE k = 'view' AND m = 1 AND t > ?", t0) || {}).n || 0,
-      sources: q("SELECT CASE WHEN src != '' THEN src WHEN ref != '' THEN ref ELSE 'direct' END s, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY s ORDER BY views DESC LIMIT 12", t0),
-      byDay: q("SELECT date(t / 1000, 'unixepoch', 'localtime') d, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY d ORDER BY d", t0) });
-  },
   async 'POST /api/support'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' }); const text = String(b.text || '').slice(0, 2000).trim(); if (!text) return send(res, 400, { err: 'vide' });
     let t = q1("SELECT * FROM tickets WHERE pid = ? AND status != 'fermé' ORDER BY t DESC", p.pid);
@@ -516,6 +509,13 @@ function overview(days) {
 // ------------------------------------------------------------------ API du back office
 const online = p => p.last_seen >= now() - ONLINE_MS;
 const admin = {
+  'GET /admin/api/lp'(req, res, u) {
+    const days = Math.max(1, Math.min(90, +u.searchParams.get('days') || 30)), t0 = now() - days * DAY;
+    const tot = k => (q1('SELECT count(*) n FROM lp WHERE k = ? AND t > ?', k, t0) || {}).n || 0;
+    send(res, 200, { days, views: tot('view'), beta: tot('beta'), mobile: (q1("SELECT count(*) n FROM lp WHERE k = 'view' AND m = 1 AND t > ?", t0) || {}).n || 0,
+      sources: q("SELECT CASE WHEN src != '' THEN src WHEN ref != '' THEN ref ELSE 'direct' END s, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY s ORDER BY views DESC LIMIT 12", t0),
+      byDay: q("SELECT date(t / 1000, 'unixepoch', 'localtime') d, sum(k = 'view') views, sum(k = 'beta') beta FROM lp WHERE t > ? GROUP BY d ORDER BY d", t0) });
+  },
   'GET /admin/api/overview'(req, res, u) { send(res, 200, overview(Math.max(7, Math.min(90, +u.searchParams.get('days') || 30)))); },
   'GET /admin/api/live'(req, res) {   // en ce moment : joueurs en ligne + derniers événements
     const on = q(`SELECT ${PCOLS} FROM players WHERE last_seen >= ? ORDER BY last_seen DESC LIMIT 80`, now() - ONLINE_MS);
