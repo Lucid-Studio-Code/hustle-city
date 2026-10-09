@@ -3679,3 +3679,9 @@ html { background-color: #120c24; }
 /* dans le Club plein écran : les boutons flottants de la ville ne passent plus par-dessus la salle */
 #app:has(#modal.club-fs) #phone-btn, #app:has(#modal.club-fs) #btn-deal, #app:has(#modal.club-fs) #btn-upg, #app:has(#modal.club-fs) #btn-next, #app:has(#modal.club-fs) #btn-gift, #app:has(#modal.club-fs) #btn-booster, #app:has(#modal.club-fs) #trophy, #app:has(#modal.club-fs) #next-cap, #app:has(#modal.club-fs) #quest { display: none !important; }
 #app .trophy-full { background: #fff1dc; border-color: #e8483a; text-align: left; } #app .trophy-full p { margin: 4px 0 0; font: 700 13px/1.35 var(--text); }
+/* porte du Club en plein écran aussi : le videur remplit la hauteur, la fiche « Sortir en boîte » colle en bas, sans vide */
+#app #modal.club-fs .sheet-body:has(.club-door) { padding: 0 !important; gap: 0; }
+#app #modal.club-fs .club-door { border: 0; border-radius: 0; box-shadow: none; min-height: 0; }
+#app #modal.club-fs .club-door .cd-say { top: 10px; bottom: auto; }
+#app #modal.club-fs .habit-card { border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; padding: 10px 14px; }
+#app #modal.club-fs .club-door .club-exit { top: 10px; }

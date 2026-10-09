@@ -1565,7 +1565,7 @@
   // une scène du Club : fond du coin, portrait, la réplique, et les choix ; puis le résultat (gains en vert, pertes en rouge)
   let clubScene = null;
   function clubGains(list, bad) {
-    return list.map(g => `<span class="cg ${bad ? 'bad' : 'good'}">${g.cash != null ? `${bad ? '−' : '+'}${short(g.cash)} ${ic('cash')}` : g.lingots != null ? `${bad ? '−' : '+'}${g.lingots} ${ic('lingot')}` : g.xp != null ? `+${g.xp} XP` : g.booster ? `+${g.booster} ${packArt(true)}` : g.deal ? 'Un nouveau contact (regarde tes messages)' : g.dj ? 'La piste rapporte ×1,5' : g.tip ? `Tuyau : ${esc(G.item(g.tip.item).name)} va ${g.tip.up ? 'monter' : 'baisser'}` : ''}</span>`).join('');
+    return list.map(g => `<span class="cg ${bad ? 'bad' : 'good'}">${g.cash != null ? `${bad ? '−' : '+'}${short(g.cash)}` : g.lingots != null ? `${bad ? '−' : '+'}${g.lingots} ${ic('lingot')}` : g.xp != null ? `+${g.xp} XP` : g.booster ? `+${g.booster} ${packArt(true)}` : g.deal ? 'Un nouveau contact (regarde tes messages)' : g.dj ? 'La piste rapporte ×1,5' : g.tip ? `Tuyau : ${esc(G.item(g.tip.item).name)} va ${g.tip.up ? 'monter' : 'baisser'}` : ''}</span>`).join('');
   }
   function clubSceneBody() {
     const C = D.CLUB, z = clubScene, sc = G.clubScene(z.zone), s = st();
@@ -1600,7 +1600,7 @@
   }
   // dans le Club (salle et scènes) : plein écran comme l'appart, sans cadre de fenêtre ; à la porte, fenêtre normale
   function clubFrame() {
-    const m = $('#modal'), on = !!(m && m.querySelector('.sheet.th-club') && m.querySelector('.club-full')); if (m) m.classList.toggle('club-fs', on);
+    const m = $('#modal'), on = !!(m && m.querySelector('.sheet.th-club') && m.querySelector('.club-full, .club-door')); if (m) m.classList.toggle('club-fs', on);
     // le bouton Appart devient Ville dans le Club (comme dans l'appart)
     const btn = $('#btn-scene'); if (!btn) return; const want = on ? 'Ville' : scene === 'city' ? 'Appart' : 'Ville';
     if (btn.dataset.lbl !== want) { btn.dataset.lbl = want; btn.querySelector('b').textContent = want; const i = btn.querySelector('.ic'); if (i) i.outerHTML = ic(want === 'Ville' ? 'city' : 'home'); }
