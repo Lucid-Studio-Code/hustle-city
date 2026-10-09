@@ -99,9 +99,9 @@ h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;
 .paper a{color:#b4127a;font-weight:800;text-decoration-thickness:2px;text-underline-offset:3px}
 .paper strong{color:var(--ink)}
 .a-cta-line{text-align:center;margin:30px 0 4px}
-.cta-box{display:flex;align-items:center;gap:18px;margin:30px 0;padding:18px 20px;border-radius:20px;background:linear-gradient(120deg,#ff3cac,#9b5de5);border:3px solid var(--ink);box-shadow:0 5px 0 var(--ink);color:#fff}
-.cta-box img{width:92px;height:92px;object-fit:contain;flex:0 0 auto;margin:-26px 0 -18px}
-.cta-box b{display:block;font:400 22px/1.1 'Lilita One',sans-serif;text-shadow:0 2px 0 var(--ink)}.cta-box p{margin:4px 0 10px;font-size:15px;color:#fff}
+
+
+.cta-bn{position:relative;margin:34px 0 30px;padding-top:70px}.cta-card{position:relative;height:230px;border:4px solid var(--ink);border-radius:24px;background:url(/assets/img/bg-city-or.jpg) 50% 45%/cover;box-shadow:0 7px 0 var(--ink);overflow:hidden}.cta-card::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(27,20,51,.92) 0%,rgba(27,20,51,.75) 45%,rgba(27,20,51,0) 75%)}.cta-txt{position:absolute;left:22px;top:0;bottom:0;width:58%;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.cta-txt .chip{display:inline-block;padding:3px 10px 4px;border:2px solid var(--ink);border-radius:999px;background:#3fae2e;font:400 13px 'Lilita One',sans-serif;color:#fff;text-shadow:0 1px 0 var(--ink)}.cta-txt b{display:block;margin:8px 0 6px;font:400 clamp(22px,4.4vw,30px)/1.05 'Lilita One',sans-serif;color:#fff;text-shadow:0 3px 0 var(--ink)}.cta-txt p{margin:0;font:700 14px/1.4 'Nunito',sans-serif;color:#f1e8ff}.paper .cta-btn{display:inline-block;margin-top:12px;padding:6px 14px 8px;background:var(--gold);color:var(--ink);border:3px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--ink);font:400 16px 'Lilita One',sans-serif;text-decoration:none}.paper .cta-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}.cta-pop{position:absolute;right:4%;top:4px;height:480px;width:auto;clip-path:inset(0 0 39.2% 0);pointer-events:none}@media (max-width:560px){.cta-card{height:250px}.cta-txt{left:14px;width:54%}.cta-txt b{font-size:22px}.cta-txt p{font-size:12.5px}.cta-pop{right:-5%;top:36px;height:320px;clip-path:inset(0 0 12.5% 0)}}
 .age{margin-top:22px;font-size:13px;color:#7a6250;border-top:2px dashed #e8d8bf;padding-top:14px}
 .rel h2,.list h1{text-align:center}
 .rel{max-width:1080px;margin:0 auto;padding:0 16px 30px}.rel h2{font:400 30px 'Lilita One',sans-serif;text-shadow:0 3px 0 var(--ink);margin:10px 0 16px}
@@ -113,7 +113,7 @@ h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;
 .card small{display:block;margin-top:auto;padding-top:12px;font-weight:800;color:#b4127a}
 .list{max-width:1080px}.list .intro{text-align:center;color:#e6dcff;max-width:640px;margin:0 auto 24px}
 footer{text-align:center;font-size:13px;color:#b9a8d9;padding:10px 16px 30px}
-@media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.cta-box{flex-direction:column;text-align:center}.cta-box img{margin:-40px 0 0}.paper{border-radius:20px}}`;
+@media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.paper{border-radius:20px}}`;
 
 const HIT = slug => `<script>
 (function(){var q=new URLSearchParams(location.search),d={src:q.get('utm_source')||q.get('src')||'${slug}',ref:document.referrer?new URL(document.referrer).hostname:'',m:/Mobi|Android|iPhone/i.test(navigator.userAgent)?1:0};
@@ -154,7 +154,7 @@ function renderArticle(content, s) {
   const slugs = c.articles.map(x => x.slug), url = `${SITE}/actus/${a.slug}`, min = Math.max(1, Math.ceil(words(a.lead + ' ' + a.body) / 220));
   // l'encart « joue maintenant » se glisse avant le 3e intertitre (ou à la fin)
   let html = md(a.body, slugs); const parts = html.split('<h2>');
-  const box = `<div class="cta-box"><img src="/assets/img/skin-survet.png" alt=""><div><b>Biff City, bêta ouverte</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="btn-play" href="${GAME}" data-lp="beta">Jouer à la bêta</a></div></div>`;
+  const box = `<div class="cta-bn"><div class="cta-card"><div class="cta-txt"><span class="chip">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="cta-btn" href="${GAME}" data-lp="beta">Jouer à la bêta</a></div></div><img class="cta-pop" src="/assets/img/skin-survet.png" alt=""></div>`;
   if (parts.length > 3) { parts[2] = parts[2] + box; html = parts.join('<h2>'); } else html += box;
   // à lire aussi : d'abord les articles cités dans le texte, puis les plus récents
   const cited = [...a.body.matchAll(/\(\/actus\/([a-z0-9-]+)\)/g)].map(m => m[1]);

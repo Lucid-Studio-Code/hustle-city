@@ -176,6 +176,7 @@
     { id: 'broadcast', label: 'Message à tous', icon: 'gift-big', grp: 'Messages' },
     { id: 'notifs', label: 'Notifications', icon: 'icon-bolt', grp: 'Messages' },
     { id: 'landing', label: 'Landing', icon: 'icon-cash', grp: 'Site' },
+    { id: 'blog', label: 'Blog', icon: 'icon-star', grp: 'Site' },
     { id: 'logs', label: 'Journal', icon: 'hdr-missions', foot: true }
   ];
   const PARENT = { player: 'players' };

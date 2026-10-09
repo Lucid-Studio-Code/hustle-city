@@ -15,7 +15,7 @@
     ['persos', 'Personnages', n => /^(skin-|clubp-)/.test(n)],
     ['icones', 'Icônes et objets', n => true]
   ];
-  let artOpen = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
+  let mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
 
   const dirty = () => JSON.stringify(C) !== saved;
   const at = (path, v) => { const k = path.split('.'); let o = C; while (k.length > 1) o = o[k.shift()]; if (v === undefined) return o[k[0]]; o[k[0]] = v; };
@@ -33,7 +33,20 @@
   const block = (id, title, sub, inner) => `<section class="lp-blk ${open === id ? 'open' : ''}" data-blk="${id}"><button class="lp-bh" data-tog="${id}"><b>${title}</b><small>${sub}</small><i></i></button><div class="lp-bb">${inner}</div></section>`;
   const listTools = (list, i, n) => `<div class="lp-it-tools"><button class="btn ghost sm" data-mv="${list}" data-i="${i}" data-d="-1" ${i ? '' : 'disabled'}>↑</button><button class="btn ghost sm" data-mv="${list}" data-i="${i}" data-d="1" ${i < n - 1 ? '' : 'disabled'}>↓</button><button class="btn ghost sm" data-dup="${list}" data-i="${i}">Dupliquer</button><button class="btn ghost sm lp-del" data-del="${list}" data-i="${i}">Supprimer</button></div>`;
 
+  const HELP = `<p class="lp-help">Mise en forme : <b>## Intertitre</b>, <b>### Sous-titre</b>, <b>- élément de liste</b>, <b>**gras**</b>, <b>[texte](/actus/adresse-d-un-article)</b> pour un lien vers un autre article, <b>[texte](jeu)</b> pour un lien vers le jeu. Un lien vers le jeu seul sur sa ligne devient un gros bouton vert. Aucun lien vers un autre site : il serait affiché comme du texte simple.</p>`;
+  function articleForm() {
+    const i = cur, a = C.articles[i], k = `articles.${i}`;
+    const others = C.articles.filter((x, j) => j !== i).map(x => `<li><code>[${esc(x.h1 || x.title)}](/actus/${esc(x.slug)})</code></li>`).join('');
+    return [
+      block('a-txt', 'Contenu', 'Titre, chapeau et texte', txt(`${k}.h1`, 'Titre affiché', { max: 110 }) + txt(`${k}.lead`, 'Chapeau (en gras sous le titre)', { area: true, rows: 3, max: 500 }) + HELP + txt(`${k}.body`, 'Texte de l\'article', { area: true, rows: 22, max: 20000 })
+        + `<details class="lp-cd"><summary>Liens prêts à copier vers les autres articles</summary><ul class="lp-links">${others}</ul></details>`),
+      block('a-img', 'Image', 'En haut de l\'article et sur sa carte', `<div class="lp-row">${pic(`${k}.img`, 'Image', { pos: `${k}.imgPos` })}<div>${sel(`${k}.imgPos`, 'Cadrage', POS)}${txt(`${k}.alt`, 'Description de l\'image (Google Images)', { max: 140 })}</div></div>`),
+      block('a-seo', 'Google', 'Adresse, date, titre et description', `<div class="lp-2">${txt(`${k}.slug`, 'Adresse (biffcity.fr/actus/…)', { max: 80 })}<label class="lp-f"><span>Date de publication</span><input type="date" data-k="${k}.date" value="${esc(a.date)}"></label></div>`
+        + txt(`${k}.title`, 'Titre dans Google', { max: 90 }) + txt(`${k}.desc`, 'Description dans Google', { area: true, rows: 2, max: 170 }) + `<div class="lp-serp"><b>${esc(a.title)} | Biff City</b><span>biffcity.fr › actus › ${esc(a.slug)}</span><p>${esc(a.desc)}</p></div>`)
+    ].join('');
+  }
   function form() {
+    if (mode === 'blog') return articleForm();
     const A = C.actus.items, B = C.bientot.items;
     return [
       block('hero', 'En-tête', 'Image, slogan, bouton', pic('hero.img', 'Image principale', { tall: true }) + txt('hero.slogan', 'Slogan', { max: 60 }) + `<div class="lp-2">${txt('hero.cta', 'Texte du bouton', { max: 30 })}${txt('hero.ctaNote', 'Sous le bouton', { max: 120 })}</div>` + txt('hero.soon', 'Titre', { max: 60 }) + txt('hero.lead', 'Présentation', { area: true, max: 400 })),
@@ -47,12 +60,6 @@
         <div class="lp-row">${pic(`bientot.items.${i}.img`, 'Scène', { pos: `bientot.items.${i}.imgPos` })}<div>${sel(`bientot.items.${i}.imgPos`, 'Cadrage', POS)}${txt(`bientot.items.${i}.chip`, 'Étiquette', { max: 30 })}${color(`bientot.items.${i}.color`)}</div></div>
         ${txt(`bientot.items.${i}.title`, 'Titre', { max: 60 })}${txt(`bientot.items.${i}.text`, 'Texte', { area: true, rows: 2, max: 260 })}<div class="lp-2">${sel(`bientot.items.${i}.link`, 'Article lié', [['', 'Aucun bouton'], ...C.articles.map(a => [a.slug, a.h1 || a.title])])}${txt(`bientot.items.${i}.btn`, 'Texte du bouton', { max: 30 })}</div>
         <details class="lp-cd" ${x.start ? 'open' : ''}><summary>Compte à rebours (facultatif)</summary><div class="lp-2">${when(`bientot.items.${i}.start`, 'Début')}${when(`bientot.items.${i}.end`, 'Fin')}</div><small>L'étiquette affiche alors « Dans 3 jours », puis « En cours jusqu'au… », puis « Terminé ».</small></details></div>`).join('') + `<button class="btn ghost lp-add" data-add="bientot.items">+ Ajouter une carte</button>`),
-      block('articles', 'Articles', `${C.articles.length} articles sur biffcity.fr/actus`, `<p class="lp-help">Mise en forme du texte : <b>## Intertitre</b>, <b>- élément de liste</b>, <b>**gras**</b>, <b>[texte](/actus/adresse-d-un-article)</b> pour un lien vers un autre article, <b>[texte](jeu)</b> pour un lien vers le jeu. Un lien seul sur sa ligne vers le jeu devient un gros bouton vert.</p>` + C.articles.map((a, i) => `<details class="lp-it lp-art" ${artOpen === i ? 'open' : ''} data-art="${i}"><summary class="lp-it-h">${esc(a.h1 || a.title)}<a class="lp-see" href="https://biffcity.fr/actus/${esc(a.slug)}" target="_blank" rel="noopener">Voir</a></summary>
-        ${listTools('articles', i, C.articles.length)}
-        <div class="lp-row">${pic(`articles.${i}.img`, 'Image', { pos: `articles.${i}.imgPos` })}<div>${sel(`articles.${i}.imgPos`, 'Cadrage', POS)}${txt(`articles.${i}.alt`, 'Description de l\'image (Google Images)', { max: 140 })}</div></div>
-        ${txt(`articles.${i}.h1`, 'Titre affiché', { max: 110 })}<div class="lp-2">${txt(`articles.${i}.slug`, 'Adresse (biffcity.fr/actus/…)', { max: 80 })}<label class="lp-f"><span>Date</span><input type="date" data-k="articles.${i}.date" value="${esc(a.date)}"></label></div>
-        ${txt(`articles.${i}.title`, 'Titre dans Google', { max: 90 })}${txt(`articles.${i}.desc`, 'Description dans Google', { area: true, rows: 2, max: 170 })}
-        ${txt(`articles.${i}.lead`, 'Chapeau (en gras sous le titre)', { area: true, rows: 3, max: 500 })}${txt(`articles.${i}.body`, 'Texte de l\'article', { area: true, rows: 16, max: 20000 })}</details>`).join('') + `<button class="btn ghost lp-add" data-add="articles">+ Nouvel article</button>`),
       block('age', 'Mention 18+', 'En bas de page', txt('age', 'Texte', { area: true, rows: 2, max: 200 })),
       block('seo', 'Google', 'Titre et description dans les résultats', txt('seo.title', 'Titre', { max: 120 }) + txt('seo.desc', 'Description', { area: true, max: 300 }) + `<div class="lp-serp"><b>${esc(C.seo.title)}</b><span>biffcity.fr</span><p>${esc(C.seo.desc)}</p></div>`)
     ].join('');
@@ -61,7 +68,7 @@
   // ------------------------------------------------------------ aperçu
   async function preview() {
     clearTimeout(timer);
-    timer = setTimeout(async () => { try { const a = open === 'articles' && C.articles[artOpen]; const { html } = await HC.api('/admin/api/landing-preview', { content: C, slug: a ? a.slug : '' }); const f = $('#lp-frame'); if (f) f.srcdoc = html; } catch (e) {} }, 250);
+    timer = setTimeout(async () => { try { const a = mode === 'blog' && C.articles[cur]; const { html } = await HC.api('/admin/api/landing-preview', { content: C, slug: a ? a.slug : '' }); const f = $('#lp-frame'); if (f) f.srcdoc = html; } catch (e) {} }, 250);
   }
   function fit() {   // l'aperçu ordinateur est une vraie page de 1280 px réduite pour tenir dans la colonne
     const w = $('#lp-view'), f = $('#lp-frame'); if (!w || !f) return;
@@ -69,8 +76,8 @@
     f.style.width = W + 'px'; f.style.height = Math.round((w.clientHeight - 24) / s) + 'px'; f.style.transform = `scale(${s})`;
   }
   function state() {
-    const d = dirty(); $('#lp-pub').disabled = !d; $('#lp-undo').classList.toggle('hidden', !d);
-    $('#lp-state').innerHTML = d ? '<span class="dot o"></span>Modifications pas encore en ligne' : '<span class="dot"></span>À jour sur biffcity.fr';
+    const d = dirty(); if (!$('#lp-pub')) return; $('#lp-pub').disabled = !d; $('#lp-undo').classList.toggle('hidden', !d);
+    if (!$('#lp-pub')) return; $('#lp-state').innerHTML = d ? '<span class="dot o"></span>Modifications pas encore en ligne' : '<span class="dot"></span>À jour sur biffcity.fr';
   }
   function redraw(keepScroll = true) { const p = $('#lp-form'), y = p.scrollTop; p.innerHTML = form(); if (keepScroll) p.scrollTop = y; state(); preview(); }
 
@@ -109,15 +116,15 @@
     };
   }
 
-  // ------------------------------------------------------------ la page
-  HC.PAGES.landing = async () => {
-    HC.main(HC.loading());
-    const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; saved = JSON.stringify(C);
-    HC.main(`<div class="page-head"><div><h1>Landing</h1><div class="sub">La vitrine <a href="https://biffcity.fr/" target="_blank" rel="noopener">biffcity.fr</a></div></div>
-      <div class="tools"><span class="lp-state" id="lp-state"></span><button class="btn ghost" id="lp-undo">Annuler les changements</button><button class="btn green" id="lp-pub">Publier</button></div></div>
-      <div class="lp-ed"><div class="lp-form" id="lp-form"></div>
-        <div class="lp-side"><div class="lp-devs"><button data-dev="m" class="${dev === 'm' ? 'on' : ''}">Mobile</button><button data-dev="d" class="${dev === 'd' ? 'on' : ''}">Ordinateur</button><button class="lp-reset" id="lp-reset">Revenir au contenu d'origine</button></div>
-          <div class="lp-view ${dev}" id="lp-view"><iframe id="lp-frame" title="Aperçu de la landing"></iframe></div></div></div>`);
+  // ------------------------------------------------------------ les pages
+  async function load() { if (!C || !dirty()) { const r = await HC.api('/admin/api/landing'); C = r.content; media = r.media || []; saved = JSON.stringify(C); } }
+  async function publish(msg) { const r = await HC.api('/admin/api/landing', { content: C }); C = r.content; saved = JSON.stringify(C); HC.toast(msg || 'Publié sur biffcity.fr', 'icon-lingot'); }
+  const tools = () => `<div class="tools"><span class="lp-state" id="lp-state"></span><button class="btn ghost" id="lp-undo">Annuler les changements</button><button class="btn green" id="lp-pub">Publier</button></div>`;
+
+  function mount(head, extra = '') {
+    HC.main(`${head}<div class="lp-ed"><div class="lp-form" id="lp-form"></div>
+        <div class="lp-side"><div class="lp-devs"><button data-dev="m" class="${dev === 'm' ? 'on' : ''}">Mobile</button><button data-dev="d" class="${dev === 'd' ? 'on' : ''}">Ordinateur</button>${extra}</div>
+          <div class="lp-view ${dev}" id="lp-view"><iframe id="lp-frame" title="Aperçu"></iframe></div></div></div>`);
     redraw(false); requestAnimationFrame(fit);
     const root = $('.lp-ed');
     root.addEventListener('input', e => {
@@ -128,12 +135,11 @@
       if (e.target.tagName === 'SELECT') return redraw();
       state(); preview();
     });
-    root.addEventListener('toggle', e => { const d = e.target.closest && e.target.closest('[data-art]'); if (d) { if (d.open) artOpen = +d.dataset.art; else if (artOpen === +d.dataset.art) artOpen = -1; preview(); } }, true);
+    root.addEventListener('change', e => { if (/\.(slug|title|desc)$/.test(e.target.dataset.k || '')) redraw(); });   // l'aperçu Google se met à jour en quittant le champ
     root.addEventListener('click', e => {
       const t = e.target.closest('button'); if (!t) return;
       const ds = t.dataset;
-      if (t.closest('.lp-see')) return;
-      if (ds.tog) { open = open === ds.tog ? '' : ds.tog; HC.lsSet('hc.lp.open', open); $$('.lp-blk').forEach(b => b.classList.toggle('open', b.dataset.blk === open)); preview(); return; }
+      if (ds.tog) { open = open === ds.tog ? '' : ds.tog; HC.lsSet('hc.lp.open', open); $$('.lp-blk').forEach(b => b.classList.toggle('open', b.dataset.blk === open)); return; }
       if (ds.pick) return library(ds.pick, ds.shelf);
       if (ds.col) { at(ds.col, ds.v); return redraw(); }
       if (ds.dev) { dev = ds.dev; HC.lsSet('hc.lp.dev', dev); $$('[data-dev]').forEach(b => b.classList.toggle('on', b === t)); $('#lp-view').className = 'lp-view ' + dev; return fit(); }
@@ -142,19 +148,55 @@
       if (ds.mv) { const j = i + +ds.d; [arr[i], arr[j]] = [arr[j], arr[i]]; }
       if (ds.dup) arr.splice(i + 1, 0, JSON.parse(JSON.stringify(arr[i])));
       if (ds.del) { if (arr.length <= 1) return HC.toast('Il faut garder au moins un élément', null, true); arr.splice(i, 1); }
-      if (ds.add) { const n = JSON.parse(JSON.stringify(arr[arr.length - 1])); if (list === 'articles') { Object.assign(n, { slug: 'nouvel-article-' + Date.now().toString(36).slice(-4), title: 'Nouvel article', h1: 'Nouvel article', desc: '', lead: '', body: '## Intertitre\nTon texte ici.\n\n[Jouer à la bêta](jeu)', date: new Date().toISOString().slice(0, 10) }); artOpen = arr.length; } arr.push(n); }
+      if (ds.add) arr.push(JSON.parse(JSON.stringify(arr[arr.length - 1])));
       redraw();
     });
-    $('#lp-pub').onclick = async () => {
-      const b = $('#lp-pub'); b.disabled = true;
-      try { const r = await HC.api('/admin/api/landing', { content: C }); C = r.content; saved = JSON.stringify(C); HC.toast('Publié sur biffcity.fr', 'icon-lingot'); redraw(); } catch (e) { state(); }
-    };
-    $('#lp-undo').onclick = () => { C = JSON.parse(saved); redraw(); };
+    $('#lp-pub').onclick = async () => { $('#lp-pub').disabled = true; try { await publish(); redraw(); } catch (e) { state(); } };
+    $('#lp-undo').onclick = () => { C = JSON.parse(saved); if (mode === 'blog' && !C.articles[cur]) return HC.go('blog'); redraw(); };
+    window.addEventListener('resize', fit); HC.cleanup = () => window.removeEventListener('resize', fit);
+    window.onbeforeunload = () => C && dirty() ? true : undefined;
+  }
+
+  HC.PAGES.landing = async () => {
+    HC.main(HC.loading()); await load(); mode = 'landing'; if (/^a-/.test(open)) open = 'hero';
+    mount(`<div class="page-head"><div><h1>Landing</h1><div class="sub">La page d'accueil de <a href="https://biffcity.fr/" target="_blank" rel="noopener">biffcity.fr</a>. Les articles se modifient dans <a href="#page=blog">Blog</a>.</div></div>${tools()}</div>`, '<button class="lp-reset" id="lp-reset">Revenir au contenu d\'origine</button>');
     $('#lp-reset').onclick = async () => {
-      if (!await HC.confirm('Revenir au contenu d\'origine ?', 'Tous les textes et images de la landing reprennent leur version de départ, et c\'est mis en ligne tout de suite.', 'Revenir à l\'origine', 'red')) return;
+      if (!await HC.confirm('Revenir au contenu d\'origine ?', 'Tous les textes et images de la landing et des articles reprennent leur version de départ, et c\'est mis en ligne tout de suite.', 'Revenir à l\'origine', 'red')) return;
       const r = await HC.api('/admin/api/landing', { reset: true }); C = r.content; saved = JSON.stringify(C); redraw(); HC.toast('Contenu d\'origine remis');
     };
-    window.addEventListener('resize', fit);
-    window.onbeforeunload = () => C && dirty() && location.hash.includes('landing') ? true : undefined;
+  };
+
+  const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const dfr = d => { const [y, m, j] = String(d).split('-').map(Number); return y ? `${j} ${MOIS[m - 1]} ${y}` : ''; };
+  const usedBy = slug => [...C.actus.items.filter(x => x.link === slug).map(x => 'bannière « ' + x.title + ' »'), ...C.bientot.items.filter(x => x.link === slug).map(x => 'carte « ' + x.title + ' »')];
+
+  HC.PAGES.blog = async () => {
+    HC.main(HC.loading()); await load(); mode = 'blog';
+    const i = +HC.params().get('i');
+    if (!HC.params().has('i') || !C.articles[i]) {   // la liste des articles
+      cur = -1;
+      const arts = C.articles.map((a, j) => ({ a, j })).sort((x, y) => y.a.date.localeCompare(x.a.date));
+      HC.main(`<div class="page-head"><div><h1>Blog</h1><div class="sub">${C.articles.length} articles sur <a href="https://biffcity.fr/actus" target="_blank" rel="noopener">biffcity.fr/actus</a></div></div>
+        <div class="tools">${dirty() ? '<span class="lp-state"><span class="dot o"></span>Modifications pas encore en ligne</span><button class="btn green" id="bl-pub">Publier</button>' : ''}<button class="btn" id="bl-new">+ Nouvel article</button></div></div>
+        <div class="bl-grid">${arts.map(({ a, j }) => { const u = usedBy(a.slug); return `<button class="bl-card" data-go="blog:i:${j}"><img src="${esc(a.img)}" alt="" style="object-position:${esc(a.imgPos)}" loading="lazy"><div><time>${dfr(a.date)}</time><b>${esc(a.h1 || a.title)}</b><p>${esc(a.desc)}</p><small>${u.length ? 'Mis en avant sur la landing : ' + esc(u.join(', ')) : 'Pas de bouton sur la landing'}</small></div></button>`; }).join('')}</div>`);
+      $('#bl-new').onclick = () => {
+        const base = C.articles[0], n = { ...JSON.parse(JSON.stringify(base)), slug: 'nouvel-article-' + Date.now().toString(36).slice(-4), title: 'Nouvel article', h1: 'Nouvel article', desc: '', lead: '', alt: '', body: '## Intertitre\nTon texte ici.\n\n[Jouer à la bêta](jeu)', date: new Date().toISOString().slice(0, 10) };
+        C.articles.push(n); open = 'a-txt'; HC.go('blog', { i: C.articles.length - 1 });
+      };
+      if ($('#bl-pub')) $('#bl-pub').onclick = async () => { await publish(); HC.PAGES.blog(); };
+      return;
+    }
+    cur = i; if (!/^a-/.test(open)) open = 'a-txt';
+    const a = C.articles[cur];
+    mount(`<div class="page-head"><div><a class="bl-back" href="#page=blog">← Tous les articles</a><h1>${esc(a.h1 || a.title)}</h1><div class="sub"><a href="https://biffcity.fr/actus/${esc(a.slug)}" target="_blank" rel="noopener">biffcity.fr/actus/${esc(a.slug)}</a></div></div>${tools()}</div>`,
+      '<button class="lp-reset" id="bl-dup">Dupliquer</button><button class="lp-reset lp-del" id="bl-del">Supprimer l\'article</button>');
+    $('#bl-dup').onclick = () => { const n = JSON.parse(JSON.stringify(C.articles[cur])); n.slug = n.slug.slice(0, 70) + '-copie'; n.h1 = (n.h1 || n.title) + ' (copie)'; C.articles.push(n); HC.go('blog', { i: C.articles.length - 1 }); };
+    $('#bl-del').onclick = async () => {
+      if (C.articles.length <= 1) return HC.toast('Il faut garder au moins un article', null, true);
+      const u = usedBy(C.articles[cur].slug);
+      if (!await HC.confirm('Supprimer cet article ?', `Il disparaît de biffcity.fr dès que tu publies.${u.length ? ' Le bouton « En savoir plus » de la ' + esc(u.join(' et de la ')) + ' disparaîtra aussi.' : ''}`, 'Supprimer', 'red')) return;
+      const slug = C.articles[cur].slug; C.articles.splice(cur, 1); [...C.actus.items, ...C.bientot.items].forEach(x => { if (x.link === slug) x.link = ''; });
+      HC.go('blog');
+    };
   };
 })();
