@@ -261,7 +261,7 @@
       </div>`);
     // vitrine : visites, part mobile, clics « Jouer à la bêta », d'où viennent les visiteurs (TikTok, Instagram…)
     HC.api('/admin/api/lp?days=' + HC.period).then(L => { const c = document.getElementById('lp-card'); if (!c) return; const pc = (a, b) => b ? Math.round(a / b * 100) + ' %' : '—';
-      const by = L.byDay || [], mx = Math.max(1, ...by.map(d => d.views)), src = L.sources || [], smx = Math.max(1, ...src.map(r => r.views));
+      const got = Object.fromEntries((L.byDay || []).map(d => [d.d, d])), by = Array.from({ length: 14 }, (_, i) => { const t = new Date(Date.now() - (13 - i) * 864e5), d = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; return got[d] || { d, views: 0, beta: 0 }; }), mx = Math.max(1, ...by.map(d => d.views)), src = L.sources || [], smx = Math.max(1, ...src.map(r => r.views));
       const label = x => ({ direct: 'Accès direct', tiktok: 'TikTok', insta: 'Instagram', instagram: 'Instagram', 'l.instagram.com': 'Instagram', 'www.tiktok.com': 'TikTok', 'www.google.com': 'Google', 'www.google.fr': 'Google' })[x] || x;
       c.innerHTML = `<div class="card-h">${img('nav-city')}La vitrine biffcity.fr<small>${L.days} derniers jours · <a href="https://biffcity.fr" target="_blank">ouvrir</a></small></div>
         <div class="lp-stats">
