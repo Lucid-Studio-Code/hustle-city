@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Biff City</title>
   <meta name="description" content="Paris sportifs fictifs, investissements et collection : parie, investis, deviens riche.">
-  <meta name="theme-color" content="#1b1433">
+  <meta name="theme-color" content="#1b1433"><meta name="robots" content="noindex">
   <link rel="preload" href="assets/fonts/lilita-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
     /* tant que le style du jeu n'est pas chargé : seul l'écran de chargement est visible, en plein écran (pas de boutons nus qui clignotent) */
@@ -160,7 +160,7 @@
     evs.forEach(function (e) { document.addEventListener(e, go, true); });
   })();
   (function () {
-    var V = '?v=498', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
+    var V = '?v=499', FILES = ['js/layout.js', 'js/data.js', 'js/content.js', 'js/assets.js', 'js/game.js', 'js/audio.js', 'js/ui.js', 'js/casino.js', 'js/scratch.js', 'js/balto.js', 'js/agence.js', 'js/tuto.js', 'js/online.js', 'js/push.js'].slice(), CSS = 'css/style.css';
     var m = document.baseURI.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^@]+)@([^/]+)\//);
     if (!m) {
       document.write('<link rel="stylesheet" href="' + CSS + V + '">');

@@ -727,6 +727,11 @@ http.createServer(async (req, res) => {
     // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
     const host = String(req.headers.host || '').toLowerCase().split(':')[0];
     if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) p = '/landing/index.html';
+    // référencement : la vitrine est ouverte aux moteurs ; le jeu et le back office ne doivent pas apparaître dans Google
+    if (p === '/robots.txt') { const lp = host === 'biffcity.fr';
+      return send(res, 200, lp ? 'User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\n\nSitemap: https://biffcity.fr/sitemap.xml\n' : 'User-agent: *\nDisallow: /\n', 'text/plain; charset=utf-8'); }
+    if (p === '/sitemap.xml' && host === 'biffcity.fr')
+      return send(res, 200, `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>https://biffcity.fr/</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`, 'application/xml; charset=utf-8');
     if (p === '/') p = '/index.html';
     if (p === '/admin') { res.writeHead(301, { Location: '/admin/' }); return res.end(); }
     if (p === '/admin/') { f = path.join(__dirname, 'admin', 'index.html'); adm = true; }

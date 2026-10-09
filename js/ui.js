@@ -2676,6 +2676,8 @@
         <div class="set-row"><span><b>Tutos de Momo</b><small>${st().noTuto ? 'Coupés : plus d\'explications quand un lieu s\'ouvre' : 'Momo t\'explique chaque nouveau lieu'}</small></span><button class="btn xs ${st().noTuto ? 'green' : ''}" data-act="tutoToggle">${st().noTuto ? 'Remettre' : 'Couper'}</button></div>
         ${isStandalone() ? '' : `<button class="set-row" data-act="installHelp"><span><b>Mettre le jeu sur mon écran d'accueil</b><small>Comme une appli, en plein écran</small></span><em>›</em></button>`}
         <button class="set-row" data-act="restoreCode"><span><b>J'ai déjà une partie</b><small>Coller mon code pour la reprendre ici</small></span><em>›</em></button>
+        ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="feedbackOpen"><span><b>Donner mon avis sur la bêta</b><small>Un bug, une idée, un truc pas clair</small></span><em>›</em></button>
+        <button class="set-row" data-act="supportOpen"><span><b>Contacter le support</b><small>Un souci avec ta partie : on te répond dans le téléphone</small></span><em>›</em></button>` : ''}
         ${window.ONLINE && ONLINE.on ? `<button class="set-row" data-act="onlineCode"><span><b>Code de récupération</b><small>Pour retrouver ta partie sur un autre appareil</small></span><em>›</em></button>` : ''}
         <button class="set-row" data-act="legal"><span><b>Conditions et confidentialité</b></span><em>›</em></button>
         <button class="set-row" data-act="mentions"><span><b>Mentions légales</b></span><em>›</em></button></div>
@@ -2991,6 +2993,19 @@
     adNoAds() { if ($('#ad-layer .ad-claim')) adClose(); else return toast('Attends la fin de la pub, puis tu pourras ouvrir la boutique.'); openBoutique('vip'); },
     adClaim() { const r = G.adReward(); adClose(); if (r.err) return toast(r.err, true); sfx.coin(); rain('confetti', 16); toast(`+${r.n} lingots, merci !`); renderHud(); refresh(); },
     adQuit() { adClose(); toast('Pub interrompue : pas de lingots cette fois.', true); },
+    // bêta : un retour rapide (type + note + texte), envoyé au SAV du back office avec le contexte (version, écran, appareil)
+    feedbackOpen() { openModal({ title: 'Ton avis sur la bêta', icon: 'star', center: true, body: `<p class="hint-line">Tu testes Biff City avant tout le monde : dis-nous ce qui bloque, ce qui manque, ce que tu kiffes.</p>
+      <div class="fb-kinds">${[['bug', 'Un bug'], ['idee', 'Une idée'], ['flou', 'Pas clair'], ['top', 'J\'adore']].map(([k, l], i) => `<button class="fb-k ${i ? '' : 'on'}" data-act="fbKind" data-k="${k}">${l}</button>`).join('')}</div>
+      <div class="fb-stars">${[1, 2, 3, 4, 5].map(n => `<button class="fb-s" data-act="fbStar" data-n="${n}" aria-label="${n} sur 5">★</button>`).join('')}<small>Ta note du jeu</small></div>
+      <textarea id="fb-txt" class="sup-txt" maxlength="2000" placeholder="Raconte-nous… (où, quand, ce que tu faisais)"></textarea>
+      <div class="center"><button class="btn green" data-act="feedbackSend">Envoyer</button></div>` }); },
+    fbKind(el) { document.querySelectorAll('#modal .fb-k').forEach(b => b.classList.toggle('on', b === el)); },
+    fbStar(el) { const n = +el.dataset.n; document.querySelectorAll('#modal .fb-s').forEach(b => b.classList.toggle('on', +b.dataset.n <= n)); },
+    async feedbackSend() {
+      const t = ($('#fb-txt') || {}).value || '', k = ($('#modal .fb-k.on') || {}).textContent || 'Avis', n = document.querySelectorAll('#modal .fb-s.on').length;
+      if (t.trim().length < 5 && !n) return toast('Écris un petit mot ou mets une note, stp.', true);
+      const v = ((document.querySelector('script[src*="ui.js"]') || {}).src || '').match(/v=(\d+)/)?.[1] || '', ctx = `v${v} · ${scene}${modalOpen() ? '' : ''} · ${innerWidth}×${innerHeight} · ${/iPhone|iPad/.test(navigator.userAgent) ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android' : 'ordinateur'}${isStandalone() ? ' (appli)' : ''} · niv. ${st().lvl}`;
+      try { const r = await window.ONLINE.support(`[Avis bêta · ${k}${n ? ` · ${n}/5` : ''}] ${t.trim()}\n\n(${ctx})`); if (!r.ok) throw 0; closeModal(); sfx.win(); toast('Merci ! Ton avis est bien arrivé.'); } catch (e) { toast('Envoi impossible pour l\'instant, réessaie plus tard.', true); } },
     supportOpen() { openModal({ title: 'Support', icon: 'star', center: true, body: `<p class="hint-line">Explique ton souci : la réponse arrive dans ton téléphone, dans les messages.</p><textarea id="sup-txt" class="sup-txt" maxlength="2000" placeholder="Ton message…"></textarea><button class="btn green wide" data-act="supportSend">Envoyer</button>` }); },
     async supportSend() { const t = ($('#sup-txt') || {}).value || ''; if (t.trim().length < 5) return toast('Écris un peu plus, stp.', true);
       try { const r = await window.ONLINE.support(t); if (!r.ok) throw 0; closeModal(); toast('Message envoyé au support !'); } catch (e) { toast('Envoi impossible pour l\'instant, réessaie plus tard.', true); } },

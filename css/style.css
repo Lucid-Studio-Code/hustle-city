@@ -3683,3 +3683,11 @@ html { background-color: #120c24; }
 /* roulette : la ligne d'état garde toujours la même hauteur (avant, pendant et après le tour), rien ne bouge en dessous */
 #modal .th-casino .rl-status { font-size: 18px !important; line-height: 22px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
 #app #start .mv-wait { position: relative; z-index: 2; margin: auto; padding: 16px 20px; border: 3px solid #2a1a10; border-radius: 16px; background: #fffdf6; font: 800 15px/1.4 var(--text); color: #2a1a10; text-align: center; max-width: 300px; }
+/* avis bêta */
+#app .fb-kinds { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 8px 0; }
+#app .fb-k { padding: 6px 12px; border: 2px solid #2a1a10; border-radius: 999px; background: #fffdf6; font: 800 13px var(--text); color: #2a1a10; }
+#app .fb-k.on { background: #ffd23f; box-shadow: 0 2px 0 #2a1a10; }
+#app .fb-stars { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 4px 0 8px; }
+#app .fb-s { border: 0; background: none; font-size: 30px; line-height: 1; color: #d8cbb6; padding: 0 2px; }
+#app .fb-s.on { color: #f2b01e; text-shadow: 0 2px 0 #2a1a10; }
+#app .fb-stars small { margin-left: 6px; font: 800 12px var(--text); color: #7a5a3a; }
