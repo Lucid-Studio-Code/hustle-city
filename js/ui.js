@@ -2424,7 +2424,7 @@
         // cartes Créatures : seule l'illustration est gardée, le cadre est celui du jeu (le même pour toutes)
         const crea = colOf(it) === 'crea';
         return `<div class="tcg full r${it.r} t-${it.series} ${crea ? 'crea' : ''} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
-          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>${it.beta ? '<span class="fa-beta">Édition bêta</span>' : ''}
+          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>${it.beta ? '<span class="fa-beta"><small>Édition</small><b>BÊTA</b></span>' : ''}
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
@@ -2468,7 +2468,7 @@
     for (const se of D.SERIES.filter(x => seriesOn(x) && (x.col || 'sport') === colTab)) {
       const cards = G.seriesCards(se.id), have = G.seriesHave(se.id), done = G.seriesDone(se.id), claimed = s.colClaimed[se.id];
       if (!cards.length) continue;
-      body += `<div class="col-set"><div class="col-head"><b>${se.name}</b><small>${have}/${cards.length}</small></div>
+      body += `<div class="col-set"><div class="col-head"><b>${se.name}</b><small>${have}/${Math.max(cards.length, D.ITEMS.filter(i => i.series === se.id && !i.hidden).length)}</small></div>
         <div class="col-grid tcg-grid">${cards.map(c => { const n = (s.owned[c.id] || []).length; return n
           ? `<div class="col-slot" data-act="cardZoom" data-id="${c.id}">${tcgCard({ id: c.id }, 'mini')}${n > 1 ? `<i class="col-n">×${n}</i>` : ''}</div>`
           : `<div class="col-slot miss"><div class="tcg-back ${colTab === 'crea' ? 'crea' : ''}"><span>${cardNo(c).slice(0, 2)}</span></div></div>`; }).join('')}</div>

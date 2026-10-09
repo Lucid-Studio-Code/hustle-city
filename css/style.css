@@ -3693,8 +3693,6 @@ html { background-color: #120c24; }
 #app .fb-stars small { margin-left: 6px; font: 800 12px var(--text); color: #7a5a3a; }
 
 /* collection Bêta (Les Cobayes) : ruban « Édition bêta » sur la carte, mention sous la carte en grand */
-.tcg.full .fa-beta { position: absolute; left: 50%; top: 17cqw; z-index: 2; transform: translateX(-50%) rotate(-3deg); padding: 1cqw 4cqw 1.4cqw; border-radius: 99px; background: linear-gradient(#5fe08a, #2fa85c); border: .7cqw solid #2a1a10; box-shadow: 0 .8cqw 0 #2a1a10; color: #fff; font: 400 4.6cqw/1 'Lilita One', sans-serif; letter-spacing: .2cqw; white-space: nowrap; text-shadow: 0 .4cqw 0 rgba(42,26,16,.6); }
-#app .tcg.mini .fa-beta { top: 21cqw; font-size: 7cqw; padding: 1.2cqw 4cqw 1.6cqw; border-width: 1cqw; }
 #cardzoom .cz-beta { margin: 10px auto 0; padding: 6px 14px 8px; width: max-content; max-width: 90vw; border-radius: 99px; background: #2fa85c; border: 2px solid #2a1a10; color: #fff; font: 400 15px 'Lilita One', sans-serif; text-align: center; box-shadow: 0 3px 0 #2a1a10; }
 .col-beta { margin: -2px 0 8px; }
 
@@ -3711,3 +3709,13 @@ html { background-color: #120c24; }
 #app .bub.gift-card { display: flex; align-items: center; gap: 10px; }
 #app .bub.gift-card .of-card { width: 64px; flex: 0 0 64px; }
 #app .bub.gift-card .of-card .tcg { width: 64px; }
+
+/* collection Bêta : sceau doré « Édition BÊTA », en haut au centre de la carte */
+.tcg.full .fa-beta { position: absolute; left: 50%; top: 2.6cqw; z-index: 3; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: center; width: 17cqw; height: 17cqw; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8 0%, #ffd84a 28%, #d99a14 62%, #8a5a06 100%); border: .6cqw solid #3a2408; box-shadow: 0 0 0 .7cqw #ffe9a0 inset, 0 0 0 1.1cqw #b77d10 inset, 0 1cqw 2.4cqw rgba(0,0,0,.45), 0 0 3cqw rgba(255,214,90,.55); overflow: hidden; }
+.tcg.full .fa-beta::after { content: ''; position: absolute; inset: -40%; background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.75) 50%, transparent 60%); animation: betaShine 3.6s ease-in-out infinite; }
+@keyframes betaShine { 0%, 55% { transform: translateX(-60%); } 100% { transform: translateX(60%); } }
+.tcg.full .fa-beta small { font: 900 2.2cqw/1 var(--text); letter-spacing: .3cqw; color: #4a2c06; text-transform: uppercase; }
+.tcg.full .fa-beta b { font: 400 5cqw/1 'Lilita One', sans-serif; color: #3a2408; text-shadow: 0 .3cqw 0 rgba(255,240,180,.8); margin-top: .3cqw; }
+#app .tcg.mini .fa-beta { top: 3.5cqw; width: 22cqw; height: 22cqw; border-width: .9cqw; }
+#app .tcg.mini .fa-beta small { font-size: 3cqw; } #app .tcg.mini .fa-beta b { font-size: 6.6cqw; }
