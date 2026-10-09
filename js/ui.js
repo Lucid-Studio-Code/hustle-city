@@ -2519,6 +2519,12 @@
       if (r === 'L' || r === 'E') { el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 500); }
     };
     let k = 0, busy = false;
+    // n'importe où sur l'écran : carte suivante ; une fois le récapitulatif affiché, un toucher n'importe où ferme (comme « Super ! »)
+    el.onclick = e => {
+      if (e.target.closest('button, [data-act], .pk-stack')) return;
+      if (!el.querySelector('.pk-recap.hidden') && el.querySelector('.pk-recap')) return A.packDone();
+      el.querySelector('.pk-stack').click();
+    };
     el.querySelector('.pk-stack').addEventListener('click', e => {
       e.stopPropagation();
       if (busy || !el.classList.contains('dealt')) return;
