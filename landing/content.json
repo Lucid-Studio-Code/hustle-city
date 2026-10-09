@@ -376,36 +376,36 @@
    {
     "img": "/assets/lp/st-paris.webp",
     "alt": "Ticket combiné ×4 gagné au Royal : +12 310",
-    "title": "Parie sur des matchs en direct",
-    "text": "Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.",
+    "title": "Paris sportifs en direct",
+    "text": "Foot, basket, tennis, rugby : monte ton combiné.",
     "link": "jeu-paris-sportifs-fictifs"
    },
    {
     "img": "/assets/lp/st-casino.webp",
     "alt": "Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000",
-    "title": "Tente le jackpot",
-    "text": "Machine à sous et roulette au Lucky Palace, jusqu’à ×500 ta mise.",
+    "title": "Le Lucky Palace",
+    "text": "Machine à sous et roulette, jusqu’à ×500.",
     "link": "machine-a-sous-gratuite"
    },
    {
     "img": "/assets/lp/st-appart.webp",
     "alt": "Avant/après : le studio du début et la chambre de luxe remplie de trésors",
-    "title": "Ton appart grandit avec toi",
-    "text": "Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.",
+    "title": "Ton appart évolue",
+    "text": "Du studio sous les toits à la chambre de luxe.",
     "link": "appartement-et-minage"
    },
    {
     "img": "/assets/lp/st-cartes.webp",
     "alt": "Des cartes légendaires du jeu : Le Cobaye n°1, Le Parrain, T. Lemaire",
-    "title": "Ouvre des cartes légendaires",
-    "text": "Ouvre des boosters et collectionne des cartes holographiques qui prennent de la valeur.",
+    "title": "Cartes légendaires",
+    "text": "Ouvre des boosters, revends au bon prix.",
     "link": "boosters-et-cartes"
    },
    {
     "img": "/assets/lp/st-ville.webp",
     "alt": "La ville de Biff City avec le Royal, le casino, le Club et la crypto",
-    "title": "Une ville entière à conquérir",
-    "text": "Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.",
+    "title": "Toute une ville",
+    "text": "Paris, casino, Club, crypto : à toi de jouer.",
     "link": "fonctionnalites-biff-city"
    }
   ]

@@ -95,20 +95,17 @@ footer a { color: #fff; }
 .jeu { width: 100%; max-width: 1080px; margin: 40px auto 0; }
 .jeu h2, .final h2 { margin: 0; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
 .jeu-sub { margin: 6px auto 18px; color: #e6dcff; text-align: center; max-width: 520px; }
-.shots { display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 10px 4px 26px; margin: 0 -4px; overscroll-behavior-x: contain; }
+.shots { display: flex; gap: 26px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; width: 100vw; margin: 0 calc(50% - 50vw); padding: 24px calc(50vw - 160px) 34px; }
 .shots::-webkit-scrollbar { display: none; }
-.shot { flex: 0 0 290px; scroll-snap-align: center; text-align: left; display: flex; flex-direction: column; gap: 12px; color: #fff; text-decoration: none; }
-.shot figure { margin: 0; aspect-ratio: 9 / 16; border-radius: 34px; overflow: hidden; border: 4px solid var(--ink); background: #2a1458; box-shadow: 0 8px 0 var(--ink), 0 24px 50px rgba(0,0,0,.45); transition: transform .25s; }
-.shot:hover figure { transform: translateY(-6px) rotate(-1deg); }
+.shot { position: relative; flex: 0 0 320px; scroll-snap-align: center; display: block; color: #fff; text-decoration: none; text-align: left; transform: scale(.84); opacity: .45; filter: saturate(.7); transition: transform .35s, opacity .35s, filter .35s; }
+.shot.on { transform: scale(1); opacity: 1; filter: none; }
+.shot figure { position: relative; margin: 0; aspect-ratio: 9 / 16; border-radius: 34px; overflow: hidden; border: 4px solid var(--ink); background: #2a1458; box-shadow: 0 8px 0 var(--ink), 0 24px 50px rgba(0,0,0,.5); }
 .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.shot > div { padding: 0 6px; }
-.shot b { display: block; font: 400 20px/1.15 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
-.shot p { margin: 4px 0 0; font: 700 14px/1.4 'Nunito', sans-serif; color: #e6dcff; }
-.shot span.go { display: inline-block; margin-top: 6px; font: 400 15px 'Lilita One', sans-serif; color: var(--gold); }
-.shots-nav { display: flex; justify-content: center; gap: 12px; margin-top: 4px; }
-.shots-nav button { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--ink); background: var(--gold); color: var(--ink); font: 400 24px 'Lilita One', sans-serif; box-shadow: 0 4px 0 var(--ink); cursor: pointer; }
-.shots-nav button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
-@media (max-width: 760px) { .shots { margin: 0 -16px; padding: 10px 16px 24px; gap: 14px; } .shot { flex-basis: 74%; } .shots-nav { display: none; } }
+.shot figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 20px 20px; background: linear-gradient(rgba(14,8,32,0), rgba(14,8,32,.88) 45%, rgba(14,8,32,.96)); }
+.shot figcaption b { display: block; font: 400 23px/1.1 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
+.shot figcaption p { margin: 5px 0 0; font: 700 14px/1.35 'Nunito', sans-serif; color: #eadfff; }
+.shot figcaption span { display: inline-block; margin-top: 8px; font: 400 15px 'Lilita One', sans-serif; color: var(--gold); }
+@media (max-width: 760px) { .shots { gap: 12px; padding: 18px calc(50vw - 130px) 26px; } .shot { flex-basis: 260px; } .shot figcaption b { font-size: 20px; } .shot figcaption p { font-size: 13px; } }
 .cta-wrap { text-align: center; margin-top: 28px; }
 .final { width: 100%; max-width: 720px; margin: 46px auto 0; padding: 26px 18px 28px; text-align: center; border-radius: 26px; border: 4px solid var(--ink); background: radial-gradient(circle at 50% 0, #5b36a8, #2a1a4a 70%); box-shadow: 0 7px 0 var(--ink); }
 .final p { margin: 8px 0 16px; color: #f1e8ff; }
@@ -128,7 +125,7 @@ footer a { color: #fff; }
   .logo { grid-area: logo; justify-self: start; } .tag { grid-area: tag; justify-self: start; } .spacer { display: none; }
   .soon { grid-area: soon; margin-top: 28px; } .lead { grid-area: lead; margin: 0 0 18px; } .cta { grid-area: art; align-self: end; justify-self: center; margin: 0 0 64px; z-index: 2; transform: rotate(2deg); } .soon { margin-top: 28px !important; } .cta-note { grid-area: art; align-self: end; justify-self: center; margin: 0 0 30px; z-index: 2; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); } .feats { grid-area: feats; }
   .art { display: block; grid-area: art; align-self: center; width: 100%; margin: 0; aspect-ratio: 1080 / 1935; background-position: center; max-height: 82vh; background: url(/assets/lp/o/load-8.webp?v=d1c83f6f) center / cover; border: 4px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink), 0 24px 60px rgba(0,0,0,.55); transform: rotate(2deg); }
-  .cast { grid-area: cast; } #actus { grid-area: actus; justify-self: center; } #jeu { grid-area: jeu; } #final { grid-area: final; } .jeu .cta, .final .cta { grid-area: auto; transform: none; margin: 0; } .jeu .cta-note { grid-area: auto; margin: 10px 0 0; } #bientot { grid-area: bientot; } .age { grid-area: age; justify-self: center; } footer { grid-area: foot; text-align: center; }
+  .cast { grid-area: cast; } #actus { grid-area: actus; justify-self: center; } #jeu { grid-area: jeu; min-width: 0; } #final { grid-area: final; } .jeu .cta, .final .cta { grid-area: auto; transform: none; margin: 0; } .jeu .cta-note { grid-area: auto; margin: 10px 0 0; } #bientot { grid-area: bientot; } .age { grid-area: age; justify-self: center; } footer { grid-area: foot; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { .bg { animation: none; } }
 </style>
@@ -156,13 +153,12 @@ footer a { color: #fff; }
     <h2 id="jeu-t">Le jeu en images</h2>
     <p class="jeu-sub">Une vraie ville à faire tourner, pas un simple site de pronos.</p>
     <div class="shots">
-      <a class="shot" href="/actus/jeu-paris-sportifs-fictifs"><figure><img src="/assets/lp/st-paris.webp" alt="Ticket combiné ×4 gagné au Royal : +12 310" loading="lazy" width="900" height="1600"></figure><div><b>Parie sur des matchs en direct</b><p>Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/machine-a-sous-gratuite"><figure><img src="/assets/lp/st-casino.webp" alt="Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000" loading="lazy" width="900" height="1600"></figure><div><b>Tente le jackpot</b><p>Machine à sous et roulette au Lucky Palace, jusqu’à ×500 ta mise.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/appartement-et-minage"><figure><img src="/assets/lp/st-appart.webp" alt="Avant/après : le studio du début et la chambre de luxe remplie de trésors" loading="lazy" width="900" height="1600"></figure><div><b>Ton appart grandit avec toi</b><p>Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/boosters-et-cartes"><figure><img src="/assets/lp/st-cartes.webp" alt="Des cartes légendaires du jeu : Le Cobaye n°1, Le Parrain, T. Lemaire" loading="lazy" width="900" height="1600"></figure><div><b>Ouvre des cartes légendaires</b><p>Ouvre des boosters et collectionne des cartes holographiques qui prennent de la valeur.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/fonctionnalites-biff-city"><figure><img src="/assets/lp/st-ville.webp" alt="La ville de Biff City avec le Royal, le casino, le Club et la crypto" loading="lazy" width="900" height="1600"></figure><div><b>Une ville entière à conquérir</b><p>Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.</p><span class="go">En savoir plus ›</span></div></a>
+      <a class="shot" href="/actus/jeu-paris-sportifs-fictifs"><figure><img src="/assets/lp/st-paris.webp" alt="Ticket combiné ×4 gagné au Royal : +12 310" loading="lazy" width="900" height="1600"><figcaption><b>Paris sportifs en direct</b><p>Foot, basket, tennis, rugby : monte ton combiné.</p><span>En savoir plus ›</span></figcaption></figure></a>
+      <a class="shot" href="/actus/machine-a-sous-gratuite"><figure><img src="/assets/lp/st-casino.webp" alt="Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000" loading="lazy" width="900" height="1600"><figcaption><b>Le Lucky Palace</b><p>Machine à sous et roulette, jusqu’à ×500.</p><span>En savoir plus ›</span></figcaption></figure></a>
+      <a class="shot" href="/actus/appartement-et-minage"><figure><img src="/assets/lp/st-appart.webp" alt="Avant/après : le studio du début et la chambre de luxe remplie de trésors" loading="lazy" width="900" height="1600"><figcaption><b>Ton appart évolue</b><p>Du studio sous les toits à la chambre de luxe.</p><span>En savoir plus ›</span></figcaption></figure></a>
+      <a class="shot" href="/actus/boosters-et-cartes"><figure><img src="/assets/lp/st-cartes.webp" alt="Des cartes légendaires du jeu : Le Cobaye n°1, Le Parrain, T. Lemaire" loading="lazy" width="900" height="1600"><figcaption><b>Cartes légendaires</b><p>Ouvre des boosters, revends au bon prix.</p><span>En savoir plus ›</span></figcaption></figure></a>
+      <a class="shot" href="/actus/fonctionnalites-biff-city"><figure><img src="/assets/lp/st-ville.webp" alt="La ville de Biff City avec le Royal, le casino, le Club et la crypto" loading="lazy" width="900" height="1600"><figcaption><b>Toute une ville</b><p>Paris, casino, Club, crypto : à toi de jouer.</p><span>En savoir plus ›</span></figcaption></figure></a>
     </div>
-    <div class="shots-nav"><button type="button" data-sh="-1" aria-label="Précédent">‹</button><button type="button" data-sh="1" aria-label="Suivant">›</button></div>
     <div class="cta-wrap"><a class="cta" href="https://game.biffcity.fr/" data-lp="beta-jeu">Jouer à la bêta</a><p class="cta-note">Gratuit, dans ton navigateur, sans téléchargement</p></div>
   </section>
   <section class="news" id="actus" aria-label="Actualités">
@@ -206,8 +202,14 @@ footer a { color: #fff; }
 })();
 </script>
 <script>
-// « Le jeu en images » : flèches sur ordinateur (au doigt sur mobile)
-document.querySelectorAll('[data-sh]').forEach(function (b) { b.onclick = function () { var r = document.querySelector('.shots'); r.scrollBy({ left: +b.dataset.sh * 312, behavior: 'smooth' }); }; });
+// « Le jeu en images » : la carte au centre passe au premier plan ; on démarre sur la 2e pour montrer qu'on peut défiler des deux côtés
+(function () {
+  var r = document.querySelector('.shots'); if (!r) return; var c = r.children;
+  function mark() { var mid = r.scrollLeft + r.clientWidth / 2, best = 0, d = 1e9; [].forEach.call(c, function (e, i) { var x = Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid); if (x < d) { d = x; best = i; } }); [].forEach.call(c, function (e, i) { e.classList.toggle('on', i === best); }); }
+  r.addEventListener('scroll', function () { requestAnimationFrame(mark); }, { passive: true });
+  [].forEach.call(c, function (e) { e.addEventListener('click', function (ev) { if (!e.classList.contains('on')) { ev.preventDefault(); r.scrollTo({ left: e.offsetLeft + e.offsetWidth / 2 - r.clientWidth / 2, behavior: 'smooth' }); } }); });
+  if (c[1]) r.scrollLeft = c[1].offsetLeft + c[1].offsetWidth / 2 - r.clientWidth / 2; mark();
+})();
 </script>
 <script>
 // carrousel des actualités : swipe au doigt, points cliquables, défile seul toutes les 5 s (pause dès qu'on touche)
