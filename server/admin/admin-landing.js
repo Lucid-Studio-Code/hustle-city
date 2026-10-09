@@ -33,13 +33,10 @@
   const block = (id, title, sub, inner) => `<section class="lp-blk ${open === id ? 'open' : ''}" data-blk="${id}"><button class="lp-bh" data-tog="${id}"><b>${title}</b><small>${sub}</small><i></i></button><div class="lp-bb">${inner}</div></section>`;
   const listTools = (list, i, n) => `<div class="lp-it-tools"><button class="btn ghost sm" data-mv="${list}" data-i="${i}" data-d="-1" ${i ? '' : 'disabled'}>↑</button><button class="btn ghost sm" data-mv="${list}" data-i="${i}" data-d="1" ${i < n - 1 ? '' : 'disabled'}>↓</button><button class="btn ghost sm" data-dup="${list}" data-i="${i}">Dupliquer</button><button class="btn ghost sm lp-del" data-del="${list}" data-i="${i}">Supprimer</button></div>`;
 
-  const HELP = `<p class="lp-help">Mise en forme : <b>## Intertitre</b>, <b>### Sous-titre</b>, <b>- élément de liste</b>, <b>**gras**</b>, <b>[texte](/actus/adresse-d-un-article)</b> pour un lien vers un autre article, <b>[texte](jeu)</b> pour un lien vers le jeu. Un lien vers le jeu seul sur sa ligne devient un gros bouton vert. Aucun lien vers un autre site : il serait affiché comme du texte simple.</p>`;
   function articleForm() {
     const i = cur, a = C.articles[i], k = `articles.${i}`;
-    const others = C.articles.filter((x, j) => j !== i).map(x => `<li><code>[${esc(x.h1 || x.title)}](/actus/${esc(x.slug)})</code></li>`).join('');
     return [
-      block('a-txt', 'Contenu', 'Titre, chapeau et texte', txt(`${k}.h1`, 'Titre affiché', { max: 110 }) + txt(`${k}.lead`, 'Chapeau (en gras sous le titre)', { area: true, rows: 3, max: 500 }) + HELP + txt(`${k}.body`, 'Texte de l\'article', { area: true, rows: 22, max: 20000 })
-        + `<details class="lp-cd"><summary>Liens prêts à copier vers les autres articles</summary><ul class="lp-links">${others}</ul></details>`),
+      block('a-txt', 'Contenu', 'Titre, chapeau et texte', txt(`${k}.h1`, 'Titre affiché', { max: 110 }) + txt(`${k}.lead`, 'Chapeau (en gras sous le titre)', { area: true, rows: 3, max: 500 }) + richText(`${k}.body`, 'Texte de l\'article')),
       block('a-img', 'Image', 'En haut de l\'article et sur sa carte', `<div class="lp-row">${pic(`${k}.img`, 'Image', { pos: `${k}.imgPos` })}<div>${sel(`${k}.imgPos`, 'Cadrage', POS)}${txt(`${k}.alt`, 'Description de l\'image (Google Images)', { max: 140 })}</div></div>`),
       block('a-seo', 'Google', 'Adresse, date, titre et description', `<div class="lp-2">${txt(`${k}.slug`, 'Adresse (biffcity.fr/actus/…)', { max: 80 })}<label class="lp-f"><span>Date de publication</span><input type="date" data-k="${k}.date" value="${esc(a.date)}"></label></div>`
         + txt(`${k}.title`, 'Titre dans Google', { max: 90 }) + txt(`${k}.desc`, 'Description dans Google', { area: true, rows: 2, max: 170 }) + `<div class="lp-serp"><b>${esc(a.title)} | Biff City</b><span>biffcity.fr › actus › ${esc(a.slug)}</span><p>${esc(a.desc)}</p></div>`)
@@ -63,6 +60,87 @@
       block('age', 'Mention 18+', 'En bas de page', txt('age', 'Texte', { area: true, rows: 2, max: 200 })),
       block('seo', 'Google', 'Titre et description dans les résultats', txt('seo.title', 'Titre', { max: 120 }) + txt('seo.desc', 'Description', { area: true, max: 300 }) + `<div class="lp-serp"><b>${esc(C.seo.title)}</b><span>biffcity.fr</span><p>${esc(C.seo.desc)}</p></div>`)
     ].join('');
+  }
+
+
+  // ------------------------------------------------------------ éditeur de texte à la Shopify (le texte reste enregistré dans le format simple : ## , - , ** **, [texte](lien))
+  const escT = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function mdToHtml(t) {
+    const inl = s => escT(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, l, h) => h === 'jeu' ? `<a href="#jeu" data-jeu="1">${l}</a>` : `<a href="${h}">${l}</a>`);
+    const out = []; let list = null, para = [];
+    const flush = () => { if (para.length) { const p = para.join(' '); out.push(/^\[[^\]]+\]\(jeu\)$/.test(p) ? `<p class="cta">${inl(p)}</p>` : `<p>${inl(p)}</p>`); para = []; } if (list) { out.push(`<ul>${list.map(l => `<li>${inl(l)}</li>`).join('')}</ul>`); list = null; } };
+    for (const raw of String(t || '').split('\n')) {
+      const l = raw.trim(); let m;
+      if (!l) { flush(); continue; }
+      if ((m = /^(#{2,3}) (.+)$/.exec(l))) { flush(); out.push(`<h${m[1].length}>${inl(m[2])}</h${m[1].length}>`); continue; }
+      if ((m = /^- (.+)$/.exec(l))) { if (para.length) { const k = list; list = null; flush(); list = k; } (list = list || []).push(m[1]); continue; }
+      if (list) flush(); para.push(l);
+    }
+    flush(); return out.join('') || '<p><br></p>';
+  }
+  function htmlToMd(root) {
+    const bold = n => /^(B|STRONG)$/.test(n.nodeName) || (n.style && (n.style.fontWeight === 'bold' || +n.style.fontWeight >= 600));
+    const inline = el => [...el.childNodes].map(n => {
+      if (n.nodeType === 3) return n.nodeValue.replace(/\s+/g, ' ');
+      if (n.nodeType !== 1) return '';
+      if (n.nodeName === 'BR') return ' ';
+      if (n.nodeName === 'A') { const t = n.textContent.trim(); if (!t) return ''; const h = n.dataset.jeu || n.getAttribute('href') === '#jeu' ? 'jeu' : n.getAttribute('href') || ''; return /^(jeu|\/actus\/[a-z0-9-]+|\/actus|\/)$/.test(h) ? `[${t}](${h})` : t; }
+      const inner = inline(n); if (bold(n)) { const m = /^(\s*)(.*?)(\s*)$/.exec(inner); return m[2] ? `${m[1]}**${m[2]}**${m[3]}` : inner; }
+      return inner;
+    }).join('');
+    const blocks = [];
+    const walk = el => [...el.childNodes].forEach(n => {
+      if (n.nodeType === 3) { const t = n.nodeValue.trim(); if (t) blocks.push(t); return; }
+      if (n.nodeType !== 1) return;
+      const tag = n.nodeName, txt = inline(n).trim();
+      if (tag === 'H1' || tag === 'H2') { if (txt) blocks.push('## ' + txt.replace(/\*\*/g, '')); }
+      else if (tag === 'H3' || tag === 'H4') { if (txt) blocks.push('### ' + txt.replace(/\*\*/g, '')); }
+      else if (tag === 'UL' || tag === 'OL') { const li = [...n.children].map(x => inline(x).trim()).filter(Boolean).map(x => '- ' + x); if (li.length) blocks.push(li.join('\n')); }
+      else if (/^(P|DIV)$/.test(tag) && n.querySelector('p,div,h2,h3,ul,ol')) walk(n);
+      else if (txt) blocks.push(txt);
+    });
+    walk(root);
+    return blocks.join('\n\n');
+  }
+  const RT_TOOLS = [['p', 'Texte', 'Paragraphe normal'], ['h2', 'Intertitre', 'Grand intertitre'], ['h3', 'Sous-titre', 'Petit intertitre'], ['|'], ['bold', '<b>G</b>', 'Gras (Cmd+B)'], ['ul', '• Liste', 'Liste à puces'], ['|'], ['link', '🔗 Lien', 'Lien vers un article ou vers le jeu'], ['unlink', 'Retirer le lien', 'Retirer le lien sélectionné'], ['cta', '▶ Bouton Jouer', 'Ajoute un gros bouton vert « Jouer à la bêta »'], ['|'], ['undo', '↶', 'Annuler'], ['redo', '↷', 'Rétablir']];
+  const richText = (path, label) => `<div class="lp-f"><span>${label}</span><div class="rt"><div class="rt-bar">${RT_TOOLS.map(([k, t, tip]) => k === '|' ? '<i></i>' : `<button type="button" data-rt-cmd="${k}" title="${tip}">${t}</button>`).join('')}</div><div class="rt-ed" contenteditable="true" spellcheck="true" data-rt="${path}">${mdToHtml(at(path))}</div></div></div>`;
+  HC.rt = { mdToHtml, htmlToMd };   // utile pour vérifier la conversion
+  let rtRange = null;
+  const rtSave = () => { const s = getSelection(); if (s.rangeCount) rtRange = s.getRangeAt(0).cloneRange(); };
+  const rtRestore = ed => { ed.focus(); if (rtRange) { const s = getSelection(); s.removeAllRanges(); s.addRange(rtRange); } };
+  const rtSync = ed => { at(ed.dataset.rt, htmlToMd(ed)); state(); preview(); };
+  function rtLink(ed) {
+    rtSave();
+    const sel = getSelection(), picked = sel.toString().trim();
+    const bg = document.createElement('div'); bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal rt-link"><h3>Ajouter un lien</h3><p>${picked ? `Sur le texte « ${esc(picked.slice(0, 60))} »` : 'Le lien sera ajouté avec le titre de sa destination.'}</p>
+      <div class="rt-opts"><button data-h="jeu"><b>Le jeu</b><small>game.biffcity.fr, compte comme un clic vers la bêta</small></button>${C.articles.map(a => `<button data-h="/actus/${esc(a.slug)}" data-t="${esc(a.h1 || a.title)}"><b>${esc(a.h1 || a.title)}</b><small>biffcity.fr/actus/${esc(a.slug)}</small></button>`).join('')}<button data-h="/actus" data-t="Toutes les actus"><b>La page des actus</b><small>biffcity.fr/actus</small></button></div>
+      <div class="mb"><button class="btn ghost" data-x>Annuler</button></div></div>`;
+    document.body.appendChild(bg);
+    bg.onclick = e => {
+      if (e.target === bg || e.target.closest('[data-x]')) { bg.remove(); return; }
+      const b = e.target.closest('[data-h]'); if (!b) return; bg.remove();
+      rtRestore(ed);
+      const h = b.dataset.h, href = h === 'jeu' ? '#jeu' : h;
+      if (!picked) { const a = document.createElement('a'); a.href = href; if (h === 'jeu') a.dataset.jeu = '1'; a.textContent = h === 'jeu' ? 'Jouer à la bêta' : b.dataset.t; const r = getSelection().getRangeAt(0); r.collapse(false); r.insertNode(a); r.setStartAfter(a); }
+      else { document.execCommand('createLink', false, href); if (h === 'jeu') ed.querySelectorAll('a[href="#jeu"]').forEach(a => a.dataset.jeu = '1'); }
+      rtSync(ed);
+    };
+  }
+  function rtCmd(ed, k) {
+    ed.focus();
+    if (k === 'link') return rtLink(ed);
+    if (k === 'bold') document.execCommand('bold');
+    else if (k === 'ul') document.execCommand('insertUnorderedList');
+    else if (k === 'unlink') { document.execCommand('unlink'); }
+    else if (k === 'undo' || k === 'redo') document.execCommand(k);
+    else if (k === 'cta') {
+      const s = getSelection(); let blk = s.rangeCount ? s.getRangeAt(0).startContainer : null; while (blk && blk.parentNode !== ed) blk = blk.parentNode;
+      const p = document.createElement('p'); p.className = 'cta'; p.innerHTML = '<a href="#jeu" data-jeu="1">Jouer à la bêta</a>';
+      if (blk) blk.after(p); else ed.appendChild(p);
+    }
+    else document.execCommand('formatBlock', false, k === 'p' ? 'p' : k);
+    rtSync(ed);
   }
 
   // ------------------------------------------------------------ aperçu
@@ -127,7 +205,10 @@
           <div class="lp-view ${dev}" id="lp-view"><iframe id="lp-frame" title="Aperçu"></iframe></div></div></div>`);
     redraw(false); requestAnimationFrame(fit);
     const root = $('.lp-ed');
+    root.addEventListener('mousedown', e => { if (e.target.closest('[data-rt-cmd]')) e.preventDefault(); });   // garder la sélection du texte quand on clique un bouton
+    root.addEventListener('paste', e => { const ed = e.target.closest('.rt-ed'); if (!ed) return; e.preventDefault(); document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain')); });
     root.addEventListener('input', e => {
+      const ed = e.target.closest && e.target.closest('.rt-ed'); if (ed) return rtSync(ed);
       const k = e.target.dataset.k, d = e.target.dataset.dt;
       if (k) { at(k, e.target.value); const cnt = e.target.closest('.lp-f').querySelector('i'); if (cnt) cnt.textContent = `${e.target.value.length}/${e.target.maxLength}`; }
       else if (d) at(d, e.target.value ? new Date(e.target.value).toISOString() : '');
@@ -139,6 +220,7 @@
     root.addEventListener('click', e => {
       const t = e.target.closest('button'); if (!t) return;
       const ds = t.dataset;
+      if (ds.rtCmd) return rtCmd(t.closest('.rt').querySelector('.rt-ed'), ds.rtCmd);
       if (ds.tog) { open = open === ds.tog ? '' : ds.tog; HC.lsSet('hc.lp.open', open); $$('.lp-blk').forEach(b => b.classList.toggle('open', b.dataset.blk === open)); return; }
       if (ds.pick) return library(ds.pick, ds.shelf);
       if (ds.col) { at(ds.col, ds.v); return redraw(); }
