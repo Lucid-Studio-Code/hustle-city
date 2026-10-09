@@ -48,6 +48,17 @@ RIM = {
     'cr-eva': [(.235, .183), (.733, .206), (.756, .32)], 'cr-jade': [(.342, .039), (.274, .135), (.376, .294), (.359, .317), (.62, .297)], 'cr-leila': [(.295, .249), (.303, .281)],
     'cr-mila': [(.439, .012), (.385, .018), (.274, .07), (.235, .103), (.647, .102), (.164, .248)], 'cr-rose': [(.321, .05)],
 }
+# fond blanc enfermé que la détection des poches rate (forme irrégulière) : on vide la zone presque blanche qui contient ces points (x, y en fractions)
+FILL = {'skin-flambeur': [(.296, .160)]}
+def fill_white(im, pts):
+    import numpy as np
+    from scipy import ndimage
+    im = im.convert('RGBA'); a = np.asarray(im).copy(); h, w = a.shape[:2]
+    lab, n = ndimage.label((a[:, :, :3].min(axis=2) > 205) & (a[:, :, 3] > 0))
+    for fx, fy in pts:
+        k = lab[min(h - 1, int(fy * h)), min(w - 1, int(fx * w))]
+        if k: m = ndimage.binary_dilation(lab == k, iterations=1) & (a[:, :, :3].min(axis=2) > 170); a[m, 3] = 0
+    return Image.fromarray(a)
 def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
     """Petites zones blanches enfermées tout près du fond. Sans `pick` : rien n'est vidé (sauf en debug, qui les montre)."""
     import numpy as np
@@ -198,6 +209,7 @@ def run(name):
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
         if name in RIM: im = rim(im, RIM[name])
+        if name in FILL: im = fill_white(im, FILL[name])
         if name in CLUB_HEAD:   # persos du Club : même taille de tête et même coupure pour tous (de 0,7 tête au-dessus du crâne à 2,7 têtes sous le menton)
             eyes, chin = CLUB_HEAD[name]; W0, H0 = im.size; k = H0 / 600; H = 2 * (chin - eyes); crown = chin - H
             top, bot = int((crown - .7 * H) * k), int((chin + 2.7 * H) * k)
