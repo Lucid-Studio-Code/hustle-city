@@ -3691,3 +3691,9 @@ html { background-color: #120c24; }
 #app .fb-s { border: 0; background: none; font-size: 30px; line-height: 1; color: #d8cbb6; padding: 0 2px; }
 #app .fb-s.on { color: #f2b01e; text-shadow: 0 2px 0 #2a1a10; }
 #app .fb-stars small { margin-left: 6px; font: 800 12px var(--text); color: #7a5a3a; }
+
+/* collection Bêta (Les Cobayes) : ruban « Édition bêta » sur la carte, mention sous la carte en grand */
+.tcg.full .fa-beta { position: absolute; left: 50%; top: 17cqw; z-index: 2; transform: translateX(-50%) rotate(-3deg); padding: 1cqw 4cqw 1.4cqw; border-radius: 99px; background: linear-gradient(#5fe08a, #2fa85c); border: .7cqw solid #2a1a10; box-shadow: 0 .8cqw 0 #2a1a10; color: #fff; font: 400 4.6cqw/1 'Lilita One', sans-serif; letter-spacing: .2cqw; white-space: nowrap; text-shadow: 0 .4cqw 0 rgba(42,26,16,.6); }
+#app .tcg.mini .fa-beta { top: 21cqw; font-size: 7cqw; padding: 1.2cqw 4cqw 1.6cqw; border-width: 1cqw; }
+#cardzoom .cz-beta { margin: 10px auto 0; padding: 6px 14px 8px; width: max-content; max-width: 90vw; border-radius: 99px; background: #2fa85c; border: 2px solid #2a1a10; color: #fff; font: 400 15px 'Lilita One', sans-serif; text-align: center; box-shadow: 0 3px 0 #2a1a10; }
+.col-beta { margin: -2px 0 8px; }

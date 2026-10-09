@@ -165,6 +165,6 @@
     $('#sv-f').onchange = async () => { const f = $('#sv-f').files[0]; if (!f) return; if (!(await HC.confirm('Restaurer ce fichier ?', esc(f.name) + ' remplacera sa partie à sa prochaine connexion.', 'Restaurer', 'purple'))) return; const r = await HC.api('/admin/api/save', { pid, save: await f.text() }); if (r.ok) HC.toast('Restauration envoyée', 'hdr-settings'); };
   };
   const wl = (i, v, l) => `<div class="wl">${img(i)}<div style="min-width:0"><b>${v}</b><small>${l}</small></div></div>`;
-  function giftTxt(g) { return [g.lingots && `${fmt(g.lingots)} lingots`, g.cash && `${fmt(g.cash)} de cash`, g.boosters && `${fmt(g.boosters)} booster${g.boosters > 1 ? 's' : ''}`].filter(Boolean).join(' + '); }
+  function giftTxt(g) { return [g.lingots && `${fmt(g.lingots)} lingots`, g.cash && `${fmt(g.cash)} de cash`, g.boosters && `${fmt(g.boosters)} booster${g.boosters > 1 ? 's' : ''}`, g.cobaye && 'la carte légendaire « Le Cobaye n°1 »'].filter(Boolean).join(' + '); }
   HC.giftTxt = giftTxt;
 })();

@@ -18,7 +18,7 @@
   const ST = { status: 'ouvert', q: '' };
   const stTag = s => `<span class="tag ${s === 'ouvert' ? 'ko' : s === 'fermé' ? 'ok' : 'warn'}">${s === 'ouvert' ? 'à traiter' : esc(s)}</span>`;
   const giftOf = txt => { const m = /\s*\[cadeau : ([^\]]+)\]$/.exec(txt || ''); return m ? [txt.slice(0, m.index), m[1]] : [txt, null]; };
-  const giftHtml = g => g.split(',').map(x => { const [n, k] = x.trim().split(' '); return `${fmt(+n)}${k === 'lingots' ? '<i class="lgt"></i>' : k === 'cash' ? '<i class="cur"></i>' : k === 'boosters' ? '<i class="bst"></i>' : ' ' + esc(k)}`; }).join(' ');
+  const giftHtml = g => g.split(',').map(x => { const [n, k] = x.trim().split(' '); if (k === 'cobaye') return '<b class="gift-cob">Cobaye n°1</b>'; return `${fmt(+n)}${k === 'lingots' ? '<i class="lgt"></i>' : k === 'cash' ? '<i class="cur"></i>' : k === 'boosters' ? '<i class="bst"></i>' : ' ' + esc(k)}`; }).join(' ');
 
   HC.PAGES.support = async (P) => {
     let sel = +P.get('id') || 0, list = [], cur = null;
@@ -47,11 +47,17 @@
         <div class="ib-compose"><div class="qr">${QUICK.map((q, i) => `<button class="chip" data-q="${i}">${esc(q[0])}</button>`).join('')}</div>
           <textarea id="sv-txt" placeholder="Ta réponse à ${esc(p.name || 'ce joueur')}…"></textarea>
           <div class="row"><span class="help">Geste en un clic :</span>${GESTES.map((g, i) => `<button class="chip" data-g="${i}">${g[0]}<i class="${g[2]}"></i></button>`).join('')}
-            <span style="flex:1"></span><button class="btn sm ghost" id="sv-close">Répondre et fermer</button><button class="btn green" id="sv-send">Répondre</button></div></div>`;
+            <button class="chip sv-useful" id="sv-useful" title="15 lingots + 2 boosters + la carte légendaire « Le Cobaye n°1 » (collection Bêta)">${img('icon-star', 'ico')} Retour utile</button><span style="flex:1"></span><button class="btn sm ghost" id="sv-close">Répondre et fermer</button><button class="btn green" id="sv-send">Répondre</button></div></div>`;
       const box = $('#sv-msgs'); box.scrollTop = box.scrollHeight;
       if (window.matchMedia('(max-width: 820px)').matches) { $('#sv-back').style.display = ''; $('#sv-back').onclick = () => { $('#ib').classList.remove('has-sel'); sel = 0; }; }
       $$('#sv-th [data-s]').forEach(b => b.onclick = async () => { await HC.api('/admin/api/reply', { ticket: id, status: b.dataset.s }); HC.toast('Statut : ' + b.dataset.s, 'icon-check'); loadList(); open(id); });
       $$('#sv-th [data-q]').forEach(b => b.onclick = async () => { let txt = QUICK[+b.dataset.q][1]; if (txt.includes('{code}')) { const pl = await HC.api('/admin/api/player?pid=' + encodeURIComponent(t.pid)); txt = txt.replace('{code}', pl.recovery); } const ta = $('#sv-txt'); ta.value = (ta.value ? ta.value.trim() + '\n' : '') + txt; ta.focus(); });
+      // retour utile (bug trouvé, idée retenue…) : la récompense promise sur biffcity.fr, avec la légendaire de la collection Bêta
+      $('#sv-useful').onclick = async () => {
+        const g = { lingots: 15, boosters: 2, cobaye: 1 }, msg = $('#sv-txt').value.trim() || 'Merci pour ton retour, il nous aide vraiment à améliorer Biff City ! En cadeau : 15 lingots, 2 boosters et la carte légendaire « Le Cobaye n°1 » de la collection Bêta (si tu l\'as déjà, 20 lingots de plus à la place).';
+        if (!(await HC.confirm('Récompenser ce retour utile ?', `<b>${HC.giftTxt(g)}</b> pour ${esc(p.name || 'ce joueur')}, avec le message :<br>« ${esc(msg)} »`, 'Envoyer la récompense'))) return;
+        await HC.api('/admin/api/reply', { ticket: id, text: msg, gift: g, status: 'fermé' }); HC.toast('Retour récompensé', 'icon-star'); loadList(); open(id);
+      };
       $$('#sv-th [data-g]').forEach(b => b.onclick = async () => { const g = GESTES[+b.dataset.g][1]; const msg = $('#sv-txt').value.trim() || 'Désolé pour le souci ! Voilà un petit geste de notre part.';
         if (!(await HC.confirm('Envoyer ce geste ?', `<b>${HC.giftTxt(g)}</b> pour ${esc(p.name || 'ce joueur')}, avec le message :<br>« ${esc(msg)} »`, 'Envoyer le geste'))) return;
         await HC.api('/admin/api/reply', { ticket: id, text: msg, gift: g, status: 'en attente' }); HC.toast('Geste envoyé', 'icon-gift'); loadList(); open(id); });

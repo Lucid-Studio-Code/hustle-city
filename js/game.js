@@ -1358,16 +1358,25 @@
   }
   // carte de collection : une vraie carte avec une cote, rangée dans le classeur
   function collectionCard() {
-    const rar = pickW(D.BOOSTER.colWeights);
-    // pendant le tournoi, une partie des boosters donne une carte en édition limitée
-    const ev = cdmOn() && Math.random() < D.CDM.cardChance ? 'cdm' : sixCardsOn() && Math.random() < D.SIX.cardChance ? 'six' : null;
-    const all = D.ITEMS.filter(i => i.series && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === ev : !i.event));
+    let rar = pickW(D.BOOSTER.colWeights);
+    // pendant le tournoi, une partie des boosters donne une carte en édition limitée ; pendant la bêta, une carte des Cobayes (jamais de commune)
+    const ev = cdmOn() && Math.random() < D.CDM.cardChance ? 'cdm' : sixCardsOn() && Math.random() < D.SIX.cardChance ? 'six' : betaOn() && Math.random() < D.BETA.cardChance && D.ITEMS.some(i => i.event === 'beta' && cardOk(i)) ? 'beta' : null;
+    if (ev === 'beta') rar = Math.random() < .2 ? 'E' : 'R';   // les Cobayes : 80 % de rares, 20 % d'épiques (la légendaire ne sort pas d'un booster)
+    const all = D.ITEMS.filter(i => i.series && !i.noBooster && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === ev : !i.event));
     const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
     if (dup) { const n = sellPrice(c.id, true); addCash(n); return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup, sold: n }; }
     st.owned[c.id] = [{ paid: 0, t: now(), booster: true }];
     return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup };
+  }
+  // la bêta : en cours tant que la date de sortie (D.BETA.end) n'est pas passée
+  const betaOn = () => !D.BETA.end || now() < Date.parse(D.BETA.end);
+  // le Cobaye n°1 : offert pour un retour utile (cadeau du SAV) ; déjà dans le classeur → 20 lingots à la place
+  function giveBetaLegend() {
+    const id = 'k-cob-numero1';
+    if ((st.owned[id] || []).length) { addLingots(20); emit('change'); return { dup: true }; }
+    st.owned[id] = [{ paid: 0, t: now(), gift: true }]; emit('change'); return { id };
   }
   function openBooster() {
     if (boosterFree()) st.boosterDay = today();
@@ -1382,7 +1391,7 @@
   function claimSeries(id) {
     const se = D.SERIES.find(x => x.id === id);
     if (!se || !seriesDone(id) || st.colClaimed[id]) return { err: 'Série incomplète.' };
-    st.colClaimed[id] = now(); addCash(se.reward.cash); addLingots(se.reward.lingots); stat('series'); addXp(100);
+    st.colClaimed[id] = now(); addCash(se.reward.cash); addLingots(se.reward.lingots); if (se.reward.item) grantEv(se.reward.item); stat('series'); addXp(100);
     emit('change'); return { se };
   }
 
@@ -1708,7 +1717,7 @@
     week, weekReady, weekLeft, claimWeek, rankOf, credWorth,
     mineSkip, mineSkipCost,
     cdmPhase, cdmUnderdog, cdmT, cdmEd, cdmTest, cdmTeam, cdmShow, panneau, cdmJoin, cdmNight, cdmNightReady, cdmNightClaim, cdmStepsReady, cdmStepClaim, cdmBuy, cdmBoard, cdmNetSet, cdmReward, cdmClaim, cdmRecapSeen, cdmBadge, cdmSeenNow, cdmOut, cdmSent, cdmAdd, cdmState: () => cdmSt(),
-    vintageOn, eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
+    betaOn, giveBetaLegend, vintageOn, eventOff, nextEventAt, evOwned, evBuy, evUse, evUsed, shopBuy, sixBadge, sixSeenNow, sixCurDay, sixMatches, sixOdds, sixRumor, sixDayOpen, sixForm, sixTable, sixPhase, sixEnd, sixPick, sixRecapSeen, sixPoints, sixBoard, sixBoardInfo, sixNetSet, sixOut, sixRank, sixReward, sixCardsOn, sixKick, claimSix, sixTest, sixState: () => sixSt(),
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,

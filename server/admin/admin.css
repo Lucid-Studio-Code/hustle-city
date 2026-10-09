@@ -766,3 +766,6 @@ main { min-width: 0; padding: 26px 30px 60px; }
 .rt-link { width: min(560px, 94vw); } .rt-opts { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; margin: 10px 0; }
 .rt-opts button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; padding: 9px 12px; border-radius: 12px; border: 1.5px solid var(--line2); }
 .rt-opts button:hover { border-color: var(--yellow); background: rgba(255,210,63,.08); } .rt-opts b { color: var(--txt); } .rt-opts small { color: var(--mut); }
+
+.sv-useful { background: rgba(255,210,63,.14) !important; border-color: var(--yellow) !important; color: var(--yellow) !important; } .sv-useful img { width: 16px; height: 16px; }
+.gift-cob { color: var(--yellow); }

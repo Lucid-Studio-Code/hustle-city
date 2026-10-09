@@ -69,7 +69,8 @@
     (list || []).filter(m => !(m.gift && m.gift.restore)).forEach(m => {
       const g = m.gift || {};
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
-      const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`].filter(Boolean).join(', ');
+      const cob = +g.cobaye ? G.giveBetaLegend() : null;   // retour utile : la carte légendaire de la collection Bêta
+      const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`, cob && (cob.dup ? 'Cobaye n°1 déjà dans ton classeur : +20 lingots' : 'la carte légendaire « Le Cobaye n°1 »')].filter(Boolean).join(', ');
       if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
       U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Biff City', (m.text || '') + (gl ? ` ${gl} !` : ''));
       ev('gift_received', { id: m.id, g: gl });

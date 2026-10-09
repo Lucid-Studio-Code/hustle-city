@@ -435,6 +435,7 @@
     { id: 'tennis',   name: 'Open de la Cité',       sub: 'Joueur',   reward: { cash: 900, lingots: 12 } },
     { id: 'rugby',    name: 'Tournoi des 6 Quartiers', sub: 'Édition limitée', reward: { cash: 1500, lingots: 15 } },
     { id: 'cdm',      name: 'La Coupe des Morts', sub: 'Édition limitée · Halloween', reward: { cash: 2000, lingots: 20 } },
+    { id: 'cobayes',  name: 'Les Cobayes', sub: 'Édition bêta', beta: true, reward: { cash: 3000, lingots: 25, item: 'pn-cobaye' } },
     { id: 'classics', name: 'Les grandes cartes',    sub: 'Collector', reward: { cash: 2500, lingots: 20 } },
     // collection Créatures (onglet à part dans le classeur)
     { id: 'crea-og',     col: 'crea', name: 'Les Originaux',       sub: 'Créature', reward: { cash: 3000, lingots: 25 } },
@@ -558,8 +559,19 @@
    ['citrouille', 'La Citrouille en or', 'E'], ['bal', 'Le Bal des morts', 'R'], ['lune', 'La Pleine lune', 'R'], ['coupe', 'La Coupe des Morts', 'L']]
     .forEach(([k, n, r], i) => ITEMS.push({ id: 'k-cdm-' + k, cat: 'card', series: 'cdm', event: 'cdm', noBuy: true, kind: 'event', name: n, r, p0: Math.round(CARD_P0[r] * (0.9 + (i % 4) / 20)), vol: .06, img: 'art-cdm-' + k, art: 'art-cdm-' + k }));
   ITEMS.push({ id: 't-cdm', cat: 'trophy', name: 'La Coupe des Morts', r: 'E', p0: 666, vol: .03, img: 'ev-cdm-cup' });
+  // ---------------------------------------------------------------- la collection Bêta : « Les Cobayes »
+  // Seulement pendant la bêta : à la sortie sur les stores, mettre la date dans end, et la série n'est plus jamais distribuée.
+  // Aucune commune. Le Cobaye n°1 (légendaire) ne sort jamais d'un booster : il se gagne par un retour utile (bouton « Retour utile » du SAV, back office).
+  const BETA = {
+    name: 'Les Cobayes', end: null, cardChance: .25,
+    shop: [{ id: 'pn-cobaye', kind: 'avatar', cdm: 'cobaye', name: 'Pin\'s Cobaye de la première heure', noSale: true }]
+  };
+  [['parieur', 'Le Cobaye Parieur', 'R'], ['gratteur', 'Le Cobaye Gratteur', 'R'], ['trader', 'Le Cobaye Trader', 'R'], ['fetard', 'Le Cobaye Fêtard', 'R'],
+   ['flambeur', 'Le Cobaye Flambeur', 'E'], ['collectionneur', 'Le Cobaye Collectionneur', 'E'], ['professeur', 'Le Professeur Cobaye', 'E'], ['numero1', 'Le Cobaye n°1', 'L']]
+    .forEach(([k, n, r], i) => ITEMS.push({ id: 'k-cob-' + k, cat: 'card', series: 'cobayes', event: 'beta', beta: true, noBuy: true, kind: 'event', name: n, r, p0: Math.round(CARD_P0[r] * (1.1 + (i % 4) / 20)), vol: .05,
+      img: 'art-cob-' + k, art: 'art-cob-' + k, needArt: 'art-cob-' + k, noBooster: k === 'numero1' }));
   // la Coupe passe d'abord, le tournoi garde sa boutique : les deux boutiques ensemble (photo de profil, cadres, décos de la ville)
-  const EV_SHOP = SIX.shop.concat(CDM.shop);
+  const EV_SHOP = SIX.shop.concat(CDM.shop, BETA.shop);
 
   const BUY_MARKUP = .05, SELL_FEE = .10;
   // Rumeurs : de temps en temps, un objet s'envole ou s'effondre
@@ -1044,6 +1056,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, VEH_ADJ, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, HOMES, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, BETA, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, HOMES, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

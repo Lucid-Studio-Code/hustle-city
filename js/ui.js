@@ -2395,9 +2395,10 @@
   const CARD_ALL = D.ITEMS.filter(i => i.series && G.cardOk(i));
   // numéro d'une carte dans SA collection (sport ou créatures) : 03/98
   // la série du Tournoi n'existe pour les joueurs qu'une fois le tournoi commencé (février 2027)
-  const seriesOn = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() !== 'before' : se.id === 'cdm' ? !['before', 'off'].includes(G.cdmPhase()) || Object.keys(st().owned).some(k => /^k-cdm-/.test(k) && st().owned[k].length) : true);
+  const seriesOn = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() !== 'before' : se.id === 'cdm' ? !['before', 'off'].includes(G.cdmPhase()) || Object.keys(st().owned).some(k => /^k-cdm-/.test(k) && st().owned[k].length)
+    : se.beta ? G.betaOn() || Object.keys(st().owned).some(k => /^k-cob-/.test(k) && st().owned[k].length) : true);   // la collection Bêta : visible pendant la bêta, puis seulement pour ceux qui en ont
   // cartes d'événement : on ne relance le joueur que pendant l'événement (avant ou après, il ne peut plus les avoir)
-  const cardsNow = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() === 'on' : se.id === 'cdm' ? G.cdmPhase() === 'on' : true);
+  const cardsNow = se => G.TEST || (se.id === 'rugby' ? G.sixPhase() === 'on' : se.id === 'cdm' ? G.cdmPhase() === 'on' : se.beta ? G.betaOn() : true);
   const colOf = c => (D.SERIES.find(x => x.id === c.series) || {}).col || 'sport';
   const colCards = c => CARD_ALL.filter(x => colOf(x) === colOf(c));
   const cardNo = c => `${String(colCards(c).indexOf(c) + 1).padStart(2, '0')}/${colCards(c).length}`;
@@ -2422,7 +2423,7 @@
         // cartes Créatures : seule l'illustration est gardée, le cadre est celui du jeu (le même pour toutes)
         const crea = colOf(it) === 'crea';
         return `<div class="tcg full r${it.r} t-${it.series} ${crea ? 'crea' : ''} ${extra}"><div class="tcg-card"><div class="fa-bg"></div>${cbg}${art}
-          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>
+          <span class="fa-rar">${RSYM[it.r]}</span><span class="fa-no">${no}</span>${it.beta ? '<span class="fa-beta">Édition bêta</span>' : ''}
           <div class="fa-plate"><b class="${nm.length > 16 ? 'xl' : ''}">${nm}</b>${it.club ? `<em class="fa-club">${playerOf(it)}</em>` : it.role ? `<em class="fa-club">${it.role}</em>` : ''}<small>${RAR[it.r]} · ${priceWord(it.id)}</small></div>
           <i class="tcg-holo"></i></div></div>`;
       }
@@ -2470,7 +2471,8 @@
         <div class="col-grid tcg-grid">${cards.map(c => { const n = (s.owned[c.id] || []).length; return n
           ? `<div class="col-slot" data-act="cardZoom" data-id="${c.id}">${tcgCard({ id: c.id }, 'mini')}${n > 1 ? `<i class="col-n">×${n}</i>` : ''}</div>`
           : `<div class="col-slot miss"><div class="tcg-back ${colTab === 'crea' ? 'crea' : ''}"><span>${cardNo(c).slice(0, 2)}</span></div></div>`; }).join('')}</div>
-        <div class="col-rew">Série complète : ${chips(se.reward.cash, se.reward.lingots)} ${claimed ? '<span class="rw-done">✓ Déjà récupérée</span>' : done ? `<button class="btn green" data-act="claimSeries" data-id="${se.id}">Réclamer</button>` : ''}</div></div>`;
+        ${se.beta ? `<p class="hint-line col-beta">Édition bêta : ces cartes ne se trouvent que pendant la bêta, dans les boosters. <b>Le Cobaye n°1</b> ne sort jamais d'un booster : il récompense un retour utile (Réglages, « Donner mon avis »).</p>` : ''}
+        <div class="col-rew">Série complète : ${chips(se.reward.cash, se.reward.lingots)}${se.reward.item ? ' + le pin\'s « Cobaye de la première heure »' : ''} ${claimed ? '<span class="rw-done">✓ Déjà récupérée</span>' : done ? `<button class="btn green" data-act="claimSeries" data-id="${se.id}">Réclamer</button>` : ''}</div></div>`;
     }
     return body;
   }
@@ -2486,7 +2488,7 @@
   function cardZoom(id) {
     const n = (st().owned[id] || []).length, it = G.item(id), canBuy = !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
     let el = $('#cardzoom'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="cardzoom"></div>'); el = $('#cardzoom'); }
-    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div><div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
+    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div>${it.beta ? '<p class="cz-beta">Obtenue pendant la bêta de Biff City</p>' : ''}<div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
     const cl = v => Math.max(-.5, Math.min(.5, v));
