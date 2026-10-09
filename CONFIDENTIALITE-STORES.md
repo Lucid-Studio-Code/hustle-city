@@ -25,7 +25,7 @@ Pas d'e-mail, pas de nom réel, pas de contacts, pas de photos, pas de position 
   - **Localisation → Localisation approximative** : Analyses. Lié : Oui. Suivi : Non.
   - **Autres données → Autres types de données** (sauvegarde, pseudo) : Fonctionnalités de l'app. Lié : Oui. Suivi : Non.
 - **Suivi (tracking) :** Non, donc pas de demande ATT tant qu'il n'y a pas de pub.
-- **Lien vers la politique de confidentialité :** https://hustle.lucidstudio.fr/confidentialite.html (à créer avec le même texte que dans le jeu).
+- **Lien vers la politique de confidentialité :** https://game.biffcity.fr/confidentialite.html (à créer avec le même texte que dans le jeu).
 - **Suppression du compte :** dans l'appli, Réglages → Supprimer mes données (obligatoire, c'est fait).
 - **Classification d'âge :** cocher « Jeux d'argent simulés : fréquent/intense » → l'appli sera **17+**.
 
