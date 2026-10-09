@@ -3697,3 +3697,6 @@ html { background-color: #120c24; }
 #app .tcg.mini .fa-beta { top: 21cqw; font-size: 7cqw; padding: 1.2cqw 4cqw 1.6cqw; border-width: 1cqw; }
 #cardzoom .cz-beta { margin: 10px auto 0; padding: 6px 14px 8px; width: max-content; max-width: 90vw; border-radius: 99px; background: #2fa85c; border: 2px solid #2a1a10; color: #fff; font: 400 15px 'Lilita One', sans-serif; text-align: center; box-shadow: 0 3px 0 #2a1a10; }
 .col-beta { margin: -2px 0 8px; }
+
+#app .col-set .col-beta { margin: 16px 0 4px; line-height: 1.45; }
+#app .col-set .col-beta + .col-rew { margin-top: 12px; }

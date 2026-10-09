@@ -3398,7 +3398,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
+  window.UI = { packOpening, unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

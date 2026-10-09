@@ -59,6 +59,7 @@
   const banScreen = why => overlay('ol-ban', why !== null && `<div><b>Compte suspendu</b><p>${U.esc(why || 'Ton compte a été suspendu. Contacte le support si tu penses que c\'est une erreur.')}</p></div>`);
 
   // ---------------------------------------------------------- boîte de réception : cadeaux, réponses du SAV, restauration
+  ONLINE.applyInbox = list => inbox(list);   // (tests) même chemin qu'un message reçu du serveur
   function inbox(list) {
     // restauration par le support : on coupe toute écriture de la partie en cours AVANT de poser la copie, sinon la partie actuelle la réécrasait
     const rsAll = (list || []).filter(m => m.gift && m.gift.restore), rs = rsAll[rsAll.length - 1];   // plusieurs restaurations en attente : la plus récente gagne
@@ -74,6 +75,8 @@
       if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl ? ` (${gl} offerts)` : '') });
       U.notify(/support/i.test(m.title) ? 'msg' : 'missions', m.title || 'Biff City', (m.text || '') + (gl ? ` ${gl} !` : ''));
       ev('gift_received', { id: m.id, g: gl });
+      // la légendaire arrive comme un booster qu'on ouvre : paquet qui tremble, carte retournée, effet légendaire
+      if (cob && !cob.dup) setTimeout(() => { try { U.closeModal(); U.packOpening([{ kind: 'col', rarity: 'L', id: cob.id, name: G.item(cob.id).name, dup: false }]); } catch (e) {} }, 900);
       post('/api/claim', { id: m.id }).catch(() => {});
     });
     if ((list || []).length) { G.save(); U.refresh(); }
