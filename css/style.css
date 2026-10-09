@@ -3607,3 +3607,8 @@ html { background-color: #120c24; }
 #app #toast { bottom: calc(var(--bot) + 12px); margin-bottom: 0; }
 #app #next-cap, #app #noads-nudge { bottom: calc(var(--bot) + 18px); }
 #test-banner { bottom: calc(var(--bot) + 10px); }
+/* ouverture d'un booster : le halo de rareté suit la forme du paquet (posé sur son cadre, Safari iPhone le dessinait en rectangle pendant la secousse) */
+#pack .pk-stage .bst-pack { overflow: visible; filter: none !important; }
+#pack[data-best=R] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 18px #4fb3f0); }
+#pack[data-best=E] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 22px #b06bff); }
+#pack[data-best=L] .pk-stage .bst-pack .pic img { filter: drop-shadow(0 0 28px #ffd23f) drop-shadow(0 0 10px #fff); }
