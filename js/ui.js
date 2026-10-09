@@ -3280,14 +3280,27 @@
     const lk = st().cityLook || 'base', bgN = lk !== 'base' && has('bg-city-' + lk) ? 'bg-city-' + lk : 'bg-city', sc = has(bgN) ? new URL(src(bgN), document.baseURI).href : ''; if (sc) {   /* accueil : la ville avec le skin choisi par le joueur */ el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
     if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
   // déménagement : l'ancienne adresse (GitHub) envoie la partie vers le nouveau site, dans l'adresse (#import=…, jamais envoyée à un serveur)
-  const NEW_SITE = 'https://hustle.lucidstudio.fr/';
+  const NEW_SITE = 'https://game.biffcity.fr/';
+  // anciennes adresses (hustle.lucidstudio.fr, GitHub) : on part tout de suite sur game.biffcity.fr en emportant la partie et l'identité du joueur
   function movedAway() {
-    if (!/github\.io$/.test(location.hostname)) return false;
+    if (!/github\.io$|^hustle\.lucidstudio\.fr$/.test(location.hostname)) return false;
+    // partie connue du serveur : on envoie la dernière sauvegarde puis on passe juste l'identité (#join, court) ; sinon la partie entière (#import)
+    { let raw = null, j = null; try { raw = localStorage.getItem('hustleCity.v1'); j = raw && JSON.parse(raw); } catch (e) {}
+      const go = h => location.replace(NEW_SITE + h);
+      if (!j || !j.skin) { go(''); return true; }
+      $('#start').innerHTML = '<div class="mv-wait">Biff City déménage sur game.biffcity.fr… on emporte ta partie.</div>';
+      let n = 0; const wait = setInterval(() => {   // on attend la connexion au serveur (quelques secondes au plus)
+        const on = window.ONLINE && ONLINE.on && ONLINE.code;
+        if (!on && ++n < 40) return; clearInterval(wait);
+        if (!on) return go('#import=' + btoa(unescape(encodeURIComponent(withId(raw)))));
+        Promise.race([ONLINE.flush(), new Promise(r => setTimeout(r, 4000))]).then(() => go('#join=' + ONLINE.code()));
+      }, 150);
+      return true; }
     let code = '', me = null; try { const raw = localStorage.getItem('hustleCity.v1'); me = raw && JSON.parse(raw); if (me && me.skin) code = btoa(unescape(encodeURIComponent(withId(raw)))); else me = null; } catch (e) {}
     const el = $('#start'); el.className = 'first'; startBg(el);
     const href = NEW_SITE + (code ? '#import=' + code : '');
     const steps = [
-      `<div class="mv-ic">${ico('logo', '')}</div><h2>Le jeu a déménagé !</h2><p>Biff City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">hustle.lucidstudio.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
+      `<div class="mv-ic">${ico('logo', '')}</div><h2>Le jeu a déménagé !</h2><p>Biff City a maintenant sa <b>propre adresse</b> :<br><b class="mv-url">game.biffcity.fr</b></p><p>C'est plus rapide, et ta partie y est <b>sauvegardée en ligne</b> : tu ne la perdras plus.</p>
        <button class="btn green" data-mv="1">Suivant</button>`,
       code ? `<div class="mv-ic">${ico('icon-treasure', '')}</div><h2>Emmène ta partie</h2><div class="mv-me">${skinPic(me.skin)}<span><b>${esc(me.name || 'Toi')}</b><small>Niveau ${me.lvl || 1} · ${short(me.cash || 0)}</small></span></div>
        <ol class="mv-steps"><li>Appuie sur <b>« Emmener ma partie »</b>.</li><li>Le nouveau site s'ouvre <b>avec ta partie</b> dedans.</li><li>C'est tout ! À partir de maintenant, joue <b>uniquement</b> là-bas.</li></ol>
@@ -3322,6 +3335,15 @@
   }
   // arrivée sur le nouveau site avec une partie : on l'enregistre (après confirmation s'il y en a déjà une)
   function importFromHash() {
+    const jn = location.hash.match(/^#join=([\w-]{4,64}\.[\w-]{8,128})$/);
+    if (jn) {   // arrivée depuis l'ancienne adresse : on récupère la partie sur le serveur avec l'identité du joueur
+      history.replaceState(null, '', location.pathname + location.search);
+      const cur = localStorage.getItem('hustleCity.v1'), c = cur && JSON.parse(cur), mine = (localStorage.getItem('hustleCity.online') || '').includes(jn[1].split('.')[0]);
+      if (c && c.skin && !mine && !confirm(`Tu as déjà une partie ici (niveau ${c.lvl}). La remplacer par celle que tu ramènes ?`)) return;
+      if (mine) return;
+      const t = setInterval(() => { if (!window.ONLINE || !ONLINE.restore) return; clearInterval(t); try { localStorage.setItem('hustleCity.imported', '1'); } catch (e) {} ONLINE.restore(jn[1]).catch(() => {}); }, 100);
+      return;
+    }
     const m = location.hash.match(/^#import=([A-Za-z0-9+/=]+)/); if (!m) return;
     history.replaceState(null, '', location.pathname + location.search);
     try { const raw = decodeURIComponent(escape(atob(m[1]))), j = JSON.parse(raw); if (!j || !j.skin) return;

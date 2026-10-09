@@ -129,6 +129,7 @@
   // « Supprimer mes données » : le serveur efface tout ce qui concerne ce joueur, puis le jeu ne lui envoie plus rien
   ONLINE.deleteMe = async () => { if (off) return true; try { const r = await post('/api/delete-me', {}); if (r && r.ok) { ONLINE.on = false; return true; } } catch (e) {} return false; };
   ONLINE.importFlag = () => { try { return !!localStorage.getItem('hustleCity.imported'); } catch (e) { return false; } };
+  ONLINE.flush = () => sync(true);   // envoie la sauvegarde complète tout de suite (avant un changement d'adresse)
   ONLINE.syncNow = () => sync(false);   // pseudo / ville changés : on prévient le serveur tout de suite
   ONLINE.support = text => post('/api/support', { text });
   ONLINE.leaderboard = () => off || !ONLINE.on ? Promise.resolve(null) : post('/api/leaderboard', {}).catch(() => null);

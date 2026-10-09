@@ -3682,3 +3682,4 @@ html { background-color: #120c24; }
 /* le bas de la fenêtre : la marge de la barre de geste de l'iPhone était comptée deux fois (fenêtre + feuille), d'où un vide sous la dernière carte en appli */
 /* roulette : la ligne d'état garde toujours la même hauteur (avant, pendant et après le tour), rien ne bouge en dessous */
 #modal .th-casino .rl-status { font-size: 18px !important; line-height: 22px; height: 44px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+#app #start .mv-wait { position: relative; z-index: 2; margin: auto; padding: 16px 20px; border: 3px solid #2a1a10; border-radius: 16px; background: #fffdf6; font: 800 15px/1.4 var(--text); color: #2a1a10; text-align: center; max-width: 300px; }

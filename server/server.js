@@ -680,7 +680,7 @@ for (const r of q('SELECT pid, name, tag, skin, avatar, frame FROM players')) {
 
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 // fichiers servis : LISTE BLANCHE (ce que chargent game.html, index.html, la page confidentialité et le back office ; images .png ou .webp). Le reste (CLAUDE.md, tools/, server/, .git, ios/, android/, package.json…) → 404.
-const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html', '/manifest.webmanifest', '/og.jpg', '/sons.html']), PUB_DIRS = ['/js/', '/css/', '/assets/'];
+const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html', '/manifest.webmanifest', '/og.jpg', '/sons.html', '/landing/index.html']), PUB_DIRS = ['/js/', '/css/', '/assets/'];
 // en-têtes de sécurité des pages : pas d'affichage dans un cadre d'un autre site ; CSP seulement pour le back office (celle du jeu reste à faire : trop risqué)
 const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 const htmlHeaders = adm => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : "frame-ancestors 'none'" });
@@ -711,6 +711,9 @@ http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' }); res.end(data); });
     let p; try { p = decodeURIComponent(u.pathname); } catch (e) { return send(res, 404, '404', 'text/plain'); }
     let f = null, adm = false;
+    // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
+    const host = String(req.headers.host || '').toLowerCase().split(':')[0];
+    if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) p = '/landing/index.html';
     if (p === '/') p = '/index.html';
     if (p === '/admin') { res.writeHead(301, { Location: '/admin/' }); return res.end(); }
     if (p === '/admin/') { f = path.join(__dirname, 'admin', 'index.html'); adm = true; }
