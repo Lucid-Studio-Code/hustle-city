@@ -3655,6 +3655,10 @@ html { background-color: #120c24; }
 #app .club-scene .cg.good { background: #c9f5a0; color: #1f5e1f; }
 #app .club-scene .cg.bad { background: #ffd0c9; color: #8a1c10; }
 /* portraits du Club : posés en bas de l'écran, la coupure à la taille passe sous le bord et derrière la boîte de dialogue (avant, ils flottaient) */
-#app .club-scene .csc-who { bottom: 30%; height: 52%; }   /* persos en pied : posés au-dessus de la boîte de dialogue, comme Kenza */
+#app .club-scene .csc-who { bottom: 16%; height: 60%; }   /* tous coupés à mi-cuisse : la coupure passe derrière la boîte de dialogue, même cadrage pour tous */
 /* piste : Kenza en entier comme avant (son image descend jusqu'aux jambes) */
-#app .club-scene:has(.csc-who[src*="clubp-danseuse"]) .csc-who { bottom: 30%; height: 52%; }
+/* scène du Club : le perso remplit l'espace au-dessus de la boîte de dialogue et s'arrête pile derrière son bord (même cadrage pour tous, jambes visibles) */
+#app .club-scene { display: flex; flex-direction: column; justify-content: flex-end; }
+#app .club-scene .csc-who { position: relative; left: auto; bottom: auto; transform: none; flex: 1 1 0; min-height: 0; width: 100%; max-width: none; height: auto; object-fit: contain; object-position: center bottom; margin: 8px 0 -22px; z-index: 1; animation: cscIn2 .35s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes cscIn2 { from { transform: translateY(30px); opacity: 0; } }
+#app .club-scene .csc-box { position: relative; left: auto; right: auto; bottom: auto; margin: 0 10px 10px; z-index: 2; flex: 0 0 auto; }

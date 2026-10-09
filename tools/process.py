@@ -74,6 +74,9 @@ def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
         a[m, 3] = 0
     return Image.fromarray(a)
 
+# hauteur gardée (fraction de la silhouette, depuis le haut) pour couper chaque perso du Club à mi-cuisse
+CLUB_CUT = {'clubp-danseuse': 1, 'clubp-trader': .9, 'clubp-dj': .88, 'clubp-boss': .7, 'clubp-louche': .8,
+            'clubp-lea': .62, 'clubp-chloe': .66, 'clubp-djmax': .66, 'clubp-valentina': .66, 'clubp-johnny': .66}
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches
@@ -190,6 +193,8 @@ def run(name):
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
         if name in RIM: im = rim(im, RIM[name])
+        if name in CLUB_CUT:   # persos du Club : tous coupés au même endroit (mi-cuisse), pour un cadrage identique d'un perso à l'autre
+            im = im.crop(im.getbbox()); w, h = im.size; im = im.crop((0, 0, w, int(h * CLUB_CUT[name]))); im = im.crop(im.getbbox())
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in ('art', 'full'):   # illustrations de cartes : pleine couleur (256 couleurs les abîmait), le jeu sert la version .jpg

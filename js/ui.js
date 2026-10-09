@@ -1575,7 +1575,7 @@
       say = z.res.txt.replace(/ »/g, '\u00a0»').replace(/« /g, '«\u00a0');   // guillemets jamais seuls en bout de ligne
       acts = `<div class="csc-res">${clubGains(z.res.good)}${clubGains(z.res.bad, true)}</div><div class="center"><button class="btn green" data-act="clubBack">${z.res.over ? 'Fin de soirée' : 'Retour dans la salle'}</button></div>`;
     } else if (z.talk != null) {
-      const ch = sc.choices.find(x => x.id === z.talk); say = `<b class="csc-name">${sc.name}</b> « ${ch.talk.say} »`;
+      const ch = sc.choices.find(x => x.id === z.talk); say = `<b class="csc-name">${sc.name}</b> «\u00a0${ch.talk.say}\u00a0»`;
       acts = ch.talk.answers.map((a, i) => `<button class="btn csc-ch" data-act="clubAnswer" data-i="${i}">${a.label}</button>`).join('') + `<button class="csc-skip" data-act="clubTalkBack">Changer d'avis</button>`;
     } else {
       acts = sc.choices.map(ch => { const need = ch.lingots ? ` · ${ic('lingot')}${ch.lingots}` : ''; return `<button class="btn csc-ch ${ch.talk ? 'talk' : ''}" data-act="clubPick" data-id="${ch.id}" ${ch.lingots && s.lingots < ch.lingots ? 'disabled' : ''}>${ch.label}${need}</button>`; }).join('') + `<button class="csc-skip" data-act="clubBack">Retour dans la salle</button>`;
