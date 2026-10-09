@@ -168,6 +168,7 @@
     { id: 'map', label: 'Carte des joueurs', icon: 'nav-city' },
     { id: 'stats', label: 'Statistiques', icon: 'app-crypto' },
     { id: 'players', label: 'Joueurs', icon: 'skin-hoodie-bust', round: true },
+    { id: 'support', label: 'SAV et avis bêta', icon: 'app-msg', badge: 'nb-sav' },
     { id: 'promos', label: 'Promos', icon: 'ic-promo' },
     { id: 'items', label: 'Objets du jeu', icon: 'app-objets' },
     { id: 'live', label: 'Événements et nouveautés', icon: 'bld-six' },
@@ -201,6 +202,9 @@
     try { await HC.PAGES[page](p); } catch (e) { if (e.message !== '401') { console.error(e); $('#main').innerHTML = HC.empty('Oups, cette page n\'a pas pu se charger : ' + esc(e.message)); } }
   }
   HC.route = route;
+  // pastille du SAV : nombre de conversations qui attendent une réponse
+  const savBadge = () => HC.api('/admin/api/tickets?status=ouvert&q=').then(r => { const b = document.getElementById('nb-sav'); if (b) { const n = (r.list || []).length; b.textContent = n || ''; b.style.display = n ? '' : 'none'; } }).catch(() => {});
+  setTimeout(savBadge, 1500); setInterval(savBadge, 60000);
   window.addEventListener('hashchange', route);
   HC.main = html => { $('#main').innerHTML = html; };
 
