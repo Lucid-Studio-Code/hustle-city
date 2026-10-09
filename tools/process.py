@@ -75,8 +75,8 @@ def rim(im, pick=None, frac=.035, maxarea=.004, debug=None):
     return Image.fromarray(a)
 
 # hauteur gardée (fraction de la silhouette, depuis le haut) pour couper chaque perso du Club à mi-cuisse
-CLUB_CUT = {'clubp-danseuse': 1, 'clubp-trader': .9, 'clubp-dj': .88, 'clubp-boss': .7, 'clubp-louche': .8,
-            'clubp-lea': .62, 'clubp-chloe': .66, 'clubp-djmax': .66, 'clubp-valentina': .66, 'clubp-johnny': .66}
+# persos du Club : hauteur des yeux et du menton, mesurées sur l'original ramené à 600 px de haut (règle tracée à la main)
+CLUB_HEAD = {'clubp-danseuse': (146, 216), 'clubp-trader': (135, 192), 'clubp-dj': (105, 158), 'clubp-boss': (84, 129), 'clubp-louche': (80, 136)}
 def cutout(im, keep=None, debug=None, tol=60, shadow=False):
     """Détourage : 1) remplissage depuis les bords (couleur du fond détectée, blanc ou gris uni) ;
     2) les poches de fond enfermées (entre les pieds d'une chaise, dans un rig) : zones presque blanches
@@ -193,8 +193,11 @@ def run(name):
         im = cutout(im, POCKETS.get(name, 'sides' if name.startswith(('ach-', 'item-t-')) else 'all' if jewel else None), tol=TOL.get(name, 60),
                     shadow=name.startswith('item-') and not name.startswith('item-cr-'))   # trophées : on vide le creux des anses ; objets : jamais d'ombre portée
         if name in RIM: im = rim(im, RIM[name])
-        if name in CLUB_CUT:   # persos du Club : tous coupés au même endroit (mi-cuisse), pour un cadrage identique d'un perso à l'autre
-            im = im.crop(im.getbbox()); w, h = im.size; im = im.crop((0, 0, w, int(h * CLUB_CUT[name]))); im = im.crop(im.getbbox())
+        if name in CLUB_HEAD:   # persos du Club : même taille de tête et même coupure pour tous (de 0,7 tête au-dessus du crâne à 2,7 têtes sous le menton)
+            eyes, chin = CLUB_HEAD[name]; W0, H0 = im.size; k = H0 / 600; H = 2 * (chin - eyes); crown = chin - H
+            top, bot = int((crown - .7 * H) * k), int((chin + 2.7 * H) * k)
+            box = Image.new('RGBA', (W0, bot - top), (0, 0, 0, 0)); box.alpha_composite(im.convert('RGBA'), (0, -top) if top < 0 else (0, 0), (0, max(0, top)))
+            bb = box.getbbox(); im = box.crop((bb[0], 0, bb[2], box.size[1]))
     m = MAX.get(kind, MAX['default'])
     im.thumbnail((m, m * 2) if kind in NOCUT + ('skin',) else (m, m), Image.LANCZOS)
     if kind in ('art', 'full'):   # illustrations de cartes : pleine couleur (256 couleurs les abîmait), le jeu sert la version .jpg
