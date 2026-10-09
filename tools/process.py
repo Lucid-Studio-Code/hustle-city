@@ -22,7 +22,7 @@ POCKETS = {
     'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all', 'clubp-trader': 'all', 'clubp-boss': 'all', 'clubp-lea': 'all', 'clubp-chloe': 'all', 'clubp-djmax': 'all', 'clubp-valentina': 'all',   # persos du Club : vides entre bras et corps
     'cr-mila': {'n': [0]}, 'cr-ines': 'all', 'cr-rose': 'all', 'cr-eva': 'all', 'gear-cam': 'all', 'gear-sport': {'n': [0, 1, 2, 3, 4, 5]},
     # persos : seulement les vides entre bras et corps (jamais un vêtement blanc)
-    'skin-flambeur': [(.384, .252)], 'skin-doudoune': [(.676, .446)],
+    'skin-flambeur': [(.384, .252)], 'skin-gold': [(.733, .519)], 'skin-doudoune': [(.676, .446)],
     'skin-sportive': 'all', 'skin-boss': 'all', 'skin-survet': 'all',
     # objets à anses ou à structure ajourée
     'graded-slab': 'all',   # boîtier de carte gradée : fenêtre et étiquette vides (la carte s'affiche dessous)

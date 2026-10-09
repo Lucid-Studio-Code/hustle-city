@@ -12,7 +12,7 @@
   // rayons de la bibliothèque : on range les images du jeu par famille de nom
   const SHELVES = [
     ['scenes', 'Scènes', n => /^(bg-|club-(?!p)|load-|room-|ev-cdm-bg|card-bg|tkbg-|art-|parking-bg)/.test(n)],
-    ['persos', 'Personnages', n => /^(skin-|clubp-)/.test(n)],
+    ['persos', 'Personnages', n => /^(skin-|clubp-|cr-[a-z]+$|player-|guide$)/.test(n)],
     ['icones', 'Icônes et objets', n => true]
   ];
   let mode = 'landing', cur = -1, C = null, saved = '', media = [], dev = HC.lsGet('hc.lp.dev') || 'm', timer = 0, open = HC.lsGet('hc.lp.open') || 'hero';
