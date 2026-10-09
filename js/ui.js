@@ -2727,7 +2727,7 @@
       el.innerHTML = `<div class="logo">${logo}<div class="tagline">Parie. Investis. Deviens riche.</div></div>
         <div class="form">
           <div class="skins">${D.SKINS.filter(k => !k.iap).map(k => `<button class="skin ${k.id === sel ? 'sel' : ''} ${k.lvl > 1 ? 'locked' : ''}" data-skin="${k.id}" ${k.lvl > 1 ? 'disabled' : ''}>${skinPic(k.id)}<b>${k.lvl > 1 ? `Niv. ${k.lvl}` : k.name}</b></button>`).join('')}</div>
-          <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}">
+          <input class="name" id="st-name" maxlength="16" placeholder="Ton blaze" value="${esc(st().name || '')}"><p class="st-err" id="st-err" role="alert"></p>
           <button class="btn green start-btn" id="st-go" style="min-height:62px;font-size:26px">C'est parti</button>
           <button class="st-restore" data-act="restoreCode">J'ai déjà une partie : coller mon code</button>
         </div>`;
@@ -2735,7 +2735,13 @@
       el.querySelectorAll('.skin').forEach(b => b.onclick = () => { sel = b.dataset.skin; const n = $('#st-name').value; draw(); $('#st-name').value = n; });
       $('#st-go').onclick = () => {
         const n = $('#st-name').value.trim();
-        if (n.length < 3) return toast('Ton blaze : 3 lettres minimum.', true);
+        if (n.length < 3) {   // le message s'affiche sous le champ (un toast passerait sous l'écran d'accueil)
+          const inp = $('#st-name'), er = $('#st-err');
+          er.textContent = n ? 'Ton blaze doit faire au moins 3 lettres.' : 'Choisis ton blaze avant de commencer.';
+          inp.classList.remove('bad'); void inp.offsetWidth; inp.classList.add('bad'); inp.focus(); if (sfx.err) sfx.err();
+          inp.oninput = () => { inp.classList.remove('bad'); er.textContent = ''; };
+          return;
+        }
         // deux joueurs peuvent choisir le même blaze : le numéro (#4821) les distingue. La vraie vérification viendra avec les comptes en ligne.
         st().name = n; st().tag = st().tag || String(1000 + Math.floor(Math.random() * 9000)); st().skin = sel; G.save(); el.remove(); boot2(true);
       };

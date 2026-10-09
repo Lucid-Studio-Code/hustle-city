@@ -3700,3 +3700,9 @@ html { background-color: #120c24; }
 
 #app .col-set .col-beta { margin: 16px 0 4px; line-height: 1.45; }
 #app .col-set .col-beta + .col-rew { margin-top: 12px; }
+
+/* accueil : blaze manquant */
+#start .st-err { min-height: 0; margin: 8px 0 0; text-align: center; color: #fff; font: 800 14px var(--text); }
+#start .st-err:not(:empty) { display: block; width: max-content; max-width: 100%; margin: 10px auto 2px; padding: 6px 14px 7px; border-radius: 12px; background: #e8483a; border: 2px solid #2a1a10; box-shadow: 0 3px 0 #2a1a10; }
+#start .name.bad { border-color: #e8483a !important; box-shadow: 0 0 0 3px rgba(232,72,58,.35) !important; animation: stShake .35s; }
+@keyframes stShake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
