@@ -71,7 +71,7 @@ footer a { color: #fff; }
 .car { position: relative; }
 .slides { display: flex; overflow-x: auto; overflow-y: hidden; touch-action: pan-x pan-y; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 .slides::-webkit-scrollbar { display: none; }
-.bn { --head: 67px; --crown: -11px; --room: 64px; position: relative; overflow: hidden; flex: 0 0 100%; scroll-snap-align: center; padding: var(--room) 4px 12px; }
+.bn { --head: 82px; --crown: -21px; --room: 64px; position: relative; overflow: hidden; flex: 0 0 100%; scroll-snap-align: center; padding: var(--room) 4px 12px; }
 .slides { margin-top: -50px; }
 /* le personnage : tête de même taille et crâne à la même hauteur pour tous (positions mesurées dans landing/frames.json), coupé au bas de la carte */
 .bn-popw { position: absolute; left: 4px; right: 4px; top: 0; bottom: 16px; overflow: hidden; border-radius: 0 0 20px 20px; pointer-events: none; }
@@ -92,7 +92,7 @@ footer a { color: #fff; }
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .dots button { width: 10px; height: 10px; padding: 0; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); cursor: pointer; transition: width .25s, background .25s; }
 .dots button.on { width: 28px; background: var(--gold); }
-@media (max-width: 520px) { .bn { --head: 67px; --crown: -11px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 79%; } .bn-card { height: 232px; } .bn-txt { left: 14px; width: 60%; } .bn-txt p { font-size: 12.5px; } .bn-txt { width: 54%; } }
+@media (max-width: 520px) { .bn { --head: 82px; --crown: -21px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 79%; } .bn-card { height: 232px; } .bn-txt { left: 14px; width: 60%; } .bn-txt p { font-size: 12.5px; } .bn-txt { width: 54%; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
 @media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } .cast { height: 112px; } }
 @media (min-width: 900px) {
