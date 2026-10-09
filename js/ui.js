@@ -3277,7 +3277,7 @@
   // décor de l'accueil : la rue animée si elle existe, sinon la ville vue du ciel
   const startBg = el => { el.classList.toggle('acc', has('bg-accueil')); if (has('bg-accueil')) el.style.setProperty('--acc', `url("${src('bg-accueil')}")`);
     // même scène que l'écran de chargement (si une image de chargement existe), sinon la ville (adresse complète : la variable CSS est lue depuis css/)
-    const sc = has('bg-city') ? new URL(src('bg-city'), document.baseURI).href : ''; if (sc) {   /* accueil : la ville (la scène du chargement passait derrière ton perso) */ el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
+    const lk = st().cityLook || 'base', bgN = lk !== 'base' && has('bg-city-' + lk) ? 'bg-city-' + lk : 'bg-city', sc = has(bgN) ? new URL(src(bgN), document.baseURI).href : ''; if (sc) {   /* accueil : la ville avec le skin choisi par le joueur */ el.style.setProperty('--sc', `url("${sc}")`); el.classList.add('has-scene'); }
     if (!el.querySelector(':scope > .st-fx')) el.insertAdjacentHTML('afterbegin', '<div class="st-fx"><i class="st-scene"></i><i class="st-rays"></i></div>'); };
   // déménagement : l'ancienne adresse (GitHub) envoie la partie vers le nouveau site, dans l'adresse (#import=…, jamais envoyée à un serveur)
   const NEW_SITE = 'https://hustle.lucidstudio.fr/';
