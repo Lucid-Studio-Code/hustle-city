@@ -6,8 +6,8 @@
  "hero": {
   "img": "/assets/img/load-8.jpg",
   "slogan": "Parie. Investis. Deviens riche.",
-  "soon": "Bientôt disponible",
-  "lead": "Le jeu mobile où tu pars de rien et fais grimper ton patrimoine : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.",
+  "soon": "La bêta est ouverte !",
+  "lead": "Le jeu est déjà accessible gratuitement dans ton navigateur. Découvre Biff City avant sa sortie officielle : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.",
   "cta": "Jouer à la bêta",
   "ctaNote": "Gratuit, dans ton navigateur, sans téléchargement"
  },
@@ -374,29 +374,29 @@
   "sub": "Une vraie ville à faire tourner, pas un simple site de pronos.",
   "items": [
    {
-    "img": "/assets/lp/jeu-paris.webp",
-    "alt": "Écran des paris au Royal : un match de foot, ses cotes et un ticket combiné",
+    "img": "/assets/lp/feat-paris.webp",
+    "alt": "Un ticket combiné ×4 gagné au Royal : +12 310 de gains, avec confettis",
     "title": "Parie sur des matchs en direct",
     "text": "Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.",
     "link": "jeu-paris-sportifs-fictifs"
    },
    {
-    "img": "/assets/lp/jeu-ville.webp",
-    "alt": "La ville de Biff City vue de dessus avec ses bâtiments",
-    "title": "Une ville entière à conquérir",
-    "text": "Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.",
-    "link": "fonctionnalites-biff-city"
-   },
-   {
-    "img": "/assets/lp/jeu-appart.webp",
-    "alt": "L'appartement de luxe avec le PC, la machine de minage et les étagères de collection",
+    "img": "/assets/lp/feat-appart.webp",
+    "alt": "Avant/après : le studio sous les toits du début et la chambre de luxe remplie d'objets",
     "title": "Ton appart grandit avec toi",
     "text": "Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.",
     "link": "appartement-et-minage"
    },
    {
-    "img": "/assets/lp/jeu-cartes.webp",
-    "alt": "Une carte holographique Dragon Ardent ouverte en grand",
+    "img": "/assets/lp/feat-ville.webp",
+    "alt": "La ville de Biff City avec le Royal, le casino, le Club et la collection",
+    "title": "Une ville entière à conquérir",
+    "text": "Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.",
+    "link": "fonctionnalites-biff-city"
+   },
+   {
+    "img": "/assets/lp/feat-cartes.webp",
+    "alt": "Ouverture d’un booster avec une carte légendaire, Le Parrain",
     "title": "Des cartes qui brillent",
     "text": "Ouvre des boosters, collectionne des cartes holographiques et des objets rares qui prennent de la valeur.",
     "link": "boosters-et-cartes"

@@ -52,7 +52,7 @@ function render(content) {
   const feats = c.feats.map(f => `    <div class="feat"><img src="${esc(opt(f.img))}" alt="" width="64" height="64"><b>${esc(f.title)}</b><small>${esc(f.text)}</small></div>`).join('\n');
   const actus = c.actus.items.map(x => `<article class="bn"><div class="bn-card" data-bg="${esc(opt(x.bg))}" style="background-position:${esc(x.bgPos)}"><div class="bn-txt">${x.chip ? `<span class="chip ${x.color}">${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="bn-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></div>${x.pop ? popImg(x.pop) : ''}</article>`).join('');
   const cards = c.bientot.items.map(x => `      <article class="nc"><div class="ni"><img src="${esc(opt(x.img))}" loading="lazy" alt="${esc(x.alt)}" style="object-position:${esc(x.imgPos)}"></div><div class="nt">${x.chip ? `<span class="chip ${x.color}"${x.start && x.end ? ` data-cd="${esc(x.start)}" data-end="${esc(x.end)}"` : ''}>${esc(x.chip)}</span>` : ''}<b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? `<a class="nc-link" href="/actus/${x.link}">${esc(x.btn)}</a>` : ''}</div></article>`).join('\n');
-  const shots = c.jeu.items.map(x => `      <a class="shot" href="${art(x.link) ? '/actus/' + x.link : 'https://game.biffcity.fr/'}"${art(x.link) ? '' : ' data-lp="beta-jeu"'}><figure><img src="${esc(x.img)}" alt="${esc(x.alt)}" loading="lazy" width="540" height="1169"></figure><div><b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? '<span class="go">En savoir plus ›</span>' : ''}</div></a>`).join('\n');
+  const shots = c.jeu.items.map(x => `      <a class="shot" href="${art(x.link) ? '/actus/' + x.link : 'https://game.biffcity.fr/'}"${art(x.link) ? '' : ' data-lp="beta-jeu"'}><figure><img src="${esc(x.img)}" alt="${esc(x.alt)}" loading="lazy" width="900" height="900"></figure><div><b>${esc(x.title)}</b><p>${esc(x.text)}</p>${art(x.link) ? '<span class="go">En savoir plus ›</span>' : ''}</div></a>`).join('\n');
   return fs.readFileSync(TPL, 'utf8')
     .replace('<!--@feats-->', () => feats).replace('<!--@actus-->', () => actus).replace('<!--@bientot-->', () => cards).replace('<!--@jeu-->', () => shots)
     .replace(/\{\{hero\.img\}\}/g, () => esc(opt(c.hero.img))).replace('{{hero.imgFull}}', () => esc(c.hero.img))
@@ -63,17 +63,20 @@ function render(content) {
 
 // ------------------------------------------------------------ articles : biffcity.fr/actus et biffcity.fr/actus/<slug>
 const GAME = 'https://game.biffcity.fr/', SITE = 'https://biffcity.fr';
+// pages fixes (mentions légales, confidentialité, conditions, assistance) : landing/pages.json
+const PAGES = JSON.parse(fs.readFileSync(path.join(__dirname, 'pages.json'), 'utf8')), PAGE_SLUGS = PAGES.map(p => p.slug);
+const FOOT_LINKS = `<nav class="legal"><a href="/assistance">Assistance</a><a href="/conditions">Conditions d'utilisation</a><a href="/confidentialite">Confidentialité</a><a href="/mentions-legales">Mentions légales</a></nav>`;
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const dateFr = d => { const [y, m, j] = d.split('-').map(Number); return `${j} ${MOIS[m - 1]} ${y}`; };
 const words = t => (t.match(/\S+/g) || []).length;
 
 // texte simple → HTML : « ## » intertitre, « ### », « - » liste, **gras**, [texte](/actus/…) ou [texte](jeu). Aucun lien vers un autre site.
 function md(t, slugs) {
-  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, href) => {
+  const inline = s => esc(s).replace(/(^|[\s(])(contact@lucidstudio\.fr)/g, '$1<a href="mailto:$2">$2</a>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, href) => {
     href = href.replace(/&amp;/g, '&');
     if (href === 'jeu') return `<a href="${GAME}" data-lp="beta-article">${label}</a>`;
     const a = /^\/actus\/([a-z0-9-]+)$/.exec(href); if (a && slugs.includes(a[1])) return `<a href="${href}">${label}</a>`;
-    if (href === '/' || href === '/actus') return `<a href="${href}">${label}</a>`;
+    if (href === '/' || href === '/actus' || PAGE_SLUGS.includes(href.slice(1))) return `<a href="${href}">${label}</a>`;
     return label;
   });
   const out = []; let list = null, para = [];
@@ -130,7 +133,7 @@ h1{font:400 clamp(30px,6.4vw,46px)/1.08 'Lilita One',sans-serif;margin:0 0 10px;
 .card div{padding:12px 14px 16px;display:flex;flex-direction:column;flex:1}.card time{font-size:12.5px;font-weight:800;color:#8a6a50;margin-bottom:4px}.card b{display:block;font:400 20px/1.15 'Lilita One',sans-serif}.card p{margin:6px 0 0;font-size:14px;line-height:1.45;color:#5a4030}
 .card small{display:block;margin-top:auto;padding-top:12px;font-weight:800;color:#b4127a}
 .list{max-width:1080px}.list .intro{text-align:center;color:#e6dcff;max-width:640px;margin:0 auto 24px}
-footer{text-align:center;font-size:13px;color:#b9a8d9;padding:10px 16px 30px}
+footer{text-align:center;font-size:13px;color:#b9a8d9;padding:10px 16px 30px}.legal{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;margin-bottom:12px}.legal a{color:#e6dcff;font-weight:800}
 @media (max-width:560px){body{font-size:16px}.top nav a.hide-m{display:none}.ticket{--n:8px;--g:26px;border-radius:21px}.paper{border-radius:18px}}`;
 
 const HIT = slug => `<script>
@@ -160,7 +163,7 @@ function shell({ title, desc, url, img, ld, body, slug }) {
 <body>
 <header class="top"><a class="brand" href="/">BIFF <span>CITY</span></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
 ${body}
-<footer>Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
+<footer>${FOOT_LINKS}Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 ${HIT(slug)}
 </body>
 </html>`;
@@ -205,6 +208,12 @@ function renderIndex(content) {
   return shell({ title: 'Actus et guides du jeu | Biff City', desc: 'Toutes les nouveautés et les guides de Biff City : paris sportifs fictifs, casino gratuit, crypto sans argent réel, collection de cartes et événements.', url, img: c.hero.img, ld, body, slug: 'actus' });
 }
 
+function renderPage(content, s) {
+  const pg = PAGES.find(p => p.slug === s); if (!pg) return null;
+  const url = `${SITE}/${pg.slug}`, ld = { '@context': 'https://schema.org', '@type': 'WebPage', name: pg.h1, url, inLanguage: 'fr', isPartOf: { '@type': 'WebSite', name: 'Biff City', url: SITE + '/' } };
+  const body = `<main><div class="crumbs"><a href="/">Biff City</a> › ${esc(pg.h1)}</div><h1>${esc(pg.h1)}</h1><div class="ticket"><div class="paper">${md(pg.body, clean(content || defaults()).articles.map(a => a.slug))}</div></div></main>`;
+  return shell({ title: pg.title, desc: pg.desc, url, img: '/assets/img/load-8.jpg', ld, body, slug: pg.slug });
+}
 const articleSlugs = content => clean(content || defaults()).articles.map(a => ({ slug: a.slug, date: a.date }));
 
-module.exports = { render, clean, defaults, renderArticle, renderIndex, articleSlugs };
+module.exports = { render, clean, defaults, renderArticle, renderIndex, renderPage, articleSlugs, PAGE_SLUGS };

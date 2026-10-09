@@ -57,6 +57,7 @@ main { position: relative; min-height: 100vh; min-height: 100dvh; display: flex;
 .age b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #b8261a; border: 2px solid #fff; font: 400 13px 'Lilita One', sans-serif; color: #fff; }
 footer { margin-top: 18px; font-size: 12px; color: #b9a8d9; }
 footer a { color: #fff; }
+.legal { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin-bottom: 10px; } .legal a { font-weight: 800; color: #e6dcff; }
 .blk { width: 100%; max-width: 980px; margin: 34px auto 0; text-align: left; }
 .blk h2 { margin: 0 0 12px; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -94,9 +95,9 @@ footer a { color: #fff; }
 .jeu { width: 100%; max-width: 1080px; margin: 40px auto 0; }
 .jeu h2, .final h2 { margin: 0; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
 .jeu-sub { margin: 6px auto 18px; color: #e6dcff; text-align: center; max-width: 520px; }
-.shots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; text-align: left; }
+.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 24px; text-align: left; }
 .shot { display: flex; flex-direction: column; gap: 10px; color: #fff; text-decoration: none; }
-.shot figure { margin: 0; aspect-ratio: 540 / 1169; border-radius: 26px; overflow: hidden; border: 4px solid var(--ink); background: #120c24; box-shadow: 0 0 0 4px #3b2a6b, 0 7px 0 4px var(--ink), 0 18px 40px rgba(0,0,0,.45); transition: transform .2s; }
+.shot figure { margin: 0; aspect-ratio: 1; border-radius: 26px; overflow: hidden; border: 4px solid var(--ink); background: #2a1458; box-shadow: 0 7px 0 var(--ink), 0 18px 40px rgba(0,0,0,.45); transition: transform .2s; }
 .shot:hover figure { transform: translateY(-4px) rotate(-1deg); }
 .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .shot b { display: block; font: 400 19px/1.15 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
@@ -109,7 +110,7 @@ footer a { color: #fff; }
 .sticky-cta.on { transform: translate(-50%, 0); }
 @media (min-width: 900px) { .sticky-cta { display: none; } }
 @media (max-width: 899px) { main { padding-bottom: 96px !important; } }
-@media (max-width: 760px) { .shots { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; gap: 14px; padding: 4px 16px 14px; margin: 0 -16px; } .shots::-webkit-scrollbar { display: none; } .shot { flex: 0 0 64%; scroll-snap-align: center; } }
+@media (max-width: 760px) { .shots { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; gap: 14px; padding: 4px 16px 14px; margin: 0 -16px; } .shots::-webkit-scrollbar { display: none; } .shot { flex: 0 0 86%; scroll-snap-align: center; } }
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .dots { gap: 2px !important; } .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; } .dots button::after { content: ''; width: 10px; height: 10px; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); transition: width .25s, background .25s; }
 .dots button.on { width: 34px; } .dots button.on::after { width: 28px; background: var(--gold); }
@@ -136,8 +137,8 @@ footer a { color: #fff; }
   <a class="cta hero-cta" href="https://game.biffcity.fr/" data-lp="beta-hero">Jouer à la bêta</a>
   <p class="cta-note">Gratuit, dans ton navigateur, sans téléchargement</p>
   <div class="spacer"></div>
-  <p class="soon">Bientôt disponible</p>
-  <p class="lead">Le jeu mobile où tu pars de rien et fais grimper ton patrimoine : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.</p>
+  <p class="soon">La bêta est ouverte !</p>
+  <p class="lead">Le jeu est déjà accessible gratuitement dans ton navigateur. Découvre Biff City avant sa sortie officielle : paris sportifs fictifs, crypto, casino, collection de cartes et vie de quartier.</p>
   <div class="feats">
     <div class="feat"><img src="/assets/lp/o/app-bets.webp" alt="" width="64" height="64"><b>Parie</b><small>Foot, basket, tennis, rugby : des matchs en direct</small></div>
     <div class="feat"><img src="/assets/lp/o/app-crypto.webp" alt="" width="64" height="64"><b>Investis</b><small>Crypto, bourse, immobilier : achète bas, revends haut</small></div>
@@ -150,10 +151,10 @@ footer a { color: #fff; }
     <h2 id="jeu-t">Le jeu en images</h2>
     <p class="jeu-sub">Une vraie ville à faire tourner, pas un simple site de pronos.</p>
     <div class="shots">
-      <a class="shot" href="/actus/jeu-paris-sportifs-fictifs"><figure><img src="/assets/lp/jeu-paris.webp" alt="Écran des paris au Royal : un match de foot, ses cotes et un ticket combiné" loading="lazy" width="540" height="1169"></figure><div><b>Parie sur des matchs en direct</b><p>Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/fonctionnalites-biff-city"><figure><img src="/assets/lp/jeu-ville.webp" alt="La ville de Biff City vue de dessus avec ses bâtiments" loading="lazy" width="540" height="1169"></figure><div><b>Une ville entière à conquérir</b><p>Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/appartement-et-minage"><figure><img src="/assets/lp/jeu-appart.webp" alt="L&#39;appartement de luxe avec le PC, la machine de minage et les étagères de collection" loading="lazy" width="540" height="1169"></figure><div><b>Ton appart grandit avec toi</b><p>Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.</p><span class="go">En savoir plus ›</span></div></a>
-      <a class="shot" href="/actus/boosters-et-cartes"><figure><img src="/assets/lp/jeu-cartes.webp" alt="Une carte holographique Dragon Ardent ouverte en grand" loading="lazy" width="540" height="1169"></figure><div><b>Des cartes qui brillent</b><p>Ouvre des boosters, collectionne des cartes holographiques et des objets rares qui prennent de la valeur.</p><span class="go">En savoir plus ›</span></div></a>
+      <a class="shot" href="/actus/jeu-paris-sportifs-fictifs"><figure><img src="/assets/lp/feat-paris.webp" alt="Un ticket combiné ×4 gagné au Royal : +12 310 de gains, avec confettis" loading="lazy" width="900" height="900"></figure><div><b>Parie sur des matchs en direct</b><p>Foot, basket, tennis, rugby : choisis tes cotes, monte un combiné et suis le score en direct.</p><span class="go">En savoir plus ›</span></div></a>
+      <a class="shot" href="/actus/appartement-et-minage"><figure><img src="/assets/lp/feat-appart.webp" alt="Avant/après : le studio sous les toits du début et la chambre de luxe remplie d&#39;objets" loading="lazy" width="900" height="900"></figure><div><b>Ton appart grandit avec toi</b><p>Du studio sous les toits à la chambre de luxe, avec ton PC, ta machine de minage et tes trésors.</p><span class="go">En savoir plus ›</span></div></a>
+      <a class="shot" href="/actus/fonctionnalites-biff-city"><figure><img src="/assets/lp/feat-ville.webp" alt="La ville de Biff City avec le Royal, le casino, le Club et la collection" loading="lazy" width="900" height="900"></figure><div><b>Une ville entière à conquérir</b><p>Le Royal, le Lucky Palace, le Club, le Comptoir : chaque bâtiment est une façon de gagner.</p><span class="go">En savoir plus ›</span></div></a>
+      <a class="shot" href="/actus/boosters-et-cartes"><figure><img src="/assets/lp/feat-cartes.webp" alt="Ouverture d’un booster avec une carte légendaire, Le Parrain" loading="lazy" width="900" height="900"></figure><div><b>Des cartes qui brillent</b><p>Ouvre des boosters, collectionne des cartes holographiques et des objets rares qui prennent de la valeur.</p><span class="go">En savoir plus ›</span></div></a>
     </div>
     <div class="cta-wrap"><a class="cta" href="https://game.biffcity.fr/" data-lp="beta-jeu">Jouer à la bêta</a><p class="cta-note">Gratuit, dans ton navigateur, sans téléchargement</p></div>
   </section>
@@ -175,7 +176,7 @@ footer a { color: #fff; }
   </section>
   <section class="final" id="final" aria-labelledby="final-t"><h2 id="final-t">Prêt à devenir riche ?</h2><p>La bêta est gratuite et se joue tout de suite dans ton navigateur.</p><a class="cta" href="https://game.biffcity.fr/" data-lp="beta-fin">Jouer à la bêta</a></section>
   <div class="age"><b>18+</b> Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.</div>
-  <footer>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
+  <footer><nav class="legal"><a href="/assistance">Assistance</a><a href="/conditions">Conditions d'utilisation</a><a href="/confidentialite">Confidentialité</a><a href="/mentions-legales">Mentions légales</a></nav>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 </main>
 <a class="sticky-cta" id="sticky-cta" href="https://game.biffcity.fr/" data-lp="beta-sticky" aria-hidden="true" tabindex="-1">Jouer à la bêta</a>
 <script>
