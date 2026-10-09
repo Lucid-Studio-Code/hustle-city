@@ -56,7 +56,7 @@ footer { margin-top: 18px; font-size: 12px; color: #b9a8d9; }
 footer a { color: #fff; }
 .blk { width: 100%; max-width: 980px; margin: 34px auto 0; text-align: left; }
 .blk h2 { margin: 0 0 12px; font: 400 clamp(26px, 6vw, 34px) 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); text-align: center; }
-.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .nc { display: flex; flex-direction: column; background: #fffdf6; color: var(--ink); border: 3px solid var(--ink); border-radius: 20px; box-shadow: 0 5px 0 var(--ink); overflow: hidden; }
 .ni { position: relative; aspect-ratio: 16 / 9; background: radial-gradient(circle at 50% 40%, #6b3fc0, #2a1a4a); overflow: hidden; border-bottom: 3px solid var(--ink); }
 .ni img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; } .ni img.contain { inset: 9% 15%; width: 70%; height: 82%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
@@ -70,20 +70,19 @@ footer a { color: #fff; }
 .car { position: relative; }
 .slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
 .slides::-webkit-scrollbar { display: none; }
-.bn { position: relative; flex: 0 0 100%; scroll-snap-align: center; padding: 64px 4px 10px; }
+.bn { position: relative; flex: 0 0 100%; scroll-snap-align: center; padding: 96px 4px 12px; }
 .bn-card { position: relative; height: 230px; border: 4px solid var(--ink); border-radius: 24px; background-size: cover; box-shadow: 0 7px 0 var(--ink), 0 18px 40px rgba(0,0,0,.45); overflow: hidden; }
 .bn-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(27,20,51,.92) 0%, rgba(27,20,51,.75) 45%, rgba(27,20,51,0) 75%); }
 .bn-txt { position: absolute; left: 20px; top: 0; bottom: 0; width: 58%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .bn-txt b { display: block; margin: 8px 0 6px; font: 400 clamp(22px, 5.4vw, 32px)/1.05 'Lilita One', sans-serif; color: #fff; text-shadow: 0 3px 0 var(--ink); }
 .bn-txt p { margin: 0; font: 700 14px/1.4 'Nunito', sans-serif; color: #f1e8ff; }
-.bn-pop { position: absolute; right: 2%; bottom: 14px; height: 300px; width: 42%; object-fit: contain; object-position: bottom; pointer-events: none; }
-.bn-pop.obj { height: 280px; bottom: 110px; right: 5%; width: 36%; transform: rotate(-8deg); animation: flotte 3s ease-in-out infinite; }
-@keyframes flotte { 50% { transform: rotate(-3deg) translateY(-10px); } }
+.bn-pop { position: absolute; right: 4%; bottom: 16px; height: 300px; width: 38%; object-fit: contain; object-position: bottom; pointer-events: none; }
+
+.bn-pop.skin { width: auto; top: 30px; bottom: auto; height: 480px; clip-path: inset(0 0 39.2% 0); }
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .dots button { width: 10px; height: 10px; padding: 0; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); cursor: pointer; transition: width .25s, background .25s; }
 .dots button.on { width: 28px; background: var(--gold); }
-@media (max-width: 520px) { .bn { padding-top: 54px; } .bn-card { height: 210px; } .bn-txt { left: 14px; width: 60%; } .bn-txt p { font-size: 12.5px; } .bn-pop { height: 250px; width: 46%; right: 0; } .bn-pop.obj { height: 165px; bottom: 100px; width: 38%; } .bn-txt { width: 54%; } }
-@media (prefers-reduced-motion: reduce) { .bn-pop.obj { animation: none; } }
+@media (max-width: 520px) { .bn { padding-top: 70px; } .bn-card { height: 210px; } .bn-txt { left: 14px; width: 60%; } .bn-txt p { font-size: 12.5px; } .bn-pop { height: 262px; width: 46%; right: 0; } .bn-pop.skin { width: auto; right: 0; top: 46px; height: 330px; clip-path: inset(0 0 30.3% 0); } .bn-txt { width: 54%; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
 @media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } .cast { height: 112px; } }
 @media (min-width: 900px) {
@@ -118,13 +117,14 @@ footer a { color: #fff; }
   </div>
   <section class="news" id="actus" aria-label="Actualités">
     <h2>Actualités</h2>
-    <div class="car"><div class="slides"><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-piste.webp);background-position:50% 35%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : des dialogues qui rapportent gros… ou te coûtent cher.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-lea.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-neon.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous fait peau neuve.</p></div></div><img class="bn-pop obj" src="/assets/img/slot-seven.webp" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-vip.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>10 personnages au Club</b><p>Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-dj.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-or.jpg);background-position:50% 45%"><div class="bn-txt"><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.</p></div></div><img class="bn-pop obj" src="/assets/img/booster-pack.webp" alt="" loading="lazy"></article></div><div class="dots"></div></div>
+    <div class="car"><div class="slides"><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-piste.webp);background-position:50% 35%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Club ouvre ses portes</b><p>Piste, bar, carré VIP, DJ et toilettes louches : des dialogues qui rapportent gros… ou te coûtent cher.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-lea.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-neon.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>Le Lucky Palace relooké</b><p>Cerise à lunettes, citron casquette, 7 en chaîne en or : la machine à sous fait peau neuve.</p></div></div><img class="bn-pop skin" src="/assets/img/skin-flambeur.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/club-vip.jpg);background-position:50% 40%"><div class="bn-txt"><span class="chip new">Nouveau</span><b>10 personnages au Club</b><p>Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard.</p></div></div><img class="bn-pop perso" src="/assets/img/clubp-dj.png" alt="" loading="lazy"></article><article class="bn"><div class="bn-card" style="background-image:url(/assets/img/bg-city-or.jpg);background-position:50% 45%"><div class="bn-txt"><span class="chip live">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.</p></div></div><img class="bn-pop skin" src="/assets/img/skin-survet.png" alt="" loading="lazy"></article></div><div class="dots"></div></div>
   </section>
   <section class="blk" id="bientot">
     <h2>Prochainement</h2>
     <div class="cards">
       <article class="nc"><div class="ni"><img src="/assets/img/ev-cdm-bg.webp" alt="La ville pendant la Coupe des Morts" style="object-position:50% 30%"></div><div class="nt"><span class="chip ev" data-cd="2026-10-24T10:00:00+02:00" data-end="2026-11-02T23:59:00+01:00">Du 24 oct. au 2 nov.</span><b>La Coupe des Morts</b><p>L'événement d'Halloween : choisis ton équipe de créatures, marque des points pour elle et décroche des cartes et décos exclusives.</p></div></article>
-      <article class="nc"><div class="ni"><img src="/assets/img/card-bg-rugby.jpg" alt="Le stade du Tournoi des 6 Quartiers" style="object-position:50% 40%"></div><div class="nt"><span class="chip soon">Février 2027</span><b>Le Tournoi des 6 Quartiers</b><p>Le grand tournoi de rugby de la ville : pronostics, classement en ligne et une série de cartes dédiée.</p></div></article>
+      <article class="nc"><div class="ni"><img src="/assets/img/art-c-signed.webp" alt="Une carte rare de la collection" style="object-position:50% 30%"></div><div class="nt"><span class="chip live">Seulement pendant la bêta</span><b>La collection Bêta</b><p>Une série de cartes réservée à ceux qui jouent pendant la bêta. Elle ne sera plus jamais distribuée après la sortie.</p></div></article>
+      <article class="nc"><div class="ni"><img src="/assets/img/load-1.jpg" alt="Une joueuse envoie son avis depuis son téléphone" style="object-position:50% 22%"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Ton avis rapporte</b><p>Chaque retour utile sur une fonctionnalité te rapporte des lingots et des boosters. Il s'envoie depuis les Réglages du jeu.</p></div></article>
       <article class="nc"><div class="ni"><img src="/assets/img/load-2.jpg" alt="Le Survêt joue sur son téléphone" style="object-position:50% 38%"></div><div class="nt"><span class="chip soon">Bientôt</span><b>Sur l'App Store et Google Play</b><p>Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.</p></div></article>
     </div>
   </section>
