@@ -499,7 +499,7 @@
   // Pendant ses dates, la Coupe passe AVANT le tournoi sur le Panneau (sauf si le back office choisit prio = 'six').
   const CDM = {
     name: 'La Coupe des Morts', short: 'Coupe des Morts', on: true, prio: 'cdm', ed: '',
-    start: '2026-10-24T10:00:00+02:00', end: '2026-11-02T23:59:00+01:00',
+    start: '2026-10-15T10:00:00+02:00', end: '2026-11-02T23:59:00+01:00',
     teams: [
       { id: 'zombies',  name: 'Zombies',  color: '#5bbf3a', dark: '#1d4a12', emo: '🧟', motto: 'On lâche rien, même mort.' },
       { id: 'vampires', name: 'Vampires', color: '#b0243a', dark: '#4a0814', emo: '🧛', motto: 'On sort la nuit, on rentre riches.' },

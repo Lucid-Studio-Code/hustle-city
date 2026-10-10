@@ -27,7 +27,7 @@ Un journal sort toutes les 30 minutes au **Kiosque**. On y achète des tuyaux su
 Tes gains servent à tout le reste. Tu peux les placer en [cryptomonnaies fictives](/actus/jeu-crypto-sans-argent), les tenter au [Lucky Palace, le casino gratuit](/actus/machine-a-sous-gratuite) de la ville, ou les dépenser au [Club](/actus/club-biff-city). Chaque niveau débloque de nouveaux lieux, jusqu'au niveau 40.
 
 ## Pendant la Coupe des Morts, chaque pari compte pour ton équipe
-Du 24 octobre au 2 novembre, chaque pari gagné rapporte des points à ton équipe pour la [Coupe des Morts](/actus/coupe-des-morts), l'événement d'Halloween de Biff City.
+Du 15 octobre au 2 novembre, chaque pari gagné rapporte des points à ton équipe pour la [Coupe des Morts](/actus/coupe-des-morts), l'événement d'Halloween de Biff City.
 
 ## Jouer maintenant
 La bêta est ouverte, gratuite, et se joue directement dans le navigateur de ton téléphone. [Lance ta première mise au Royal](jeu)."""),
@@ -114,10 +114,10 @@ Le jeu tire au sort qui est présent dans chaque coin. Deux soirées ne se resse
 
 dict(slug='coupe-des-morts', date='2026-10-09', img='/assets/img/ev-cdm-bg.webp', imgPos='50% 30%',
  title="Coupe des Morts : l'événement d'Halloween de Biff City",
- desc="Du 24 octobre au 2 novembre, choisis ton équipe (Zombies, Vampires, Démons ou Fantômes), marque des points et gagne cartes, décos et lingots exclusifs.",
+ desc="Du 15 octobre au 2 novembre, choisis ton équipe (Zombies, Vampires, Démons ou Fantômes), marque des points et gagne cartes, décos et lingots exclusifs.",
  h1="La Coupe des Morts, l'événement d'Halloween",
  alt="La ville de Biff City décorée pour la Coupe des Morts",
- lead="Du 24 octobre au 2 novembre, Biff City se couvre de citrouilles. Quatre équipes de créatures s'affrontent, et c'est toi qui fais gagner la tienne.",
+ lead="Du 15 octobre au 2 novembre, Biff City se couvre de citrouilles. Quatre équipes de créatures s'affrontent, et c'est toi qui fais gagner la tienne.",
  body="""## Choisis ton camp
 Quatre équipes, quatre devises :
 - les **Zombies** : « On lâche rien, même mort. » ;
@@ -137,7 +137,7 @@ Presque tout ce que tu fais dans la ville rapporte des points à ton équipe : u
 Et tous ceux qui ont joué repartent avec la Coupe des Morts en trophée pour leur appartement.
 
 ## Se préparer dès maintenant
-Commence ta partie avant le 24 octobre pour arriver avec un niveau qui débloque le casino et le Club. Le plus rapide : enchaîner les [paris sportifs fictifs](/actus/jeu-paris-sportifs-fictifs).
+Commence ta partie avant le 15 octobre pour arriver avec un niveau qui débloque le casino et le Club. Le plus rapide : enchaîner les [paris sportifs fictifs](/actus/jeu-paris-sportifs-fictifs).
 
 [Choisis ton équipe](jeu)"""),
 
