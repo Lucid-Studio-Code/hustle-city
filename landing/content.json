@@ -395,7 +395,7 @@
     "link": "machine-a-sous-gratuite"
    },
    {
-    "img": "/assets/lp/v-argent-2.webp",
+    "img": "/assets/lp/v-argent-3.webp",
     "alt": "KebabCoin en hausse, sneakers, montre, or et voiture avec leur cote",
     "title": "Tout a une cote",
     "text": "Crypto, sneakers, montres, or : achète bas, revends haut.",
@@ -416,8 +416,8 @@
     "link": "boosters-et-cartes"
    },
    {
-    "img": "/assets/lp/v-trophees-2.webp",
-    "alt": "La vitrine des trophées et la revente d'un trophée",
+    "img": "/assets/lp/v-trophees-3.webp",
+    "alt": "La vitrine des trophées et la plus-value à la revente d'un trophée",
     "title": "60 trophées à débloquer",
     "text": "Expose-les chez toi, ou revends-les au prix fort.",
     "link": "niveaux-et-classement"
@@ -437,13 +437,6 @@
     "link": "personnages-du-club"
    },
    {
-    "img": "/assets/lp/v-custom-3.webp",
-    "alt": "La ville de Biff City en version néon, or et neige",
-    "title": "Ta ville, ton style",
-    "text": "Néons, or, neige : change le look de toute ta ville.",
-    "link": "fonctionnalites-biff-city"
-   },
-   {
     "img": "/assets/lp/v-events-2.webp",
     "alt": "Le classement en ligne des joueurs de Biff City",
     "title": "Classement et événements",
@@ -451,10 +444,10 @@
     "link": "coupe-des-morts"
    },
    {
-    "img": "/assets/lp/v-ville-5.webp",
-    "alt": "La ville de Biff City avec le Royal, le casino, le Club et la crypto",
-    "title": "Toute une ville",
-    "text": "Paris, casino, Club, crypto : à toi de jouer.",
+    "img": "/assets/lp/v-ville-6.webp",
+    "alt": "La ville de Biff City et ses bâtiments, en version néon et neige",
+    "title": "Ta ville à gérer",
+    "text": "Débloque les lieux, fais tourner chaque business, change son look.",
     "link": "fonctionnalites-biff-city"
    }
   ]
