@@ -50,9 +50,6 @@ main { position: relative; min-height: 100vh; min-height: 100dvh; display: flex;
 .cta:active { transform: translateY(4px); box-shadow: inset 0 -5px 0 rgba(0,0,0,.18), 0 2px 0 var(--ink); }
 @keyframes pulse { 50% { transform: scale(1.04); } }
 .cta-note { margin: 10px 0 0; font-size: 13px; color: #d9cbf5; }
-.cast { display: flex; justify-content: center; align-items: flex-end; gap: 0; margin: 30px auto 0; height: 150px; }
-.cast img { height: 100%; width: auto; margin: 0 -10px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
-.cast img:nth-child(4) { height: 112%; z-index: 2; }
 .age { margin-top: 26px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(0,0,0,.35); font-size: 13px; color: #e8dcff; }
 .age b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #b8261a; border: 2px solid #fff; font: 400 13px 'Lilita One', sans-serif; color: #fff; }
 footer { margin-top: 18px; font-size: 12px; color: #b9a8d9; }
@@ -115,14 +112,14 @@ footer a { color: #fff; }
 .dots button.on { width: 34px; } .dots button.on::after { width: 28px; background: var(--gold); }
 @media (max-width: 520px) { .bn { --head: 82px; --crown: -21px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 80%; } .bn-card { height: auto; min-height: 286px; display: flex; align-items: center; } .bn-txt { position: relative; left: auto; top: auto; bottom: auto; width: 50%; padding: 18px 0 18px 18px; } .bn-txt b { font-size: clamp(20px, 5.6vw, 24px); } .bn-txt p { font-size: 12.5px; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
-@media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } .cast { height: 112px; } }
+@media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } }
 @media (min-width: 900px) {
   .bg i { display: block; top: 0; filter: blur(16px) brightness(.45); -webkit-mask-image: none; mask-image: none; transform: scale(1.1); animation: none; }
-  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); grid-template-areas: "logo art" "tag art" "soon art" "lead art" "feats art" "cast cast" "jeu jeu" "actus actus" "bientot bientot" "final final" "age age" "foot foot"; column-gap: 56px; align-content: center; justify-content: center; max-width: 1180px; margin: 0 auto; padding: 48px 32px; text-align: left; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); grid-template-areas: "logo art" "tag art" "soon art" "lead art" "feats art" "jeu jeu" "actus actus" "bientot bientot" "final final" "age age" "foot foot"; column-gap: 56px; align-content: center; justify-content: center; max-width: 1180px; margin: 0 auto; padding: 48px 32px; text-align: left; }
   .logo { grid-area: logo; justify-self: start; } .tag { grid-area: tag; justify-self: start; } .spacer { display: none; }
   .soon { grid-area: soon; margin-top: 28px; } .lead { grid-area: lead; margin: 0 0 18px; } .cta { grid-area: art; align-self: end; justify-self: center; margin: 0 0 64px; z-index: 2; transform: rotate(2deg); } .soon { margin-top: 28px !important; } .cta-note { grid-area: art; align-self: end; justify-self: center; margin: 0 0 30px; z-index: 2; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.8); } .feats { grid-area: feats; }
   .art { display: block; grid-area: art; align-self: center; width: 100%; margin: 0; aspect-ratio: 1080 / 1935; background-position: center; max-height: 82vh; background: url(/assets/lp/o/load-8.webp?v=d1c83f6f) center / cover; border: 4px solid var(--ink); border-radius: 28px; box-shadow: 0 8px 0 var(--ink), 0 24px 60px rgba(0,0,0,.55); transform: rotate(2deg); }
-  .cast { grid-area: cast; } #actus { grid-area: actus; justify-self: center; } #jeu { grid-area: jeu; min-width: 0; } #final { grid-area: final; } .jeu .cta, .final .cta { grid-area: auto; transform: none; margin: 0; } .jeu .cta-note { grid-area: auto; margin: 10px 0 0; } #bientot { grid-area: bientot; } .age { grid-area: age; justify-self: center; } footer { grid-area: foot; text-align: center; }
+  #actus { grid-area: actus; justify-self: center; } #jeu { grid-area: jeu; min-width: 0; } #final { grid-area: final; } .jeu .cta, .final .cta { grid-area: auto; transform: none; margin: 0; } .jeu .cta-note { grid-area: auto; margin: 10px 0 0; } #bientot { grid-area: bientot; } .age { grid-area: age; justify-self: center; } footer { grid-area: foot; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { .bg { animation: none; } }
 </style>
@@ -142,9 +139,6 @@ footer a { color: #fff; }
     <div class="feat"><img src="/assets/lp/o/app-bets.webp?v=a780b37b" alt="" width="64" height="64"><b>Parie</b><small>Foot, basket, tennis : des matchs en direct</small></div>
     <div class="feat"><img src="/assets/lp/o/app-crypto.webp?v=9f26b425" alt="" width="64" height="64"><b>Investis</b><small>Crypto, bourse, immobilier : achète bas, revends haut</small></div>
     <div class="feat"><img src="/assets/lp/o/app-boosters.webp?v=ada45a04" alt="" width="64" height="64"><b>Collectionne</b><small>Cartes, sneakers, montres, voitures de luxe</small></div>
-  </div>
-  <div class="cast" aria-hidden="true">
-    <img src="/assets/lp/o/skin-doudoune.webp?v=f462d37e" alt=""><img src="/assets/lp/o/skin-flambeur.webp?v=84693665" alt=""><img src="/assets/lp/o/skin-sportive.webp?v=bc27ddb3" alt=""><img src="/assets/lp/o/skin-survet.webp?v=affeeceb" alt=""><img src="/assets/lp/o/skin-boss.webp?v=25bdc71f" alt=""><img src="/assets/lp/o/skin-hoodie.webp?v=288141f7" alt=""><img src="/assets/lp/o/skin-gold.webp?v=3e5d2ed3" alt="">
   </div>
   <section class="jeu" id="jeu" aria-labelledby="jeu-t">
     <h2 id="jeu-t">Le jeu en images</h2>
