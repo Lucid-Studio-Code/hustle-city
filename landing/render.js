@@ -35,7 +35,7 @@ function clean(c) {
     articles: (Array.isArray(c.articles) ? c.articles : d.articles || []).slice(0, 60).filter(x => slug(x.slug)).map(x => ({
       slug: slug(x.slug), date: /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : new Date().toISOString().slice(0, 10), img: im(x.img, d.hero.img), imgPos: pos(x.imgPos, '50% 50%'), alt: txt(x.alt, 140, ''),
       title: txt(x.title, 90, ''), desc: txt(x.desc, 170, ''), h1: txt(x.h1, 110, ''), lead: txt(x.lead, 500, ''), body: txt(x.body, 20000, '') })),
-    jeu: { title: txt((c.jeu || {}).title, 50, d.jeu.title), sub: txt((c.jeu || {}).sub, 160, d.jeu.sub), items: (Array.isArray((c.jeu || {}).items) ? c.jeu.items : d.jeu.items).slice(0, 6).map(x => ({ img: im(x.img, d.jeu.items[0].img), alt: txt(x.alt, 160, ''), title: txt(x.title, 60, ''), text: txt(x.text, 180, ''), link: slug(x.link) })) },
+    jeu: { title: txt((c.jeu || {}).title, 50, d.jeu.title), sub: txt((c.jeu || {}).sub, 160, d.jeu.sub), items: (Array.isArray((c.jeu || {}).items) ? c.jeu.items : d.jeu.items).slice(0, 14).map(x => ({ img: im(x.img, d.jeu.items[0].img), alt: txt(x.alt, 160, ''), title: txt(x.title, 60, ''), text: txt(x.text, 180, ''), link: slug(x.link) })) },
     final: { title: txt((c.final || {}).title, 60, d.final.title), text: txt((c.final || {}).text, 200, d.final.text) },
     age: txt(c.age, 200, d.age)
   };
