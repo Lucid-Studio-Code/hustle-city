@@ -381,11 +381,25 @@
     "link": "jeu-paris-sportifs-fictifs"
    },
    {
+    "img": "/assets/lp/v-sports.webp",
+    "alt": "Matchs de foot, basket, tennis et rugby en direct au Royal",
+    "title": "Tous les sports",
+    "text": "Des matchs en continu, des cotes en direct.",
+    "link": "jeu-paris-sportifs-fictifs"
+   },
+   {
     "img": "/assets/lp/v-casino.webp",
     "alt": "Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000",
     "title": "Le Lucky Palace",
     "text": "Machine à sous et roulette, jusqu’à ×500.",
     "link": "machine-a-sous-gratuite"
+   },
+   {
+    "img": "/assets/lp/v-argent.webp",
+    "alt": "Les applis pour gagner de l'argent fictif : paris, crypto, minage, immobilier",
+    "title": "Mille façons de gagner",
+    "text": "Paris, crypto, minage, immo, agence…",
+    "link": "fonctionnalites-biff-city"
    },
    {
     "img": "/assets/lp/v-appart-4.webp",
@@ -400,6 +414,34 @@
     "title": "Cartes légendaires",
     "text": "Ouvre des boosters, revends au bon prix.",
     "link": "boosters-et-cartes"
+   },
+   {
+    "img": "/assets/lp/v-trophees.webp",
+    "alt": "La vitrine des trophées à débloquer dans Biff City",
+    "title": "60 trophées à gagner",
+    "text": "Chaque exploit s'expose dans ton appart.",
+    "link": "niveaux-et-classement"
+   },
+   {
+    "img": "/assets/lp/v-club.webp",
+    "alt": "La salle du Club : piste, bar, DJ et carré VIP",
+    "title": "Le Club, chaque soir",
+    "text": "Deux choix, et ta soirée bascule.",
+    "link": "club-biff-city"
+   },
+   {
+    "img": "/assets/lp/v-custom.webp",
+    "alt": "Les décors de ville et les personnages à choisir",
+    "title": "Ta ville, ton style",
+    "text": "Change de perso et de décor de ville.",
+    "link": "fonctionnalites-biff-city"
+   },
+   {
+    "img": "/assets/lp/v-events.webp",
+    "alt": "La Coupe des Morts d'Halloween et le classement en ligne",
+    "title": "Événements et classement",
+    "text": "La Coupe des Morts et le top des joueurs.",
+    "link": "coupe-des-morts"
    },
    {
     "img": "/assets/lp/v-ville-4.webp",
