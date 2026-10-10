@@ -5,16 +5,16 @@ import json, pathlib
 A = [
 dict(slug='jeu-paris-sportifs-fictifs', date='2026-10-09', img='/assets/img/load-7.jpg', imgPos='50% 30%',
  title='Jeu de paris sportifs fictifs gratuit : parie sans argent réel',
- desc='Biff City est un jeu de paris sportifs fictifs gratuit : foot, basket, tennis et rugby en direct, cotes, combinés, zéro argent réel. Bêta ouverte.',
+ desc='Biff City est un jeu de paris sportifs fictifs gratuit : foot, basket et tennis en direct, cotes, combinés, zéro argent réel. Bêta ouverte.',
  h1='Un jeu de paris sportifs fictifs, gratuit et sans argent réel',
  alt='La Sportive célèbre un pari gagné dans le stade de Biff City',
  lead="Envie de parier sur un match sans risquer un centime ? Biff City est un jeu mobile où tu paries avec de l'argent fictif sur des matchs qui se jouent en direct, et où chaque gain te sert à faire grimper ton patrimoine.",
  body="""## Comment marchent les paris dans Biff City
-Tout se passe au **Royal**, le bar des parieurs de la ville. Des matchs fictifs s'y jouent en continu entre équipes inventées, dans quatre sports :
+Tout se passe au **Royal**, le bar des parieurs de la ville. Des matchs fictifs s'y jouent en continu entre équipes inventées, dans trois sports :
 - le **foot**, où tu peux aussi parier sur le match nul ;
 - le **basket** ;
-- le **tennis** ;
-- le **rugby**.
+- le **tennis**.
+Et pendant le **Tournoi des 6 Quartiers**, des pronos sur le rugby.
 Chaque match a ses cotes. Tu choisis ton vainqueur, ta mise, et tu suis le match en direct : le score évolue, l'arbitre siffle, les supporters explosent à chaque but. Les plus joueurs tentent le **pari combiné** : plusieurs pronostics sur le même ticket, une cote qui grimpe, et tout se joue sur le dernier match.
 
 ## Un simulateur de paris, sans le risque
@@ -193,7 +193,7 @@ La bêta se joue dans le navigateur de ton téléphone ou de ton ordinateur. Sur
 Ta progression est sauvegardée sur nos serveurs et se synchronise entre tes appareils. Le jour de la sortie, tu retrouveras ton niveau, ton argent fictif, tes objets et ta collection dans l'application, y compris tes cartes de [la collection Bêta](/actus/collection-beta).
 
 ## Ce qui t'attend
-- Des [paris sportifs fictifs](/actus/jeu-paris-sportifs-fictifs) en direct sur le foot, le basket, le tennis et le rugby.
+- Des [paris sportifs fictifs](/actus/jeu-paris-sportifs-fictifs) en direct sur le foot, le basket et le tennis.
 - Un [casino gratuit](/actus/machine-a-sous-gratuite) avec machine à sous et roulette.
 - Des [cryptos fictives](/actus/jeu-crypto-sans-argent) dont le cours bouge en continu.
 - Une boîte de nuit, [le Club](/actus/club-biff-city), et une collection de cartes, de sneakers, de montres et de voitures.
