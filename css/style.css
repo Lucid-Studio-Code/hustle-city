@@ -3438,6 +3438,8 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app:has(#pkplacer) #placer, #app:has(#pkplacer) #admin-banner { display: none; }
 
 /* tuto : appui hors de la case montrée → la case clignote pour la montrer */
+#app.tuto-on #ph-banner { display: none !important; }
+#app.tuto-on #toast { display: none !important; }   /* pendant un tuto, c'est Momo qui parle : les messages ne passent pas devant les cibles */
 #tuto-spot.nudge { animation: tutoNudge .45s ease-in-out 2; }
 @keyframes tutoNudge { 50% { transform: scale(1.08); border-color: #fff; } }
 .bst-prob { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; text-align: left; }

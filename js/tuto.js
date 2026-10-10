@@ -43,16 +43,16 @@
     kiosque: enter('kiosque', 'Le Kiosque', 'Là, c\'est <b>le Kiosque</b>, le journal du quartier. Entre.',
       'Toutes les 30 min, un nouveau journal sort avec des <b>tuyaux</b> : qui va gagner un match, si la crypto va monter… Ça coûte un peu, mais ça aide à mieux miser. L\'onglet <b>Boosters</b> vend des paquets de cartes.', '#modal .tabs'),
     bus: enter('bus', 'Arrêt de bus', 'Et ça, c\'est <b>l\'arrêt de bus</b>. Jette un œil.',
-      'Le bus mène aux autres quartiers : la Bijouterie, le Garage, la Tour… Chacun ouvre à son niveau, et je te préviendrai.', '#modal .sheet-body'),
+      'Le bus mène aux autres quartiers : la Bijouterie, le Garage, la Tour… Chacun ouvre à son niveau, et je te préviendrai.', '#modal [data-act=goPlace]'),
     casino: enter('casino', 'Lucky Palace', 'Nouveau : le <b>Lucky Palace</b> est ouvert ! Machine à sous et roulette. Entre.',
       'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
     shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes et des baskets de collection. Entre.',
-      'Ici, des <b>objets de collection</b> : cartes, baskets… Chacun a <b>une cote</b>, un prix qui bouge tous les jours, comme en Bourse. Le jeu : <b>acheter quand c\'est bas, revendre quand ça monte</b>. Ce que tu achètes se range sur <b>tes étagères</b> à l\'appart (attention, la place est limitée). Le Comptoir garde une petite part à l\'achat et à la revente, donc vise les objets qui vont vraiment grimper : les <b>Actus</b> te disent lesquels.', '#modal .sheet-body'),
+      'Cartes, baskets… chaque objet a <b>une cote</b> qui bouge tous les jours. Le jeu : <b>acheter bas, revendre haut</b>. Le Comptoir prend une petite part, alors vise ce qui va vraiment grimper : les <b>Actus</b> te le disent.', '#modal .price-explain'),
     six: enter('six', () => G.eventOff() ? 'Le Panneau' : 'Tournoi des 6 Quartiers', 'Nouveau sur la place : <b>le Panneau</b> de la ville ! Il annonce les grands événements. Touche-le.',
       () => G.eventOff() ? 'Pour l\'instant, pas d\'événement : le Panneau te dit <b>quand revient le prochain</b>. Ce jour-là : pronos <b>gratuits</b>, classement contre les autres joueurs et cartes en édition limitée dans les boosters. Repasse voir !'
-        : 'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs, #modal .panneau-off'),
+        : 'En ce moment : le <b>Tournoi des 6 Quartiers</b>, du rugby. Tes pronos sont <b>gratuits</b> : choisis le gagnant de chaque match avant le coup d\'envoi. Chaque bon prono te fait monter au <b>classement</b> contre les autres joueurs, et des <b>cartes en édition limitée</b> sortent des boosters.', '#modal .tabs, #modal .po-cdm'),
     club: enter('club', 'Le Club', 'Nouveau : <b>le Club</b> est ouvert ! Va voir le videur.',
-      'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo], #modal .sheet-body')
+      'Paie l\'entrée au videur, puis touche les <b>coins de la salle</b> : la piste pour l\'XP, le DJ pour doubler l\'ambiance, le bar, les canapés pour rencontrer des gens qui ont des plans, et le carré VIP. Chaque coin une fois par soirée.', '[data-act=clubGo], #modal .cr-main')
   };
   // nouveautés qui ne sont pas un bâtiment : présentées dès qu'elles se débloquent
   const goPlace = (id, name, intro, inside, target) => [
@@ -69,8 +69,7 @@
       'Ici : les <b>montres de luxe</b>, l\'<b>or</b> et les <b>raretés</b>. L\'or bouge peu et monte doucement : c\'est le placement tranquille.', '#modal .tabs'),
     agence: [
       { say: () => (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Nouveau : <b>ta page PrivéFans</b> ! Ouvre ton téléphone.' : 'Nouveau : <b>l\'agence PrivéFans</b> ! Ouvre ton téléphone.', target: '#phone-btn', done: () => !!$('[data-act=phoneApp][data-id=agence]') || (modalOpen() && /PrivéFans/.test(title())) },
-      { say: () => 'Touche l\'appli <b>PrivéFans</b>.', target: '[data-act=phoneApp][data-id=agence]', done: () => modalOpen() && /PrivéFans/.test(title()) },
-      { say: () => (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Choisis ta spécialité, lance des activités et encaisse tes gains. Garde un œil sur ton <b>énergie</b> : à plat, tu gagnes moins.' : 'Recrute une créatrice, organise ses journées et touche <b>ta part</b> de ses gains. Garde un œil sur son <b>moral</b> : plus ta part est grosse, plus il baisse.', target: '#modal .sheet-body', btn: 'Compris' }],
+      { say: () => 'Touche l\'appli <b>PrivéFans</b>.', target: '[data-act=phoneApp][data-id=agence]', done: () => modalOpen() && /PrivéFans/.test(title()) }],   // l'appli affiche ensuite son propre mot de Momo
     garage: goPlace('garage', 'Garage Prestige', 'Le bus mène maintenant au <b>Garage Prestige</b> ! Va à l\'arrêt.',
       'Voitures et motos de collection : chacune prend une place de parking. Ta première voiture fera apparaître <b>ton parking</b> en ville.', '#modal .tabs'),
     tour: goPlace('tour', 'La Tour', 'Le bus va maintenant jusqu\'à <b>la Tour</b> ! Va à l\'arrêt.',
@@ -97,7 +96,7 @@
   const unlockLvl = k => FEAT_LVL[k] ? FEAT_LVL[k]() : D.BUILDINGS.find(b => b.id === k).lvl;
   const seen = () => (st().bldTuto = st().bldTuto || {});
 
-  let placedFor = '';
+  let placedFor = '', lastRect = null;
   let idx = 0, timer = null, el = {}, STEPS = MAIN, bld = null;
   function ensureDom() {
     if (el.spot) return;
@@ -106,7 +105,7 @@
     el.arrow = document.createElement('div'); el.arrow.id = 'tuto-arrow';
     el.arrow.innerHTML = U.has('ui-tuto-arrow') ? `<img src="${U.src('ui-tuto-arrow')}" alt="">` : '👇';
     el.say = document.createElement('div'); el.say.id = 'tuto-say';
-    app.append(el.spot, el.arrow, el.say);
+    app.append(el.spot, el.arrow, el.say); app.classList.add('tuto-on');   // pendant un tuto, les notifications du téléphone ne passent pas devant
   }
   // l'encadré suit le dessin réel : on ignore les parties transparentes des images, et on reste dans l'écran
   const alphaBox = {};
@@ -150,21 +149,41 @@
     // repère = l'intérieur de #app (sans sa bordure de 5 px, sinon tous les cadres étaient décalés)
     const A = $('#app'), ar0 = A.getBoundingClientRect(), app = { left: ar0.left + A.clientLeft, top: ar0.top + A.clientTop, width: A.clientWidth, height: A.clientHeight, right: ar0.left + A.clientLeft + A.clientWidth, bottom: ar0.top + A.clientTop + A.clientHeight };
     const t = step.target && [...document.querySelectorAll(step.target)].find(e => e.offsetParent !== null);
-    if (!t) { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; el.say.classList.remove('low'); return; }
+    const hide = () => { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; el.say.style.top = ''; el.say.style.bottom = ''; lastRect = null; };
+    if (!t) { hide(); el.say.classList.remove('low'); return; }
     // la cible est dans une fenêtre qui défile : on l'amène à l'écran une fois par étape
-    if (placedFor !== idx + ':' + (bld || '')) { placedFor = idx + ':' + (bld || ''); const rr = t.getBoundingClientRect(); if (t.closest('#modal') && (rr.top < app.top + 60 || rr.bottom > app.bottom - 60)) { t.scrollIntoView({ block: 'center' }); return; } }
-    const r = tightRect(t, app), pad = 6;
+    if (placedFor !== idx + ':' + (bld || '')) { placedFor = idx + ':' + (bld || ''); const rr = t.getBoundingClientRect(); if (step.btn && t.closest('#modal') && rr.top > app.top + 160) { t.style.scrollMarginTop = '96px'; t.scrollIntoView({ block: 'start' }); return; }   // explication : la cible remonte en haut, la bulle prend le bas sans la cacher
+      if (t.closest('#modal, #phone-layer') && (rr.top < app.top + 60 || rr.bottom > app.bottom - 60)) { t.scrollIntoView({ block: 'center' }); return; } }
+    // étape d'explication sur une liste (lignes du bus…) : le cadre englobe toutes les lignes visibles
+    const all = step.btn ? [...document.querySelectorAll(step.target)].filter(e => e.offsetParent !== null && e.closest('#modal') === t.closest('#modal')) : [t];
+    const rs = all.map(e => tightRect(e, app)), r0 = { left: Math.min(...rs.map(x => x.left)), top: Math.min(...rs.map(x => x.top)), right: Math.max(...rs.map(x => x.right)), bottom: Math.min(app.bottom - 4, Math.max(...rs.map(x => x.bottom))) };
+    const r = { ...r0, width: r0.right - r0.left, height: r0.bottom - r0.top }, pad = 6;
+    // la cible bouge encore (fenêtre qui s'ouvre, défilement) : on attend qu'elle soit posée avant d'encadrer, sinon le cadre s'affiche à côté
+    const k = [r.left, r.top, r.width, r.height], moved = !lastRect || k.some((v, i) => Math.abs(v - lastRect[i]) > 4);
+    lastRect = k; if (moved && el.spot.style.display !== 'block') return;
+    // la cible est cachée par autre chose (fenêtre, pub, paquet de cartes) : pas de cadre sur du vide
+    const cx = Math.min(Math.max(r.left + r.width / 2, app.left + 1), app.right - 1), cy = Math.min(Math.max(r.top + r.height / 2, app.top + 1), app.bottom - 1);
+    const hit = document.elementFromPoint(cx, cy);
+    const root = t.closest('#modal, #phone-layer, #map, #pack') || t;
+    if (hit && !root.contains(hit) && !hit.closest('#tuto-spot, #tuto-arrow, #tuto-say')) { hide(); return; }
+    if (r.width < 4 || r.height < 4) { hide(); return; }
     Object.assign(el.spot.style, { display: 'block', left: (r.left - app.left - pad) + 'px', top: (r.top - app.top - pad) + 'px', width: (r.width + pad * 2) + 'px', height: (r.height + pad * 2) + 'px' });
     const above = r.top - app.top > 90;
     Object.assign(el.arrow.style, { display: 'block', left: (r.left - app.left + r.width / 2 - 24) + 'px', top: (above ? r.top - app.top - 62 : r.bottom - app.top + 6) + 'px' });
     el.arrow.classList.toggle('up', !above);
-    // la bulle se met du côté opposé à la cible
-    el.say.classList.toggle('low', r.top - app.top < app.height * .5);
+    // la bulle se colle au-dessus ou au-dessous de la cible, là où elle tient sans la cacher (sinon : côté le plus libre)
+    const h = el.say.offsetHeight, topMin = 84, botMax = app.height - 100;
+    const yAbove = (above ? r.top - app.top - 64 : r.top - app.top - 8) - h, yBelow = (above ? r.bottom - app.top + 10 : r.bottom - app.top + 66);
+    el.say.classList.toggle('low', app.bottom - r.bottom > r.top - app.top);
+    if (yBelow + h <= botMax) { el.say.style.top = yBelow + 'px'; el.say.style.bottom = 'auto'; }
+    else if (yAbove >= topMin) { el.say.style.top = yAbove + 'px'; el.say.style.bottom = 'auto'; }
+    else { el.say.style.top = ''; el.say.style.bottom = ''; }
   }
   function show() {
     const step = STEPS[idx];
     if (!step) return finish();
     ensureDom();
+    if (el.spot) { el.spot.style.display = 'none'; el.arrow.style.display = 'none'; } lastRect = null;   // nouvelle étape : l'ancien cadre disparaît tout de suite
     if (step.before) step.before();
     el.say.innerHTML = `<div class="who">${U.pic('guide', '🧢')}</div><div class="bubble"><button class="tuto-skip" id="tuto-skip">Passer</button><span class="nm">Momo</span>${step.say(U.esc(st().name))}${step.btn ? `<div style="text-align:right;margin-top:8px"><button class="btn green sm" id="tuto-next">${step.btn}</button></div>` : ''}</div>`;
     const nb = $('#tuto-next'); if (nb) nb.onclick = () => next();
@@ -183,7 +202,7 @@
   }
   function finish() {
     clearInterval(timer); timer = null;
-    ['spot', 'arrow', 'say'].forEach(k => el[k] && el[k].remove()); el = {};
+    ['spot', 'arrow', 'say'].forEach(k => el[k] && el[k].remove()); el = {}; $('#app').classList.remove('tuto-on');
     if (bld) seen()[bld] = true; else { st().tutoDone = true; seen().appart = seen().balto = true; }
     bld = null; STEPS = MAIN; G.save();
   }
@@ -194,7 +213,7 @@
     // reprise en cours de route : on repart d'une étape qui a du sens
     if (idx > 0 && idx < 9) idx = S('cryptoBuy') ? 8 : 1;
     else if (idx >= 9 && idx < 13) idx = S('bets') ? 13 : 9;
-    show(); clearInterval(timer); timer = setInterval(tick, 300);
+    show(); clearInterval(timer); timer = setInterval(tick, 150);
   }
   function skip() { finish(); }
   // pendant un tuto, seule la case montrée par Momo répond (et sa bulle) : un appui ailleurs ne fait rien
@@ -213,7 +232,7 @@
   function skipAll() { const s0 = st(); s0.noTuto = true; s0.tutoDone = true; finish(); Object.keys(BLD).forEach(k => seen()[k] = true); G.save(); U.toast && U.toast('Tutos coupés. Tu peux les remettre dans les Réglages.'); }
   function startBld(id) {
     bld = id; STEPS = BLD[id]; idx = 0;
-    show(); clearInterval(timer); timer = setInterval(tick, 300);
+    show(); clearInterval(timer); timer = setInterval(tick, 150);
   }
   // on attend un moment calme (en ville, aucune fenêtre ouverte) pour présenter le lieu suivant
   let calm = 0;
@@ -225,7 +244,7 @@
   setInterval(() => {
     featFix();
     const s = st(); if (!s || !s.tutoDone || s.noTuto || timer || !s.skin) { calm = 0; return; }
-    const busy = modalOpen() || U.pending > 0 || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg');
+    const busy = modalOpen() || U.pending > 0 || U.scene !== 'city' || $('#phone-layer.on') || $('#pack.on') || $('.dlg') || $('#ad-layer.on');
     calm = busy ? 0 : calm + 1;
     if (calm < 3) return;
     const id = BLD_ORDER.find(k => !seen()[k] && s.lvl >= unlockLvl(k));
