@@ -27,9 +27,9 @@ Tu ne touches PAS au code du jeu (js/, css/, game.html, assets/). Une autre sess
   `2D mobile game art, polished cartoon illustration, thick dark brown outlines, bold saturated colors, soft cel shading with subtle highlights, clean vector-like rendering, high detail, a bit more urban street style.`
 - Objets isolés : `Single isolated game item, centered, on a plain pure white background, nothing else.` (détourage automatique du fond blanc).
 - **Objets de l'appart (posés sur le bureau / le lit) : vus DE FACE**, à hauteur d'yeux, un peu d'en haut, comme le PC niveau 1. Donner le PC 1 en image modèle :
-  `https://pikaso.cdnpk.net/private/production/5623377365/render.png?token=exp=1791331200~hmac=ef6438fb83304494ce82e197f49e36a3dac8117679c423e4af5e60570050742b`
+  (lien de l'image du PC niveau 1 dans l'historique Magnific : lien signé, à reprendre sur place, jamais écrit ici)
 - Chambres : toutes faites à partir de la chambre B (image modèle) :
-  `https://pikaso.cdnpk.net/private/production/5623345378/render.png?token=exp=1791331200~hmac=b1002bf47d6abcd456d278237510e1fe3f9caf0fe59350a622c2b9b9af4c8aad`
+  (lien de l'image de la chambre B dans l'historique Magnific : lien signé, à reprendre sur place, jamais écrit ici)
 
 ## Lots déjà prêts dans tools/
 - `lot-2.js` (créatrices PrivéFans, objets PrivéFans, décos ville, icônes) — en cours chez elle.
