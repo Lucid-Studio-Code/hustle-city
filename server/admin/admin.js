@@ -223,8 +223,8 @@
   async function enter() { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); await pollLive(); route(); }
   $('#lg-form').onsubmit = async e => { e.preventDefault(); TOKEN = $('#tok').value.trim(); if (!TOKEN) return; lsSet('hc.admin', TOKEN); try { await HC.api('/admin/api/config'); enter(); } catch (x) {} };
   $('#logout').onclick = () => { lsSet('hc.admin', null); TOKEN = ''; showLogin(); };
-  // jeton passé dans l'adresse (#token=…) : on le garde puis on l'efface de l'adresse
-  { const p = params(); if (p.get('token')) { TOKEN = p.get('token'); lsSet('hc.admin', TOKEN); p.delete('token'); history.replaceState(null, '', location.pathname + (p.toString() ? '#' + p.toString() : '')); } }
+  // jeton dans l'adresse (#token=…) : plus accepté (il reste dans l'historique du navigateur) ; on l'efface seulement de l'adresse
+  { const p = params(); if (p.get('token')) { p.delete('token'); history.replaceState(null, '', location.pathname + (p.toString() ? '#' + p.toString() : '')); } }
 
   // ================================================================== TABLEAU DE BORD
   HC.PAGES.dash = async () => {

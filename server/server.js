@@ -194,7 +194,7 @@ function cleanContent(c) {
   Object.entries(items).slice(0, 600).forEach(([id, e]) => {
     if (!/^[a-z0-9-]{2,48}$/.test(id) || !e || typeof e !== 'object') return;
     const x = {}, orig = known.get(id);
-    if (e.name != null) { const n = String(e.name).trim().slice(0, 60); if (n) x.name = n; }
+    if (e.name != null) { const n = String(e.name).replace(/[\u0000-\u001f\u007f<>"'`]/g, '').trim().slice(0, 60); if (n) x.name = n; }   // jamais de quoi fabriquer du HTML
     if (e.p0 != null && +e.p0 > 0) x.p0 = Math.min(1e7, Math.max(1, Math.round(+e.p0)));
     if (['C', 'R', 'E', 'L'].includes(e.r)) x.r = e.r;
     if (e.hidden) x.hidden = true;
@@ -779,6 +779,11 @@ const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html',
 const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 const htmlHeaders = adm => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : "frame-ancestors 'none'" });
 const ICON = path.join(ROOT, 'assets/app/icon-180.png');   // la plus petite icône de l'appli, pour /favicon.ico
+// back office : seulement sur l'adresse du jeu (jamais sur la vitrine biffcity.fr) ; ADMIN_HOSTS=a,b pour en ajouter
+const ADMIN_HOSTS = new Set(['game.biffcity.fr', 'hustle.lucidstudio.fr', 'localhost', '127.0.0.1', '[::1]', ...String(process.env.ADMIN_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean)]);
+const hostOf = req => String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
+// jeton du back office : comparé en temps constant ; 10 essais ratés en 10 min par IP, puis 429 (même avec le bon jeton) jusqu'à ce que ça se recharge
+const ADM_TRY = 10, ADM_MS = 600000;
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'), key = req.method + ' ' + u.pathname;
   res.api = u.pathname.startsWith('/api/');
@@ -790,8 +795,14 @@ http.createServer(async (req, res) => {
       if (+req.headers['content-length'] > req.maxBody) { res.setHeader('Connection', 'close'); return send(res, 413, { err: 'Trop gros.' }); }
       if (api[key]) return await api[key](req, res, u); return send(res, 404, { err: 'route' });
     }
+    if ((u.pathname === '/admin' || u.pathname.startsWith('/admin/')) && !ADMIN_HOSTS.has(hostOf(req))) return send(res, 404, '404', 'text/plain');
     if (u.pathname.startsWith('/admin/api/')) {
-      if ((req.headers.authorization || '') !== 'Bearer ' + ADMIN_TOKEN) return send(res, 401, { err: 'Jeton du back office invalide.' });
+      const ak = 'adm:' + ipKey(clientIp(req));
+      if (left(ak, ADM_TRY, ADM_MS) < 1) { res.setHeader('Retry-After', '600'); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
+      if (!same(req.headers.authorization || '', 'Bearer ' + ADMIN_TOKEN)) {
+        limit(ak, ADM_TRY, ADM_MS); if (left(ak, ADM_TRY, ADM_MS) < 1) console.warn(`back office : ${ADM_TRY} jetons faux en 10 min depuis ${ipKey(clientIp(req))}, bloqué 10 min`);
+        return send(res, 401, { err: 'Jeton du back office invalide.' });
+      }
       if (admin[key]) return await admin[key](req, res, u); return send(res, 404, { err: 'route' });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { err: 'méthode' });

@@ -209,7 +209,7 @@
   function mount(head, extra = '') {
     HC.main(`${head}<div class="lp-ed"><div class="lp-form" id="lp-form"></div>
         <div class="lp-side"><div class="lp-devs"><button data-dev="m" class="${dev === 'm' ? 'on' : ''}">Mobile</button><button data-dev="d" class="${dev === 'd' ? 'on' : ''}">Ordinateur</button>${extra}</div>
-          <div class="lp-view ${dev}" id="lp-view"><iframe id="lp-frame" title="Aperçu"></iframe></div></div></div>`);
+          <div class="lp-view ${dev}" id="lp-view"><iframe id="lp-frame" title="Aperçu" sandbox="allow-same-origin"></iframe></div></div></div>`);
     redraw(false); requestAnimationFrame(fit);
     const root = $('.lp-ed');
     root.addEventListener('mousedown', e => { if (e.target.closest('[data-rt-cmd]')) e.preventDefault(); });   // garder la sélection du texte quand on clique un bouton

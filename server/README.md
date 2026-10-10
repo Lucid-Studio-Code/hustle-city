@@ -11,7 +11,7 @@
     DB=server/demo.db PORT=5301 node server/server.js
 Puis http://localhost:5301/admin/ avec le même jeton. La démo est dans une base à part (`server/demo.db`) : ta vraie base `server/hustle.db` n'est jamais touchée. Relancer le script remet la démo à zéro (pense à relancer le serveur ensuite). Une quinzaine de joueurs y restent « en ligne » pendant 4 h.
 
-Astuce : on peut ouvrir directement un onglet avec `…/admin/#page=stats` (ou `map`, `players`, `support`, `live`, `broadcast`, `logs`, `player&pid=…`). Le jeton peut aussi passer dans l'adresse (`#token=…`) : il est retenu puis effacé de l'adresse.
+Astuce : on peut ouvrir directement un onglet avec `…/admin/#page=stats` (ou `map`, `players`, `support`, `live`, `broadcast`, `logs`, `player&pid=…`). Le jeton se tape dans l'écran de connexion (il n'est plus accepté dans l'adresse). Le back office ne s'ouvre que sur l'adresse du jeu (game.biffcity.fr, ou localhost sur ton Mac), jamais sur biffcity.fr ; 10 jetons faux en 10 min depuis une même connexion la bloquent 10 min.
 
 ## Ce que fait le back office
 Captures de chaque onglet : `server/captures/`.
