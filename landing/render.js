@@ -178,7 +178,7 @@ function renderArticle(content, s) {
   const slugs = c.articles.map(x => x.slug), url = `${SITE}/actus/${a.slug}`, min = Math.max(1, Math.ceil(words(a.lead + ' ' + a.body) / 220));
   // l'encart « joue maintenant » se glisse avant le 3e intertitre (ou à la fin)
   let html = md(a.body, slugs); const parts = html.split('<h2>');
-  const box = `<div class="cta-bn"><div class="cta-card"><div class="cta-txt"><span class="chip">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="cta-btn" href="${GAME}" data-lp="beta-article">Jouer à la bêta</a></div></div><img class="cta-pop" src="/assets/img/skin-survet.png" alt=""></div>`;
+  const box = `<div class="cta-bn"><div class="cta-card"><div class="cta-txt"><span class="chip">Bêta ouverte</span><b>Joue avant tout le monde</b><p>Gratuit, dans ton navigateur, sans téléchargement. Argent fictif uniquement.</p><a class="cta-btn" href="${GAME}" data-lp="beta-article">Jouer à la bêta</a></div></div><img class="cta-pop" src="/assets/lp/cta-survet.webp" alt="" loading="lazy"></div>`;
   if (parts.length > 3) { parts[2] = parts[2] + box; html = parts.join('<h2>'); } else html += box;
   // à lire aussi : d'abord les articles cités dans le texte, puis les plus récents
   const cited = [...a.body.matchAll(/\(\/actus\/([a-z0-9-]+)\)/g)].map(m => m[1]);

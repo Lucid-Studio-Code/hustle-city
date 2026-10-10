@@ -175,7 +175,7 @@
       let items;
       if (shelf === 'mine') items = media.map(u => ({ url: u, name: u.split('/').pop() }));
       else if (shelf === 'lp') items = lpFiles.map(u => ({ url: u, name: u.split('/').pop() }));
-      else { const sh = SHELVES.findIndex(s => s[0] === shelf); items = (window.ASSETS || []).filter(n => SHELVES.findIndex(s => s[2](n)) === sh).map(n => ({ url: fileOf(n), name: n })); }
+      else { const sh = SHELVES.findIndex(s => s[0] === shelf); items = (window.ASSETS || []).filter(n => SHELVES.findIndex(s => s[2](n)) === sh).map(n => ({ url: fileOf(n), name: n })); if (shelf === 'scenes') items = lpFiles.filter(u => /\/bn-/.test(u)).map(u => ({ url: u, name: u.split('/').pop() })).concat(items); }   // fonds HD des bannières Actualités en tête des scènes
       if (qv) items = items.filter(i => i.name.toLowerCase().includes(qv));
       $('#lb-g', bg).innerHTML = items.length ? items.map(i => `<button class="${i.url === cur ? 'on' : ''}" data-u="${esc(i.url)}" title="${esc(i.name)}"><img src="${esc(shown(i.url))}" alt="" loading="lazy"><small>${esc(i.name)}</small></button>`).join('')
         : `<div class="empty">${shelf === 'mine' ? 'Aucune image envoyée pour l\'instant : bouton « Envoyer une image » en haut.' : 'Aucune image ne correspond.'}</div>`;
