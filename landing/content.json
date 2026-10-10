@@ -377,14 +377,14 @@
     "img": "/assets/lp/v-paris-5.webp",
     "alt": "Ticket combiné ×4 gagné au Royal : +12 310",
     "title": "Paris sportifs en direct",
-    "text": "Foot, basket, tennis, rugby : monte ton combiné.",
+    "text": "Foot, basket, tennis : monte ton combiné.",
     "link": "jeu-paris-sportifs-fictifs"
    },
    {
     "img": "/assets/lp/v-sports.webp",
     "alt": "Matchs de foot, basket, tennis et rugby en direct au Royal",
-    "title": "Tous les sports",
-    "text": "Des matchs en continu, des cotes en direct.",
+    "title": "Pas que du foot",
+    "text": "Basket et tennis en direct, rugby pendant les tournois.",
     "link": "jeu-paris-sportifs-fictifs"
    },
    {
@@ -395,10 +395,10 @@
     "link": "machine-a-sous-gratuite"
    },
    {
-    "img": "/assets/lp/v-argent.webp",
-    "alt": "Les applis pour gagner de l'argent fictif : paris, crypto, minage, immobilier",
-    "title": "Mille façons de gagner",
-    "text": "Paris, crypto, minage, immo, agence…",
+    "img": "/assets/lp/v-argent-2.webp",
+    "alt": "KebabCoin en hausse, sneakers, montre, or et voiture avec leur cote",
+    "title": "Tout a une cote",
+    "text": "Crypto, sneakers, montres, or : achète bas, revends haut.",
     "link": "fonctionnalites-biff-city"
    },
    {
@@ -416,42 +416,42 @@
     "link": "boosters-et-cartes"
    },
    {
-    "img": "/assets/lp/v-trophees.webp",
-    "alt": "La vitrine des trophées à débloquer dans Biff City",
-    "title": "60 trophées à gagner",
-    "text": "Chaque exploit s'expose dans ton appart.",
+    "img": "/assets/lp/v-trophees-2.webp",
+    "alt": "La vitrine des trophées et la revente d'un trophée",
+    "title": "60 trophées à débloquer",
+    "text": "Expose-les chez toi, ou revends-les au prix fort.",
     "link": "niveaux-et-classement"
    },
    {
-    "img": "/assets/lp/v-club.webp",
-    "alt": "La salle du Club : piste, bar, DJ et carré VIP",
+    "img": "/assets/lp/v-club-2.webp",
+    "alt": "Une rencontre au carré VIP du Club, avec ses choix",
     "title": "Le Club, chaque soir",
-    "text": "Deux choix, et ta soirée bascule.",
+    "text": "Des rencontres, des choix, des histoires qui changent ta partie.",
     "link": "club-biff-city"
    },
    {
-    "img": "/assets/lp/v-tel.webp",
-    "alt": "Le téléphone du jeu : messages des contacts et applis",
+    "img": "/assets/lp/v-tel-2.webp",
+    "alt": "Le téléphone du jeu : messages des potes et notifications de gains",
     "title": "Ton téléphone",
-    "text": "Tes potes t'écrivent, les affaires tombent.",
+    "text": "Tes potes t'écrivent, les gains et les bons plans tombent.",
     "link": "personnages-du-club"
    },
    {
-    "img": "/assets/lp/v-custom.webp",
-    "alt": "Les décors de ville et les personnages à choisir",
+    "img": "/assets/lp/v-custom-2.webp",
+    "alt": "La ville de Biff City en version néon, or et neige",
     "title": "Ta ville, ton style",
-    "text": "Change de perso et de décor de ville.",
+    "text": "Néons, or, neige : change le look de toute ta ville.",
     "link": "fonctionnalites-biff-city"
    },
    {
-    "img": "/assets/lp/v-events.webp",
-    "alt": "La Coupe des Morts d'Halloween et le classement en ligne",
-    "title": "Événements et classement",
-    "text": "La Coupe des Morts et le top des joueurs.",
+    "img": "/assets/lp/v-events-2.webp",
+    "alt": "Le classement en ligne des joueurs de Biff City",
+    "title": "Classement et événements",
+    "text": "Grimpe au classement en ligne, des événements toute l'année.",
     "link": "coupe-des-morts"
    },
    {
-    "img": "/assets/lp/v-ville-4.webp",
+    "img": "/assets/lp/v-ville-5.webp",
     "alt": "La ville de Biff City avec le Royal, le casino, le Club et la crypto",
     "title": "Toute une ville",
     "text": "Paris, casino, Club, crypto : à toi de jouer.",
