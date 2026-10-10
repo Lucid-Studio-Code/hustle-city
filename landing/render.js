@@ -104,6 +104,7 @@ a{color:inherit}
 .top{display:flex;align-items:center;gap:14px;max-width:1080px;margin:0 auto;padding:14px 16px}
 .brand{font:400 30px/.9 'Lilita One',sans-serif;color:var(--gold);text-decoration:none;transform:rotate(-4deg);text-shadow:2px 0 0 var(--ink),-2px 0 0 var(--ink),0 2px 0 var(--ink),0 -2px 0 var(--ink),0 5px 0 var(--ink)}
 .brand span{color:#fff}
+.brand{transform:none;text-shadow:none;display:block}.brand img{display:block;height:58px;width:auto}
 .top nav{margin-left:auto;display:flex;gap:16px;align-items:center;font-weight:800;font-size:15px}.top nav a{text-decoration:none;color:#e6dcff}.top nav a:hover{color:#fff}
 .btn-play{display:inline-block;padding:10px 22px 12px;background:linear-gradient(#7be35a,#3fae2e);color:#fff!important;text-decoration:none;border:3px solid var(--ink);border-radius:16px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18),0 5px 0 var(--ink);font:400 20px 'Lilita One',sans-serif;text-shadow:0 2px 0 rgba(42,26,16,.6)}
 .btn-play:active{transform:translateY(3px);box-shadow:inset 0 -4px 0 rgba(0,0,0,.18),0 2px 0 var(--ink)}
@@ -164,7 +165,7 @@ function shell({ title, desc, url, img, ld, body, slug }) {
 <style>${STYLE}</style>
 </head>
 <body>
-<header class="top"><a class="brand" href="/">BIFF <span>CITY</span></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
+<header class="top"><a class="brand" href="/"><img src="/assets/img/logo.webp?v=2" alt="Biff City" width="840" height="685"></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
 ${body}
 <footer>${FOOT_LINKS}Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 ${HIT(slug)}

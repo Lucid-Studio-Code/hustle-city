@@ -34,6 +34,7 @@ main { position: relative; min-height: 100vh; min-height: 100dvh; display: flex;
 .logo { font: 400 clamp(52px, 14vw, 104px)/.88 'Lilita One', sans-serif; letter-spacing: 1px; transform: rotate(-4deg); margin: 0;
   color: var(--gold); -webkit-text-stroke: 0; text-shadow: 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 3px 0 var(--ink), 0 -3px 0 var(--ink), 2px 2px 0 var(--ink), -2px 2px 0 var(--ink), 2px -2px 0 var(--ink), -2px -2px 0 var(--ink), 0 8px 0 var(--ink), 0 12px 24px rgba(0,0,0,.45); }
 .logo span { display: block; color: #fff; }
+.logo { transform: none; text-shadow: none; } .logo img { display: block; width: clamp(190px, 52vw, 330px); height: auto; filter: drop-shadow(0 10px 16px rgba(0,0,0,.4)); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .tag { display: inline-block; margin-top: 12px; padding: 6px 18px 9px; background: #c8137c; border: 3px solid var(--ink); border-radius: 14px; transform: rotate(-3deg); box-shadow: 0 5px 0 var(--ink); font: 400 clamp(18px, 4.6vw, 26px) 'Lilita One', sans-serif; text-shadow: 0 2px 0 var(--ink); }
 .spacer { display: none; }
@@ -128,7 +129,7 @@ footer a { color: #fff; }
 <body>
 <div class="bg" aria-hidden="true"><i></i></div>
 <main>
-  <h1 class="logo">BIFF <span>CITY</span><b class="sr"> : le jeu mobile de paris sportifs fictifs</b></h1>
+  <h1 class="logo"><img src="/assets/img/logo.webp?v=2" alt="Biff City" width="840" height="685" fetchpriority="high"><b class="sr"> : le jeu mobile de paris sportifs fictifs</b></h1>
   <div class="tag">Parie. Investis. Deviens riche.</div>
   <div class="art" aria-hidden="true"></div>
   <a class="cta hero-cta" href="https://game.biffcity.fr/" data-lp="beta-hero">Jouer à la bêta</a>
