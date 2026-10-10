@@ -7,10 +7,10 @@ process.env.TZ = process.env.TZ || 'Europe/Paris';   // les jours et les heures 
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), vm = require('vm');
 const { DatabaseSync } = require('node:sqlite');
 const { initDb } = require('./schema');
-const { clientIp, makeGeo } = require('./geo');
+const { clientIp, ipKey, makeGeo } = require('./geo');
 const { makePush } = require('./push');
 const LANDING = require('../landing/render.js');   // la vitrine biffcity.fr, éditée depuis le back office (page « Landing »)
-const ROOT = path.join(__dirname, '..'), PORT = +process.env.PORT || 5300;
+const ROOT = path.join(__dirname, '..'), PORT = +process.env.PORT || 5300, HOST = process.env.HOST || '127.0.0.1';   // 127.0.0.1 : seul Caddy (même machine) parle au serveur
 const DBFILE = process.env.DB || path.join(__dirname, 'hustle.db');
 const TOKEN_FILE = path.join(__dirname, '.admin-token');
 const AD_EUR = +process.env.AD_EUR || 0.012;   // revenu estimé d'une pub récompensée vue (≈ 12 € pour 1 000 pubs)
@@ -42,15 +42,23 @@ const locate = makeGeo(db, ipHash);
 // anciennes bases : IP en clair → empreinte, positions arrondies (~10 km), cache rangé par IP en clair (ou échecs) vidé
 for (const r of q("SELECT pid, ip FROM players WHERE ip LIKE '%.%' OR ip LIKE '%:%'")) run('UPDATE players SET ip = ? WHERE pid = ?', ipHash(r.ip), r.pid);
 db.exec(`UPDATE players SET lat = ROUND(lat, 1), lon = ROUND(lon, 1) WHERE lat IS NOT NULL; DELETE FROM geo_cache WHERE ip LIKE '%.%' OR ip LIKE '%:%' OR data LIKE '%"fail"%';`);
-// durée de conservation : événements 13 mois, cache de localisation 30 jours (au démarrage puis chaque jour)
-function purge() { run('DELETE FROM events WHERE t < ?', now() - 395 * DAY); run('DELETE FROM geo_cache WHERE t < ?', now() - 30 * DAY); }
+// durée de conservation : événements et statistiques de la vitrine 13 mois, cache de localisation 30 jours (au démarrage puis chaque jour)
+function purge() { run('DELETE FROM events WHERE t < ?', now() - 395 * DAY); run('DELETE FROM lp WHERE t < ?', now() - 395 * DAY); run('DELETE FROM geo_cache WHERE t < ?', now() - 30 * DAY); }
 purge(); setInterval(purge, DAY);
 
 // ------------------------------------------------------------------ limites par IP (en mémoire, sans dépendance) : seau de jetons
 // 240 requêtes / min sur /api (un joueur en fait ~5 : large, même à plusieurs derrière la même box 4G), 10 nouveaux joueurs / heure
-const buckets = new Map();
-function limit(k, n, ms) { const T = now(), b = buckets.get(k) || { v: n, t: T }; b.v = Math.min(n, b.v + (T - b.t) * n / ms); b.t = T; buckets.set(k, b); if (b.v < 1) return false; b.v--; return true; }
-setInterval(() => { const T = now(); for (const [k, b] of buckets) if (T - b.t > 3600000) buckets.delete(k); }, 600000);
+// (clé IP : ipKey, en IPv6 tout le /64) ; un seau redevenu plein est oublié (même effet que s'il n'existait pas) : la table ne grossit pas
+const buckets = new Map(), BUCKETS_MAX = 200000;
+function limit(k, n, ms) { const T = now(), b = buckets.get(k) || { v: n, t: T, ms }; b.v = Math.min(n, b.v + (T - b.t) * n / ms); b.t = T; b.ms = ms; buckets.set(k, b); if (b.v < 1) return false; b.v--; return true; }
+const left = (k, n, ms) => { const b = buckets.get(k); return b ? Math.min(n, b.v + (now() - b.t) * n / ms) : n; };   // jetons restants, sans en prendre
+setInterval(() => { const T = now(); for (const [k, b] of buckets) if (T - b.t > (b.ms || 3600000)) buckets.delete(k);
+  if (buckets.size > BUCKETS_MAX) { const old = [...buckets].sort((x, y) => x[1].t - y[1].t).slice(0, buckets.size - BUCKETS_MAX / 2); old.forEach(([k]) => buckets.delete(k)); } }, 60000);
+// quotas par joueur sur /api/sync : 1 synchro / 15 s (2 d'affilée permises), 100 événements et 50 ko par synchro, 5 000 par jour (4 000 clics « act » au plus)
+const EV_SYNC = 100, EV_BYTES = 5e4, EV_DAY = 5000, EV_ACT_DAY = 4000, evDay = new Map();
+setInterval(() => { const d = dkey(now()); for (const [k, x] of evDay) if (x.d !== d) evDay.delete(k); }, 3600000);
+// sauvegarde : ~15 ko au début, ~150 ko pour une grosse partie (niveau 19, surtout l'historique des prix) → 600 ko au plus
+const SAVE_MAX = 6e5;
 
 // anciennes bases : on reconstruit les sessions à partir des événements « session »
 if (!q1('SELECT 1 x FROM sessions LIMIT 1') && q1("SELECT 1 x FROM events WHERE type = 'session' LIMIT 1"))
@@ -75,7 +83,7 @@ function send(res, code, obj, type) {
   res.writeHead(code, { 'Content-Type': type || 'application/json; charset=utf-8', ...(res.api ? { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type' } : {}), 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-store' });
   res.end(type ? obj : JSON.stringify(obj));
 }
-// corps JSON : 300 ko au plus sur /api (1 Mo pour /api/sync, qui porte la sauvegarde), 3 Mo au back office (6 Mo pour une image) ; au-delà → 413
+// corps JSON : 300 ko au plus sur /api (700 ko pour /api/sync, qui porte la sauvegarde), 3 Mo au back office (6 Mo pour une image) ; au-delà → 413
 function body(req, max) {
   max = max || req.maxBody || 3e6;
   return new Promise((ok, ko) => { let b = '', n = 0, big = false;
@@ -83,7 +91,9 @@ function body(req, max) {
     req.on('end', () => { if (big) return; try { ok(JSON.parse(b || '{}') || {}); } catch (e) { ok({}); } }); });
 }
 // un joueur s'identifie par son pid + un secret créé par son jeu (pas de mot de passe)
-function player(b) { const p = b.pid && q1('SELECT * FROM players WHERE pid = ?', String(b.pid)); return p && p.secret === b.secret ? p : null; }
+// comparaison en temps constant (empreintes SHA-256 : même longueur, rien ne fuit par la durée de la réponse)
+const sha = v => crypto.createHash('sha256').update(String(v ?? '')).digest(), same = (a, b) => typeof a === 'string' && typeof b === 'string' && crypto.timingSafeEqual(sha(a), sha(b));
+function player(b) { const p = b.pid && q1('SELECT * FROM players WHERE pid = ?', String(b.pid)); return p && same(p.secret, b.secret) ? p : null; }
 const inboxFor = pid => q('SELECT id, t, title, text, gift FROM inbox WHERE pid = ? AND claimed = 0 ORDER BY t', pid).map(m => ({ ...m, gift: m.gift ? JSON.parse(m.gift) : null }));
 const str = (v, n) => v == null ? null : String(v).slice(0, n);
 
@@ -281,10 +291,12 @@ const api = {
     const ip = clientIp(req), name = cleanName(b.name), tag = cleanTag(b.tag), ver = txt(b.ver, 20);
     let p = q1('SELECT * FROM players WHERE pid = ?', b.pid);
     if (!p) { if (!PID_RE.test(b.pid) || !SECRET_RE.test(b.secret)) return send(res, 400, { err: 'pid' });
-      if (!limit('new:' + ip, 10, 3600000)) return send(res, 429, { err: 'Trop de nouvelles parties depuis cette connexion, réessaie plus tard.', retry: 3600 });
+      if (!limit('new:' + ipKey(ip), 10, 3600000)) return send(res, 429, { err: 'Trop de nouvelles parties depuis cette connexion, réessaie plus tard.', retry: 3600 });
       run('INSERT INTO players (pid, secret, name, tag, created, last_seen, platform, ver) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', b.pid, b.secret, name, tag, now(), now(), txt(b.platform, 160) || '', ver || '');
       run('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)', b.pid, now(), 'install', '{}'); p = q1('SELECT * FROM players WHERE pid = ?', b.pid); }
-    else if (p.secret !== b.secret) return send(res, 403, { err: 'secret' });
+    else if (!same(p.secret, b.secret)) return send(res, 403, { err: 'secret' });
+    // 20 ouvertures du jeu par heure et par joueur au plus comptées (au-delà : même réponse, rien d'écrit en plus)
+    if (!limit('hello:' + p.pid, 20, 3600000)) return send(res, 200, { ok: true, banned: !!p.banned, banReason: p.ban_reason || '', config: getCfg(), inbox: inboxFor(p.pid) });
     run('UPDATE players SET sessions = sessions + 1, last_seen = ?, name = ?, tag = ?, platform = ?, ver = ?, tz = ?, lang = ?, screen = ?, ip = ? WHERE pid = ?', now(), name || p.name, tag || p.tag, txt(b.platform, 160) || p.platform, ver || p.ver,
       txt(b.tz, 60) || p.tz, txt(b.lang, 20) || p.lang, txt(b.screen, 40) || p.screen, ipHash(ip), b.pid);
     run('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)', b.pid, now(), 'session', JSON.stringify({ ver }));
@@ -294,10 +306,13 @@ const api = {
   },
   async 'POST /api/sync'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
+    // trop de synchros d'affilée : rien d'écrit, le jeu garde ses événements et son temps de jeu pour la prochaine (later)
+    if (!limit('sync:' + p.pid, 2, 30000)) return send(res, 200, { ok: true, later: true, inbox: [] });
     if (b.summary && 'home' in b.summary) run('UPDATE players SET home = ? WHERE pid = ?', cleanHome(b.summary.home), p.pid);
     // même partie sur plusieurs appareils : un appareil qui n'a pas la dernière sauvegarde (faite ailleurs) ne l'écrase pas, il la récupère
     if (stale(p, b)) { run('UPDATE players SET last_seen = ? WHERE pid = ?', now(), p.pid); return send(res, 200, { ok: true, newer: true, inbox: [] }); }
-    const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), ms = Math.floor(num(b.playMs, 600000)), A = antiCheat(p, s);
+    const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), A = antiCheat(p, s);
+    const ms = Math.floor(Math.min(num(b.playMs, 600000), p.sync_at ? Math.max(0, now() - p.sync_at) + 10000 : 600000));   // temps de jeu : jamais plus que le temps écoulé depuis la synchro d'avant
     if (A.n) console.warn(`anti-triche : ${p.pid} (${A.n} valeur(s) rabotée(s))`);
     run('UPDATE players SET last_seen = ?, lvl = ?, worth = ?, cash = ?, lingots = ?, skin = ?, name = ?, tag = ?, play_ms = play_ms + ?, xp = ?, boosters = ?, avatar = ?, frame = ?, tz = COALESCE(?, tz), lang = COALESCE(?, lang), screen = COALESCE(?, screen), sync_at = ?, ac = ?, suspect = suspect + ? WHERE pid = ?',
       now(), s.lvl, s.worth, s.cash, s.lingots, s.skin || '', s.name || p.name, s.tag || p.tag, ms, s.xp, s.boosters, s.avatar, s.frame,
@@ -306,7 +321,8 @@ const api = {
     const se = q1('SELECT id, last FROM sessions WHERE pid = ? ORDER BY id DESC LIMIT 1', p.pid);
     if (se && now() - se.last < 30 * 60000) run('UPDATE sessions SET last = ?, ms = ms + ? WHERE id = ?', now(), ms, se.id);
     else { run('INSERT INTO sessions (pid, start, last, ms) VALUES (?, ?, ?, ?)', p.pid, now() - ms, now(), ms); run('UPDATE players SET sessions = sessions + 1 WHERE pid = ?', p.pid); }
-    if (typeof b.save === 'string' && b.save.length < 1e6) {
+    if (typeof b.save === 'string' && b.save.length > SAVE_MAX) console.warn(`sauvegarde trop grosse refusée : ${p.pid} (${b.save.length} caractères)`);
+    if (typeof b.save === 'string' && b.save.length <= SAVE_MAX) {
       run('UPDATE players SET save = ?, save_at = ?, save_dev = ? WHERE pid = ?', b.save, now(), txt(b.dev, 40) || null, p.pid);
       // historique : une copie toutes les 10 min au plus, les 20 dernières gardées (pour restaurer une partie abîmée)
       const last = q1('SELECT t FROM save_history WHERE pid = ? ORDER BY t DESC LIMIT 1', p.pid);
@@ -316,9 +332,15 @@ const api = {
       }
     }
     // événements : type court et sans caractère spécial, date plausible, données en JSON (échappées à l'affichage du back office)
-    const ins = db.prepare('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)'), T = now();
-    (Array.isArray(b.events) ? b.events : []).slice(0, 500).forEach(e => { if (!e || !/^[\w-]{1,40}$/.test(String(e.type))) return; const t = +e.t;
-      ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), (JSON.stringify(e.data && typeof e.data === 'object' ? e.data : {}) || '{}').slice(0, 2000)); });
+    // quotas : 100 par synchro (les achats, pubs… avant les simples clics), 50 ko, et le plafond du jour du joueur
+    const ins = db.prepare('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)'), T = now(), dk = dkey(T);
+    const qd = evDay.get(p.pid) && evDay.get(p.pid).d === dk ? evDay.get(p.pid) : { d: dk, n: 0, a: 0 }; evDay.set(p.pid, qd);
+    const evs = (Array.isArray(b.events) ? b.events.slice(0, 1000) : []).filter(e => e && /^[\w-]{1,40}$/.test(String(e.type)));
+    let bytes = 0, k = 0;
+    [...evs.filter(e => e.type !== 'act'), ...evs.filter(e => e.type === 'act')].forEach(e => {
+      if (k >= EV_SYNC || qd.n >= EV_DAY || (e.type === 'act' && qd.a >= EV_ACT_DAY)) return;
+      const data = (JSON.stringify(e.data && typeof e.data === 'object' ? e.data : {}) || '{}').slice(0, 2000); if (bytes + data.length > EV_BYTES) return;
+      const t = +e.t; ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), data); bytes += data.length; k++; qd.n++; if (e.type === 'act') qd.a++; });
     send(res, 200, { ok: true, rev: (q1('SELECT save_at FROM players WHERE pid = ?', p.pid) || {}).save_at || 0, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
   },
   // le joueur a collé un code de sauvegarde (partie d'un autre appareil) : la prochaine synchro repart comme une première (sinon l'anti-triche voit un bond).
@@ -356,12 +378,14 @@ const api = {
   async 'GET /api/config'(req, res) { send(res, 200, getCfg()); },
   // vitrine biffcity.fr : visites et clics vers la bêta (sans cookie, rien de personnel : type d'action, provenance, mobile ou non)
   async 'POST /api/lp'(req, res) {
-    const b = await body(req, 2000); if (!limit('lp:' + clientIp(req), 30, 60000)) return send(res, 204, '', 'text/plain');
-    const k = b.k === 'view' || /^beta(-(hero|jeu|fin|sticky|article))?$/.test(String(b.k)) ? b.k : null;   // beta-… : l'endroit de la page où on a cliqué if (!k) return send(res, 400, { err: 'k' });
+    const b = await body(req, 2000); if (!limit('lp:' + ipKey(clientIp(req)), 30, 60000)) return send(res, 204, '', 'text/plain');
+    const k = b.k === 'view' || /^beta(-(hero|jeu|fin|sticky|article))?$/.test(String(b.k)) ? b.k : null;   // beta-… : l'endroit de la page où on a cliqué
+    if (!k) return send(res, 400, { err: 'k' });
     run('INSERT INTO lp (t, k, src, ref, m) VALUES (?, ?, ?, ?, ?)', now(), k, txt(b.src, 40) || '', txt(b.ref, 80) || '', b.m ? 1 : 0); send(res, 204, '', 'text/plain');
   },
   async 'POST /api/support'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' }); const text = String(b.text || '').slice(0, 2000).trim(); if (!text) return send(res, 400, { err: 'vide' });
+    if (!limit('sup:' + p.pid, 20, 3600000)) return send(res, 429, { err: 'Trop de messages, réessaie plus tard.', retry: 600 });
     let t = q1("SELECT * FROM tickets WHERE pid = ? AND status != 'fermé' ORDER BY t DESC", p.pid);
     if (!t) { run('INSERT INTO tickets (pid, t, created, subject) VALUES (?, ?, ?, ?)', p.pid, now(), now(), text.slice(0, 80)); t = q1('SELECT * FROM tickets WHERE pid = ? ORDER BY id DESC', p.pid); }
     else run("UPDATE tickets SET status = 'ouvert', t = ? WHERE id = ?", now(), t.id);
@@ -732,8 +756,8 @@ http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return res.api ? send(res, 204, {}) : (res.writeHead(204), res.end());
   try {
     if (res.api) {
-      if (!limit('ip:' + clientIp(req), 240, 60000)) { res.setHeader('Retry-After', '60'); return send(res, 429, { err: 'Trop de requêtes, réessaie dans une minute.', retry: 60 }); }
-      req.maxBody = key === 'POST /api/sync' ? 1e6 : 3e5;
+      if (!limit('ip:' + ipKey(clientIp(req)), 240, 60000)) { res.setHeader('Retry-After', '60'); return send(res, 429, { err: 'Trop de requêtes, réessaie dans une minute.', retry: 60 }); }
+      req.maxBody = key === 'POST /api/sync' ? SAVE_MAX + 1e5 : 3e5;
       if (+req.headers['content-length'] > req.maxBody) { res.setHeader('Connection', 'close'); return send(res, 413, { err: 'Trop gros.' }); }
       if (api[key]) return await api[key](req, res, u); return send(res, 404, { err: 'route' });
     }
@@ -782,4 +806,4 @@ http.createServer(async (req, res) => {
     if (e.code === 413) { res.setHeader('Connection', 'close'); send(res, 413, { err: 'Trop gros.' }); return res.on('finish', () => req.destroy()); }
     console.error(e); send(res, 500, { err: 'Erreur du serveur.' });
   }
-}).listen(PORT, () => console.log(`Biff City en ligne sur http://localhost:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));
+}).listen(PORT, HOST, () => console.log(`Biff City en ligne sur http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}  ·  back office : http://localhost:${PORT}/admin/  ·  base : ${path.basename(DBFILE)}  ·  jeton : dans server/.admin-token (ou ADMIN_TOKEN)`));

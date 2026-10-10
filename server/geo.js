@@ -40,6 +40,12 @@ function clientIp(req) {
   const xf = String(req.headers['x-forwarded-for'] || '').split(',').map(s => s.trim()).filter(Boolean).pop();   // la dernière = celle ajoutée par Caddy
   return String(xf || req.headers['x-real-ip'] || peer).replace(/^::ffff:/, '').slice(0, 64);
 }
+// clé des limites par IP : une adresse IPv4 telle quelle ; en IPv6, tout le préfixe /64 (une seule box en reçoit des milliards d'adresses)
+function ipKey(ip) {
+  ip = String(ip || '').split('%')[0]; if (!ip.includes(':')) return ip;
+  const [a, b] = ip.split('::'), h = a ? a.split(':') : [], t = b ? b.split(':') : [], full = b == null ? h : [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t];
+  return full.slice(0, 4).map(x => (parseInt(x, 16) || 0).toString(16)).join(':') + '::/64';
+}
 function isPrivate(ip) {
   if (!ip || ip === '::1' || ip === 'localhost') return true;
   if (/^(10\.|127\.|192\.168\.|169\.254\.|0\.)/.test(ip)) return true;
@@ -78,4 +84,4 @@ function makeGeo(db, hash = x => x) {
     } catch (e) { /* jamais bloquant */ }
   };
 }
-module.exports = { clientIp, isPrivate, fromTz, makeGeo, TZ, COUNTRY_FR };
+module.exports = { clientIp, ipKey, isPrivate, fromTz, makeGeo, TZ, COUNTRY_FR };

@@ -4,7 +4,7 @@
     node server/server.js
 - Le jeu : http://localhost:5300/game.html (il se connecte tout seul au serveur)
 - Le back office : http://localhost:5300/admin/ : le jeton d'accès est dans `server/.admin-token` (créé au premier lancement, jamais publié sur GitHub)
-- Node 22 ou plus récent, aucune installation (`npm install` inutile). Variables possibles : `PORT`, `ADMIN_TOKEN`, `DB` (fichier de base), `TZ` (Europe/Paris par défaut, pour les jours et heures des stats), `AD_EUR` (revenu estimé d'une pub vue, 0,012 € par défaut).
+- Node 22 ou plus récent, aucune installation (`npm install` inutile). Variables possibles : `PORT`, `HOST` (127.0.0.1 par défaut : seul ce Mac, ou Caddy sur le serveur, peut s'y connecter ; `HOST=0.0.0.0` pour tester depuis un téléphone du même wifi), `ADMIN_TOKEN`, `DB` (fichier de base), `TZ` (Europe/Paris par défaut, pour les jours et heures des stats), `AD_EUR` (revenu estimé d'une pub vue, 0,012 € par défaut).
 
 ## Voir la démo (400 joueurs fictifs)
     node tools/demo-backoffice.js
@@ -29,6 +29,6 @@ Captures de chaque onglet : `server/captures/`.
 
 ## Publier
 Le serveur est un petit programme Node (≥ 22, base SQLite intégrée, aucun service payant). Il se déploie tel quel sur un petit serveur (VPS, Render, Fly…) :
-1. copier le dossier du jeu, lancer `PORT=80 ADMIN_TOKEN=un-long-secret node server/server.js` (ou derrière un proxy HTTPS : l'adresse du joueur est lue dans `X-Forwarded-For`) ;
+1. copier le dossier du jeu, lancer `ADMIN_TOKEN=un-long-secret node server/server.js` derrière un proxy HTTPS sur la même machine (Caddy : `reverse_proxy 127.0.0.1:5300` ; l'adresse du joueur est lue dans `X-Forwarded-For`) ; sans proxy : `HOST=0.0.0.0` ;
 2. si le jeu est servi ailleurs (App Store, GitHub Pages), lui indiquer l'adresse du serveur : `window.HC_API = 'https://ton-serveur'` dans game.html.
 La base `server/hustle.db` contient tout : la sauvegarder régulièrement.

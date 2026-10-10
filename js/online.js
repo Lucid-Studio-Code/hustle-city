@@ -95,9 +95,10 @@
   function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, home: s.home || '', avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
   async function sync(withSave) {
     if (off || !ONLINE.on || !G.st.skin) return;
-    const events = queue.splice(0), ms = playMs; playMs = 0;
+    const events = queue.splice(0, 100), ms = playMs; playMs = 0;   // 100 événements par synchro au plus (le serveur n'en prend pas plus) : le reste part à la suivante
     try {
       const r = await post('/api/sync', { summary: summary(), events, playMs: ms, save: withSave ? JSON.stringify(G.st) : undefined, dev, base: +ls('hustleCity.base') || 0, force: ls('hustleCity.force') ? 1 : undefined });
+      if (r.later) { queue.unshift(...events); playMs += ms; return; }   // synchro trop rapprochée de la précédente : rien n'a été pris, on renverra
       if (r.newer) return pull();   // l'autre appareil a joué depuis : on reprend sa partie
       if (r.rev) { ls('hustleCity.base', r.rev); ls('hustleCity.force', null); }
       if (r.banned) banScreen(r.banReason); else banScreen(null);
