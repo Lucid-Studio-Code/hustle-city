@@ -41,6 +41,8 @@
   // chargé depuis internet (mise à jour auto) mais joué sur ton ordi : les images viennent de ton dossier, c'est bien plus rapide
   // (une image absente de ton dossier est reprise sur internet, voir plus bas)
   const IMG_LOCAL = /^https:\/\/cdn\.jsdelivr\.net\//.test(document.baseURI) && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin + '/' : '';
+  // logo de saison : pendant la Coupe des Morts, la version Halloween
+  const logoKey = () => (window.GAME && GAME.cdmPhase && GAME.cdmPhase() === 'on' && has('logo-halloween')) ? 'logo-halloween' : 'logo';
   const JPG = new Set(window.ASSETS_JPG || []), WEBP = new Set(window.ASSETS_WEBP || []);   // versions légères : .jpg sans transparence, .webp avec
   function src(name) { return REMOTE()[name] || `${IMG_LOCAL}assets/img/${name}.${JPG.has(name) ? 'jpg' : WEBP.has(name) ? 'webp' : 'png'}?v=${(window.ASSET_H || {})[name] || window.ASSET_V || 1}`; }   /* une version par image : le navigateur garde toutes les autres */
   if (IMG_LOCAL) document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && !t.dataset.cdn && t.src.startsWith(IMG_LOCAL)) { t.dataset.cdn = 1; t.src = new URL(t.src.slice(IMG_LOCAL.length), document.baseURI).href; } }, true);
@@ -1814,7 +1816,7 @@
     let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
     let left = D.ADS.watchS;
     const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}<button class="ad-x" data-act="adQuit" aria-label="Fermer">×</button></div>
-      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-box">${has('logo') ? `<img src="${src(logoKey())}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / D.ADS.watchS) * 100)}%"></i></div>
       ${left > 0 ? `<p class="ad-hint">Encore ${left} s pour gagner tes ${D.ADS.reward} lingots</p>` : `<button class="btn green wide ad-claim" data-act="adClaim">Récupérer +${D.ADS.reward} lingots</button>`}`; };
     el.className = 'on'; draw(); clearInterval(adTimer);
@@ -1836,7 +1838,7 @@
     let el = $('#ad-layer'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="ad-layer"></div>'); el = $('#ad-layer'); }
     let left = FORCED_S;
     const draw = () => { el.innerHTML = `<div class="ad-top"><span>Publicité</span>${left > 0 ? `<em>${left} s</em>` : ''}</div>
-      <div class="ad-box">${has('logo') ? `<img src="${src('logo')}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
+      <div class="ad-box">${has('logo') ? `<img src="${src(logoKey())}" alt="">` : '<b>BIFF CITY</b>'}<p>Espace publicitaire</p></div>
       <div class="ad-bar"><i style="width:${Math.round((1 - left / FORCED_S) * 100)}%"></i></div>
       ${left > 0 ? '<p class="ad-hint">Le jeu reprend juste après</p>' : '<button class="btn green wide ad-claim" data-act="adForcedEnd">Continuer</button>'}
       `; };
@@ -2519,7 +2521,7 @@
     const best = deck.reduce((a, c) => Math.max(a, ORD[c.rarity]), 0);
     el.dataset.best = 'CREL'[best];
     el.innerHTML = `<div class="pk-stage">${packArt()}</div><i class="pk-rays"></i><i class="pk-flash"></i><b class="pk-rar stroke"></b>
-      <div class="pk-stack">${deck.map((c, i) => `<div class="pk-card r${c.rarity}" style="--i:${i};--n:${deck.length - i};z-index:${deck.length - i}"><div class="pk-in"><div class="pk-back">${has('card-back') ? '' : has('logo') ? `<img src="${src('logo')}" alt="">` : 'BIFF CITY'}</div><div class="pk-front">${front(c)}</div></div></div>`).join('')}</div>
+      <div class="pk-stack">${deck.map((c, i) => `<div class="pk-card r${c.rarity}" style="--i:${i};--n:${deck.length - i};z-index:${deck.length - i}"><div class="pk-in"><div class="pk-back">${has('card-back') ? '' : has('logo') ? `<img src="${src(logoKey())}" alt="">` : 'BIFF CITY'}</div><div class="pk-front">${front(c)}</div></div></div>`).join('')}</div>
       <p class="pk-hint stroke">Touche la carte pour la retourner</p>
       <div class="pk-recap hidden">${deck.map(c => `<div class="pk-mini">${front(c)}</div>`).join('')}</div>
       <button class="btn green pk-done hidden" data-act="packDone">Super !</button>`;
@@ -2712,7 +2714,7 @@
     let ok = false; try { ok = localStorage.getItem('hustleCity.age18') === '1'; } catch (e) {}
     if (ok || G.TEST || (window.HC_DEV && /^#neuf/.test(location.hash))) return then();
     const el = $('#start'); el.className = 'first age';
-    const logo = has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : '';
+    const logo = has('logo') ? `<img src="${src(logoKey())}" alt="Biff City">` : '';
     el.innerHTML = `<div class="logo">${logo}</div><div class="age-card"><b>Réservé aux plus de 18 ans</b>
       <p>Biff City contient des paris sportifs, un casino et des tickets à gratter. Tout est fictif : on n'y mise et on n'y gagne jamais d'argent réel.</p>
       <div class="age-btns"><button class="btn green" id="age-yes">J'ai 18 ans ou plus</button><button class="btn" id="age-no">J'ai moins de 18 ans</button></div></div>`;
@@ -2722,7 +2724,7 @@
   }
   function startScreen() {
     const el = $('#start'); el.className = 'first';
-    const logo = has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : '<div class="t1">BIFF</div><div class="t2">CITY</div>';
+    const logo = has('logo') ? `<img src="${src(logoKey())}" alt="Biff City">` : '<div class="t1">BIFF</div><div class="t2">CITY</div>';
     let sel = 'survet'; if (!st().tag) st().tag = String(1000 + Math.floor(Math.random() * 9000));
     const draw = () => {
       el.innerHTML = `<div class="logo">${logo}<div class="tagline">Parie. Investis. Deviens riche.</div></div>
@@ -3331,7 +3333,7 @@
        <ol class="mv-steps"><li>Appuie sur <b>« Emmener ma partie »</b>.</li><li>Le nouveau site s'ouvre <b>avec ta partie</b> dedans.</li><li>C'est tout ! À partir de maintenant, joue <b>uniquement</b> là-bas.</li></ol>
        <a class="btn green" href="${href}" data-copy="HC1.${code}">Emmener ma partie</a><p class="mv-note">Ton code de partie est aussi copié : si ta partie n'apparaît pas, colle-le sur le nouveau site (« J'ai déjà une partie »).</p>`
         : `<div class="mv-ic">${ico('nav-city', '')}</div><h2>Rendez-vous là-bas</h2><p>Aucune partie trouvée sur ce téléphone : tu commences directement sur le nouveau site.</p><a class="btn green" href="${href}">Y aller</a>`];
-    const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src('logo')}" alt="Biff City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
+    const draw = k => { el.innerHTML = `<div class="logo">${has('logo') ? `<img src="${src(logoKey())}" alt="Biff City">` : ''}</div><div class="mv-card">${steps[k]}<div class="mv-dots">${steps.map((_, i) => `<i class="${i === k ? 'on' : ''}"></i>`).join('')}</div></div><span></span>`;
       startBg(el); el.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => draw(+b.dataset.mv));
       el.querySelectorAll('[data-copy]').forEach(a => a.addEventListener('click', () => { try { navigator.clipboard.writeText(a.dataset.copy); } catch (e) {} })); };
     draw(0); return true;
@@ -3345,7 +3347,7 @@
       : ['Touche <b class="mv-key">⋮</b> en haut à droite de ton navigateur.', 'Touche <b>« Ajouter à l\'écran d\'accueil »</b> ou <b>« Installer l\'appli »</b>.', 'Confirme : l\'icône Biff City apparaît avec tes applis.'];
     openModal({ title: arrived ? 'Ta partie est arrivée !' : 'Biff City en appli', icon: 'star', center: true, body: `
       ${arrived ? `<p class="center hint-line">🎉 Tout est là, niveau ${arrived}. Dernière étape :</p>` : ''}
-      <div class="inst-head">${has('logo') ? `<img src="${src('logo')}" alt="">` : ''}<b>Mets le jeu sur ton écran d'accueil</b><small>Il s'ouvrira en plein écran, comme une vraie appli, et ta partie sera toujours là.</small></div>
+      <div class="inst-head">${has('logo') ? `<img src="${src(logoKey())}" alt="">` : ''}<b>Mets le jeu sur ton écran d'accueil</b><small>Il s'ouvrira en plein écran, comme une vraie appli, et ta partie sera toujours là.</small></div>
       ${installEvt ? '<div class="center"><button class="btn green" data-act="installNow">Installer Biff City</button></div><p class="center hint-line">ou à la main :</p>' : ''}
       <ol class="mv-steps">${steps.map(x => `<li>${x}</li>`).join('')}</ol>
       ${copied ? `<div class="card inst-code"><b>Ta partie te suit</b><p>L'appli démarre vide la première fois. Ton code de partie vient d'être copié : dans l'appli, touche <b>« J'ai déjà une partie »</b> et tout revient.</p></div>` : ''}
@@ -3387,10 +3389,10 @@
     if (!has('icon-cash')) document.body.classList.add('no-cash-img');
     initPan();
     const report = G.load();
-    if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src('logo')}">` : ''), () => ageGate(startScreen));
+    if (!st().skin) return preload(D.SKINS.filter(k => !k.iap).map(k => skinPic(k.id)).join('') + (has('logo') ? `<img src="${src(logoKey())}">` : ''), () => ageGate(startScreen));
     // écran d'accueil comme Mama Kana : le logo, ton perso, « Continuer »
     const el = $('#start'), s = st();
-    const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src('logo')}" alt="Biff City">` : '<div class="logo"><div class="t1">BIFF</div><div class="t2">CITY</div></div>'}<span class="st-tag">Parie. Investis. Deviens riche.</span></div>
+    const html = `<div class="st-top">${has('logo') ? `<img class="st-logo" src="${src(logoKey())}" alt="Biff City">` : '<div class="logo"><div class="t1">BIFF</div><div class="t2">CITY</div></div>'}<span class="st-tag">Parie. Investis. Deviens riche.</span></div>
       <div class="st-hero">${skinPic(s.skin)}</div>
       <div class="st-bottom"><p class="st-hello"><span>Re, <b>${esc(s.name)}</b> ! Le quartier t'attend.</span></p><button class="btn green start-btn" id="st-go">Continuer</button>
       <p class="start-note">Réservé aux adultes</p></div>`;
