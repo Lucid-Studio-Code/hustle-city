@@ -16,3 +16,4 @@ www/
 node_modules/
 server/apns-key.p8
 server/uploads/
+exports/
