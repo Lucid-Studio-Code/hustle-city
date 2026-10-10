@@ -76,7 +76,7 @@ footer a { color: #fff; }
 .slides { margin-top: -50px; }
 /* le personnage : tête de même taille et crâne à la même hauteur pour tous (positions mesurées dans landing/frames.json), coupé au bas de la carte */
 .bn-popw { position: absolute; left: 4px; right: 4px; top: 0; bottom: 16px; overflow: hidden; border-radius: 0 0 20px 20px; pointer-events: none; }
-.bn-pop { position: absolute; left: 76%; transform: translateX(-50%); width: auto; max-width: none; height: calc(var(--head) * var(--hf)); top: calc(var(--room) + var(--crown) - var(--head) * var(--cf)); min-height: calc(100% + 6px - var(--room) - var(--crown) + var(--head) * var(--cf)); }   /* perso coupé à la taille : on l'agrandit juste assez pour qu'il touche le bas de la carte */
+.bn-pop { position: absolute; left: 76%; transform: translateX(-50%); width: auto; max-width: none; height: calc(var(--head) * var(--hf)); top: calc(var(--room) + var(--crown) - var(--head) * var(--cf)); }
 .bn-card { position: relative; height: 230px; border: 4px solid var(--ink); border-radius: 24px; background-size: cover; box-shadow: 0 7px 0 var(--ink); overflow: hidden; }
 .bn-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(27,20,51,.92) 0%, rgba(27,20,51,.75) 45%, rgba(27,20,51,0) 75%); }
 .bn-txt { position: absolute; left: 20px; top: 0; bottom: 0; width: 58%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
@@ -112,7 +112,7 @@ footer a { color: #fff; }
 .dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .dots { gap: 2px !important; } .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; } .dots button::after { content: ''; width: 10px; height: 10px; border-radius: 99px; border: 2px solid var(--ink); background: rgba(255,255,255,.35); transition: width .25s, background .25s; }
 .dots button.on { width: 34px; } .dots button.on::after { width: 28px; background: var(--gold); }
-@media (max-width: 520px) { .bn { --head: 82px; --crown: -21px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 80%; } .bn-card { height: auto; min-height: 286px; display: flex; align-items: center; } .bn-txt { position: relative; left: auto; top: auto; bottom: auto; width: 50%; padding: 18px 0 18px 18px; } .bn-txt b { font-size: clamp(20px, 5.6vw, 24px); } .bn-txt p { font-size: 12.5px; } }
+@media (max-width: 520px) { .bn { --head: 96px; --crown: -21px; --room: 64px; } .slides { margin-top: -50px; } .news h2 { position: relative; z-index: 2; } .bn-pop { left: 84%; } .bn-card { height: auto; min-height: 276px; display: flex; align-items: center; } .bn-txt { position: relative; left: auto; top: auto; bottom: auto; width: 50%; padding: 18px 0 18px 18px; } .bn-txt b { font-size: clamp(20px, 5.6vw, 24px); } .bn-txt p { font-size: 12.5px; } }
 @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .nc { flex-direction: row; } .ni { aspect-ratio: auto; width: 38%; flex: 0 0 38%; border-bottom: 0; border-right: 3px solid var(--ink); } .nt b { font-size: 18px; } .nt p { font-size: 13px; } }
 @media (max-width: 520px) { .feats { gap: 10px; } .feat { padding: 12px 6px 10px; border-radius: 16px; } .feat img { width: 52px; height: 52px; margin-top: -30px; } .feat b { font-size: 16px; } .feat small { font-size: 12px; } }
 @media (min-width: 900px) {
