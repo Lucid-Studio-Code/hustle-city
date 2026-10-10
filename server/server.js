@@ -775,9 +775,16 @@ for (const r of q('SELECT pid, name, tag, skin, avatar, frame FROM players')) {
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 // fichiers servis : LISTE BLANCHE (ce que chargent game.html, index.html, la page confidentialité et le back office ; images .png ou .webp). Le reste (CLAUDE.md, tools/, server/, .git, ios/, android/, package.json…) → 404.
 const PUB_FILES = new Set(['/index.html', '/game.html', '/confidentialite.html', '/manifest.webmanifest', '/og.jpg', '/sons.html', '/landing/index.html']), PUB_DIRS = ['/js/', '/css/', '/assets/'];
-// en-têtes de sécurité des pages : pas d'affichage dans un cadre d'un autre site ; CSP seulement pour le back office (celle du jeu reste à faire : trop risqué)
+// en-têtes de sécurité des pages : pas d'affichage dans un cadre d'un autre site, et une CSP partout.
+// Jeu : scripts du site (+ jsDelivr / GitHub pour le mode « ?github » d'index.html) ; 'unsafe-inline' obligatoire (scripts dans game.html, onerror / onclick
+// fabriqués par ui.js), mais les requêtes ne partent que vers le serveur du jeu et GitHub, pas de plugin, pas de <base> ni de formulaire ailleurs.
+const GH = 'https://cdn.jsdelivr.net https://raw.githubusercontent.com';
+const GAME_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline' ${GH}; style-src 'self' 'unsafe-inline' ${GH}; img-src 'self' data: blob: ${GH}; media-src 'self' data: blob: ${GH}; font-src 'self' data: ${GH}; connect-src 'self' https://api.github.com ${GH}; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self' https://cdn.jsdelivr.net; form-action 'self'; frame-ancestors 'none'`;
+// vitrine : rendue par le serveur, ses scripts sont autorisés un par un par leur empreinte (aucun script injecté ne peut tourner)
+const scriptHashes = html => [...String(html).matchAll(/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g)].map(m => `'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`);
+const vitrineCsp = html => `default-src 'self'; script-src 'self' ${scriptHashes(html).join(' ')}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`;
 const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
-const htmlHeaders = adm => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : "frame-ancestors 'none'" });
+const htmlHeaders = (adm, vitrine) => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : vitrine != null ? vitrineCsp(vitrine) : GAME_CSP });
 const ICON = path.join(ROOT, 'assets/app/icon-180.png');   // la plus petite icône de l'appli, pour /favicon.ico
 // back office : seulement sur l'adresse du jeu (jamais sur la vitrine biffcity.fr) ; ADMIN_HOSTS=a,b pour en ajouter
 const ADMIN_HOSTS = new Set(['game.biffcity.fr', 'hustle.lucidstudio.fr', 'localhost', '127.0.0.1', '[::1]', ...String(process.env.ADMIN_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean)]);
@@ -818,11 +825,11 @@ http.createServer(async (req, res) => {
     let f = null, adm = false;
     // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
     const host0 = String(req.headers.host || '').toLowerCase().split(':')[0], host = host0 === process.env.VITRINE_TEST_HOST ? 'biffcity.fr' : host0;   // VITRINE_TEST_HOST : voir la vitrine en local (tests)
-    const htmlOut = html0 => { const html = seasonal(html0); res.writeHead(html ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); res.end(req.method === 'HEAD' ? undefined : html || '<!doctype html><meta charset="utf-8"><title>Page introuvable</title><p style="font-family:sans-serif">Cette page n\'existe pas. <a href="/actus">Voir les actus de Biff City</a></p>'); };
+    const htmlOut = html0 => { const html = seasonal(html0); res.writeHead(html ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false, html || '') }); res.end(req.method === 'HEAD' ? undefined : html || '<!doctype html><meta charset="utf-8"><title>Page introuvable</title><p style="font-family:sans-serif">Cette page n\'existe pas. <a href="/actus">Voir les actus de Biff City</a></p>'); };
     if (host === 'biffcity.fr' && (p === '/actus' || p === '/actus/')) return htmlOut(LANDING.renderIndex(getLanding()));
     if (host === 'biffcity.fr' && LANDING.PAGE_SLUGS.includes(p.slice(1))) return htmlOut(LANDING.renderPage(getLanding(), p.slice(1)));
     if (host === 'biffcity.fr' && /^\/actus\/[a-z0-9-]+$/.test(p)) return htmlOut(LANDING.renderArticle(getLanding(), p.slice(7)));
-    if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); return res.end(req.method === 'HEAD' ? undefined : landingPage()); }
+    if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) { const html = landingPage(); res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false, html) }); return res.end(req.method === 'HEAD' ? undefined : html); }
     // référencement : la vitrine est ouverte aux moteurs ; le jeu et le back office ne doivent pas apparaître dans Google
     if (p === '/robots.txt') { const lp = host === 'biffcity.fr';
       return send(res, 200, lp ? 'User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin/\n\nSitemap: https://biffcity.fr/sitemap.xml\n' : 'User-agent: *\nDisallow: /\n', 'text/plain; charset=utf-8'); }
