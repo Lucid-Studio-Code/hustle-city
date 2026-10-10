@@ -374,62 +374,6 @@
   "sub": "Une vraie ville à faire tourner, pas un simple site de pronos.",
   "items": [
    {
-    "img": "/assets/lp/v-paris-6.webp",
-    "alt": "Ticket combiné ×4 gagné au Royal : +12 310",
-    "title": "Paris sportifs en direct",
-    "text": "Foot, basket, tennis : monte ton combiné.",
-    "link": "jeu-paris-sportifs-fictifs"
-   },
-   {
-    "img": "/assets/lp/v-sports-7.webp",
-    "alt": "Matchs de foot, basket, tennis et rugby en direct au Royal",
-    "title": "Pas que du foot",
-    "text": "Basket et tennis en direct, rugby pendant les tournois.",
-    "link": "jeu-paris-sportifs-fictifs"
-   },
-   {
-    "img": "/assets/lp/v-casino-2.webp",
-    "alt": "Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000",
-    "title": "Le Lucky Palace",
-    "text": "Machine à sous et roulette, jusqu’à ×500.",
-    "link": "machine-a-sous-gratuite"
-   },
-   {
-    "img": "/assets/lp/v-argent-5.webp",
-    "alt": "KebabCoin en hausse, sneakers, montre, or et voiture avec leur cote",
-    "title": "Tout a une cote",
-    "text": "Crypto, sneakers, montres, or : achète bas, revends haut.",
-    "link": "fonctionnalites-biff-city"
-   },
-   {
-    "img": "/assets/lp/v-appart-5.webp",
-    "alt": "Avant/après : le studio du début et la chambre de luxe remplie de trésors",
-    "title": "Ton appart évolue",
-    "text": "Du studio sous les toits à la chambre de luxe.",
-    "link": "appartement-et-minage"
-   },
-   {
-    "img": "/assets/lp/v-cartes-9.webp",
-    "alt": "Des cartes légendaires du jeu : Le Cobaye n°1, Le Parrain, T. Lemaire",
-    "title": "Cartes légendaires",
-    "text": "Ouvre des boosters, revends au bon prix.",
-    "link": "boosters-et-cartes"
-   },
-   {
-    "img": "/assets/lp/v-trophees-10.webp",
-    "alt": "La vitrine des trophées et le bénéfice à la revente d'un trophée",
-    "title": "60 trophées à débloquer",
-    "text": "Expose-les chez toi, ou revends-les au prix fort.",
-    "link": "niveaux-et-classement"
-   },
-   {
-    "img": "/assets/lp/v-club-3.webp",
-    "alt": "Une rencontre au carré VIP du Club, avec ses choix",
-    "title": "Le Club, chaque soir",
-    "text": "Des rencontres, des choix, des histoires qui changent ta partie.",
-    "link": "club-biff-city"
-   },
-   {
     "img": "/assets/lp/v-tel-3.webp",
     "alt": "Le téléphone du jeu : messages des potes et notifications de gains",
     "title": "Ton téléphone",
@@ -442,6 +386,62 @@
     "title": "Ta ville à gérer",
     "text": "Débloque les lieux, fais tourner chaque business, change son look.",
     "link": "fonctionnalites-biff-city"
+   },
+   {
+    "img": "/assets/lp/v-club-3.webp",
+    "alt": "Une rencontre au carré VIP du Club, avec ses choix",
+    "title": "Le Club, chaque soir",
+    "text": "Des rencontres, des choix, des histoires qui changent ta partie.",
+    "link": "club-biff-city"
+   },
+   {
+    "img": "/assets/lp/v-argent-5.webp",
+    "alt": "KebabCoin en hausse, sneakers, montre, or et voiture avec leur cote",
+    "title": "Tout a une cote",
+    "text": "Crypto, sneakers, montres, or : achète bas, revends haut.",
+    "link": "fonctionnalites-biff-city"
+   },
+   {
+    "img": "/assets/lp/v-casino-2.webp",
+    "alt": "Jackpot à la machine à sous du Lucky Palace : trois 7, +50 000",
+    "title": "Le Lucky Palace",
+    "text": "Machine à sous et roulette, jusqu’à ×500.",
+    "link": "machine-a-sous-gratuite"
+   },
+   {
+    "img": "/assets/lp/v-paris-6.webp",
+    "alt": "Ticket combiné ×4 gagné au Royal : +12 310",
+    "title": "Paris sportifs en direct",
+    "text": "Foot, basket, tennis : monte ton combiné.",
+    "link": "jeu-paris-sportifs-fictifs"
+   },
+   {
+    "img": "/assets/lp/v-cartes-9.webp",
+    "alt": "Des cartes légendaires du jeu : Le Cobaye n°1, Le Parrain, T. Lemaire",
+    "title": "Cartes légendaires",
+    "text": "Ouvre des boosters, revends au bon prix.",
+    "link": "boosters-et-cartes"
+   },
+   {
+    "img": "/assets/lp/v-sports-7.webp",
+    "alt": "Matchs de foot, basket, tennis et rugby en direct au Royal",
+    "title": "Pas que du foot",
+    "text": "Basket et tennis en direct, rugby pendant les tournois.",
+    "link": "jeu-paris-sportifs-fictifs"
+   },
+   {
+    "img": "/assets/lp/v-appart-5.webp",
+    "alt": "Avant/après : le studio du début et la chambre de luxe remplie de trésors",
+    "title": "Ton appart évolue",
+    "text": "Du studio sous les toits à la chambre de luxe.",
+    "link": "appartement-et-minage"
+   },
+   {
+    "img": "/assets/lp/v-trophees-10.webp",
+    "alt": "La vitrine des trophées et le bénéfice à la revente d'un trophée",
+    "title": "60 trophées à débloquer",
+    "text": "Expose-les chez toi, ou revends-les au prix fort.",
+    "link": "niveaux-et-classement"
    }
   ]
  },
