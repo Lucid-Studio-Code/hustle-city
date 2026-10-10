@@ -100,7 +100,7 @@
    {
     "img": "/assets/img/bg-lp-beta.jpg",
     "alt": "Le Survêt ouvre un paquet de cartes holographiques",
-    "imgPos": "50% 40%",
+    "imgPos": "64% 45%",
     "chip": "Seulement pendant la bêta",
     "color": "live",
     "start": "",
@@ -113,7 +113,7 @@
    {
     "img": "/assets/img/bg-lp-avis.jpg",
     "alt": "Une joueuse envoie son avis depuis son téléphone",
-    "imgPos": "50% 35%",
+    "imgPos": "72% 40%",
     "chip": "Bientôt",
     "color": "soon",
     "start": "",
