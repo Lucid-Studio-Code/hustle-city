@@ -76,7 +76,7 @@ footer a { color: #fff; }
 .slides { margin-top: -50px; }
 /* le personnage : tête de même taille et crâne à la même hauteur pour tous (positions mesurées dans landing/frames.json), coupé au bas de la carte */
 .bn-popw { position: absolute; left: 4px; right: 4px; top: 0; bottom: 16px; overflow: hidden; border-radius: 0 0 20px 20px; pointer-events: none; }
-.bn-pop { position: absolute; left: 76%; transform: translateX(-50%); width: auto; max-width: none; height: calc(var(--head) * var(--hf)); top: calc(var(--room) + var(--crown) - var(--head) * var(--cf)); }
+.bn-pop { position: absolute; left: 76%; transform: translateX(-50%); width: auto; max-width: none; height: calc(var(--head) * var(--hf)); top: calc(var(--room) + var(--crown) - var(--head) * var(--cf)); min-height: calc(100% + 6px - var(--room) - var(--crown) + var(--head) * var(--cf)); }   /* perso coupé à la taille : on l'agrandit juste assez pour qu'il touche le bas de la carte */
 .bn-card { position: relative; height: 230px; border: 4px solid var(--ink); border-radius: 24px; background-size: cover; box-shadow: 0 7px 0 var(--ink); overflow: hidden; }
 .bn-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(27,20,51,.92) 0%, rgba(27,20,51,.75) 45%, rgba(27,20,51,0) 75%); }
 .bn-txt { position: absolute; left: 20px; top: 0; bottom: 0; width: 58%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
