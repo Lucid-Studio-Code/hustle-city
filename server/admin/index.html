@@ -8,13 +8,11 @@
 </head><body>
 <div id="login" class="hidden">
   <div class="lg-bg"></div>
-  <form class="lg-box" id="lg-form" autocomplete="off">
+  <form class="lg-box" id="lg-form">
     <img class="lg-logo" src="/assets/img/logo.png?v=3" alt="Biff City">
     <h1>Le QG du patron</h1>
-    <p>Colle ton jeton d'accès pour entrer dans le back office.</p>
-    <input id="tok" type="password" placeholder="Jeton d'accès" autocomplete="current-password">
-    <button class="btn lg green" type="submit">Entrer</button>
-    <p id="tok-err" class="err"></p>
+    <div id="lg-in"></div>
+    <p id="tok-err" class="err" role="alert"></p>
     <div class="lg-skins"><img src="/assets/img/skin-survet-bust.png" alt=""><img src="/assets/img/skin-doudoune-bust.png" alt=""><img src="/assets/img/skin-flambeur-bust.png" alt=""><img src="/assets/img/skin-boss-bust.png" alt=""><img src="/assets/img/skin-hoodie-bust.png" alt=""><img src="/assets/img/skin-sportive-bust.png" alt=""></div>
   </form>
 </div>
@@ -33,6 +31,7 @@
       <img class="tb-logo" src="/assets/img/logo.png?v=3" alt=""><span class="tb-t" id="tb-t"></span>
       <div class="live-pill" data-go="map"><span class="dot"></span><b id="live-n2">–</b><span>en ligne</span></div>
     </header>
+    <div id="sec-banner" class="sec-banner hidden"></div>
     <main id="main"></main>
   </div>
 </div>
@@ -50,4 +49,5 @@
 <script src="admin-notifs.js"></script>
 <script src="admin-items.js"></script>
 <script src="admin-landing.js"></script>
+<script src="admin-security.js"></script>
 </body></html>

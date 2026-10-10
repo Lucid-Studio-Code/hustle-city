@@ -786,6 +786,9 @@ const vitrineCsp = html => `default-src 'self'; script-src 'self' ${scriptHashes
 const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 const htmlHeaders = (adm, vitrine) => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : vitrine != null ? vitrineCsp(vitrine) : GAME_CSP });
 const ICON = path.join(ROOT, 'assets/app/icon-180.png');   // la plus petite icône de l'appli, pour /favicon.ico
+// connexion au back office : compte admin (e-mail + mot de passe + code par e-mail), session par cookie ; voir server/admin-auth.js
+const AUTH = require('./admin-auth').makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientIp, isLocalReq, log, same, txt, now });
+Object.assign(admin, AUTH.api);
 // back office : seulement sur l'adresse du jeu (jamais sur la vitrine biffcity.fr) ; ADMIN_HOSTS=a,b pour en ajouter
 const ADMIN_HOSTS = new Set(['game.biffcity.fr', 'hustle.lucidstudio.fr', 'localhost', '127.0.0.1', '[::1]', ...String(process.env.ADMIN_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean)]);
 const hostOf = req => String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
@@ -803,12 +806,21 @@ http.createServer(async (req, res) => {
       if (api[key]) return await api[key](req, res, u); return send(res, 404, { err: 'route' });
     }
     if ((u.pathname === '/admin' || u.pathname.startsWith('/admin/')) && !ADMIN_HOSTS.has(hostOf(req))) return send(res, 404, '404', 'text/plain');
+    const admPost = req.method !== 'GET' && req.method !== 'HEAD' && (u.pathname.startsWith('/admin/api/') || u.pathname.startsWith('/admin/login/') || u.pathname === '/admin/logout');
+    if (admPost && !AUTH.csrfOk(req)) return send(res, 403, { err: 'Requête refusée (elle ne vient pas du back office).' });
+    if (AUTH.routes[key]) return await AUTH.routes[key](req, res, u);
     if (u.pathname.startsWith('/admin/api/')) {
-      const ak = 'adm:' + ipKey(clientIp(req));
-      if (left(ak, ADM_TRY, ADM_MS) < 1) { res.setHeader('Retry-After', '600'); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
-      if (!same(req.headers.authorization || '', 'Bearer ' + ADMIN_TOKEN)) {
-        limit(ak, ADM_TRY, ADM_MS); if (left(ak, ADM_TRY, ADM_MS) < 1) console.warn(`back office : ${ADM_TRY} jetons faux en 10 min depuis ${ipKey(clientIp(req))}, bloqué 10 min`);
-        return send(res, 401, { err: 'Jeton du back office invalide.' });
+      // session (cookie) d'abord ; sinon le jeton de secours dans l'en-tête Authorization (10 essais ratés / 10 min par IP)
+      req.admin = AUTH.sessionOf(req);
+      if (!req.admin) {
+        const auth = String(req.headers.authorization || ''); if (!auth || auth === 'Bearer ' || auth === 'Bearer') return send(res, 401, { err: 'Connexion requise.' });
+        const ak = 'adm:' + ipKey(clientIp(req));
+        if (left(ak, ADM_TRY, ADM_MS) < 1) { res.setHeader('Retry-After', '600'); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
+        if (!same(auth, 'Bearer ' + ADMIN_TOKEN)) {
+          limit(ak, ADM_TRY, ADM_MS); AUTH.authLog(req, '', 0, 'jeton de secours faux'); if (left(ak, ADM_TRY, ADM_MS) < 1) console.warn(`back office : ${ADM_TRY} jetons faux en 10 min depuis ${ipKey(clientIp(req))}, bloqué 10 min`);
+          return send(res, 401, { err: 'Jeton du back office invalide.' });
+        }
+        req.admin = { via: 'token' };
       }
       if (admin[key]) return await admin[key](req, res, u); return send(res, 404, { err: 'route' });
     }

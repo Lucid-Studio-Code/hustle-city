@@ -11,7 +11,15 @@
     DB=server/demo.db PORT=5301 node server/server.js
 Puis http://localhost:5301/admin/ avec le même jeton. La démo est dans une base à part (`server/demo.db`) : ta vraie base `server/hustle.db` n'est jamais touchée. Relancer le script remet la démo à zéro (pense à relancer le serveur ensuite). Une quinzaine de joueurs y restent « en ligne » pendant 4 h.
 
-Astuce : on peut ouvrir directement un onglet avec `…/admin/#page=stats` (ou `map`, `players`, `support`, `live`, `broadcast`, `logs`, `player&pid=…`). Le jeton se tape dans l'écran de connexion (il n'est plus accepté dans l'adresse). Le back office ne s'ouvre que sur l'adresse du jeu (game.biffcity.fr, ou localhost sur ton Mac), jamais sur biffcity.fr ; 10 jetons faux en 10 min depuis une même connexion la bloquent 10 min.
+Astuce : on peut ouvrir directement un onglet avec `…/admin/#page=stats` (ou `map`, `players`, `support`, `live`, `broadcast`, `logs`, `player&pid=…`). Le jeton se tape dans l'écran de connexion (il n'est plus accepté dans l'adresse).
+
+## Connexion au back office : compte admin
+- **Première fois** : on entre avec le jeton ; le back office propose « Créer ton compte admin » (e-mail, mot de passe de 12 caractères au moins). Ensuite l'écran de connexion demande l'e-mail et le mot de passe.
+- **Code par e-mail** : après un bon mot de passe, un code à 6 chiffres part à l'adresse du compte (valable 10 min, 5 essais, un nouveau toutes les 60 s au plus). Réglage dans **Sécurité** : serveur `smtp.gmail.com`, port `465`, identifiant `contact.lucidstudio@gmail.com`, mot de passe d'application Google, expéditeur `Biff City <contact@biffcity.fr>`, puis « Envoyer un e-mail de test ». Le mot de passe d'application reste sur le serveur (la page affiche seulement « configuré »). Tant que ce n'est pas réglé, on entre avec le seul mot de passe (bandeau jaune dans le back office).
+- **Session** : cookie (HttpOnly, Secure, SameSite=Strict) valable 12 h ; « Se déconnecter » en bas du menu ; la page Sécurité liste les sessions ouvertes (on peut les fermer) et les 100 dernières connexions, réussies ou ratées.
+- **Anti-force-brute** : 5 mots de passe ou codes faux en 15 min (par connexion et par compte) bloquent 15 min.
+- **Mot de passe oublié** : pas de lien par e-mail. Sur l'écran de connexion, « Accès de secours (jeton) », coller le jeton (`server/.admin-token-en-ligne` sur ton Mac), puis Sécurité → « Recréer le compte » : l'ancien compte et ses sessions sont supprimés.
+- Le jeton reste toujours accepté (en-tête `Authorization: Bearer …`) comme accès de secours, avec ses limites (10 essais ratés / 10 min). Le back office ne s'ouvre que sur l'adresse du jeu (game.biffcity.fr, ou localhost sur ton Mac), jamais sur biffcity.fr ; 10 jetons faux en 10 min depuis une même connexion la bloquent 10 min.
 
 ## Ce que fait le back office
 Captures de chaque onglet : `server/captures/`.

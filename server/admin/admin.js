@@ -1,6 +1,6 @@
 /* Biff City · back office : le socle (connexion, navigation, outils communs, avatar des joueurs), le tableau de bord et la carte.
    Les autres onglets : admin-stats.js (statistiques), admin-players.js (joueurs + fiche), admin-ops.js (SAV, événements, message à tous, journal).
-   Parle à server/server.js (API /admin/api/…, jeton Bearer). */
+   Parle à server/server.js (API /admin/api/…) : session par cookie (compte admin, voir server/admin-auth.js), ou jeton de secours (en-tête Bearer). */
 (function () {
   'use strict';
   const D = window.DATA || {}, IMG = new Set(window.ASSETS || []), AV = window.ASSET_V || 1;
@@ -47,10 +47,10 @@
   });
 
   // ------------------------------------------------------------ serveur
-  let TOKEN = lsGet('hc.admin') || '';
+  let TOKEN = lsGet('hc.admin') || '';   // jeton de secours (seulement s'il a servi à entrer) ; sinon la session est dans un cookie que la page ne voit pas
   HC.api = async function api(p, body) {
-    const r = await fetch(p, { method: body ? 'POST' : 'GET', headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
-    if (r.status === 401) { showLogin('Ce jeton ne marche pas.'); throw new Error('401'); }
+    const r = await fetch(p, { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: { ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}), 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    if (r.status === 401) { if (TOKEN) { TOKEN = ''; lsSet('hc.admin', null); } if (!$('#app').classList.contains('hidden')) showLogin('Ta session a expiré : reconnecte-toi.'); throw new Error('401'); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { HC.toast(j.err || 'Erreur du serveur', null, true); throw new Error(j.err || r.status); }
     return j;
@@ -177,6 +177,7 @@
     { id: 'notifs', label: 'Notifications', icon: 'icon-bolt', grp: 'Messages' },
     { id: 'landing', label: 'Landing', icon: 'icon-cash', grp: 'Site' },
     { id: 'blog', label: 'Blog', icon: 'icon-star', grp: 'Site' },
+    { id: 'security', label: 'Sécurité', icon: 'icon-lock', grp: 'Réglages' },
     { id: 'logs', label: 'Journal', icon: 'hdr-missions', foot: true }
   ];
   const PARENT = { player: 'players' };
@@ -206,23 +207,69 @@
   }
   HC.route = route;
   // pastille du SAV : nombre de conversations qui attendent une réponse
-  const savBadge = () => HC.api('/admin/api/tickets?status=ouvert&q=').then(r => { const b = document.getElementById('nb-sav'); if (b) { const n = (r.list || []).length; b.textContent = n || ''; b.style.display = n ? '' : 'none'; } }).catch(() => {});
+  const savBadge = () => $('#app').classList.contains('hidden') ? Promise.resolve() : HC.api('/admin/api/tickets?status=ouvert&q=').then(r => { const b = document.getElementById('nb-sav'); if (b) { const n = (r.list || []).length; b.textContent = n || ''; b.style.display = n ? '' : 'none'; } }).catch(() => {});
   setTimeout(savBadge, 1500); setInterval(savBadge, 60000);
   window.addEventListener('hashchange', route);
   HC.main = html => { $('#main').innerHTML = html; };
 
   // ------------------------------------------------------------ en direct : compteur « en ligne » + badge SAV (toutes les 20 s)
   async function pollLive() {
-    if (!TOKEN || $('#app').classList.contains('hidden')) return;
+    if ($('#app').classList.contains('hidden')) return;
     try { const L = await HC.api('/admin/api/live'); HC.live = L; $('#live-n').textContent = L.online.length; $('#live-n2').textContent = L.online.length;  if (HC.onLive) HC.onLive(L); } catch (e) {}
   }
   setInterval(pollLive, 20000);
 
   // ------------------------------------------------------------ connexion
-  function showLogin(err) { $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); $('#tok-err').textContent = err || ''; setTimeout(() => $('#tok').focus(), 50); }
-  async function enter() { $('#login').classList.add('hidden'); $('#app').classList.remove('hidden'); await pollLive(); route(); }
-  $('#lg-form').onsubmit = async e => { e.preventDefault(); TOKEN = $('#tok').value.trim(); if (!TOKEN) return; lsSet('hc.admin', TOKEN); try { await HC.api('/admin/api/config'); enter(); } catch (x) {} };
-  $('#logout').onclick = () => { lsSet('hc.admin', null); TOKEN = ''; showLogin(); };
+  // Sans compte admin : le jeton (seule entrée). Avec un compte : e-mail + mot de passe, puis le code reçu par e-mail (si l'e-mail est réglé).
+  // Le jeton reste l'accès de secours (lien en bas de l'écran), par exemple pour recréer le compte après un mot de passe oublié.
+  let LG = { step: 'pw' };
+  const post = (p, b) => fetch(p, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b || {}) }).then(async r => ({ s: r.status, j: await r.json().catch(() => ({})) }));
+  const lgErr = t => { $('#tok-err').textContent = t || ''; };
+  function lgDraw() {
+    const f = LG.token || !LG.hasUser ? `<p>Colle ton jeton d'accès pour entrer dans le back office.</p><input id="tok" type="password" placeholder="Jeton d'accès" autocomplete="off"><button class="btn lg green" type="submit">Entrer</button>${LG.hasUser ? '<button type="button" class="lg-link" data-lg="pw">Revenir à l\'e-mail et au mot de passe</button>' : ''}`
+      : LG.step === 'code' ? `<p>Code envoyé à <b>${esc(LG.to)}</b>. Il est valable 10 minutes.</p><input id="lg-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Code à 6 chiffres"><button class="btn lg green" type="submit">Valider</button><button type="button" class="lg-link" data-lg="resend">Renvoyer un code</button><button type="button" class="lg-link" data-lg="pw">Recommencer</button>`
+      : `<p>Connecte-toi avec ton compte admin.</p><input id="lg-email" type="email" autocomplete="username" placeholder="E-mail" value="${esc(LG.email || '')}"><input id="lg-pw" type="password" autocomplete="current-password" placeholder="Mot de passe" style="margin-top:8px"><button class="btn lg green" type="submit">Continuer</button><button type="button" class="lg-link" data-lg="token">Accès de secours (jeton)</button>`;
+    $('#lg-in').innerHTML = f; setTimeout(() => { const i = $('#lg-in input:not([value]):not([type=email]), #lg-in input'); if (i) i.focus(); }, 50);
+  }
+  async function showLogin(err) {
+    $('#login').classList.remove('hidden'); $('#app').classList.add('hidden'); HC.me = null;
+    try { LG.hasUser = !!(await fetch('/admin/login/state').then(r => r.json())).hasUser; } catch (e) {}
+    if (LG.step !== 'code') LG.step = 'pw'; lgDraw(); lgErr(err);
+  }
+  $('#lg-in').addEventListener('click', async e => {
+    const b = e.target.closest('[data-lg]'); if (!b) return; const a = b.dataset.lg; lgErr('');
+    if (a === 'token') { LG.token = true; lgDraw(); } else if (a === 'pw') { LG = { step: 'pw', hasUser: LG.hasUser, email: LG.email }; lgDraw(); }
+    else if (a === 'resend') { const r = await post('/admin/login/resend', { ch: LG.ch }); if (r.j.restart) { LG.step = 'pw'; lgDraw(); } lgErr(r.j.ok ? 'Nouveau code envoyé.' : r.j.err); }
+  });
+  $('#lg-form').onsubmit = async e => {
+    e.preventDefault(); lgErr('');
+    if (LG.token || !LG.hasUser) {
+      const t = ($('#tok') || {}).value ? $('#tok').value.trim() : ''; if (!t) return;
+      const r = await fetch('/admin/api/me', { headers: { Authorization: 'Bearer ' + t } }), j = await r.json().catch(() => ({}));
+      if (!r.ok) return lgErr(r.status === 401 ? 'Ce jeton ne marche pas.' : j.err || 'Erreur.');
+      TOKEN = t; lsSet('hc.admin', TOKEN); enter(j); return;
+    }
+    if (LG.step === 'code') {
+      const r = await post('/admin/login/code', { ch: LG.ch, code: $('#lg-code').value }); if (r.j.ok) return start();
+      if (r.j.restart) { LG.step = 'pw'; lgDraw(); } lgErr(r.j.err || 'Erreur.'); return;
+    }
+    LG.email = $('#lg-email').value.trim(); const r = await post('/admin/login/password', { email: LG.email, password: $('#lg-pw').value });
+    if (r.j.ok) return start();
+    if (r.j.code) { Object.assign(LG, { step: 'code', ch: r.j.ch, to: r.j.to }); lgDraw(); return; }
+    lgErr(r.j.err || 'Erreur.');
+  };
+  async function enter(me) {
+    HC.me = me; LG = { step: 'pw' }; $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+    const bn = $('#sec-banner'), warn = me.hasUser && !me.smtp ? 'Le code de connexion par e-mail n\'est pas encore réglé : on entre avec le seul mot de passe. <a href="#page=security">Le régler dans Sécurité</a>'
+      : me.via === 'token' && me.hasUser ? 'Tu es entrée avec le jeton de secours. <a href="#page=security">Page Sécurité</a>' : '';
+    bn.innerHTML = warn; bn.classList.toggle('hidden', !warn);
+    await pollLive(); route();
+    if (me.via === 'token' && !me.hasUser && HC.accountForm) HC.accountForm(true);   // première fois : on crée le compte admin
+  }
+  async function start() { try { enter(await HC.api('/admin/api/me')); } catch (e) { showLogin(e.message === '401' ? '' : e.message); } }
+  HC.start = start;
+  HC.logout = async (msg) => { await post('/admin/logout').catch(() => {}); lsSet('hc.admin', null); TOKEN = ''; showLogin(msg || ''); };
+  $('#logout').onclick = () => HC.logout();
   // jeton dans l'adresse (#token=…) : plus accepté (il reste dans l'historique du navigateur) ; on l'efface seulement de l'adresse
   { const p = params(); if (p.get('token')) { p.delete('token'); history.replaceState(null, '', location.pathname + (p.toString() ? '#' + p.toString() : '')); } }
 
@@ -364,5 +411,5 @@
   };
 
   // ------------------------------------------------------------ démarrage (après le chargement des autres fichiers)
-  window.addEventListener('DOMContentLoaded', () => { if (!TOKEN) showLogin(); else HC.api('/admin/api/config').then(enter).catch(() => {}); });
+  window.addEventListener('DOMContentLoaded', () => start());
 })();
