@@ -75,7 +75,7 @@ const words = t => (t.match(/\S+/g) || []).length;
 
 // texte simple → HTML : « ## » intertitre, « ### », « - » liste, **gras**, [texte](/actus/…) ou [texte](jeu). Aucun lien vers un autre site.
 function md(t, slugs) {
-  const inline = s => esc(s).replace(/(^|[\s(])(contact@lucidstudio\.fr)/g, '$1<a href="mailto:$2">$2</a>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, href) => {
+  const inline = s => esc(s).replace(/(^|[\s(])(contact@biffcity\.fr)/g, '$1<a href="mailto:$2">$2</a>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, label, href) => {
     href = href.replace(/&amp;/g, '&');
     if (href === 'jeu') return `<a href="${GAME}" data-lp="beta-article">${label}</a>`;
     const a = /^\/actus\/([a-z0-9-]+)$/.exec(href); if (a && slugs.includes(a[1])) return `<a href="${href}">${label}</a>`;
@@ -167,7 +167,7 @@ function shell({ title, desc, url, img, ld, body, slug }) {
 <body>
 <header class="top"><a class="brand" href="/"><img src="/assets/img/logo.webp?v=3" alt="Biff City" width="840" height="664"></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
 ${body}
-<footer>${FOOT_LINKS}Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
+<footer>${FOOT_LINKS}Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@biffcity.fr">contact@biffcity.fr</a></footer>
 ${HIT(slug)}
 </body>
 </html>`;

@@ -604,7 +604,7 @@
   // Un booster gratuit par jour, un à chaque niveau, un pour les 3 défis du jour ; on en achète aussi (lingots ou au Kiosque).
   // Contenu : 3 cartes récompense + 1 carte de collection (une vraie carte avec une cote, qui va dans ton classeur).
   // mentions légales (Réglages → Mentions légales) : l'éditrice du jeu
-  const LEGAL = { editeur: 'LUCID STUDIO', rcs: 'Entrepreneur individuel, SIREN 950 806 182', tva: 'FR86950806182', adresse: '1 rue Jeanne Paquin, 93450 L\'Île-Saint-Denis, France', email: 'contact@lucidstudio.fr', directeur: 'LUCID STUDIO' };
+  const LEGAL = { editeur: 'LUCID STUDIO', rcs: 'Entrepreneur individuel, SIREN 950 806 182', tva: 'FR86950806182', adresse: '1 rue Jeanne Paquin, 93450 L\'Île-Saint-Denis, France', email: 'contact@biffcity.fr', directeur: 'LUCID STUDIO' };
   const BOOSTER = {
     cost: 12,                                   // en lingots
     weights: { C: 58, R: 30, E: 10, L: 2 },     // cartes récompense, en %
