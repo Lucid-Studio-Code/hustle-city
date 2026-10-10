@@ -430,6 +430,13 @@
     "link": "club-biff-city"
    },
    {
+    "img": "/assets/lp/v-tel.webp",
+    "alt": "Le téléphone du jeu : messages des contacts et applis",
+    "title": "Ton téléphone",
+    "text": "Tes potes t'écrivent, les affaires tombent.",
+    "link": "personnages-du-club"
+   },
+   {
     "img": "/assets/lp/v-custom.webp",
     "alt": "Les décors de ville et les personnages à choisir",
     "title": "Ta ville, ton style",
