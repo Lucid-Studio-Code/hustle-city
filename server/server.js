@@ -135,25 +135,42 @@ const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), 
 // Donc par synchro : gain ≤ A(niveau) = 200 000 + 30 000 × niveau, + une part de ce qu'on a déjà (25 % + 50 % par heure écoulée, 400 % au plus),
 // + les cadeaux en cash du back office touchés depuis ; et sur la journée : ≤ 6 × la valeur du début de journée, ou + 4 × A (empêche l'effet boule de neige).
 // XP (total depuis le niveau 1) : + 1 500 + 40 × niveau d’avant par minute écoulée (la vraie progression est bien plus lente, xpCap dans game.js).
-// Première synchro (nouveau joueur, partie restaurée, drapeau levé au back office) : seulement un plafond absolu selon le niveau.
+// Première synchro d'un compte neuf : niveau et fortune à la mesure de l'âge du compte (XP ≤ 3 000 + 300 par minute d'existence ;
+// fortune ≤ (100 000 + 4 × A) × (1 + jours), et jamais plus que le plafond absolu selon le niveau).
+// Première synchro « de confiance » (partie restaurée par le support, drapeau levé au back office : ac.ok) : seulement le plafond absolu.
+// Un fichier de partie importé par le joueur ne remet plus rien à zéro : les plafonds habituels s'appliquent.
+// Cadeaux en cash du back office (ac.g) : comptés en entier 24 h, puis de moins en moins, plus rien après 48 h.
+// Coller au plafond du jour (≥ 90 %) 3 jours de suite : suspect.
 // Au-delà : la valeur gardée est rabotée, et le joueur est marqué « suspect » (sorti des classements publics, badge au back office).
 const XPT = () => GAME.XP_TABLE || [], xpTot = (l, x) => XPT().slice(1, l).reduce((a, b) => a + b, 0) + x;
 function xpFrom(tot) { let l = 1; while (l < maxLvl() && tot >= (XPT()[l] || Infinity)) tot -= XPT()[l++]; return { lvl: l, xp: Math.floor(tot) }; }
 const AC_A = l => 200000 + 30000 * l;
+const giftLeft = (ac, T) => { const a = T - (+ac.gt || 0); return num(ac.g, 1e12) * (a < DAY ? 1 : Math.max(0, 2 - a / DAY)); };
 function antiCheat(p, s) {   // rabote s (résumé nettoyé) d'après les valeurs déjà connues de p ; renvoie { n: valeurs rabotées, ac: repères à garder }
-  const T = now(), dk = dkey(T), old = J(p.ac), gift = num(old.g, 1e12); let n = 0;
+  const T = now(), dk = dkey(T), old = J(p.ac), gift = giftLeft(old, T), keep = gift >= 1 ? { g: num(old.g, 1e12), gt: +old.gt || T } : {}; let n = 0;
   if (!p.sync_at) {
-    const cap = 1e6 + 2e5 * s.lvl * s.lvl; ['worth', 'cash'].forEach(k => { if (s[k] > cap) { s[k] = cap; n++; } });
-    return { n, ac: { d: dk, w: s.worth, c: s.cash } };
+    let cap = 1e6 + 2e5 * s.lvl * s.lvl;
+    if (!old.ok) {   // compte neuf : pas de niveau 40 ni de centaines de millions au bout de quelques minutes
+      const age = Math.max(0, T - (p.created || T)), capXp = 3000 + 300 * age / 60000;
+      if (xpTot(s.lvl, s.xp) > capXp) { Object.assign(s, xpFrom(capXp)); n++; }
+      cap = Math.min(1e6 + 2e5 * s.lvl * s.lvl, (1e5 + 4 * AC_A(s.lvl)) * (1 + age / DAY)) + gift;
+    }
+    ['worth', 'cash'].forEach(k => { if (s[k] > cap) { s[k] = Math.round(cap); n++; } });
+    return { n, ac: { d: dk, w: s.worth, c: s.cash, ...keep } };
   }
   const h = Math.min(Math.max(T - p.sync_at, 60000), 7 * DAY) / 3600000;
   const prevTot = xpTot(lvlOf(p.lvl), num(p.xp)), capXp = prevTot + 1500 + 40 * lvlOf(p.lvl) * h * 60;   // XP d'abord : le niveau gardé sert au plafond d'argent
   if (xpTot(s.lvl, s.xp) > capXp) { Object.assign(s, xpFrom(capXp)); n++; }
-  const A = AC_A(s.lvl) + gift, ac = old.d === dk ? { d: dk, w: num(old.w), c: num(old.c) } : { d: dk, w: num(p.worth), c: num(p.cash) };
+  const A = AC_A(s.lvl) + gift, ac = { ...(old.d === dk ? { d: dk, w: num(old.w), c: num(old.c) } : { d: dk, w: num(p.worth), c: num(p.cash) }), ...keep };
+  let hit = false;
   [['worth', 'w'], ['cash', 'c']].forEach(([k, b]) => {
-    const prev = num(p[k]), cap = Math.min(prev + A + prev * Math.min(4, .25 + .5 * h), Math.max(ac[b] * 6, ac[b] + 4 * A) + gift);
+    const prev = num(p[k]), day = Math.max(ac[b] * 6, ac[b] + 4 * A) + gift, cap = Math.min(prev + A + prev * Math.min(4, .25 + .5 * h), day);
     if (s[k] > cap) { s[k] = Math.round(cap); n++; }
+    if (s[k] >= .9 * day) hit = true;
   });
+  // jours collés au plafond : k jours de suite, le dernier étant kd
+  if (old.kd) { ac.k = old.k; ac.kd = old.kd; }
+  if (hit && old.kd !== dk) { ac.k = old.kd === dkey(dayStart(T) - 1) ? (+old.k || 0) + 1 : 1; ac.kd = dk; if (ac.k >= 3) { n++; console.warn(`anti-triche : ${p.pid} colle au plafond du jour depuis ${ac.k} jours`); } }
   return { n, ac };
 }
 
@@ -352,21 +369,21 @@ const api = {
       const t = +e.t; ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), data); bytes += data.length; k++; qd.n++; if (e.type === 'act') qd.a++; });
     send(res, 200, { ok: true, rev: (q1('SELECT save_at FROM players WHERE pid = ?', p.pid) || {}).save_at || 0, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
   },
-  // le joueur a collé un code de sauvegarde (partie d'un autre appareil) : la prochaine synchro repart comme une première (sinon l'anti-triche voit un bond).
-  // Une fois par jour au plus, et le plafond absolu de la première synchro s'applique toujours.
+  // le joueur a collé un code de sauvegarde : c'est noté au journal, mais l'anti-triche n'est plus remis à zéro (un fichier importé se fabrique à la main).
+  // La partie reprise par code de récupération est celle du serveur : aucun bond. Un vrai cas bloqué → « Lever le drapeau » au back office.
   async 'POST /api/imported'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
     const last = q1("SELECT t FROM admin_log WHERE action = 'import' AND data = ? ORDER BY t DESC LIMIT 1", JSON.stringify({ pid: p.pid }));
     if (last && now() - last.t < DAY) return send(res, 429, { err: 'Déjà fait aujourd\'hui.' });
-    run('UPDATE players SET sync_at = NULL, ac = NULL WHERE pid = ?', p.pid); log('import', { pid: p.pid }); send(res, 200, { ok: true });
+    log('import', { pid: p.pid }); send(res, 200, { ok: true });
   },
   async 'POST /api/claim'(req, res) {
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
     const m = q1('SELECT gift FROM inbox WHERE id = ? AND pid = ? AND claimed = 0', +b.id || 0, p.pid), g = m && J(m.gift);
     run('UPDATE inbox SET claimed = 1 WHERE id = ? AND pid = ?', +b.id || 0, p.pid);
     // anti-triche : un cadeau en cash du back office est compté à la prochaine synchro ; une partie restaurée repart comme une première synchro
-    if (g && g.restore) run('UPDATE players SET sync_at = NULL, ac = NULL WHERE pid = ?', p.pid);
-    else if (g && +g.cash) { const ac = J(p.ac); ac.g = num(ac.g, 1e12) + num(g.cash, 1e12); run('UPDATE players SET ac = ? WHERE pid = ?', JSON.stringify(ac), p.pid); }
+    if (g && g.restore) run('UPDATE players SET sync_at = NULL, ac = ? WHERE pid = ?', JSON.stringify({ ok: 1 }), p.pid);   // partie remise par le support : reprise telle quelle
+    else if (g && +g.cash) { const ac = J(p.ac); ac.g = giftLeft(ac, now()) + num(g.cash, 1e12); ac.gt = now(); run('UPDATE players SET ac = ? WHERE pid = ?', JSON.stringify(ac), p.pid); }
     send(res, 200, { ok: true });
   },
   'GET /api/health'(req, res) { q1('SELECT 1 x'); send(res, 200, { ok: true, t: now() }); },   // pour la surveillance (.github/workflows/uptime.yml)
@@ -632,7 +649,7 @@ const admin = {
   },
   async 'POST /admin/api/ban'(req, res) { const b = await body(req); run('UPDATE players SET banned = ?, ban_reason = ? WHERE pid = ?', b.ban ? 1 : 0, b.reason || '', b.pid); log(b.ban ? 'ban' : 'unban', b); send(res, 200, { ok: true }); },
   // anti-triche : lever le drapeau « Suspect » (la prochaine synchro repart comme une première : sa fortune actuelle est reprise telle quelle)
-  async 'POST /admin/api/suspect'(req, res) { const b = await body(req); run('UPDATE players SET suspect = 0, sync_at = NULL, ac = NULL WHERE pid = ?', String(b.pid || '')); log('suspect-clear', { pid: b.pid }); send(res, 200, { ok: true }); },
+  async 'POST /admin/api/suspect'(req, res) { const b = await body(req); run('UPDATE players SET suspect = 0, sync_at = NULL, ac = ? WHERE pid = ?', JSON.stringify({ ok: 1 }), String(b.pid || '')); log('suspect-clear', { pid: b.pid }); send(res, 200, { ok: true }); },
   async 'POST /admin/api/notes'(req, res) { const b = await body(req); run('UPDATE players SET notes = ? WHERE pid = ?', b.notes || '', b.pid); log('notes', { pid: b.pid }); send(res, 200, { ok: true }); },
   async 'POST /admin/api/save'(req, res) {   // remettre une sauvegarde (SAV) : le jeu la recharge à sa prochaine connexion
     const b = await body(req); let save = b.save;
