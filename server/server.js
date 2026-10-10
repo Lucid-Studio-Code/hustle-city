@@ -773,6 +773,8 @@ http.createServer(async (req, res) => {
     const base = adm ? path.join(__dirname, 'admin') : ROOT, ext = f ? path.extname(f) : '';
     if (!f || !f.startsWith(base + path.sep) || p.split('/').some(x => x.startsWith('.')) || !types[ext] || ext === '.json') return send(res, 404, '404', 'text/plain');
     fs.readFile(f, (e, data) => { if (e) return send(res, 404, '404', 'text/plain');
+      // saison Halloween : la page du jeu et son manifeste pointent vers les icônes « -hw » (quand elles existent)
+      if (!adm && (p === '/game.html' || p === '/index.html' || p === '/manifest.webmanifest') && season() === 'hw' && fs.existsSync(path.join(ROOT, 'assets/app/icon-512-hw.png'))) data = Buffer.from(String(data).replace(/assets\/app\/icon-(\d+)\.png(\?v=\d+)?/g, 'assets/app/icon-$1-hw.png?v=1'));
       // cache du navigateur : un fichier avec sa version dans l'adresse (?v=…) ne change jamais → gardé 1 an ; une image sans version → 1 jour ; les pages → toujours revérifiées
       const cc = ext === '.html' || ext === '.webmanifest' ? 'no-cache' : /[?&]v=/.test(req.url) && !/[?&]t=/.test(req.url) ? 'public, max-age=31536000, immutable' : /\.(png|jpe?g|webp|svg|woff2?|mp3)$/.test(ext) ? 'public, max-age=86400' : 'no-cache';
       res.writeHead(200, { 'Content-Type': types[ext], 'X-Content-Type-Options': 'nosniff', 'Cache-Control': cc, ...(ext === '.html' ? htmlHeaders(adm) : {}) }); res.end(req.method === 'HEAD' ? undefined : data); });
