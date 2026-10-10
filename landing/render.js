@@ -165,7 +165,7 @@ function shell({ title, desc, url, img, ld, body, slug }) {
 <style>${STYLE}</style>
 </head>
 <body>
-<header class="top"><a class="brand" href="/"><img src="/assets/img/logo.webp?v=2" alt="Biff City" width="840" height="685"></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
+<header class="top"><a class="brand" href="/"><img src="/assets/img/logo.webp?v=3" alt="Biff City" width="840" height="664"></a><nav><a href="/" class="hide-m">Accueil</a><a href="/actus">Actus</a><a class="btn-play" href="${GAME}" data-lp="beta-article">Jouer</a></nav></header>
 ${body}
 <footer>${FOOT_LINKS}Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.<br>© Lucid Studio · <a href="mailto:contact@lucidstudio.fr">contact@lucidstudio.fr</a></footer>
 ${HIT(slug)}
