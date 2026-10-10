@@ -24,7 +24,15 @@ const q = (sql, ...a) => db.prepare(sql).all(...a), q1 = (sql, ...a) => db.prepa
 const now = () => Date.now(), DAY = 86400000, ONLINE_MS = 150000;
 // vitrine : contenu enregistré (sinon celui de landing/content.json), page rendue gardée en mémoire jusqu'au prochain enregistrement
 const getLanding = () => { const r = q1("SELECT v FROM config WHERE k = 'landing'"); return r ? J(r.v) : null; };
-let landingHtml = null; const landingPage = () => landingHtml || (landingHtml = LANDING.render(getLanding()));
+let landingHtml = null, landingSeason = '';
+// pendant la Coupe des Morts (dates du back office), la vitrine passe en Halloween : logo et images de chargement en version « -hw » quand elles existent
+function season() { try { const C = cdmCfg(), t = Date.now(); return C.on && t >= C.start && t <= C.end ? 'hw' : ''; } catch (e) { return ''; } }
+function seasonal(html) {
+  if (!html || season() !== 'hw') return html;
+  html = html.replace(/\/assets\/img\/logo\.webp\?v=\d+/g, '/assets/img/logo-halloween.png');
+  return html.replace(/\/assets\/(img|lp\/o)\/load-(\d)\.(jpg|webp|png)/g, (m, dir, n) => fs.existsSync(path.join(ROOT, 'assets/img/load-' + n + '-hw.jpg')) ? '/assets/img/load-' + n + '-hw.jpg' : m);
+}
+const landingPage = () => { const s = season(); if (!landingHtml || landingSeason !== s) { landingHtml = seasonal(LANDING.render(getLanding())); landingSeason = s; } return landingHtml; };
 const getCfg = () => { const r = q1("SELECT v FROM config WHERE k = 'live'"); return r ? JSON.parse(r.v) : {}; };
 const log = (action, data) => run('INSERT INTO admin_log (t, action, data) VALUES (?, ?, ?)', now(), action, JSON.stringify(data || {}));
 const J = s => { try { return JSON.parse(s || '{}') || {}; } catch (e) { return {}; } };
@@ -746,7 +754,7 @@ http.createServer(async (req, res) => {
     let f = null, adm = false;
     // biffcity.fr : la vitrine (page « bientôt disponible ») ; le jeu est sur game.biffcity.fr
     const host0 = String(req.headers.host || '').toLowerCase().split(':')[0], host = host0 === process.env.VITRINE_TEST_HOST ? 'biffcity.fr' : host0;   // VITRINE_TEST_HOST : voir la vitrine en local (tests)
-    const htmlOut = html => { res.writeHead(html ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); res.end(req.method === 'HEAD' ? undefined : html || '<!doctype html><meta charset="utf-8"><title>Page introuvable</title><p style="font-family:sans-serif">Cette page n\'existe pas. <a href="/actus">Voir les actus de Biff City</a></p>'); };
+    const htmlOut = html0 => { const html = seasonal(html0); res.writeHead(html ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false) }); res.end(req.method === 'HEAD' ? undefined : html || '<!doctype html><meta charset="utf-8"><title>Page introuvable</title><p style="font-family:sans-serif">Cette page n\'existe pas. <a href="/actus">Voir les actus de Biff City</a></p>'); };
     if (host === 'biffcity.fr' && (p === '/actus' || p === '/actus/')) return htmlOut(LANDING.renderIndex(getLanding()));
     if (host === 'biffcity.fr' && LANDING.PAGE_SLUGS.includes(p.slice(1))) return htmlOut(LANDING.renderPage(getLanding(), p.slice(1)));
     if (host === 'biffcity.fr' && /^\/actus\/[a-z0-9-]+$/.test(p)) return htmlOut(LANDING.renderArticle(getLanding(), p.slice(7)));
