@@ -94,6 +94,7 @@ footer a { color: #fff; }
 .jeu-sub { margin: 6px auto 18px; color: #e6dcff; text-align: center; max-width: 520px; }
 .shots { display: flex; gap: 26px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; width: 100vw; margin: 0 calc(50% - 50vw); padding: 24px calc(50vw - 160px) 70px; margin-bottom: -36px; }
 .shots::-webkit-scrollbar { display: none; }
+.shots.jump .shot { transition: none; }
 .shot { position: relative; flex: 0 0 320px; scroll-snap-align: center; display: block; color: #fff; text-decoration: none; text-align: left; transform: scale(.84); opacity: .45; filter: saturate(.7); transition: transform .35s, opacity .35s, filter .35s; }
 .shot.on { transform: scale(1); opacity: 1; filter: none; }
 .shot figure { position: relative; margin: 0; aspect-ratio: 9 / 16; border-radius: 34px; overflow: hidden; border: 4px solid var(--ink); background: #2a1458; box-shadow: 0 8px 0 var(--ink), 0 20px 36px rgba(0,0,0,.45); }
@@ -187,14 +188,21 @@ footer a { color: #fff; }
 })();
 </script>
 <script>
-// « Le jeu en images » : la carte au centre passe au premier plan
+// « Le jeu en images » : la carte au centre passe au premier plan, et le carrousel tourne en boucle
 (function () {
-  var r = document.querySelector('.shots'); if (!r) return; var c = r.children;
+  var r = document.querySelector('.shots'); if (!r) return; var orig = [].slice.call(r.children), n = orig.length; if (!n) return;
+  function clone(e) { var k = e.cloneNode(true); k.setAttribute('aria-hidden', 'true'); k.tabIndex = -1; return k; }
+  orig.forEach(function (e) { r.appendChild(clone(e)); });                       // copie après
+  orig.slice().reverse().forEach(function (e) { r.insertBefore(clone(e), r.firstChild); });   // copie avant
+  var c = r.children, period = function () { return c[n].offsetLeft - c[0].offsetLeft; };
   function mark() { var mid = r.scrollLeft + r.clientWidth / 2, best = 0, d = 1e9; [].forEach.call(c, function (e, i) { var x = Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid); if (x < d) { d = x; best = i; } }); [].forEach.call(c, function (e, i) { e.classList.toggle('on', i === best); }); }
-  r.addEventListener('scroll', function () { requestAnimationFrame(mark); }, { passive: true });
+  function wrap() { var P = period(); if (!P) return; var x = r.scrollLeft, nx = x;
+    if (x < P * .5) nx = x + P; else if (x > P * 1.5) nx = x - P;
+    if (nx !== x) { r.classList.add('jump'); r.scrollLeft = nx; mark(); requestAnimationFrame(function () { requestAnimationFrame(function () { r.classList.remove('jump'); }); }); } }
+  var t; r.addEventListener('scroll', function () { requestAnimationFrame(mark); clearTimeout(t); t = setTimeout(wrap, 140); }, { passive: true });
   [].forEach.call(c, function (e) { e.addEventListener('click', function (ev) { if (!e.classList.contains('on')) { ev.preventDefault(); r.scrollTo({ left: e.offsetLeft + e.offsetWidth / 2 - r.clientWidth / 2, behavior: 'smooth' }); } }); });
-  var mid = c[Math.floor(c.length / 2)]; function center() { if (mid) r.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - r.clientWidth / 2; mark(); }
-  center(); window.addEventListener('load', center);   // départ sur la carte du milieu : autant de cartes de chaque côté
+  var mid = c[n + Math.floor(n / 2)]; function center() { r.classList.add('jump'); r.scrollLeft = mid.offsetLeft + mid.offsetWidth / 2 - r.clientWidth / 2; mark(); setTimeout(function () { r.classList.remove('jump'); }, 50); }
+  center(); window.addEventListener('load', center);   // départ sur la carte du milieu de la vraie série
 })();
 </script>
 <script>
