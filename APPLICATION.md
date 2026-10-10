@@ -38,7 +38,7 @@ Ces fichiers sont secrets : ils ne vont jamais sur GitHub (déjà exclus).
 ### 5. Fabriquer et tester l'application
 Dans le Terminal :
 ```
-cd ~/Documents/HUSTLE-CITY
+cd ~/Documents/BIFF-CITY
 npm run app:ios        # ouvre le projet iPhone dans Xcode
 npm run app:android    # ouvre le projet Android dans Android Studio
 ```
