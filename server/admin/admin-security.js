@@ -11,17 +11,17 @@
   HC.accountForm = (first) => {
     const bg = document.createElement('div'); bg.className = 'modal-bg';
     bg.innerHTML = `<form class="modal sec-acc"><h3>${first ? 'Créer ton compte admin' : 'Recréer le compte admin'}</h3>
-      <p>${first ? 'Pour ne plus entrer avec le jeton : ton e-mail et un mot de passe à toi (12 caractères au moins).' : 'L\'ancien compte et toutes ses sessions seront supprimés.'} Ensuite, la connexion se fera par e-mail + mot de passe (+ un code envoyé par e-mail une fois l'envoi réglé).</p>
+      <p>${first ? 'Pour ne plus entrer avec le jeton : ton e-mail et un mot de passe à toi (10 caractères au moins).' : 'L\'ancien compte et toutes ses sessions seront supprimés.'} Ensuite, la connexion se fera par e-mail + mot de passe (+ un code envoyé par e-mail une fois l'envoi réglé).</p>
       <div class="fld"><label>E-mail</label><input id="ac-email" type="email" autocomplete="username" value="contact@biffcity.fr"></div>
-      <div class="fld"><label>Mot de passe</label><input id="ac-pw" type="password" autocomplete="new-password" minlength="12"></div>
-      <div class="fld"><label>Le même, encore une fois</label><input id="ac-pw2" type="password" autocomplete="new-password" minlength="12"></div>
+      <div class="fld"><label>Mot de passe</label><input id="ac-pw" type="password" autocomplete="new-password" minlength="10"></div>
+      <div class="fld"><label>Le même, encore une fois</label><input id="ac-pw2" type="password" autocomplete="new-password" minlength="10"></div>
       <p class="err" id="ac-err"></p>
       <div class="mb"><button type="button" class="btn ghost" data-r="0">Plus tard</button><button class="btn green" type="submit">Créer le compte</button></div></form>`;
     document.body.appendChild(bg);
     bg.querySelector('[data-r]').onclick = () => bg.remove();
     bg.querySelector('form').onsubmit = async e => {
       e.preventDefault(); const er = $('#ac-err', bg); er.textContent = '';
-      if (val('ac-pw').length < 12) return er.textContent = 'Le mot de passe doit faire au moins 12 caractères.';
+      if (val('ac-pw').length < 10) return er.textContent = 'Le mot de passe doit faire au moins 10 caractères.';
       if (val('ac-pw') !== val('ac-pw2')) return er.textContent = 'Les deux mots de passe ne sont pas les mêmes.';
       try { await HC.api('/admin/api/account', { email: val('ac-email'), password: val('ac-pw'), password2: val('ac-pw2') }); }
       catch (x) { return er.textContent = x.message; }
@@ -40,7 +40,7 @@
         <section class="card"><div class="card-h">${img('icon-lock')}Compte admin</div>
           ${S.email ? `<p>Connexion avec <b>${esc(S.email)}</b> + mot de passe${M.ready ? ' + code par e-mail' : ' (le code par e-mail n\'est pas encore réglé)'}.</p>` : '<p>Aucun compte pour l\'instant : on entre avec le jeton.</p>'}
           ${S.via === 'session' ? `<form id="pw-form" class="sec-form"><div class="fld"><label>Mot de passe actuel</label><input id="pw-old" type="password" autocomplete="current-password"></div>
-            <div class="fld"><label>Nouveau mot de passe <small>12 caractères au moins</small></label><input id="pw-new" type="password" autocomplete="new-password"></div>
+            <div class="fld"><label>Nouveau mot de passe <small>10 caractères au moins</small></label><input id="pw-new" type="password" autocomplete="new-password"></div>
             <div class="fld"><label>Le même, encore une fois</label><input id="pw-new2" type="password" autocomplete="new-password"></div>
             <button class="btn green" type="submit">Changer le mot de passe</button><p class="help">Les autres sessions sont fermées.</p></form>`
           : `<button class="btn green" id="acc-new">${S.email ? 'Recréer le compte (mot de passe oublié)' : 'Créer ton compte admin'}</button><p class="help">Tu es entrée avec le jeton de secours : il sert aussi à recréer le compte si tu oublies ton mot de passe.</p>`}

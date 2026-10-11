@@ -9,7 +9,7 @@ const crypto = require('crypto'), { promisify } = require('util');
 const { sendMail, ready, addrOf } = require('./mail');
 const scrypt = promisify(crypto.scrypt);
 const SESSION_MS = 12 * 3600000, CODE_MS = +process.env.ADMIN_CODE_MS || 10 * 60000,   // ADMIN_CODE_MS : seulement pour les tests
-  CODE_TRIES = 5, RESEND_MS = 60000, PW_TRY = 5, PW_MS = 15 * 60000, PW_MIN = 12;
+  CODE_TRIES = 5, RESEND_MS = 60000, PW_TRY = 5, PW_MS = 15 * 60000, PW_MIN = 10;
 const COOKIE = 'hc_adm', EMAIL_RE = /^[^\s@<>"'`,;]{1,64}@[a-z0-9.-]{1,180}\.[a-z]{2,}$/i;
 const shaHex = v => crypto.createHash('sha256').update(String(v)).digest('hex');
 
