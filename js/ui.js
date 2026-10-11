@@ -2488,10 +2488,11 @@
   // ce qu'un objet rapporte VRAIMENT au joueur : son prix de revente s'il l'a, son prix d'achat s'il est en rayon (la cote seule prêtait à confusion)
   const priceWord = id => (st().owned[id] || []).length ? `revente ${short(G.sellPrice(id))}` : G.inStock(id) ? `prix ${short(G.buyPrice(id))}` : `cote ${short(st().market.prices[id])}`;
   const priceSentence = id => (st().owned[id] || []).length ? `Tu la revends ${short(G.sellPrice(id))} au Comptoir.` : G.inStock(id) ? `Au Comptoir : ${short(G.buyPrice(id))}.` : `Cote du jour : ${short(st().market.prices[id])}.`;
-  function cardZoom(id) {
-    const n = (st().owned[id] || []).length, it = G.item(id), canBuy = !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
+  function cardZoom(id, raw) {   // raw : une carte telle qu'affichée à l'ouverture d'un booster (on la regarde, sans acheter ni revendre)
+    const n = raw ? 0 : (st().owned[id] || []).length, it = raw ? {} : G.item(id), canBuy = !raw && !n && G.catUnlocked(it.cat) && G.inStock(id) && !(it.noBuy && !it.series);
     let el = $('#cardzoom'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<div id="cardzoom"></div>'); el = $('#cardzoom'); }
-    el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div>${it.beta ? '<p class="cz-beta">Obtenue pendant la bêta de Biff City</p>' : ''}<div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
+    if (raw) el.innerHTML = `<div class="cz-card">${tcgCard(raw)}</div><div class="cz-acts"><button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">penche la carte avec le doigt</p>`;
+    else el.innerHTML = `<div class="cz-card">${tcgCard({ id })}</div>${it.beta ? '<p class="cz-beta">Obtenue pendant la bêta de Biff City</p>' : ''}<div class="cz-acts">${n ? `<p class="cz-gain">${ownGain(id)}</p><button class="btn red" data-act="czSell" data-id="${id}">Revendre ${short(G.sellPrice(id))}</button>` : canBuy ? `<button class="btn green" data-act="czBuy" data-id="${id}" ${st().cash >= G.buyPrice(id) ? '' : 'disabled'}>Acheter ${short(G.buyPrice(id))}</button>` : ''}<button class="btn" data-act="czClose">Fermer</button></div><p class="cz-hint">${n > 1 ? `Tu l'as en ${n} exemplaires · ` : ''}penche la carte avec le doigt</p>`;
     el.className = 'on'; sfx.tap();
     const card = el.querySelector('.tcg');
     const cl = v => Math.max(-.5, Math.min(.5, v));
@@ -2523,7 +2524,7 @@
     el.innerHTML = `<div class="pk-stage">${packArt()}</div><i class="pk-rays"></i><i class="pk-flash"></i><b class="pk-rar stroke"></b>
       <div class="pk-stack">${deck.map((c, i) => `<div class="pk-card r${c.rarity}" style="--i:${i};--n:${deck.length - i};z-index:${deck.length - i}"><div class="pk-in"><div class="pk-back">${has('card-back') ? '' : has('logo') ? `<img src="${src(logoKey())}" alt="">` : 'BIFF CITY'}</div><div class="pk-front">${front(c)}</div></div></div>`).join('')}</div>
       <p class="pk-hint stroke">Touche la carte pour la retourner</p>
-      <div class="pk-recap hidden">${deck.map(c => `<div class="pk-mini">${front(c)}</div>`).join('')}</div>
+      <div class="pk-recap hidden">${deck.map((c, i) => `<div class="pk-mini" data-pz="${i}">${front(c)}</div>`).join('')}</div>
       <button class="btn green pk-done hidden" data-act="packDone">Super !</button>`;
     sfx.rustle();
     setTimeout(() => { el.classList.add('torn'); sfx.tear(); rain('confetti', 30); }, 900);
@@ -2546,6 +2547,7 @@
     // n'importe où sur l'écran : carte suivante ; une fois le récapitulatif affiché, un toucher n'importe où ferme (comme « Super ! »)
     el.onclick = e => {
       if (e.target.closest('button, [data-act], .pk-stack')) return;
+      const mz = e.target.closest('.pk-mini'); if (mz) return cardZoom(null, deck[+mz.dataset.pz]);   // récapitulatif : une carte touchée s'affiche en grand
       if (!el.querySelector('.pk-recap.hidden') && el.querySelector('.pk-recap')) return A.packDone();
       el.querySelector('.pk-stack').click();
     };
