@@ -244,7 +244,7 @@
   $('#lg-form').onsubmit = async e => {
     e.preventDefault(); lgErr('');
     if (LG.token || !LG.hasUser) {
-      const t = ($('#tok') || {}).value ? $('#tok').value.trim() : ''; if (!t) return;
+      let t = ($('#tok') || {}).value ? $('#tok').value.trim() : ''; const tm = /token=([^&\s#]+)/.exec(t); if (tm) t = decodeURIComponent(tm[1]); t = t.replace(/^Bearer\s+/i, '').replace(/\s+/g, ''); if (!t) return;   // on accepte aussi l'ancien lien complet (…#token=…)
       const r = await fetch('/admin/api/me', { headers: { Authorization: 'Bearer ' + t } }), j = await r.json().catch(() => ({}));
       if (!r.ok) return lgErr(r.status === 401 ? 'Ce jeton ne marche pas.' : j.err || 'Erreur.');
       TOKEN = t; lsSet('hc.admin', TOKEN); enter(j); return;
