@@ -35,7 +35,7 @@
   }
   function ac() {
     if (!C) { C = window.__AC || new (window.AudioContext || window.webkitAudioContext)();   /* contexte débloqué dès l'écran de chargement */ N = graph(C); N.mFilt.frequency.value = MOOD[mood]; T0 = C.currentTime; setTimeout(loadSamples, 0); }
-    if (C.state === 'suspended') C.resume();
+    if (C.state !== 'running' && C.state !== 'closed') { try { const p = C.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }   // « interrupted » aussi (iPhone : appel, Siri, notification)
     return C;
   }
 
@@ -352,8 +352,38 @@
   const unlock = () => { if (started) return; started = true; ['pointerdown', 'touchend', 'click'].forEach(e => document.removeEventListener(e, unlock, true)); try { ac(); } catch (e) {} if (st().music !== false) music(true); };   // ac() lance aussi le chargement des enregistrements
   ['pointerdown', 'touchend', 'click'].forEach(e => document.addEventListener(e, unlock, true));
   if (window.__gesture) setTimeout(unlock, 0);   // on a déjà touché l'écran pendant le chargement
-  document.addEventListener('visibilitychange', () => { if (!C) return; document.hidden ? C.suspend() : C.resume(); });
+  document.addEventListener('visibilitychange', () => { if (!C) return; try { const p = document.hidden ? C.suspend() : C.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} });
 
-  window.AUDIO = { start: () => unlock(), sfx: SFX, music, mood: setMood, duck, render, list: Object.keys(S),
+  // le son qui se coupe au bout d'un moment (surtout sur iPhone) : le système peut interrompre le contexte audio (appel, Siri, notification,
+  // écran verrouillé) et refuser de le relancer sans un geste ; parfois il le dit « running » mais l'horloge est figée et plus rien ne sort.
+  // Une sentinelle repère la panne ; au toucher suivant on relance, et si ça ne suffit pas on reconstruit un contexte neuf (comme un rechargement).
+  let badN = 0, lastCt = -1, lastWall = 0;
+  setInterval(() => {
+    if (!C || document.hidden || !started) { lastWall = 0; return; }
+    const now = performance.now(), ct = C.currentTime;
+    if (C.state !== 'running') { badN++; try { const p = C.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+    else if (lastWall && now - lastWall > 800 && ct - lastCt < .05) badN++;   // « running » mais l'horloge ne bouge plus
+    else badN = 0;
+    lastCt = ct; lastWall = now;
+  }, 1000);
+  function rebuild() {
+    const wasMusic = musicOn;
+    clearInterval(sched); sched = null; M = null;
+    try { C.close(); } catch (e) {}
+    C = null; N = null; window.__AC = null; badN = 0; lastWall = 0;
+    try {
+      ac();   // les enregistrements déjà décodés (SMP) resservent tels quels
+      const b = C.createBuffer(1, 1, 22050), n = C.createBufferSource(); n.buffer = b; n.connect(C.destination); n.start(0);   // déverrouillage iPhone, dans le geste
+    } catch (e) { return; }
+    if (wasMusic) music(true);
+  }
+  const heal = () => {
+    if (!started || !C) return;
+    if (badN >= 2) return rebuild();
+    if (C.state !== 'running') { try { const p = C.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+  };
+  ['pointerdown', 'touchend', 'keydown'].forEach(e => document.addEventListener(e, heal, true));
+
+  window.AUDIO = { start: () => unlock(), get ctxState() { return C ? C.state : 'none'; }, sfx: SFX, music, mood: setMood, duck, render, list: Object.keys(S),
     samples: { files: SAMPLES, get ready() { return Object.keys(SMP); }, get on() { return useSmp; }, set on(v) { useSmp = !!v; }, load() { try { ac(); } catch (e) {} } }, get musicOn() { return musicOn; }, get section() { return section(); }, get moodNow() { return mood; } };
 })();
