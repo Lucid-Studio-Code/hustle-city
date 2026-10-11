@@ -1018,7 +1018,9 @@ h3.sec { margin: 18px 6px 10px; }
 #app .ch-bar i:last-child { border-right: 0; }
 #app .ch-lbl { display: flex; justify-content: space-between; margin-top: 3px; font: 900 10px var(--text); color: #7a5a3a; }
 #app .odds { display: grid; gap: 6px; }
-#app .odds.n3 { grid-template-columns: repeat(3, 1fr); } #app .odds.n2 { grid-template-columns: repeat(2, 1fr); }
+#app .odds.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } #app .odds.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#app .odds .odd-btn { min-width: 0; overflow: hidden; } #app .odd-btn .ob-txt small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }   /* petits téléphones (360 px) : les 3 cotes restent dans la carte */
+@media (max-width: 370px) { #app .odds.n3 .odd-btn { padding-left: 4px; padding-right: 6px; gap: 3px; } #app .odds.n3 .odd-btn .crest.mini, #app .odds.n3 .odd-btn .ob-nul { flex-basis: 22px; width: 22px; height: 22px; } }
 #app .odd-btn { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 46px; padding: 4px 10px 6px 6px; border: 2px solid #2a1a10; border-radius: 14px; box-shadow: 0 3px 0 #2a1a10;
   background: linear-gradient(rgba(255,255,255,.28), rgba(255,255,255,0) 55%), var(--b-blue); color: #fff; }
 #app .odd-btn:active { transform: translateY(3px); box-shadow: 0 0 0 #2a1a10; }
