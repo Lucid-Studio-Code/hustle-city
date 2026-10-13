@@ -95,6 +95,7 @@
   function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, home: s.home || '', avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
   async function sync(withSave) {
     if (off || !ONLINE.on || !G.st.skin) return;
+    { const t = Date.now(); if (!document.hidden) playMs += t - tick; tick = t; }   // temps de jeu arrêté pile maintenant (le serveur n'en prend pas plus que le temps écoulé depuis la synchro d'avant)
     const events = queue.splice(0, 100), ms = playMs; playMs = 0;   // 100 événements par synchro au plus (le serveur n'en prend pas plus) : le reste part à la suivante
     try {
       const r = await post('/api/sync', { summary: summary(), events, playMs: ms, save: withSave ? JSON.stringify(G.st) : undefined, dev, base: +ls('hustleCity.base') || 0, force: ls('hustleCity.force') ? 1 : undefined });

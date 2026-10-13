@@ -3,20 +3,24 @@
 // - Code à 6 chiffres envoyé par e-mail après un bon mot de passe (10 min, 5 essais, un nouveau toutes les 60 s au plus).
 //   Tant que le SMTP n'est pas réglé (page Sécurité) : connexion sans code, pour ne jamais bloquer l'accès.
 // - Session : cookie « hc_adm » HttpOnly, Secure, SameSite=Strict, Path=/admin, 12 h ; seule son empreinte SHA-256 est gardée (admin_sessions).
-// - Anti-force-brute : 5 mots de passe / codes faux en 15 min par IP et par compte → 429 pendant 15 min ; chaque tentative est notée (admin_auth_log).
-// - L'ADMIN_TOKEN (en-tête Authorization) reste l'accès de secours : il permet aussi de recréer le compte (mot de passe oublié).
+// - Anti-force-brute : 5 essais en 15 min par IP (donc par couple IP + compte), 50 par heure pour le compte toutes IP confondues → 429 ;
+//   l'essai est pris AVANT le calcul scrypt (une rafale parallèle ne passe pas), 4 calculs scrypt en même temps au plus ; chaque tentative est notée (admin_auth_log).
+// - L'ADMIN_TOKEN reste l'accès de secours : collé une fois sur l'écran de connexion (POST /admin/login/token), il ouvre une session cookie « jeton »
+//   (jamais gardé par le navigateur) ; l'en-tête Authorization: Bearer marche toujours pour les scripts. Il permet aussi de recréer le compte (mot de passe oublié).
 const crypto = require('crypto'), { promisify } = require('util');
 const { sendMail, ready, addrOf } = require('./mail');
 const scrypt = promisify(crypto.scrypt);
 const SESSION_MS = 12 * 3600000, CODE_MS = +process.env.ADMIN_CODE_MS || 10 * 60000,   // ADMIN_CODE_MS : seulement pour les tests
-  CODE_TRIES = 5, RESEND_MS = 60000, PW_TRY = 5, PW_MS = 15 * 60000, PW_MIN = 10;
+  CODE_TRIES = 5, RESEND_MS = 60000, PW_TRY = 5, PW_MS = 15 * 60000, PW_MIN = 10, ACCT_TRY = 50, ACCT_MS = 3600000, SCRYPT_MAX = 4,
+  ADM_TRY = 10, ADM_MS = 600000, TOKEN_SESSION_MS = 2 * 3600000;   // jeton : 10 essais ratés / 10 min par IP ; sa session dure 2 h
 const COOKIE = 'hc_adm', EMAIL_RE = /^[^\s@<>"'`,;]{1,64}@[a-z0-9.-]{1,180}\.[a-z]{2,}$/i;
 const shaHex = v => crypto.createHash('sha256').update(String(v)).digest('hex');
 
-function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientIp, isLocalReq, log, same, txt, now }) {
+function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientIp, isLocalReq, log, same, txt, now, adminToken }) {
   db.exec(`CREATE TABLE IF NOT EXISTS admin_users (id INTEGER PRIMARY KEY, email TEXT UNIQUE, pw TEXT, created INT, updated INT);
     CREATE TABLE IF NOT EXISTS admin_sessions (id INTEGER PRIMARY KEY, th TEXT UNIQUE, uid INT, created INT, expires INT, last INT, ip TEXT, ua TEXT);
     CREATE TABLE IF NOT EXISTS admin_auth_log (id INTEGER PRIMARY KEY, t INT, email TEXT, ok INT, what TEXT, ip TEXT, ua TEXT);`);
+  if (!db.prepare('PRAGMA table_info(admin_sessions)').all().some(c => c.name === 'via')) db.exec('ALTER TABLE admin_sessions ADD COLUMN via TEXT');   // « token » : session ouverte avec le jeton de secours
   const purge = () => { run('DELETE FROM admin_sessions WHERE expires < ?', now()); run('DELETE FROM admin_auth_log WHERE t < ?', now() - 180 * 86400000); };
   purge(); setInterval(purge, 3600000);
 
@@ -27,7 +31,11 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
     const want = Buffer.from(h, 'base64'), got = await scrypt(String(pw), Buffer.from(salt, 'base64'), want.length, { N: +N, r: +r, p: +p, maxmem: 64 * 1048576 });
     return crypto.timingSafeEqual(want, got);
   }
-  let DUMMY = ''; hashPw('pas-de-compte').then(h => { DUMMY = h; });   // même durée de calcul quand l'e-mail n'existe pas
+  // même durée de calcul quand l'e-mail n'existe pas (calculé tout de suite : prêt dès la première requête)
+  const DUMMY = (salt => `scrypt$16384$8$1$${salt.toString('base64')}$${crypto.scryptSync('pas-de-compte', salt, 64, { N: 16384, r: 8, p: 1 }).toString('base64')}`)(crypto.randomBytes(16));
+  let inflight = 0;   // calculs scrypt en cours (chacun prend ~50 ms de CPU et 16 Mo de mémoire)
+  async function slowCheck(stored, pw) { inflight++; try { return await checkPw(stored, pw); } finally { inflight--; } }
+  const busy = res => { res.setHeader('Retry-After', '2'); return send(res, 429, { err: 'Trop de connexions en même temps : réessaie dans un instant.' }); };
   const pwOk = (pw, pw2) => typeof pw !== 'string' || pw.length < PW_MIN ? `Le mot de passe doit faire au moins ${PW_MIN} caractères.` : pw.length > 200 ? 'Mot de passe trop long.' : pw2 != null && pw !== pw2 ? 'Les deux mots de passe ne sont pas les mêmes.' : '';
 
   // ---------------------------------------------------------------- journal des connexions (jamais le mot de passe ni le code)
@@ -41,16 +49,17 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
   // ---------------------------------------------------------------- sessions
   const cookieOf = req => { const m = new RegExp('(?:^|;\\s*)' + COOKIE + '=([\\w-]{20,100})').exec(req.headers.cookie || ''); return m ? m[1] : ''; };
   const setCookie = (req, res, v, age) => res.setHeader('Set-Cookie', `${COOKIE}=${v}; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=${age}${isLocalReq(req) ? '' : '; Secure'}`);   // Secure partout sauf en local (http://localhost)
-  function openSession(req, res, u) {
-    const t = crypto.randomBytes(32).toString('base64url');
-    run('INSERT INTO admin_sessions (th, uid, created, expires, last, ip, ua) VALUES (?, ?, ?, ?, ?, ?, ?)', shaHex(t), u.id, now(), now() + SESSION_MS, now(), ipOf(req), ua(req));
-    setCookie(req, res, t, SESSION_MS / 1000);
+  function openSession(req, res, u, via) {   // u = null + via 'token' : session ouverte avec le jeton de secours (aucun compte)
+    const t = crypto.randomBytes(32).toString('base64url'), ms = via === 'token' ? TOKEN_SESSION_MS : SESSION_MS;
+    run('INSERT INTO admin_sessions (th, uid, created, expires, last, ip, ua, via) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', shaHex(t), u ? u.id : 0, now(), now() + ms, now(), ipOf(req), ua(req), via === 'token' ? 'token' : 'session');
+    setCookie(req, res, t, ms / 1000);
   }
   function sessionOf(req) {
     const t = cookieOf(req); if (!t) return null;
-    const s = q1('SELECT s.id, s.uid, s.last, u.email FROM admin_sessions s JOIN admin_users u ON u.id = s.uid WHERE s.th = ? AND s.expires > ?', shaHex(t), now()); if (!s) return null;
+    const s = q1('SELECT s.id, s.uid, s.last, s.via, u.email FROM admin_sessions s LEFT JOIN admin_users u ON u.id = s.uid WHERE s.th = ? AND s.expires > ?', shaHex(t), now()); if (!s) return null;
+    if (s.via !== 'token' && !s.email) return null;
     if (now() - s.last > 60000) run('UPDATE admin_sessions SET last = ? WHERE id = ?', now(), s.id);
-    return { via: 'session', sid: s.id, uid: s.uid, email: s.email };
+    return s.via === 'token' ? { via: 'token', sid: s.id, uid: 0, email: '' } : { via: 'session', sid: s.id, uid: s.uid, email: s.email };
   }
   // CSRF : le cookie SameSite=Strict n'est jamais envoyé par un autre site ; en plus, toute requête POST du back office doit venir de la page elle-même
   function csrfOk(req) {
@@ -59,13 +68,29 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
     if (origin) { try { if (new URL(origin).host !== String(req.headers.host || '')) return false; } catch (e) { return false; } }
     return true;
   }
-  const blocked = (req, email) => left('pw-ip:' + ipOf(req), PW_TRY, PW_MS) < 1 || (email && left('pw-acct:' + email, PW_TRY, PW_MS) < 1);
-  const fail = (req, email) => { limit('pw-ip:' + ipOf(req), PW_TRY, PW_MS); if (email) limit('pw-acct:' + email, PW_TRY, PW_MS); if (blocked(req, email)) console.warn(`back office : ${PW_TRY} échecs de connexion en 15 min (connexion ${ipOf(req)}${email ? ', compte ' + email : ''}), bloqué 15 min`); };
+  // verrous : 5 essais / 15 min par IP (donc aussi par couple IP + compte), 50 / heure pour le compte (toutes IP : un inconnu ne peut pas bloquer l'admin à 5 essais)
+  const keys = (req, email) => [['pw-ip:' + ipOf(req), PW_TRY, PW_MS], ...(email ? [['pw-acct:' + email, ACCT_TRY, ACCT_MS]] : [])];
+  const blocked = (req, email) => keys(req, email).some(([k, n, ms]) => left(k, n, ms) < 1);
+  const take = (req, email) => keys(req, email).forEach(([k, n, ms]) => limit(k, n, ms));   // un essai pris (avant le calcul pour le mot de passe)
+  const clean = e => String(e || '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 120);   // jamais de retour à la ligne dans les journaux
+  const blockSeen = new Map();   // IP → dernière fois que « bloqué » a été noté : une ligne par fenêtre de 15 min, pas une par requête
+  const logBlocked = (req, email) => {
+    const ip = ipOf(req); if (now() - (blockSeen.get(ip) || 0) < PW_MS) return; blockSeen.set(ip, now());
+    authLog(req, email, 0, 'bloqué (trop d\'essais)'); console.warn(`back office : trop d'essais de connexion (connexion ${ip}${email ? ', compte ' + clean(email) : ''}), bloqué`);
+  };
   const tooMany = res => { res.setHeader('Retry-After', String(PW_MS / 1000)); return send(res, 429, { err: 'Trop d\'essais ratés : réessaie dans 15 minutes.' }); };
+  // jeton de secours (écran de connexion ou en-tête Authorization) : comparé en temps constant ; 10 essais ratés en 10 min par IP, puis bloqué même avec le bon
+  function tokenCheck(req, t) {   // → 'ok' | 'bad' | 'blocked'
+    const k = 'adm:' + ipOf(req); if (left(k, ADM_TRY, ADM_MS) < 1) return 'blocked';
+    if (adminToken && same(String(t || ''), adminToken)) return 'ok';
+    limit(k, ADM_TRY, ADM_MS); authLog(req, '', 0, 'jeton de secours faux');
+    if (left(k, ADM_TRY, ADM_MS) < 1) console.warn(`back office : ${ADM_TRY} jetons faux en 10 min depuis ${ipOf(req)}, bloqué 10 min`);
+    return 'bad';
+  }
 
   // ---------------------------------------------------------------- code par e-mail (en mémoire : un redémarrage oblige à recommencer)
   const challenges = new Map();
-  setInterval(() => { for (const [k, c] of challenges) if (c.exp < now()) challenges.delete(k); }, 60000);
+  setInterval(() => { for (const [k, c] of challenges) if (c.exp < now()) challenges.delete(k); for (const [k, t] of blockSeen) if (now() - t > PW_MS) blockSeen.delete(k); }, 60000);
   async function sendCode(c) {
     const code = String(crypto.randomInt(0, 1e6)).padStart(6, '0');
     await sendMail(smtpCfg(), c.email, `Ton code de connexion Biff City : ${code}`, `Bonjour,\n\nTon code pour entrer dans le back office de Biff City : ${code}\n\nIl est valable 10 minutes. Si ce n'est pas toi qui essaies de te connecter, change ton mot de passe (page Sécurité du back office).\n\nBiff City`);
@@ -77,9 +102,11 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
     'GET /admin/login/state'(req, res) { send(res, 200, { hasUser: !!user() }); },
     async 'POST /admin/login/password'(req, res) {
       const b = await body(req, 2e4), email = String(b.email || '').trim().toLowerCase().slice(0, 200), pw = String(b.password || '').slice(0, 200);
-      if (blocked(req, email)) { authLog(req, email, 0, 'bloqué (trop d\'essais)'); return tooMany(res); }
-      const u = email && q1('SELECT * FROM admin_users WHERE email = ?', email), good = await checkPw(u ? u.pw : DUMMY, pw);
-      if (!u || !good) { fail(req, email); authLog(req, email, 0, 'mot de passe faux'); return send(res, 401, { err: 'E-mail ou mot de passe incorrect.' }); }
+      if (inflight >= SCRYPT_MAX) return busy(res);
+      if (blocked(req, email)) { logBlocked(req, email); return tooMany(res); }
+      take(req, email);   // l'essai compte tout de suite, bon ou pas (rien d'asynchrone entre le contrôle et la prise)
+      const u = email && q1('SELECT * FROM admin_users WHERE email = ?', email), good = await slowCheck(u ? u.pw : DUMMY, pw);
+      if (!u || !good) { authLog(req, email, 0, 'mot de passe faux'); return send(res, 401, { err: 'E-mail ou mot de passe incorrect.' }); }
       if (!ready(smtpCfg())) { openSession(req, res, u); authLog(req, email, 1, 'connexion (sans code : e-mail pas réglé)'); return send(res, 200, { ok: true }); }
       const ch = crypto.randomBytes(18).toString('base64url'), c = { uid: u.id, email: u.email, n: 1 };
       try { await sendCode(c); } catch (e) { console.warn('SMTP :', e.message); authLog(req, email, 0, 'code pas envoyé (SMTP)'); return send(res, 502, { err: 'Le code n\'a pas pu être envoyé par e-mail. Réessaie, ou entre avec le jeton de secours.' }); }
@@ -88,9 +115,9 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
     async 'POST /admin/login/code'(req, res) {
       const b = await body(req, 2e4), c = challenges.get(String(b.ch || ''));
       if (!c || c.exp < now()) { challenges.delete(String(b.ch || '')); return send(res, 401, { err: 'Code expiré : recommence la connexion.', restart: true }); }
-      if (blocked(req, c.email)) { authLog(req, c.email, 0, 'bloqué (trop d\'essais)'); return tooMany(res); }
-      if (!same(shaHex(String(b.code || '').replace(/\D/g, '')), c.h)) {
-        c.tries++; fail(req, c.email); authLog(req, c.email, 0, 'code faux');
+      if (blocked(req, c.email)) { logBlocked(req, c.email); return tooMany(res); }
+      if (!same(shaHex(String(b.code || '').replace(/\D/g, '')), c.h)) {   // tout est synchrone ici : pas de rafale parallèle possible
+        c.tries++; take(req, c.email); authLog(req, c.email, 0, 'code faux');
         if (c.tries >= CODE_TRIES) { challenges.delete(String(b.ch)); return send(res, 401, { err: `${CODE_TRIES} codes faux : recommence la connexion.`, restart: true }); }
         return send(res, 401, { err: `Code incorrect (encore ${CODE_TRIES - c.tries} essai${CODE_TRIES - c.tries > 1 ? 's' : ''}).` });
       }
@@ -105,6 +132,12 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
       try { await sendCode(c); c.n++; } catch (e) { console.warn('SMTP :', e.message); return send(res, 502, { err: 'Le code n\'a pas pu être envoyé par e-mail.' }); }
       authLog(req, c.email, 1, 'nouveau code envoyé'); send(res, 200, { ok: true, to: mask(c.email) });
     },
+    async 'POST /admin/login/token'(req, res) {   // { token } : le jeton de secours, envoyé une seule fois → session cookie « jeton » (2 h)
+      const b = await body(req, 2e4), r = tokenCheck(req, String(b.token || '').slice(0, 200));
+      if (r === 'blocked') { res.setHeader('Retry-After', String(ADM_MS / 1000)); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
+      if (r !== 'ok') return send(res, 401, { err: 'Ce jeton ne marche pas.' });
+      openSession(req, res, null, 'token'); const u = user(); authLog(req, u ? u.email : '', 1, 'entrée avec le jeton de secours'); send(res, 200, { ok: true });
+    },
     async 'POST /admin/logout'(req, res) {
       const s = sessionOf(req); if (s) { run('DELETE FROM admin_sessions WHERE id = ?', s.sid); authLog(req, s.email, 1, 'déconnexion'); }
       setCookie(req, res, '', 0); send(res, 200, { ok: true });
@@ -115,7 +148,7 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
   const smtpPub = () => { const c = smtpCfg(); return { host: c.host || '', port: +c.port || 465, user: c.user || '', from: c.from || '', passSet: !!c.pass, ready: ready(c) }; };
   const api = {
     'GET /admin/api/me'(req, res) {
-      const u = user(); if (req.admin.via === 'token') authLog(req, u ? u.email : '', 1, 'entrée avec le jeton de secours');
+      const u = user(); if (req.admin.bearer) authLog(req, u ? u.email : '', 1, 'entrée avec le jeton de secours (en-tête)');
       send(res, 200, { via: req.admin.via, email: req.admin.email || (u ? u.email : ''), hasUser: !!u, smtp: ready(smtpCfg()) });
     },
     async 'POST /admin/api/account'(req, res) {   // créer (ou recréer, mot de passe oublié) le compte : seulement avec le jeton de secours
@@ -130,8 +163,10 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
     async 'POST /admin/api/password'(req, res) {   // { old, password, password2 } ; les autres sessions sont fermées
       if (req.admin.via !== 'session') return send(res, 403, { err: 'Connecte-toi avec ton compte pour changer de mot de passe.' });
       const b = await body(req, 2e4), u = q1('SELECT * FROM admin_users WHERE id = ?', req.admin.uid);
+      if (inflight >= SCRYPT_MAX) return busy(res);
       if (blocked(req, u.email)) return tooMany(res);
-      if (!(await checkPw(u.pw, String(b.old || '')))) { fail(req, u.email); authLog(req, u.email, 0, 'changement de mot de passe : ancien faux'); return send(res, 400, { err: 'L\'ancien mot de passe n\'est pas le bon.' }); }
+      take(req, u.email);
+      if (!(await slowCheck(u.pw, String(b.old || '')))) { authLog(req, u.email, 0, 'changement de mot de passe : ancien faux'); return send(res, 400, { err: 'L\'ancien mot de passe n\'est pas le bon.' }); }
       const bad = pwOk(b.password, b.password2); if (bad) return send(res, 400, { err: bad });
       run('UPDATE admin_users SET pw = ?, updated = ? WHERE id = ?', await hashPw(b.password), now(), u.id); run('DELETE FROM admin_sessions WHERE uid = ? AND id != ?', u.id, req.admin.sid);
       authLog(req, u.email, 1, 'mot de passe changé'); send(res, 200, { ok: true });
@@ -166,6 +201,6 @@ function makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientI
       log('smtp-test', { to }); send(res, 200, { ok: true, to });
     }
   };
-  return { routes, api, sessionOf, csrfOk, authLog };
+  return { routes, api, sessionOf, csrfOk, authLog, tokenCheck };
 }
 module.exports = { makeAdminAuth };

@@ -48,8 +48,9 @@ function makePush(db) {
     on: !!(key || apnsKey),
     // pid = joueur AUTHENTIFIÉ (pid + secret vérifiés par server.js) : un téléphone déjà lié à un autre joueur lui est retiré, puis lié à celui-ci ; 5 téléphones par joueur au plus
     save(pid, token, platform) {
-      token = String(token || ''); if (!pid || !/^[\w:.-]{20,400}$/.test(token)) return false;
-      const pf = ['ios', 'android', 'web'].includes(platform) ? platform : '';
+      token = String(token || ''); const pf = ['ios', 'android', 'web'].includes(platform) ? platform : '';
+      // iPhone : jeton APNs = 64 caractères hexadécimaux (il finit dans le chemin de la requête à Apple : rien d'autre n'y passe)
+      if (!pid || !(pf === 'ios' ? /^[0-9a-f]{64}$/i : /^[\w:.-]{20,400}$/).test(token)) return false;
       db.prepare('DELETE FROM push_tokens WHERE token = ? AND pid != ?').run(token, pid);
       db.prepare('INSERT INTO push_tokens (token, pid, platform, t) VALUES (?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET platform = excluded.platform, t = excluded.t').run(token, pid, pf, Date.now());
       db.prepare('DELETE FROM push_tokens WHERE pid = ? AND token NOT IN (SELECT token FROM push_tokens WHERE pid = ? ORDER BY t DESC LIMIT 5)').run(pid, pid); return true;

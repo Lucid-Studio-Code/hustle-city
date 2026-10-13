@@ -1,6 +1,6 @@
 /* Biff City · back office : le socle (connexion, navigation, outils communs, avatar des joueurs), le tableau de bord et la carte.
    Les autres onglets : admin-stats.js (statistiques), admin-players.js (joueurs + fiche), admin-ops.js (SAV, événements, message à tous, journal).
-   Parle à server/server.js (API /admin/api/…) : session par cookie (compte admin, voir server/admin-auth.js), ou jeton de secours (en-tête Bearer). */
+   Parle à server/server.js (API /admin/api/…) : toujours une session par cookie (compte admin, ou jeton de secours collé une fois), voir server/admin-auth.js. */
 (function () {
   'use strict';
   const D = window.DATA || {}, IMG = new Set(window.ASSETS || []), AV = window.ASSET_V || 1;
@@ -47,10 +47,11 @@
   });
 
   // ------------------------------------------------------------ serveur
-  let TOKEN = lsGet('hc.admin') || '';   // jeton de secours (seulement s'il a servi à entrer) ; sinon la session est dans un cookie que la page ne voit pas
+  // la session est dans un cookie que la page ne voit pas ; le jeton de secours n'est plus jamais gardé par le navigateur (ancienne copie effacée)
+  lsSet('hc.admin', null);
   HC.api = async function api(p, body) {
-    const r = await fetch(p, { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: { ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}), 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
-    if (r.status === 401) { if (TOKEN) { TOKEN = ''; lsSet('hc.admin', null); } if (!$('#app').classList.contains('hidden')) showLogin('Ta session a expiré : reconnecte-toi.'); throw new Error('401'); }
+    const r = await fetch(p, { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    if (r.status === 401) { if (!$('#app').classList.contains('hidden')) showLogin('Ta session a expiré : reconnecte-toi.'); throw new Error('401'); }
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { HC.toast(j.err || 'Erreur du serveur', null, true); throw new Error(j.err || r.status); }
     return j;
@@ -245,9 +246,8 @@
     e.preventDefault(); lgErr('');
     if (LG.token || !LG.hasUser) {
       let t = ($('#tok') || {}).value ? $('#tok').value.trim() : ''; const tm = /token=([^&\s#]+)/.exec(t); if (tm) t = decodeURIComponent(tm[1]); t = t.replace(/^Bearer\s+/i, '').replace(/\s+/g, ''); if (!t) return;   // on accepte aussi l'ancien lien complet (…#token=…)
-      const r = await fetch('/admin/api/me', { headers: { Authorization: 'Bearer ' + t } }), j = await r.json().catch(() => ({}));
-      if (!r.ok) return lgErr(r.status === 401 ? 'Ce jeton ne marche pas.' : j.err || 'Erreur.');
-      TOKEN = t; lsSet('hc.admin', TOKEN); enter(j); return;
+      const r = await post('/admin/login/token', { token: t });   // envoyé une seule fois : le serveur ouvre une session cookie (2 h)
+      if (r.j.ok) return start(); return lgErr(r.j.err || 'Erreur.');
     }
     if (LG.step === 'code') {
       const r = await post('/admin/login/code', { ch: LG.ch, code: $('#lg-code').value }); if (r.j.ok) return start();
@@ -268,7 +268,7 @@
   }
   async function start() { try { enter(await HC.api('/admin/api/me')); } catch (e) { showLogin(e.message === '401' ? '' : e.message); } }
   HC.start = start;
-  HC.logout = async (msg) => { await post('/admin/logout').catch(() => {}); lsSet('hc.admin', null); TOKEN = ''; showLogin(msg || ''); };
+  HC.logout = async (msg) => { await post('/admin/logout').catch(() => {}); showLogin(msg || ''); };
   $('#logout').onclick = () => HC.logout();
   // jeton dans l'adresse (#token=…) : plus accepté (il reste dans l'historique du navigateur) ; on l'efface seulement de l'adresse
   { const p = params(); if (p.get('token')) { p.delete('token'); history.replaceState(null, '', location.pathname + (p.toString() ? '#' + p.toString() : '')); } }

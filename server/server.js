@@ -15,7 +15,7 @@ const DBFILE = process.env.DB || path.join(__dirname, 'hustle.db');
 const TOKEN_FILE = path.join(__dirname, '.admin-token');
 const AD_EUR = +process.env.AD_EUR || 0.012;   // revenu estimé d'une pub récompensée vue (≈ 12 € pour 1 000 pubs)
 // jeton du back office : variable d'environnement, sinon un jeton créé au premier lancement (gardé dans server/.admin-token)
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || (fs.existsSync(TOKEN_FILE) ? fs.readFileSync(TOKEN_FILE, 'utf8').trim() : (() => { const t = crypto.randomBytes(18).toString('base64url'); fs.writeFileSync(TOKEN_FILE, t); return t; })());
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || (fs.existsSync(TOKEN_FILE) ? fs.readFileSync(TOKEN_FILE, 'utf8').trim() : (() => { const t = crypto.randomBytes(18).toString('base64url'); fs.writeFileSync(TOKEN_FILE, t, { mode: 0o600 }); return t; })());   // lisible par le seul compte qui lance le serveur
 
 const db = new DatabaseSync(DBFILE);
 initDb(db);
@@ -86,9 +86,10 @@ function send(res, code, obj, type) {
 // corps JSON : 300 ko au plus sur /api (700 ko pour /api/sync, qui porte la sauvegarde), 3 Mo au back office (6 Mo pour une image) ; au-delà → 413
 function body(req, max) {
   max = max || req.maxBody || 3e6;
-  return new Promise((ok, ko) => { let b = '', n = 0, big = false;
-    req.on('data', c => { if (big) return; n += c.length; if (n > max) { big = true; ko(Object.assign(new Error('Trop gros.'), { code: 413 })); } else b += c; });
-    req.on('end', () => { if (big) return; try { ok(JSON.parse(b || '{}') || {}); } catch (e) { ok({}); } }); });
+  // morceaux gardés en octets et décodés à la fin : un caractère accentué coupé entre deux morceaux reste entier
+  return new Promise((ok, ko) => { const parts = []; let n = 0, big = false;
+    req.on('data', c => { if (big) return; n += c.length; if (n > max) { big = true; ko(Object.assign(new Error('Trop gros.'), { code: 413 })); } else parts.push(c); });
+    req.on('end', () => { if (big) return; try { ok(JSON.parse(Buffer.concat(parts).toString('utf8') || '{}') || {}); } catch (e) { ok({}); } }); });
 }
 // un joueur s'identifie par son pid + un secret créé par son jeu (pas de mot de passe)
 // comparaison en temps constant (empreintes SHA-256 : même longueur, rien ne fuit par la durée de la réponse)
@@ -133,14 +134,16 @@ const cleanSummary = s => ({ lvl: lvlOf(s.lvl), xp: Math.floor(num(s.xp, 1e9)), 
 // (7-7-7 à 100 × 500, grattage « Millionnaire » 50 000), roulette 500 × 35 = 17 500 par jeton, pari combiné au niveau 40 (mise max 24 020)
 // ≈ quelques centaines de milliers ; cryptos : alertes flash de ±20 % ; tools/bot.js (session active normale) reste très loin de tout ça.
 // Donc par synchro : gain ≤ A(niveau) = 200 000 + 30 000 × niveau, + une part de ce qu'on a déjà (25 % + 50 % par heure écoulée, 400 % au plus),
-// + les cadeaux en cash du back office touchés depuis ; et sur la journée : ≤ 6 × la valeur du début de journée, ou + 4 × A (empêche l'effet boule de neige).
+// + les cadeaux en cash du back office touchés depuis ; et sur la journée : ≤ valeur du début de journée + 25 % (cryptos, bourse : alertes flash de ±20 %) + 4 × A
+// (plus de « × 6 par jour » qui se cumulait : 6 jours collés au plafond donnaient × 46 000 ; tools/bot.js gagne moins de A par jour, très loin de 4 × A).
+// L'argent liquide fait partie de la fortune (worth) : même plafond que la fortune (revendre un gros objet ne le fait pas exploser).
 // XP (total depuis le niveau 1) : + 1 500 + 40 × niveau d’avant par minute écoulée (la vraie progression est bien plus lente, xpCap dans game.js).
 // Première synchro d'un compte neuf : niveau et fortune à la mesure de l'âge du compte (XP ≤ 3 000 + 300 par minute d'existence ;
 // fortune ≤ (100 000 + 4 × A) × (1 + jours), et jamais plus que le plafond absolu selon le niveau).
 // Première synchro « de confiance » (partie restaurée par le support, drapeau levé au back office : ac.ok) : seulement le plafond absolu.
 // Un fichier de partie importé par le joueur ne remet plus rien à zéro : les plafonds habituels s'appliquent.
 // Cadeaux en cash du back office (ac.g) : comptés en entier 24 h, puis de moins en moins, plus rien après 48 h.
-// Coller au plafond du jour (≥ 90 %) 3 jours de suite : suspect.
+// Coller au plafond du jour (gain du jour ≥ 90 % du gain permis) 3 jours de suite : suspect.
 // Au-delà : la valeur gardée est rabotée, et le joueur est marqué « suspect » (sorti des classements publics, badge au back office).
 const XPT = () => GAME.XP_TABLE || [], xpTot = (l, x) => XPT().slice(1, l).reduce((a, b) => a + b, 0) + x;
 function xpFrom(tot) { let l = 1; while (l < maxLvl() && tot >= (XPT()[l] || Infinity)) tot -= XPT()[l++]; return { lvl: l, xp: Math.floor(tot) }; }
@@ -161,13 +164,10 @@ function antiCheat(p, s) {   // rabote s (résumé nettoyé) d'après les valeur
   const h = Math.min(Math.max(T - p.sync_at, 60000), 7 * DAY) / 3600000;
   const prevTot = xpTot(lvlOf(p.lvl), num(p.xp)), capXp = prevTot + 1500 + 40 * lvlOf(p.lvl) * h * 60;   // XP d'abord : le niveau gardé sert au plafond d'argent
   if (xpTot(s.lvl, s.xp) > capXp) { Object.assign(s, xpFrom(capXp)); n++; }
-  const A = AC_A(s.lvl) + gift, ac = { ...(old.d === dk ? { d: dk, w: num(old.w), c: num(old.c) } : { d: dk, w: num(p.worth), c: num(p.cash) }), ...keep };
-  let hit = false;
-  [['worth', 'w'], ['cash', 'c']].forEach(([k, b]) => {
-    const prev = num(p[k]), day = Math.max(ac[b] * 6, ac[b] + 4 * A) + gift, cap = Math.min(prev + A + prev * Math.min(4, .25 + .5 * h), day);
-    if (s[k] > cap) { s[k] = Math.round(cap); n++; }
-    if (s[k] >= .9 * day) hit = true;
-  });
+  const A = AC_A(s.lvl) + gift, ac = { ...(old.d === dk ? { d: dk, w: num(old.w) } : { d: dk, w: num(p.worth) }), ...keep };
+  const prev = num(p.worth), day = ac.w * 1.25 + 4 * A + gift, cap = Math.min(prev + A + prev * Math.min(4, .25 + .5 * h), day);
+  ['worth', 'cash'].forEach(k => { if (s[k] > cap) { s[k] = Math.round(cap); n++; } });
+  const hit = s.worth - ac.w >= .9 * (day - ac.w);   // le gain du jour, pas la valeur : une grosse fortune qui ne bouge pas n'est jamais « collée au plafond »
   // jours collés au plafond : k jours de suite, le dernier étant kd
   if (old.kd) { ac.k = old.k; ac.kd = old.kd; }
   if (hit && old.kd !== dk) { ac.k = old.kd === dkey(dayStart(T) - 1) ? (+old.k || 0) + 1 : 1; ac.kd = dk; if (ac.k >= 3) { n++; console.warn(`anti-triche : ${p.pid} colle au plafond du jour depuis ${ac.k} jours`); } }
@@ -301,10 +301,11 @@ function cdmBoard(ed, pid, n = 5) {
 const api = {
   async 'POST /api/leaderboard'(req, res) {   // classement des fortunes : le top 10, puis le joueur et ses voisins
     const b = await body(req), p = player(b); if (!p) return send(res, 403, { err: 'auth' });
-    const cols = 'pid, name, tag, skin, avatar, frame, lvl, worth, home', W = "banned = 0 AND suspect = 0 AND name != ''", top = q(`SELECT ${cols} FROM players WHERE ${W} ORDER BY worth DESC LIMIT 10`);
-    const rank = 1 + (q1(`SELECT COUNT(*) n FROM players WHERE ${W} AND worth > ?`, p.worth || 0).n), total = q1(`SELECT COUNT(*) n FROM players WHERE ${W}`).n;
-    const above = q(`SELECT ${cols} FROM players WHERE ${W} AND worth > ? ORDER BY worth ASC LIMIT 2`, p.worth || 0).reverse();
-    const below = q(`SELECT ${cols} FROM players WHERE ${W} AND worth <= ? AND pid != ? ORDER BY worth DESC LIMIT 2`, p.worth || 0, p.pid);
+    // comptes « réels » seulement (comme la Coupe et le Tournoi) ; le joueur se voit quand même à sa place
+    const cols = 'pid, name, tag, skin, avatar, frame, lvl, worth, home', P = 'FROM players p', W = `${realW()} AND p.name != ''`, top = q(`SELECT ${cols} ${P} WHERE ${W} ORDER BY worth DESC LIMIT 10`);
+    const rank = 1 + (q1(`SELECT COUNT(*) n ${P} WHERE ${W} AND worth > ?`, p.worth || 0).n), total = q1(`SELECT COUNT(*) n ${P} WHERE ${W}`).n;
+    const above = q(`SELECT ${cols} ${P} WHERE ${W} AND worth > ? ORDER BY worth ASC LIMIT 2`, p.worth || 0).reverse();
+    const below = q(`SELECT ${cols} ${P} WHERE ${W} AND worth <= ? AND pid != ? ORDER BY worth DESC LIMIT 2`, p.worth || 0, p.pid);
     const me = q1(`SELECT ${cols} FROM players WHERE pid = ?`, p.pid);
     const strip = r => ({ name: cleanName(r.name), tag: cleanTag(r.tag), skin: cleanId(r.skin), avatar: cleanId(r.avatar), frame: cleanId(r.frame), lvl: lvlOf(r.lvl), worth: Math.round(num(r.worth)), home: cleanHome(r.home), me: r.pid === p.pid });
     send(res, 200, { total, rank, top: top.map(strip), around: [...above, me, ...below].map(strip), aroundStart: rank - above.length });
@@ -338,7 +339,9 @@ const api = {
     // même partie sur plusieurs appareils : un appareil qui n'a pas la dernière sauvegarde (faite ailleurs) ne l'écrase pas, il la récupère
     if (stale(p, b)) { run('UPDATE players SET last_seen = ? WHERE pid = ?', now(), p.pid); return send(res, 200, { ok: true, newer: true, inbox: [] }); }
     const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), A = antiCheat(p, s);
-    const ms = Math.floor(Math.min(num(b.playMs, 600000), p.sync_at ? Math.max(0, now() - p.sync_at) + 10000 : 600000));   // temps de jeu : jamais plus que le temps écoulé depuis la synchro d'avant
+    // temps de jeu : jamais plus que le temps écoulé depuis la synchro d'avant (ou depuis la création du compte), sans marge ; 10 min par synchro au plus.
+    // Un joueur hors ligne qui revient garde son temps de jeu réel (le temps écoulé est grand) ; seul ce qui dépasse le temps écoulé est perdu.
+    const ms = Math.floor(Math.min(num(b.playMs, 600000), Math.max(0, now() - (p.sync_at || p.created || now()))));
     if (A.n) console.warn(`anti-triche : ${p.pid} (${A.n} valeur(s) rabotée(s))`);
     run('UPDATE players SET last_seen = ?, lvl = ?, worth = ?, cash = ?, lingots = ?, skin = ?, name = ?, tag = ?, play_ms = play_ms + ?, xp = ?, boosters = ?, avatar = ?, frame = ?, tz = COALESCE(?, tz), lang = COALESCE(?, lang), screen = COALESCE(?, screen), sync_at = ?, ac = ?, suspect = suspect + ? WHERE pid = ?',
       now(), s.lvl, s.worth, s.cash, s.lingots, s.skin || '', s.name || p.name, s.tag || p.tag, ms, s.xp, s.boosters, s.avatar, s.frame,
@@ -348,11 +351,13 @@ const api = {
     if (se && now() - se.last < 30 * 60000) run('UPDATE sessions SET last = ?, ms = ms + ? WHERE id = ?', now(), ms, se.id);
     else { run('INSERT INTO sessions (pid, start, last, ms) VALUES (?, ?, ?, ?)', p.pid, now() - ms, now(), ms); run('UPDATE players SET sessions = sessions + 1 WHERE pid = ?', p.pid); }
     if (typeof b.save === 'string' && b.save.length > SAVE_MAX) console.warn(`sauvegarde trop grosse refusée : ${p.pid} (${b.save.length} caractères)`);
-    if (typeof b.save === 'string' && b.save.length <= SAVE_MAX) {
+    const saveOk = typeof b.save === 'string' && b.save.length <= SAVE_MAX && (() => { try { const o = JSON.parse(b.save); return !!o && typeof o === 'object' && !Array.isArray(o); } catch (e) { return false; } })();
+    if (typeof b.save === 'string' && b.save.length <= SAVE_MAX && !saveOk) console.warn(`sauvegarde illisible refusée : ${p.pid}`);
+    if (saveOk) {
       run('UPDATE players SET save = ?, save_at = ?, save_dev = ? WHERE pid = ?', b.save, now(), txt(b.dev, 40) || null, p.pid);
-      // historique : une copie toutes les 10 min au plus, les 20 dernières gardées (pour restaurer une partie abîmée)
-      const last = q1('SELECT t FROM save_history WHERE pid = ? ORDER BY t DESC LIMIT 1', p.pid);
-      if (!last || now() - last.t > 600000) {
+      // historique : une copie toutes les 10 min au plus, et seulement si la partie a vraiment bougé (niveau, ou fortune à ±10 %) ; les 20 dernières gardées
+      const last = q1('SELECT t, lvl, worth FROM save_history WHERE pid = ? ORDER BY t DESC LIMIT 1', p.pid);
+      if (!last || (now() - last.t > 600000 && (s.lvl !== last.lvl || Math.abs(s.worth - (last.worth || 0)) > Math.max(1000, .1 * (last.worth || 0))))) {
         run('INSERT INTO save_history (pid, t, lvl, worth, save) VALUES (?, ?, ?, ?, ?)', p.pid, now(), s.lvl, s.worth, b.save);
         run('DELETE FROM save_history WHERE pid = ? AND id NOT IN (SELECT id FROM save_history WHERE pid = ? ORDER BY t DESC LIMIT 20)', p.pid, p.pid);
       }
@@ -395,7 +400,7 @@ const api = {
       del('ticket_msgs', 'DELETE FROM ticket_msgs WHERE ticket IN (SELECT id FROM tickets WHERE pid = ?)', p.pid);
       ['events', 'sessions', 'save_history', 'push_tokens', 'cdm_pts', 'six_pts', 'tickets', 'inbox'].forEach(t => del(t, `DELETE FROM ${t} WHERE pid = ?`, p.pid));
       if (p.ip) del('geo_cache', 'DELETE FROM geo_cache WHERE ip = ?', p.ip);
-      run("UPDATE admin_log SET data = REPLACE(data, ?, 'supprimé') WHERE INSTR(data, ?) > 0", p.pid, p.pid);   // le journal garde l'action, plus le joueur
+      run("UPDATE admin_log SET data = json_set(data, '$.pid', 'supprimé') WHERE json_valid(data) AND json_extract(data, '$.pid') = ?", p.pid);   // le journal garde l'action, plus le joueur (seul le champ pid change)
       del('players', 'DELETE FROM players WHERE pid = ?', p.pid);
       db.exec('COMMIT');
     } catch (e) { db.exec('ROLLBACK'); throw e; }
@@ -404,7 +409,8 @@ const api = {
   async 'GET /api/config'(req, res) { send(res, 200, getCfg()); },
   // vitrine biffcity.fr : visites et clics vers la bêta (sans cookie, rien de personnel : type d'action, provenance, mobile ou non)
   async 'POST /api/lp'(req, res) {
-    const b = await body(req, 2000); if (!limit('lp:' + ipKey(clientIp(req)), 30, 60000)) return send(res, 204, '', 'text/plain');
+    // 30 par minute et par IP, et 3 000 lignes par heure tous visiteurs confondus (beaucoup d'IP différentes ne remplissent pas la base)
+    const b = await body(req, 2000); if (!limit('lp:' + ipKey(clientIp(req)), 30, 60000) || !limit('lp:all', 3000, 3600000)) return send(res, 204, '', 'text/plain');
     const k = b.k === 'view' || /^beta(-(hero|jeu|fin|sticky|article))?$/.test(String(b.k)) ? b.k : null;   // beta-… : l'endroit de la page où on a cliqué
     if (!k) return send(res, 400, { err: 'k' });
     run('INSERT INTO lp (t, k, src, ref, m) VALUES (?, ?, ?, ?, ?)', now(), k, txt(b.src, 40) || '', txt(b.ref, 80) || '', b.m ? 1 : 0); send(res, 204, '', 'text/plain');
@@ -783,17 +789,16 @@ const GAME_CSP = `default-src 'self'; script-src 'self' 'unsafe-inline' ${GH}; s
 // vitrine : rendue par le serveur, ses scripts sont autorisés un par un par leur empreinte (aucun script injecté ne peut tourner)
 const scriptHashes = html => [...String(html).matchAll(/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g)].map(m => `'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`);
 const vitrineCsp = html => `default-src 'self'; script-src 'self' ${scriptHashes(html).join(' ')}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`;
-const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
+// back office : seulement les deux fichiers exacts chargés par server/admin/index.html (Chart.js et Leaflet), pas tout cdnjs / unpkg
+const ADMIN_CSP = "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js https://unpkg.com/leaflet@1.9.4/dist/leaflet.js; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: blob: https://server.arcgisonline.com https://unpkg.com; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 const htmlHeaders = (adm, vitrine) => ({ 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': adm ? ADMIN_CSP : vitrine != null ? vitrineCsp(vitrine) : GAME_CSP });
 const ICON = path.join(ROOT, 'assets/app/icon-180.png');   // la plus petite icône de l'appli, pour /favicon.ico
 // connexion au back office : compte admin (e-mail + mot de passe + code par e-mail), session par cookie ; voir server/admin-auth.js
-const AUTH = require('./admin-auth').makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientIp, isLocalReq, log, same, txt, now });
+const AUTH = require('./admin-auth').makeAdminAuth({ db, q, q1, run, send, body, limit, left, ipKey, clientIp, isLocalReq, log, same, txt, now, adminToken: ADMIN_TOKEN });
 Object.assign(admin, AUTH.api);
 // back office : seulement sur l'adresse du jeu (jamais sur la vitrine biffcity.fr) ; ADMIN_HOSTS=a,b pour en ajouter
 const ADMIN_HOSTS = new Set(['game.biffcity.fr', 'hustle.lucidstudio.fr', 'localhost', '127.0.0.1', '[::1]', ...String(process.env.ADMIN_HOSTS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean)]);
 const hostOf = req => String(req.headers.host || '').toLowerCase().replace(/:\d+$/, '');
-// jeton du back office : comparé en temps constant ; 10 essais ratés en 10 min par IP, puis 429 (même avec le bon jeton) jusqu'à ce que ça se recharge
-const ADM_TRY = 10, ADM_MS = 600000;
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x'), key = req.method + ' ' + u.pathname;
   res.api = u.pathname.startsWith('/api/');
@@ -808,19 +813,18 @@ http.createServer(async (req, res) => {
     if ((u.pathname === '/admin' || u.pathname.startsWith('/admin/')) && !ADMIN_HOSTS.has(hostOf(req))) return send(res, 404, '404', 'text/plain');
     const admPost = req.method !== 'GET' && req.method !== 'HEAD' && (u.pathname.startsWith('/admin/api/') || u.pathname.startsWith('/admin/login/') || u.pathname === '/admin/logout');
     if (admPost && !AUTH.csrfOk(req)) return send(res, 403, { err: 'Requête refusée (elle ne vient pas du back office).' });
+    // écran de connexion : 20 requêtes / min par IP au plus, toutes routes /admin/login/… confondues (en plus des limites par essai d'admin-auth.js)
+    if (u.pathname.startsWith('/admin/login/') && !limit('login:' + ipKey(clientIp(req)), 20, 60000)) { res.setHeader('Retry-After', '60'); return send(res, 429, { err: 'Trop de requêtes, réessaie dans une minute.' }); }
     if (AUTH.routes[key]) return await AUTH.routes[key](req, res, u);
     if (u.pathname.startsWith('/admin/api/')) {
-      // session (cookie) d'abord ; sinon le jeton de secours dans l'en-tête Authorization (10 essais ratés / 10 min par IP)
+      // session (cookie) d'abord ; sinon le jeton de secours dans l'en-tête Authorization (scripts d'administration ; 10 essais ratés / 10 min par IP)
       req.admin = AUTH.sessionOf(req);
       if (!req.admin) {
         const auth = String(req.headers.authorization || ''); if (!auth || auth === 'Bearer ' || auth === 'Bearer') return send(res, 401, { err: 'Connexion requise.' });
-        const ak = 'adm:' + ipKey(clientIp(req));
-        if (left(ak, ADM_TRY, ADM_MS) < 1) { res.setHeader('Retry-After', '600'); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
-        if (!same(auth, 'Bearer ' + ADMIN_TOKEN)) {
-          limit(ak, ADM_TRY, ADM_MS); AUTH.authLog(req, '', 0, 'jeton de secours faux'); if (left(ak, ADM_TRY, ADM_MS) < 1) console.warn(`back office : ${ADM_TRY} jetons faux en 10 min depuis ${ipKey(clientIp(req))}, bloqué 10 min`);
-          return send(res, 401, { err: 'Jeton du back office invalide.' });
-        }
-        req.admin = { via: 'token' };
+        const r = AUTH.tokenCheck(req, auth.startsWith('Bearer ') ? auth.slice(7) : '');
+        if (r === 'blocked') { res.setHeader('Retry-After', '600'); return send(res, 429, { err: 'Trop d\'essais ratés, réessaie dans 10 minutes.' }); }
+        if (r !== 'ok') return send(res, 401, { err: 'Jeton du back office invalide.' });
+        req.admin = { via: 'token', bearer: true };
       }
       if (admin[key]) return await admin[key](req, res, u); return send(res, 404, { err: 'route' });
     }

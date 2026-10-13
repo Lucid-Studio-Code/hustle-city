@@ -25,7 +25,7 @@
       if (val('ac-pw') !== val('ac-pw2')) return er.textContent = 'Les deux mots de passe ne sont pas les mêmes.';
       try { await HC.api('/admin/api/account', { email: val('ac-email'), password: val('ac-pw'), password2: val('ac-pw2') }); }
       catch (x) { return er.textContent = x.message; }
-      bg.remove(); HC.logout('Compte créé : connecte-toi avec ton e-mail et ton mot de passe.');   // le jeton n'est plus gardé dans ce navigateur
+      bg.remove(); HC.logout('Compte créé : connecte-toi avec ton e-mail et ton mot de passe.');   // la création du compte a fermé toutes les sessions, dont celle du jeton
     };
     setTimeout(() => $('#ac-pw', bg).focus(), 50);
   };
