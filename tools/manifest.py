@@ -27,8 +27,10 @@ for n in names:
     b = io.BytesIO(); Image.open(p).convert('RGB').save(b, 'WEBP', quality=86, method=5) if CARD(n) else Image.open(p).convert('RGBA').save(b, 'WEBP', quality=80, method=4, alpha_quality=90)
     if len(b.getvalue()) < os.path.getsize(p) * .85 or CARD(n): open(w, 'wb').write(b.getvalue()); webp.append(n)
     elif os.path.exists(w): os.remove(w)
-for f in os.listdir(d):   # versions légères orphelines (ou devenues inutiles)
-    if (f.endswith('.jpg') and f[:-4] not in jpg) or (f.endswith('.webp') and f[:-5] not in webp): os.remove(os.path.join(d, f))
+for f in os.listdir(d):   # versions légères orphelines (ou devenues inutiles) — seulement si un .png d'origine existe : un .jpg/.webp déposé seul (écrans Halloween…) est gardé
+    n = f.rsplit('.', 1)[0]
+    if not os.path.exists(os.path.join(d, n + '.png')): continue
+    if (f.endswith('.jpg') and n not in jpg) or (f.endswith('.webp') and n not in webp): os.remove(os.path.join(d, f))
 # version PAR image (empreinte du fichier servi) : changer une image ne force plus le téléchargement de toutes les autres
 import hashlib
 def ver(n):
