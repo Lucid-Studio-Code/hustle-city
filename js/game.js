@@ -1367,13 +1367,15 @@
     return Object.assign({ rarity: rar }, pick(opts[rar])());
   }
   // carte de collection : une vraie carte avec une cote, rangée dans le classeur
-  function collectionCard() {
+  function collectionCard(first) {
     let rar = pickW(D.BOOSTER.colWeights);
+    if (first) rar = Math.random() < .35 ? 'E' : 'R';   // tout premier booster du joueur : la dernière carte est au moins une rare (une épique une fois sur trois)
     // pendant le tournoi, une partie des boosters donne une carte en édition limitée ; pendant la bêta, une carte des Cobayes (jamais de commune)
     const ev = cdmOn() && Math.random() < D.CDM.cardChance ? 'cdm' : sixCardsOn() && Math.random() < D.SIX.cardChance ? 'six' : betaOn() && Math.random() < D.BETA.cardChance && D.ITEMS.some(i => i.event === 'beta' && cardOk(i)) ? 'beta' : null;
-    if (ev === 'beta') rar = Math.random() < .2 ? 'E' : 'R';   // les Cobayes : 80 % de rares, 20 % d'épiques (la légendaire ne sort pas d'un booster)
+    if (ev === 'beta') rar = Math.random() < .2 ? 'E' : 'R';
+    const firstPool = first && D.ITEMS.some(i => i.series && !i.noBooster && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && i.r === rar && (ev ? i.event === ev : !i.event));   // les Cobayes : 80 % de rares, 20 % d'épiques (la légendaire ne sort pas d'un booster)
     const all = D.ITEMS.filter(i => i.series && !i.noBooster && cardOk(i) && avail(i) && i.p0 <= D.BOOSTER.maxCard && (ev ? i.event === ev : !i.event));
-    const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : all);
+    const pool = all.filter(c => c.r === rar), c = pick(pool.length ? pool : first && !firstPool ? all.filter(c => c.r !== 'C') : all);
     // un seul exemplaire par objet : un doublon est revendu tout de suite au prix du Comptoir
     const dup = !!(st.owned[c.id] && st.owned[c.id].length);
     if (dup) { const n = sellPrice(c.id, true); addCash(n); return { kind: 'col', rarity: c.r, id: c.id, name: c.name, dup, sold: n }; }
@@ -1392,7 +1394,7 @@
     if (boosterFree()) st.boosterDay = today();
     else if (st.boosters > 0) st.boosters--;
     else return { err: 'Plus de booster : reviens demain ou achètes-en un.' };
-    const cards = [rewardCard(), rewardCard(), rewardCard(), collectionCard()];
+    const cards = [rewardCard(), rewardCard(), rewardCard(), collectionCard(!st.stats.boosters)];
     stat('boosters'); addXp(8 + st.lvl * 2); emit('change'); return { cards };
   }
   const seriesCards = id => D.ITEMS.filter(i => i.series === id && cardOk(i));
