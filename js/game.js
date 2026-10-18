@@ -492,8 +492,18 @@
     st.bets.unshift({ lucky, id: now(), legs: legs.map(l => { const m = match(l.m); return { m: l.m, pick: l.pick, odd: legOdd(m, l.pick), sport: m.sport, home: m.home, away: m.away }; }), stake, odds, state: 'open', free: !!free, boosted: evOn('boost') });
     if (st.bets.length > 30) st.bets.length = 30;
     if (lucky) { const m0 = match(legs[0].m); if (m0 && m0.res != null) { m0.res = null; playMatch(m0); } }   // résultat déjà tiré (tuyau) : on le retire pour ce pari
+    if (lucky) { const m0 = match(legs[0].m); if (m0) rushMatch(m0, legs[0].pick); }   // pari du tuto : le match se joue tout de suite, le joueur voit son premier but et son premier gain sans attendre
     stat('bets'); if (serious(stake) || free) gameXp(4 + Math.min(xpCap(40), stake / 4)); else gameXp(stake / 4);
     emit('change'); return { ok: true, odds };
+  }
+  // le match du tout premier pari démarre aussitôt, aux deux tiers du direct : il reste ~20 s, et les buts tombent dans ces 20 s (celui de l'équipe choisie en premier)
+  function rushMatch(m, pick) {
+    const L = D.MATCH.liveS * 1000, f = .66; m.kickoff = now() - L * f; m.state = 'live'; m.res = null; playMatch(m);
+    if (m.sport === 'foot' && m.goals) {
+      const cur = Math.ceil(f * 90), side = pick === 2 ? 1 : 0, n = m.goals.length;
+      const order = m.goals.map(x => x[1]).sort((a, b) => (a === side ? -1 : 0) - (b === side ? -1 : 0));
+      m.goals = order.map((sd, i) => [Math.min(89, cur + 3 + Math.round(i * (86 - cur) / Math.max(1, n))), sd]);
+    }
   }
   function settle(m, offline) {
     // le pote qui avait donné un prono sur ce match revient : « je te l'avais dit » ou « désolé », si on a parié dessus

@@ -229,10 +229,13 @@
   function closeModal() { const m = $('#modal'); const mu = document.querySelector('.modal-under'); if (mu && !(modalClose)) mu.remove(); if (!m.classList.contains('hidden')) { sfx.close(); setTimeout(() => { if (!modalOpen()) musicMood(); }, 0); } m.className = 'hidden'; m.innerHTML = ''; if (decoFocus) { const d = decoFocus; decoFocus = null; setTimeout(() => focusDeco(d), 80); } const f = modalClose; modalClose = null; modalRefresh = null; tabHandler = null; if (f) f(); setTimeout(() => { if (!modalOpen()) { const mu = document.querySelector('.modal-under'); if (mu) mu.remove(); nextPending(); } }, 250); }
   function modalOpen() { return !$('#modal').classList.contains('hidden'); }
 
+  // une seule chose à la fois à l'écran (surtout juste après le tuto) : fenêtre de Momo > conseil de Momo > notification du téléphone > carte mission
+  const attn = () => ({ dlg: !!document.querySelector('#app > .dlg'), tip: !!$('#next-tip')?.classList.contains('on'), ban: !!$('#ph-banner')?.classList.contains('show'), tuto: !!(window.TUTO && TUTO.active) });
   function dialog(who, text, btn = 'OK', cb) {
+    $('#ph-banner')?.classList.remove('show'); $('#next-tip')?.classList.remove('on'); $('#quest')?.classList.remove('peek');
     const el = document.createElement('div'); el.className = 'dlg';
     el.innerHTML = `<div class="who">${pic('guide', '🧢')}</div><div class="say"><span class="nm">${who}</span>${text}<div style="margin-top:10px;text-align:right"><button class="btn green sm">${btn}</button></div></div>`;
-    el.querySelector('button').onclick = () => { el.remove(); cb && cb(); };
+    el.querySelector('button').onclick = () => { el.remove(); cb && cb(); setTimeout(updateQuestVis, 50); };
     $('#app').appendChild(el);
   }
 
@@ -377,7 +380,7 @@
     const rk = G.rankOf(); if (s.rankMax == null) s.rankMax = rk.i;
     if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rkImg(rk), rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
-  let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0;
+  let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0, tipWait = null;
   function renderNextBtn() {
     const btn = $('#btn-next'); if (!btn) return;
     btn.classList.toggle('hidden', !st().tutoDone); if (!st().tutoDone) return;
@@ -385,11 +388,14 @@
     const key = top ? top.t : '';
     if (key !== nextKey) { nextKey = key; nextClicked = false; btn.querySelector('.nx-pic').innerHTML = has('btn-momo') ? `<img src="${src('btn-momo')}" alt="">` : pic('guide', '🧢'); btn.querySelector('b').textContent = 'Momo';
       // Momo souffle l'idée quand quelque chose d'important apparaît (pas plus d'une fois par minute)
-      if (urgent && Date.now() - tipLast > 60000) showNextTip(top); }
+      if (urgent && Date.now() - tipLast > 60000 && showNextTip(top) === false) tipWait = top; }
+    if (tipWait && !urgent) tipWait = null;
+    if (tipWait && showNextTip(tipWait) !== false) tipWait = null;
     btn.classList.toggle('glow', !!urgent && !nextClicked); btn.querySelector('.badge').classList.toggle('hidden', !urgent || nextClicked);
   }
   function showNextTip(n) {
-    const t = $('#next-tip'); if (!t || modalOpen() || phoneOpen() || (window.TUTO && TUTO.active)) return;
+    const t = $('#next-tip'); if (!t || modalOpen() || phoneOpen() || (window.TUTO && TUTO.active)) return false;
+    { const a = attn(); if (a.dlg || a.ban) return false; }
     tipLast = Date.now();
     t.innerHTML = `<span class="t-who">${pic('guide', '🧢')}</span><span><b>${coachIc(n.ic)} ${n.t}</b><small>${n.d}</small></span>`;
     t.classList.add('on'); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove('on'), 6000);
@@ -433,8 +439,9 @@
   // ------------------------------------------------------------ carte mission (apparaît quelques secondes, comme Mama Kana)
   let questKey = '', questPeekUntil = 0;
   function peekQuest(ms = 6000) { questPeekUntil = Math.max(questPeekUntil, Date.now() + ms); updateQuestVis(); setTimeout(updateQuestVis, ms + 50); }
-  function updateQuestVis() { const q = G.questFocus(); $('#quest').classList.toggle('peek', !!q && (G.questState(q).done || Date.now() < questPeekUntil) && !(window.TUTO && TUTO.active)); }
+  function updateQuestVis() { const q = G.questFocus(); $('#quest').classList.toggle('peek', !!q && (G.questState(q).done || Date.now() < questPeekUntil) && !(window.TUTO && TUTO.active) && !(a => a.dlg || a.tip || a.ban)(attn())); }
   setInterval(() => { if (!modalOpen()) peekQuest(); }, 180000);
+  setInterval(() => updateQuestVis(), 1500);   // la carte revient d'elle-même quand la fenêtre ou la notification est partie
   function renderQuest() {
     const q = G.questFocus(), el = $('#quest');
     if (!q) { el.classList.add('hidden'); return; }
@@ -1394,6 +1401,7 @@
   }
   function banner(n) {
     if (st().quiet) return;
+    { const a = attn(); if (a.dlg || a.tip || a.tuto) { n._w = (n._w || 0) + 1; if (n._w < 12) setTimeout(() => { if (!n.seen && !phoneOpen()) banner(n); }, 2500); return; } }
     let el = $('#ph-banner'); if (!el) { $('#app').insertAdjacentHTML('beforeend', '<button id="ph-banner" data-act="phoneNotif"></button>'); el = $('#ph-banner'); }
     if (!el.dataset.swipe) { el.dataset.swipe = 1; swipeAway(el, () => { clearTimeout(banner._t); el.classList.remove('show'); }); }
     const a = appOf(n.app);
