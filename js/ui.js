@@ -250,7 +250,7 @@
     $('#xptext').textContent = need === Infinity ? 'MAX' : `${s.xp}/${need}`;
     { const w = short(G.worth()); if ($('#worth-v').innerHTML !== w) $('#worth-v').innerHTML = w; }
     const av = s.avatar && D.EV_SHOP.find(x => x.id === s.avatar), fr = s.frame && D.EV_SHOP.find(x => x.id === s.frame);
-    const avKey = (s.avatar || s.skin) + '|' + (s.frame || '');
+    const avKey = s.skin + '|' + (s.avatar || '') + '|' + (s.frame || '');   // le perso ET le pin's : changer de perso avec un pin's posé doit redessiner l'avatar
     if ($('#avatar-img').dataset.k !== avKey) {
       $('#avatar-img').dataset.k = avKey;
       $('#avatar-img').innerHTML = (s.skin ? skinPic(s.skin, true) : '') + (av ? `<span class="av-pin">${pinArt(av)}</span>` : '');
