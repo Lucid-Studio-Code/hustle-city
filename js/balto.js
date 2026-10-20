@@ -6,6 +6,8 @@
   const st = () => G.st;
   let tab = 'bets', sport = 'all', slip = [], stake = 10, useFree = false;
   const fmtOdd = o => o.toFixed(2).replace('.', ',');
+  // cote du ticket : arrondie au centième comme dans GAME.placeBet, pour que « Si tu gagnes » annonce exactement le gain du ticket validé
+  const slipOdds = () => Math.round(slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1) * 100) / 100;
 
   // ------------------------------------------------------------ score en direct
   function liveScore(m) {
@@ -112,7 +114,7 @@
     if (!slip.length) return '';
     // on ne peut pas miser plus que la mise max, ni plus que ce qu'on a en poche
     const s = st(), max = Math.min(G.betMax(), Math.floor(s.cash)), free = useFree && s.freebets.length, broke = !free && max < 1;
-    const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1);
+    const odds = slipOdds();
     const amt = free ? s.freebets[0] : Math.max(0, Math.min(stake, max));
     const gain = free ? amt * (odds - 1) : amt * odds;
     const legs = slip.map(l => { const m = G.match(l.m); return `<div class="tk-leg">${labels(m)[l.pick] === 'N' ? '<i class="ob-nul">=</i>' : crest(m, labels(m)[l.pick] === '2', 'mini')}<span><b>${pickName(m, l.pick)}</b><small>${m.home} – ${m.away}</small></span><em>${fmtOdd(G.legOdd(m, l.pick))}</em><button class="tk-x" data-act="bPick" data-m="${m.id}" data-p="${l.pick}" aria-label="Retirer">×</button></div>`; }).join('');
@@ -216,7 +218,7 @@
     }
   });
   document.addEventListener('input', e => {
-    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slip.reduce((o, l) => o * G.legOdd(G.match(l.m), l.pick), 1); const g = document.getElementById('b-gain'); if (g) g.innerHTML = gainTxt(Math.min(v, G.betMax(), Math.floor(st().cash)), odds, false); }
+    if (e.target.id === 'b-stake') { const v = parseInt(e.target.value, 10) || 0; stake = v; const odds = slipOdds(); const g = document.getElementById('b-gain'); if (g) g.innerHTML = gainTxt(Math.min(v, G.betMax(), Math.floor(st().cash)), odds, false); }
   });
   document.addEventListener('change', e => { if (e.target.id === 'b-free') { useFree = e.target.checked; U.setBody(body()); } });
 
