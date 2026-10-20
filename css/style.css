@@ -3292,7 +3292,7 @@ body.calm #app *, body.calm #app *::before { animation-duration: .01s !important
 #app .cdm-lane.me { background: #fff1dc; box-shadow: 0 3px 0 #120a06, inset 0 0 0 2px var(--tc); }
 #app .cl-rk { width: 14px; font: 400 17px var(--title); text-align: center; flex: none; }
 #app .cl-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-#app .cl-mid b { font: 400 15px/1.1 var(--title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #app .cl-mid em { font: 900 10px var(--text); font-style: normal; color: #fff; background: var(--tc); border: 1.5px solid #120a06; border-radius: 99px; padding: 0 6px; vertical-align: 2px; }
+#app .cl-mid b { font: 400 15px/1.1 var(--title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 3px 0 2px; }   /* le padding laisse la place au badge « ton équipe » (sinon rogné par overflow) */ #app .cl-mid em { font: 900 10px var(--text); font-style: normal; color: #fff; background: var(--tc); border: 1.5px solid #120a06; border-radius: 99px; padding: 0 6px; vertical-align: 2px; }
 #app .cl-bar { height: 12px; border-radius: 99px; background: #ead9bd; border: 1.5px solid #120a06; overflow: hidden; } #app .cl-bar i { display: block; height: 100%; background: linear-gradient(var(--tc), color-mix(in srgb, var(--tc), #000 25%)); border-radius: 99px; transition: width .6s; }
 #app .cl-pts { font: 400 16px var(--title); white-space: nowrap; }
 #app .cdm-mine { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; border-color: #120a06; background: linear-gradient(135deg, #fffdf6 60%, color-mix(in srgb, var(--tc), #fff 70%)); }
