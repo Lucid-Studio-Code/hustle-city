@@ -1,0 +1,10 @@
+const rec=require('./rec.js'),boot=require('./boot.js');(async()=>{const R=await rec();const p=R.p;await boot(R,{name:'Momo',skin:'gold',lingots:40,cash:248250});
+const O='/tmp/claude-501/v2/ig/';const snap=async n=>{await R.wait(1800);await p.evaluate(()=>window.__sync());await p.screenshot({path:O+n+'.png'})};
+const clk=async(a,id)=>{await p.evaluate(([a,id])=>{const b=document.createElement('b');b.dataset.act=a;if(id)b.dataset.id=id;document.body.appendChild(b);b.click();b.remove();},[a,id]);};
+await snap('v-0');
+await clk('toggleScene');await snap('v-1');
+await clk('phoneApp','immo');await snap('v-immo');
+await p.evaluate(()=>{document.querySelectorAll('.modal .close,[data-act=closeModal]').forEach(b=>b.click())});await R.wait(500);
+await p.evaluate(()=>{try{document.querySelector('[data-act=closePhone]')?.click()}catch(e){}});
+await clk('upgrades');await snap('v-upg');
+console.log(R.errs);await R.close()})();
