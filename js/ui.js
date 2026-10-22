@@ -2208,7 +2208,7 @@
           const vi = G.vintageOn() && shelf.find(i => i.id === st().vintage.id);   // l'exclusivité d'un ancien événement passe en tête
           return `${vi ? `<h3 class="sec vint-h">${ico('icon-star', '⭐')} Exclusif · ancien événement <small>· part dans ${mmss(st().vintage.until - Date.now())}</small></h3><div class="grid2 vint">${card(vi, true)}</div>` : ''}<h3 class="sec">En rayon <small>· 3 communes et 1 plus rare</small></h3><div class="grid2">${shelf.filter(i => i !== vi).map(i => card(i, true)).join('') || '<p class="hint-line">Tout est parti : attends le prochain arrivage.</p>'}</div>` +
             (mine.length ? `<h3 class="sec">Tes cartes <small>· à revendre</small></h3><div class="grid2">${mine.map(i => card(i)).join('')}</div>` : ''); })()
-      : `<div class="grid2">${items.map(i => card(i)).join('')}</div>`;
+      : `<div class="grid2">${items.filter(i => !(s.owned[i.id] || []).length).concat(items.filter(i => (s.owned[i.id] || []).length)).map(i => card(i)).join('')}</div>`;   // d'abord ce qu'on peut acheter, ce qu'on possède (à vendre) en dernier
     // comment on gagne : une petite histoire en 3 étapes, avec de vrais chiffres
     const buyEx = sale ? 89 : 105;
     return `${mt ? `<div class="tip-banner">${ico('tip-market', '📰')} <span><b>Ton tuyau du Kiosque</b>« ${esc(mt.txt)} »</span></div>` : ''}
