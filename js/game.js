@@ -496,9 +496,9 @@
     stat('bets'); if (serious(stake) || free) gameXp(4 + Math.min(xpCap(40), stake / 4)); else gameXp(stake / 4);
     emit('change'); return { ok: true, odds };
   }
-  // le match du tout premier pari démarre aussitôt, aux deux tiers du direct : il reste ~20 s, et les buts tombent dans ces 20 s (celui de l'équipe choisie en premier)
+  // le match du tout premier pari démarre aussitôt, presque à la fin du direct : il reste ~6 s, et les buts tombent dans ces 6 s (celui de l'équipe choisie en premier)
   function rushMatch(m, pick) {
-    const L = D.MATCH.liveS * 1000, f = .66; m.kickoff = now() - L * f; m.state = 'live'; m.res = null; playMatch(m);
+    const L = D.MATCH.liveS * 1000, f = .9; m.kickoff = now() - L * f; m.state = 'live'; m.res = null; playMatch(m);
     if (m.sport === 'foot' && m.goals) {
       const cur = Math.ceil(f * 90), side = pick === 2 ? 1 : 0, n = m.goals.length;
       const order = m.goals.map(x => x[1]).sort((a, b) => (a === side ? -1 : 0) - (b === side ? -1 : 0));

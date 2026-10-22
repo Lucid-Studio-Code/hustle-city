@@ -22,7 +22,7 @@
     { say: () => 'Retourne <b>en ville</b>.', target: '#btn-scene', done: () => U.scene === 'city' },
     { say: () => 'En face, <b>le Royal</b> : les paris sportifs et les tickets à gratter. Entre.', target: '.bld[data-id=balto]', before: () => U.focusBld('balto'), done: () => !!$('[data-act=bPick]') },
     { say: () => 'Chaque ligne, c\'est un match. Touche <b>l\'équipe qui va gagner selon toi</b> (ou « Match nul » si tu penses à une égalité). Le chiffre sous chaque choix, c\'est <b>la cote</b> : ce que ta mise est multipliée si tu as raison. Petit chiffre = favori, gros chiffre = surprise qui rapporte gros.', target: '[data-act=bPick]', done: () => !!$('[data-act=bPlace]') },
-    { say: () => 'Mets ta mise (10<i class="cur"></i>, c\'est bien pour commencer) et <b>valide ton pari</b>. Le match commence dans quelques minutes.', target: '[data-act=bPlace]', done: () => S('bets') > 0 },
+    { say: () => 'Mets ta mise (10<i class="cur"></i>, c\'est bien pour commencer) et <b>valide ton pari</b>.', target: '[data-act=bPlace]', done: () => S('bets') > 0 },
     { say: () => 'Pari posé ! Et ton match <b>commence tout de suite</b> : regarde le direct…', target: '.mcard.live', before: () => setTimeout(() => { const c = $('.mcard.live'); if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 400), done: () => { const b = st().bets[0]; return !!b && b.state !== 'open'; } },
     { say: () => '<b>GAGNÉ !</b> Ta mise est multipliée par la cote. Tes tickets restent dans <b>Mes paris</b>. Ferme.', target: '#modal .sheet-close', done: () => !modalOpen() },
     { say: () => 'Ici, le <b>trophée</b> : tes missions, tes 3 défis du jour et ce que t\'apporte chaque niveau. Ouvre-le.', target: '#trophy', done: () => !!$('[data-act=claimQuest]') },
