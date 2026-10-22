@@ -2119,6 +2119,17 @@
   }
   function cdmTabs() { const n = G.cdmNightReady(), k = G.cdmStepsReady(), dot = x => x ? ` <i class="tab-dot">${x}</i>` : '';
     return [{ id: 'team', label: 'Équipes' }, { id: 'nights', label: 'Défis' + dot(n) }, { id: 'steps', label: 'Paliers' + dot(k) }, { id: 'shop', label: 'Boutique' }]; }
+  // fenêtre « Récompense débloquée » d'un objet d'événement (palier de la Coupe des Morts) : on revient à la Coupe en la fermant
+  let evGiftBack = true;
+  function evGiftPop(id) {
+    const x = D.EV_SHOP.find(o => o.id === id); if (!x) return;
+    const art = x.kind === 'avatar' ? `<span class="eg-pin">${pinArt(x)}</span>` : x.kind === 'frame' ? (frameImg(x) ? `<img class="eg-fr" src="${src(frameImg(x))}" alt="">` : `<span class="ev-emo">${x.emo || '🖼️'}</span>`) : (has(decoImg(x)) ? pic(decoImg(x)) : `<span class="ev-emo">${x.emo || '🎁'}</span>`);
+    const what = { avatar: 'Un pin\'s à porter sur ta photo', frame: 'Un cadre pour ta photo', deco: 'Une déco, déjà posée dans ta ville' }[x.kind] || 'Un objet de la Coupe';
+    const btn = x.kind === 'deco' ? `<button class="btn green wide" data-act="evGiftSee" data-id="${x.id}">La voir en ville</button>` : `<button class="btn green wide" data-act="evGiftUse" data-id="${x.id}">${x.kind === 'avatar' ? 'Mettre mon pin\'s' : 'Mettre mon cadre'}</button>`;
+    evGiftBack = true; sfx.win(); rain('confetti', 40);
+    openModal({ title: 'Récompense débloquée !', icon: 'gift', center: true, onClose: () => setTimeout(() => { if (evGiftBack && !modalOpen()) openCdm(); }, 0),
+      body: `<div class="levelup ev-gift"><div class="rays">${art}</div><div class="lv-big stroke">${esc(x.name)}</div><p class="hint-line center">${what}. C'est à toi pour toujours.</p>${btn}<button class="btn wide" data-act="closeModal" style="margin-top:8px">Plus tard</button></div>` });
+  }
   function openCdm(tab) {
     const S = G.cdmState(), ph = G.cdmPhase();
     if (S.final && !S.final.seen) return openCdmRecap();
@@ -2884,7 +2895,10 @@
     cdmGo() { goCdm(); },
     cdmJoin(el) { const r = G.cdmJoin(el.dataset.id); if (r.err) return toast(r.err, true); sfx.spooky(); rain('confetti', 50); cdmTab = 'team'; openCdm('team'); renderHud(); toast(`Bienvenue chez les ${r.T.name} ! ${r.T.motto}`); },
     cdmNight(el) { const r = G.cdmNightClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.candy(); if (r.bonus) sfx.win(); rain('confetti', r.bonus ? 40 : 15); setBody(cdmBody()); renderHud(); },
-    cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud(); },
+    cdmStep(el) { const r = G.cdmStepClaim(+el.dataset.i); if (r.err) return toast(r.err, true); sfx.level(); rain('confetti', 30); if (r.g.refund) toast(`Tu l'avais déjà : +${r.g.refund} bonbons à la place.`); setBody(cdmBody()); renderCity(); renderHud();
+      if (r.g.id && !r.g.refund) evGiftPop(r.g.id); },   // un objet gagné (pin's, cadre, déco) : sa fenêtre, avec de quoi l'activer tout de suite
+    evGiftUse(el) { const x = D.EV_SHOP.find(o => o.id === el.dataset.id); if (!x) return; if (x.kind === 'avatar') st().avatar = x.id; else if (x.kind === 'frame') st().frame = x.id; G.save(); sfx.tap(); toast(x.kind === 'avatar' ? 'Ton pin\'s est sur ta photo !' : 'Ton cadre est sur ta photo !'); renderHud(); closeModal(); },
+    evGiftSee(el) { const id = el.dataset.id; evGiftBack = false; closeModal(); setTimeout(() => focusDeco(id), 80); },
     cdmBuy(el) { const r = G.cdmBuy(el.dataset.id); if (r.err) return toast(r.err, true); if ((D.CDM.shop.find(o => o.id === el.dataset.id) || {}).kind === 'deco') { decoFocus = el.dataset.id; sfx.deco(); } else sfx.win(); rain('confetti', 20); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmUse(el) { const r = G.evUse(el.dataset.id); if (r.err) return toast(r.err, true); sfx.tap(); setBody(cdmBody()); renderCity(); renderHud(); },
     cdmHow(el, e) { e && e.preventDefault(); cdmHowOpen = !cdmHowOpen; setBody(cdmBody()); },

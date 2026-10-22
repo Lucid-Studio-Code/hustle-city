@@ -4002,3 +4002,9 @@ html { background-color: #120c24; }
 #app .am-show-v { margin-top: 4px; padding: 2px 10px; border: 2px solid #2a1a10; border-radius: 999px; background: #ffd23f; font: 400 14px var(--title); color: #2a1a10; display: inline-flex; align-items: center; gap: 3px; }
 #app .am-show-v .cur { width: 1em; height: 1em; }
 #app .am-show-l { min-height: 26px; display: flex; align-items: center; justify-content: center; line-height: 1.2; }   /* même hauteur d'étiquette dans les deux colonnes */
+
+/* fenêtre « Récompense débloquée » (objet d'événement) */
+#app .ev-gift .rays .eg-pin, #app .ev-gift .rays .eg-pin .crest { width: 120px; height: 120px; display: grid; place-items: center; }
+#app .ev-gift .rays .eg-pin img, #app .ev-gift .rays .eg-fr, #app .ev-gift .rays .pic { width: 120px; height: 120px; object-fit: contain; }
+#app .ev-gift .rays .ev-emo { font-size: 72px; }
+#app .ev-gift .lv-big { font-size: 26px; line-height: 1.1; margin: 10px 0 4px; }
