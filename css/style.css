@@ -3947,3 +3947,9 @@ html { background-color: #120c24; }
 #app .levelup.many .unlocks .ul-ic .pic, #app .levelup.many .unlocks .ul-ic img, #app .levelup.many .unlocks .ul-ic .crest, #app .levelup.many .unlocks .ul-ic .cico { width: 36px; height: 36px; }
 #app .levelup.many .unlocks .ul-nm { font-size: 9px; line-height: 11px; }
 #app .levelup.many .ul-hows { margin: 0 0 6px; }
+
+/* onglets de Potes : les mêmes que partout dans le jeu (pastilles crème, celle ouverte en jaune, texte blanc cerné) */
+#app .am-tabs, #app .am-pf .am-tabs { gap: 3px; padding: 0; background: none; border: 0; box-shadow: none; }
+#app .am-tabs button.btn, #app .am-pf .am-tabs button.btn { --b-c: #e9dcc0; flex: 1; min-height: 40px; padding: 6px 4px 8px; font-size: 12px; color: #fff; border-radius: 14px;
+  background: linear-gradient(rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 55%), var(--b-c); box-shadow: 0 3px 0 var(--b-ink); }
+#app .am-tabs button.btn.on, #app .am-pf .am-tabs button.btn.on { --b-c: var(--b-yellow); color: #fff; }

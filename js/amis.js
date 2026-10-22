@@ -91,7 +91,7 @@
 
   // ---------------------------------------------------------------- la vue Potes, dans la fenêtre Profil (onglet Potes)
   const tabs = () => `<div class="am-tabs">${[['amis', 'Mes potes'], ['top', 'Classement'], ['fil', 'Fil']].map(([k, l]) => { const n = k === 'amis' ? nIn : k === 'fil' && tab !== 'fil' ? unseenFeed() : 0;
-    return `<button class="${tab === k ? 'on' : ''}" data-act="amisTab" data-id="${k}">${l}${n ? `<em class="badge">${n > 9 ? '9+' : n}</em>` : ''}</button>`; }).join('')}</div>`;
+    return `<button class="btn${tab === k ? ' on' : ''}" data-act="amisTab" data-id="${k}">${l}${n ? `<em class="badge">${n > 9 ? '9+' : n}</em>` : ''}</button>`; }).join('')}</div>`;
   const row = (p, right, act) => `<${act ? `button data-act="${act}" data-fid="${esc(p.fid)}"` : 'div'} class="chat-row am-row">${U.lbAv(p)}<span><b>${idTxt(p)}</b><small>Niveau ${p.lvl} <i class="am-sep"></i> ${U.short(p.worth || 0)}</small></span>${right || ''}</${act ? 'button' : 'div'}>`;
   function parCard() {
     const P = A.parrain, n = Math.min(P.pinAt, st().amisFil || 0);
