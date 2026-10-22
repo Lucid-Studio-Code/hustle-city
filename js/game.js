@@ -1390,11 +1390,15 @@
     if ((st.owned[id] || []).length) { addLingots(20); emit('change'); return { dup: true }; }
     st.owned[id] = [{ paid: 0, t: now(), gift: true }]; emit('change'); return { id };
   }
+  // récompense de parrainage : une carte de collection au moins rare (une épique une fois sur trois), comme le tout premier booster
+  function giftRareCard() { const c = collectionCard(true); emit('change'); return c; }
   function openBooster() {
     if (boosterFree()) st.boosterDay = today();
     else if (st.boosters > 0) st.boosters--;
     else return { err: 'Plus de booster : reviens demain ou achètes-en un.' };
     const cards = [rewardCard(), rewardCard(), rewardCard(), collectionCard(!st.stats.boosters)];
+    cards.forEach(c => { if (c.kind === 'col' && c.rarity === 'L' && !c.dup) emit('legend', { id: c.id }); });   // les potes le voient dans leur fil
+    if (cards.some(c => c.kind === 'col' && (c.rarity === 'E' || c.rarity === 'L') && !c.dup)) emit('rarePull', {});   // un bon moment (pop-up « Invite tes potes »)
     stat('boosters'); addXp(8 + st.lvl * 2); emit('change'); return { cards };
   }
   const seriesCards = id => D.ITEMS.filter(i => i.series === id && cardOk(i));
@@ -1734,7 +1738,7 @@
     inStock, avail, stockLeft, stockSkip, stockSkipCost, contactFor, adState, adReward, iapGrant, passOn, cardOk, cardsLive,
     item, what, upgradeReady, upgradeReachable, liquidPlan, liquidate, upPrice, fee, pcLvl, pcNext, pcUpgrade, catUnlocked, buyPrice, sellPrice, buyItem, sellItem, ownedCount, roomSlots, itemsValue, roomUpgrade,
     habit, habitState, habitOn, habitMalus, health, priceMult, cost, betMax, startHabit, quitHabit, clubQuitLeft, clubNightsLeft, tilted,
-    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, placeWaiting, trophyWait: () => st.trophyWait || [], clubChoose, clubLeft, clubActs, clubScene,
+    edition, editionLeft, kioskRefresh, tipLingots, lingotsFor, tipPrice, tipBought, buyTip, openBooster, clubEntry, clubWait, clubNight, clubEnter, clubDo, clubIn, placeWaiting, trophyWait: () => st.trophyWait || [], giftRareCard, grantEv, clubChoose, clubLeft, clubActs, clubScene,
     boosterFree, boosterCount, buyBooster, buyBoosterCash, boosterPrice, boosterCost, promoOf, promoPct, promoCut, decoCost, lookCost, seriesCards, seriesHave, seriesDone, claimSeries,
     chal, chalValue, chalReady, chalCash, claimChal, evOn, eventNow, eventLeft, acceptDeal, refuseDeal, legOdd,
     worth, score, questState, claimQuest, questsReady, questFocus, questsClaimed, dailyState, dailyReady, dailyDay, dailyReward, claimDaily,

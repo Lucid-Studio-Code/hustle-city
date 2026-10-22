@@ -1,11 +1,11 @@
 /* Biff City : lien avec le serveur (sauvegarde en ligne, statistiques, SAV, cadeaux, réglages en direct).
    Sans serveur joignable, ce fichier ne fait rien : le jeu marche comme avant, tout en local.
-   Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300 ou en ligne, ex. hustle.lucidstudio.fr), sinon localStorage « hc.api ». */
+   Adresse du serveur : window.HC_API, sinon le jeu servi par le serveur lui-même (port 5300, 5330-5339 pour les serveurs de test, ou en ligne, ex. hustle.lucidstudio.fr), sinon localStorage « hc.api ». */
 (function () {
   'use strict';
   const G = window.GAME, U = window.UI, D = window.DATA;
   const h = location.hash || '';
-  const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (location.port === '5300' || (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|192\.168\.|10\.|\[)/.test(location.hostname)) ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
+  const API = (window.CONTENT && window.CONTENT.api) || window.HC_API || (/^5(300|33\d)$/.test(location.port) || (/^https?:$/.test(location.protocol) && !/^(localhost|127\.|192\.168\.|10\.|\[)/.test(location.hostname)) ? location.origin : (() => { try { return localStorage.getItem('hc.api') || ''; } catch (e) { return ''; } })());
   const off = !API || G.TEST || (window.HC_DEV && /^#(neuf|admin)/.test(h));
   const ID_KEY = 'hustleCity.online';
   let id = null; try { id = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) {}
@@ -13,6 +13,9 @@
   const queue = [], ev = (type, data) => { if (!off) { queue.push({ t: Date.now(), type, data }); if (queue.length > 400) queue.splice(0, queue.length - 400); } };
   const post = (p, b) => fetch(API + p, { method: 'POST', keepalive: JSON.stringify(b).length < 60000, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...b, pid: id.pid, secret: id.secret }) }).then(r => r.json());
   const ONLINE = window.ONLINE = { on: false, id, ev, banned: false, config: {} };
+  ONLINE.call = (p, b) => off || !ONLINE.on ? Promise.resolve(null) : post(p, b || {}).catch(() => null);   // js/amis.js (appli Potes)
+  // lien d'invitation d'un pote (?ami=Pseudo%231234) : gardé jusqu'à ce que la partie soit créée et connectée, puis envoyé (js/amis.js)
+  try { const a = new URLSearchParams(location.search).get('ami'); if (a) { localStorage.setItem('hustleCity.ami', a.slice(0, 40)); history.replaceState(null, '', location.pathname + location.hash); } } catch (e) {}
   // même partie sur plusieurs appareils : chaque navigateur a son nom (dev) et retient la date de la dernière sauvegarde serveur qu'il a (base)
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) {} return null; };
   let dev = ls('hustleCity.dev'); if (!dev) { dev = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); ls('hustleCity.dev', dev); }
@@ -71,7 +74,10 @@
       const g = m.gift || {};
       if (+g.lingots) G.addLingots(+g.lingots); if (+g.cash) G.addCash(+g.cash); if (+g.boosters) G.st.boosters += +g.boosters;
       const cob = +g.cobaye ? G.giveBetaLegend() : null;   // retour utile : la carte légendaire de la collection Bêta
-      const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} boosters`, cob && (cob.dup ? 'Cobaye n°1 déjà dans ton classeur : +20 lingots' : 'la carte légendaire « Le Cobaye n°1 »')].filter(Boolean).join(', ');
+      // parrainage (server/amis.js) : carte rare garantie, pin's et cadre exclusifs « Parrain »
+      const rare = +g.rare ? G.giftRareCard() : null, look = k => typeof g[k] === 'string' && D.EV_SHOP.some(x => x.id === g[k] && x.kind === (k === 'pin' ? 'avatar' : 'frame')) && !G.evOwned(g[k]) ? (G.grantEv(g[k]), true) : false;
+      const pin = look('pin'), fr = look('frame');
+      const gl = [g.lingots && `+${g.lingots} lingots`, g.cash && `+${U.short(+g.cash)} de cash`, g.boosters && `+${g.boosters} booster${g.boosters > 1 ? 's' : ''}`, rare && (rare.dup ? 'une carte rare (doublon revendu)' : `la carte « ${rare.name} »`), pin && 'le pin\'s Parrain', fr && 'le cadre Parrain', cob && (cob.dup ? 'Cobaye n°1 déjà dans ton classeur : +20 lingots' : 'la carte légendaire « Le Cobaye n°1 »')].filter(Boolean).join(', ');
       if (/support/i.test(m.title)) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: m.text + (gl && !(cob && !cob.dup) ? ` (${gl} offerts)` : '') });
       // la légendaire arrive dans le téléphone : un message du Support avec la carte jointe, à ouvrir d'un geste
       if (cob && !cob.dup) U.chatPush('Support Biff City', 'guide', { from: 'them', txt: 'Ta carte est arrivée ! Ouvre-la quand tu veux.', card: cob.id, acts: [{ label: 'Ouvrir ma carte', act: 'openCard', id: cob.id }] });
@@ -92,7 +98,9 @@
   let model = ''; const getModel = async () => { try { const D = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Device; if (D && !model) model = String((await D.getInfo()).model || '').slice(0, 12); } catch (e) {} };
   const device = () => { let tz = ''; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {} return { tz, lang: navigator.language || '', screen: `${screen.width}x${screen.height}${model ? ' ' + model : ''}` }; };
   // résumé envoyé à chaque synchro : de quoi afficher le joueur dans le back office (photo, cadre, pin's, niveau, fortune)
-  function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, home: s.home || '', avatar: s.avatar || null, frame: s.frame || null, ...device() }; }
+  function summary() { const s = G.st; return { lvl: s.lvl, xp: s.xp, worth: Math.round(G.worth()), cash: Math.round(s.cash), lingots: s.lingots, boosters: s.boosters || 0, skin: s.skin, name: s.name, tag: s.tag, home: s.home || '', avatar: s.avatar || null, frame: s.frame || null, tuto: s.tutoDone ? 1 : 0, ...device() }; }
+  // pseudo#tag déjà pris par un autre joueur : le serveur en donne un autre (on s'ajoute en pote avec)
+  const takeTag = t => { if (/^\d{1,6}$/.test(t || '') && t !== G.st.tag) { G.st.tag = t; G.save(); if (U.refresh) U.refresh(); } };
   async function sync(withSave) {
     if (off || !ONLINE.on || !G.st.skin) return;
     { const t = Date.now(); if (!document.hidden) playMs += t - tick; tick = t; }   // temps de jeu arrêté pile maintenant (le serveur n'en prend pas plus que le temps écoulé depuis la synchro d'avant)
@@ -102,6 +110,7 @@
       if (r.later) { queue.unshift(...events); playMs += ms; return; }   // synchro trop rapprochée de la précédente : rien n'a été pris, on renverra
       if (r.newer) return pull();   // l'autre appareil a joué depuis : on reprend sa partie
       if (r.rev) { ls('hustleCity.base', r.rev); ls('hustleCity.force', null); }
+      takeTag(r.tag);
       if (r.banned) banScreen(r.banReason); else banScreen(null);
       inbox(r.inbox);
       if (r.cfgAt && +r.cfgAt !== cfgAt) { cfgAt = +r.cfgAt; fetch(API + '/api/config').then(x => x.json()).then(applyConfig).catch(() => {}); }
@@ -115,7 +124,7 @@
     try {
       await getModel();
       const s = G.st, r = await post('/api/hello', { name: s.name, tag: s.tag, ver: (document.querySelector('script[src*="game.js"]') || {}).src?.split('v=')[1] || '', platform: navigator.userAgent.slice(0, 120), ...device() });
-      if (!r.ok) { if (r.retry) setTimeout(hello, (+r.retry + 5) * 1000); return; } ONLINE.on = true; applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
+      if (!r.ok) { if (r.retry) setTimeout(hello, (+r.retry + 5) * 1000); return; } ONLINE.on = true; takeTag(r.tag); applyConfig(r.config); inbox(r.inbox); if (r.banned) banScreen(r.banReason);
       if (ONLINE.importFlag()) { try { await post('/api/imported', {}); } catch (e) {} try { localStorage.removeItem('hustleCity.imported'); } catch (e) {} }   // partie collée depuis un code : pas d'alerte anti-triche
       sync(true); setInterval(() => sync(true), 60000);
       document.addEventListener('visibilitychange', () => sync(true));   // en partant on envoie ; en revenant on vérifie qu'on n'a pas joué ailleurs entre-temps
@@ -132,6 +141,7 @@
   G.on('achievement', a => ev('achievement', { id: a.id }));
   G.on('betResult', ({ b }) => b && ev('bet', { state: b.state, stake: b.stake, gain: b.gain || 0 }));
   G.on('trophy', it => it && ev('trophy', { id: it.id }));
+  G.on('legend', c => c && ev('legend', { id: c.id }));   // carte légendaire sortie d'un booster : le fil des potes
 
   // ---------------------------------------------------------- SAV et récupération de partie (paramètres)
   // « Supprimer mes données » : le serveur efface tout ce qui concerne ce joueur, puis le jeu ne lui envoie plus rien

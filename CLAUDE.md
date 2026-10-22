@@ -32,7 +32,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 128).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 530).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -46,6 +46,15 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Classement : VRAIS joueurs seulement (serveur `POST /api/cdm`, table `cdm_pts`, 600 pts/min et 4 000/jour au plus). Hors ligne : tes points seuls + « Classement en direct indisponible hors ligne ». Le Tournoi aussi : `POST /api/six` (table `six_pts`), plus de faux joueurs.
 - Tester : `#test-cdm` (partie test, la Coupe a commencé il y a 3 h), `#test-cdm-fin` (elle finit 3 min après), boutons 🎃 du panneau Tests. Hors `#test`, le jeu peut parler au serveur de démo (`hc.api`).
 - Images attendues (repli emoji) : `team-<équipe>`, `pin-<équipe>`, `ev-cdm-board`, `ev-cdm-bg`, `ev-cdm-cup`, `ev-cdm-chest`, `ev-cdm-candy`, `ic-ev-cdm`, `frame-cdm`, `deco-citrouilles`, `deco-tombe`, `deco-toiles`, `deco-chaudron` (les décos de la Coupe ont un champ `img`). Leurs places en ville sont provisoires : à régler au back office.
+
+## Jouer entre amis (branche `amis`, 22/10)
+- Appli « Potes » du téléphone (js/amis.js, dessinée DANS le téléphone comme Messages) : son identifiant Pseudo#1234 (Copier / Partager), « Ajouter un pote », demandes reçues / envoyées, potes (avatar + pin's, niveau, patrimoine arrondi, dernière connexion), fiche d'un pote (plus belle carte, trophées, camp à la Coupe, meilleur gain 7 j, retirer), classement entre potes (patrimoine, paris de la semaine), onglet Fil. Icône `app-potes` (fond de l'icône Messages passé en vert + deux bustes du jeu).
+- Serveur : server/amis.js (tables friends, friend_req, feed, referrals ; colonne players.fid = identifiant public). Pseudo#tag rendu unique par le serveur (`uniqTag`, nouveau tag renvoyé au jeu). Un pote ne reçoit que des valeurs arrondies, jamais pid / secret / sauvegarde.
+- Le jeu sonde `/api/amis/poll` toutes les 20 s : pop-up de demande (Accepter / Refuser / Plus tard), notifs du fil. Fil : gros pari gagné (≥ `AMIS.bigWin`), carte légendaire d'un booster (événement `legend`), niveaux multiples de 5, « t'a dépassé » ; une notif par pote et par heure (le reste regroupé), 50 entrées.
+- Parrainage : lien `biffcity.fr/?ami=Pseudo%231234` (la vitrine renvoie vers game.biffcity.fr, index.html garde le paramètre) ; le filleul devient pote tout de suite. Filleul : 10 lingots + 1 booster à la fin du tuto. Parrain : 25 lingots + 1 booster + 1 carte rare garantie par filleul au niveau 5, au 3e le pin's `pn-parrain` et le cadre `fr-parrain` (emoji 🤝 en attendant `pin-parrain` / `frame-parrain`). Récompenses par la table inbox. Anti-abus : un filleul compte une fois, compte de moins de 3 j, pas depuis l'appareil du parrain, 20 récompensés max.
+- Pop-up « Invite tes potes » (fenêtre de l'offre du jour) : après une montée de niveau, un pari gagné ≥ 1 500, une carte épique / légendaire, ou 25 s après l'ouverture du jeu ; dès le niveau 3, après 10 min de jeu cumulées, jamais dans les 2 min après une pub, au plus 1 fois par jour puis 1 j / 3 j / 7 j selon les « Plus tard » d'affilée ; plus du tout une fois 3 filleuls récompensés. Réglages : `AMIS` dans data.js (aussi dans « Valeurs » du back-office).
+- Back office : fiche joueur → « Ses potes » et « Ses filleuls ».
+- Tester : `DB=server/amis-test.db PORT=5330 node server/server.js` puis `node tools/test-amis.js` (5 joueurs, captures dans exports-amis-captures/). Les ports 5330-5339 parlent au serveur qui les sert. Lanceur : « Jouer avec des amis.command ».
 
 ## Pièges connus
 - `.cur` = l'icône billet, et `.money` est déjà pris : ne jamais les utiliser comme classes d'état.

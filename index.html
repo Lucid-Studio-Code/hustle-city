@@ -14,7 +14,8 @@
 // (la partie reste dans ce navigateur, rien n'est perdu). Sans internet, ou avec ?local à la fin de l'adresse : la version de ce dossier.
 (async () => {
   const REPO = 'Lucid-Studio-Code/hustle-city';
-  const local = () => { location.replace('game.html' + location.hash); };
+  // le lien d'invitation d'un pote (?ami=Pseudo%231234) suit jusqu'au jeu
+  const local = () => { const a = new URLSearchParams(location.search).get('ami'); location.replace('game.html' + (a ? '?ami=' + encodeURIComponent(a) : '') + location.hash); };
   // en ligne (GitHub Pages) le site est déjà à jour : on joue directement la page du site
   // le jeu se lance toujours depuis ses propres fichiers : sur ton Mac (les plus récents) comme sur le serveur du jeu
   if (!/[?&]github\b/.test(location.search)) return local();

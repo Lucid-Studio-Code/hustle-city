@@ -861,7 +861,7 @@
   const VAL_KEY = 'hustleCity.adminValues';
   const localVals = () => { try { return JSON.parse(localStorage.getItem(VAL_KEY) || '{}'); } catch (e) { return {}; } };
   const allVals = () => Object.assign({}, (window.LAYOUT && window.LAYOUT.values) || {}, placing ? localVals() : {});
-  const VTAB = () => ({ CITY_SHOP: D.CITY_SHOP, IAP: D.IAP, PROMOS: D.PROMOS, AGENCE: D.AGENCE, CLUB: D.CLUB, RIG: D.RIG, PCS: D.PCS, ROOMS: D.ROOMS });
+  const VTAB = () => ({ CITY_SHOP: D.CITY_SHOP, IAP: D.IAP, PROMOS: D.PROMOS, AGENCE: D.AGENCE, CLUB: D.CLUB, RIG: D.RIG, PCS: D.PCS, ROOMS: D.ROOMS, AMIS: D.AMIS });
   function valObj(path) { const [t, ...rest] = path.split('.'); const [tn, id] = t.split('#'); let o = VTAB()[tn]; if (id) o = (Array.isArray(o) ? o : o.gear).find(x => x.id === id); for (let i = 0; i < rest.length - 1; i++) o = o[rest[i]]; return [o, rest[rest.length - 1]]; }
   function setVal(path, v) { const [o, k] = valObj(path); if (o) o[k] = v; }
   function valSchema() {
@@ -873,6 +873,11 @@
     G_.push({ t: '🎉 Le Club', rows: [{ n: 'Prix', f: [f('CLUB.entryBase', 'Entrée (base)'), f('CLUB.entryPer', 'Entrée + par niveau'), f('CLUB.drinkBase', 'Cocktail (base)'), f('CLUB.drinkPer', 'Cocktail + par niveau'), f('CLUB.djTip', 'Pourboire DJ'), f('CLUB.vipLingots', 'Carré VIP (lingots)'), f('CLUB.nightMin', 'Durée soirée (min)'), f('CLUB.cooldownMin', 'Attente videur (min)')] }] });
     G_.push({ t: '⛏️ Machines à miner', rows: D.RIG.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`RIG.${i}.name`, 'Nom', 'text'), f(`RIG.${i}.cost`, 'Prix'), f(`RIG.${i}.heatMin`, 'Endurance (min)')] })) });
     G_.push({ t: '🖥️ PC', rows: D.PCS.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`PCS.${i}.name`, 'Nom', 'text'), f(`PCS.${i}.cost`, 'Prix'), f(`PCS.${i}.fee`, 'Frais %', 'pct')] })) });
+    G_.push({ t: '🤝 Potes et parrainage', rows: [
+      { n: 'Fil des potes', f: [f('AMIS.bigWin', 'Gros gain annoncé (dès)'), f('AMIS.lvlStep', 'Niveaux annoncés (tous les)'), f('AMIS.max', 'Potes max')] },
+      { n: 'Filleul (fin du tuto)', f: [f('AMIS.parrain.filleulLingots', 'Lingots'), f('AMIS.parrain.filleulBoosters', 'Boosters')] },
+      { n: 'Parrain (filleul au niveau)', f: [f('AMIS.parrain.lvl', 'Niveau du filleul'), f('AMIS.parrain.parrainLingots', 'Lingots'), f('AMIS.parrain.parrainBoosters', 'Boosters'), f('AMIS.parrain.parrainRare', 'Cartes rares'), f('AMIS.parrain.pinAt', 'Pin\'s au Xe filleul'), f('AMIS.parrain.maxRewarded', 'Filleuls récompensés max')] },
+      { n: 'Pop-up « Invite tes potes »', f: [f('AMIS.pop.lvl', 'Dès le niveau'), f('AMIS.pop.minPlayMin', 'Après (min de jeu)'), f('AMIS.pop.bigWin', 'Après un gain de')] }] });
     G_.push({ t: '🏠 Chambres', rows: D.ROOMS.map((r, i) => ({ n: `${i + 1}. ${r.name}`, f: [f(`ROOMS.${i}.name`, 'Nom', 'text'), f(`ROOMS.${i}.cost`, 'Prix'), f(`ROOMS.${i}.slots`, 'Places')] })) });
     return G_;
   }
@@ -1363,6 +1368,7 @@
     { id: 'crypto', name: 'Crypto', img: 'app-crypto', emo: '📈', bg: '#1b2a5c' },
     { id: 'bets', name: 'Mes paris', img: 'app-bets', emo: '🎟️', bg: '#e63946' },
     { id: 'msg', name: 'Messages', img: 'app-msg', emo: '💬', bg: '#8a4dd4' },
+    { id: 'potes', name: 'Potes', img: 'app-potes', emo: '🤝', bg: '#2fb36d' },   // jouer entre amis (js/amis.js)
     { id: 'missions', name: 'Missions', img: 'app-missions', emo: '🏆', bg: '#f2b01e' },
     { id: 'agence', name: 'PrivéFans', img: 'app-agence', emo: '📸', bg: '#ff4f8b' },
     { id: 'binder', name: 'Classeur', img: 'app-binder', emo: '📒', bg: '#139c8c' },
@@ -1464,6 +1470,7 @@
     if (id === 'boosters') return G.boosterCount();
     if (id === 'agence') return window.AGENCE ? (AGENCE.offer() ? 1 : 0) + (AGENCE.pending() >= 50 ? 1 : 0) : 0;
     if (id === 'bets') return notifs().filter(n => n.app === 'bets' && !n.read).length;
+    if (id === 'potes') return window.AMIS ? AMIS.badge() : 0;
     return 0;
   }
   function phoneBody() {
@@ -1479,6 +1486,7 @@
             ${i === s.room + 1 && s.cash < price ? mixBtn(price, 'roomUpL') : ''}
             <div class="ph-ad-foot"><b>${r.cost ? short(price) : 'Ton premier chez-toi'}</b>${mine || past ? '' : `<button class="btn xs ${i === s.room + 1 && s.cash >= price ? 'green' : ''}" data-act="roomUp" ${i === s.room + 1 && s.cash >= price ? '' : 'disabled'}>${i === s.room + 1 ? 'Emménager' : 'Plus tard'}</button>`}</div></div>`; }).join('') + '</div>';
     }
+    if (phoneApp === 'potes' && window.AMIS) return AMIS.phone(status, head);   // l'appli Potes (js/amis.js) se dessine dans le téléphone
     if (phoneApp === 'notifs') {
       const L = notifs();
       return head('Notifications') + `<div class="ph-scroll">${L.length ? L.map(notifCard).join('') + '<button class="ph-clear" data-act="phoneClear">Tout effacer</button>' : '<p class="ph-hint center">Rien de neuf. Profite.</p>'}</div>`;
@@ -2019,7 +2027,7 @@
   const candy = n => `<span class="cdm-candy">${candyIc()}<b>${n}</b></span>`;
   // écusson d'une équipe (mascotte) : l'image si elle existe, sinon l'emoji sur un rond à sa couleur
   function cdmCrest(id, cls = '') {
-    const T = G.cdmTeam(id) || { emo: '🏆', color: '#ffd23f', dark: '#7a5a00' }, n = id === 'gold' ? 'ev-cdm-cup' : 'team-' + id;
+    const T = G.cdmTeam(id) || { emo: (D.EV_SHOP.find(x => x.cdm === id) || {}).emo || '🏆', color: '#ffd23f', dark: '#7a5a00' }, n = id === 'gold' ? 'ev-cdm-cup' : 'team-' + id;   // pin's sans équipe (Parrain) : son emoji
     return `<span class="cdm-crest ${cls} ${has(n) ? 'img' : ''}" style="--tc:${T.color};--td:${T.dark}">${has(n) ? `<img src="${src(n)}" alt="" draggable="false">` : `<i>${T.emo}</i>`}</span>`;
   }
   const cdmCup = () => has('ev-cdm-cup') ? `<img src="${src('ev-cdm-cup')}" alt="">` : '<i>🏆</i>';
@@ -2777,6 +2785,7 @@
     if (id === 'boosters') return openBoosters('open');
     if (id === 'agence') return window.AGENCE ? AGENCE.open() : toast('L\'agence ouvre très bientôt.');
     if (id === 'binder') return openBoosters('col');
+    if (id === 'potes') { if (window.AMIS) AMIS.opened('fil'); return openPhone('potes'); }   // notif d'un pote : son fil
     if (id === 'settings') return openSettings();
     if (id === 'shopNews') { const last = (st().market.news || [])[0]; return st().lvl >= 2 ? openShop('news', shopOfItem(last && last.item)) : null; }
     if (id === 'deal') return openPhone('msg');
@@ -3059,7 +3068,7 @@
     phoneClose: () => closePhone(),
     phoneClear() { st().notifs = []; drawPhone(); renderPhoneBtn(); },
     phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift', six: 'six', cdm: 'cdm' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
-    phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg') { phoneApp = id; drawPhone(); } else { closePhone(); phoneGo(id); } },
+    phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg' || id === 'potes') { phoneApp = id; if (id === 'potes' && window.AMIS) AMIS.opened(); drawPhone(); } else { closePhone(); phoneGo(id); } },
     chatOpen(el) { openChat(el.dataset.n); },
     chatAct(el) {
       const c = chats()[el.dataset.n], m = c && c.msgs[+el.dataset.i], a = m && m.acts[+el.dataset.k]; if (!a || m.done) return;
@@ -3418,7 +3427,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { packOpening, unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
+  window.UI = { itemPic, lbAv, giveChips, skinPic, pinArt, frameImg, cdmCrest, openPhone, drawPhone, phoneOpen, get phoneApp() { return phoneApp; }, set phoneApp(v) { phoneApp = v; }, packOpening, unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

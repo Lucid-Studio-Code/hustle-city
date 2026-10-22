@@ -10,8 +10,8 @@
   const D = window.DATA; if (!D) return;
   const KEY = 'hustleCity.content';
   const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-  // l'adresse du serveur, comme online.js : application (HC_API), jeu servi par le serveur (port 5300), ou réglage « hc.api »
-  const API = window.HC_API || (location.port === '5300' ? location.origin : (ls('hc.api') || ''));
+  // l'adresse du serveur, comme online.js : application (HC_API), jeu servi par le serveur (port 5300, ou 5330-5339 en test), ou réglage « hc.api »
+  const API = window.HC_API || (/^5(300|33\d)$/.test(location.port) ? location.origin : (ls('hc.api') || ''));
   const REMOTE = window.REMOTE_IMG = window.REMOTE_IMG || {};
   const FIELDS = ['name', 'p0', 'r', 'cat', 'hidden', 'from', 'until', 'series'];
   const ORIG = {};   // valeurs d'origine des objets existants modifiés (pour revenir en arrière si la modification est retirée)

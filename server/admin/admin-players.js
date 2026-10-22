@@ -118,6 +118,14 @@
         <div class="stack">
           <div class="card"><div class="card-h">${img('icon-gift')}Cadeaux et messages reçus</div>
             ${p.inbox.slice(0, 8).map(m => { let g = null; try { g = JSON.parse(m.gift || 'null'); } catch (e) {} return `<div class="hist-row"><span><b>${esc(m.title)}</b><br><small>${esc((m.text || '').slice(0, 70))}${g && !g.restore ? ' · ' + giftTxt(g) : g && g.restore ? ' · restauration' : ''}</small></span><span class="tag ${m.claimed ? 'ok' : 'warn'}">${m.claimed ? 'reçu' : 'en attente'}</span></div>`; }).join('') || HC.empty('Rien envoyé.', 'icon-gift')}</div>
+          ${(() => { const A = p.amis; if (!A) return '';   // jouer entre amis : ses potes, son parrain, ses filleuls (cliquer ouvre leur fiche)
+            const who = (r, sub) => `<div class="hist-row log-row click" data-pid="${esc(r.pid || r.filleul || r.parrain)}"><span><b>${esc(r.name || 'Joueur')}</b> <small class="mut">#${esc(r.tag || '')}</small><br><small>${sub}</small></span></div>`;
+            return `<div class="card"><div class="card-h">${img('app-potes')}Ses potes<small>${A.friends.length}${A.pendingIn || A.pendingOut ? ` · demandes : ${A.pendingIn} reçues, ${A.pendingOut} envoyées` : ''}</small></div>
+              ${A.parrain ? `<p class="mut" style="margin:0 0 6px">Arrivé grâce à :</p>${who(A.parrain, 'son parrain')}` : ''}
+              ${A.friends.slice(0, 12).map(r => who(r, `Niv. ${esc(r.lvl || 1)} · ${cash(r.worth)} · vu ${ago(r.last_seen)}`)).join('') || HC.empty('Pas encore de pote.', null)}
+              ${A.friends.length > 12 ? `<p class="mut">… et ${A.friends.length - 12} autres</p>` : ''}
+              <div class="card-h" style="margin-top:12px">${img('icon-treasure')}Ses filleuls<small>${A.filleuls.filter(f => f.paid).length} récompensés sur ${A.filleuls.length}</small></div>
+              ${A.filleuls.map(f => who(f, `Niv. ${esc(f.lvl || 1)} · ${f.paid ? 'récompense versée' : f.tuto ? 'tuto fini' : 'en route'} · ${dt(f.t)}`)).join('') || HC.empty('Aucun filleul.', null)}</div>`; })()}
           ${p.buys.length ? `<div class="card"><div class="card-h">${img('icon-treasure')}Achats<small>${eur(p.spent)}</small></div>${p.buys.map(b => `<div class="hist-row">${img(HC.offerIcon ? HC.offerIcon(b.id) : 'icon-treasure', 'ico')}<span>${esc(HC.offerName(b.id))}<br><small>${dt(b.t)}</small></span><b>${eur(b.eur)}</b></div>`).join('')}</div>` : ''}
         </div>
       </div>
@@ -165,6 +173,6 @@
     $('#sv-f').onchange = async () => { const f = $('#sv-f').files[0]; if (!f) return; if (!(await HC.confirm('Restaurer ce fichier ?', esc(f.name) + ' remplacera sa partie à sa prochaine connexion.', 'Restaurer', 'purple'))) return; const r = await HC.api('/admin/api/save', { pid, save: await f.text() }); if (r.ok) HC.toast('Restauration envoyée', 'hdr-settings'); };
   };
   const wl = (i, v, l) => `<div class="wl">${img(i)}<div style="min-width:0"><b>${v}</b><small>${l}</small></div></div>`;
-  function giftTxt(g) { return [g.lingots && `${fmt(g.lingots)} lingots`, g.cash && `${fmt(g.cash)} de cash`, g.boosters && `${fmt(g.boosters)} booster${g.boosters > 1 ? 's' : ''}`, g.cobaye && 'la carte légendaire « Le Cobaye n°1 »'].filter(Boolean).join(' + '); }
+  function giftTxt(g) { return [g.lingots && `${fmt(g.lingots)} lingots`, g.cash && `${fmt(g.cash)} de cash`, g.boosters && `${fmt(g.boosters)} booster${g.boosters > 1 ? 's' : ''}`, g.cobaye && 'la carte légendaire « Le Cobaye n°1 »', g.rare && 'une carte rare', g.pin && 'le pin\'s Parrain', g.frame && 'le cadre Parrain'].filter(Boolean).join(' + '); }
   HC.giftTxt = giftTxt;
 })();

@@ -9,6 +9,7 @@ const { DatabaseSync } = require('node:sqlite');
 const { initDb } = require('./schema');
 const { clientIp, ipKey, makeGeo } = require('./geo');
 const { makePush } = require('./push');
+const { makeAmis } = require('./amis');   // jouer entre amis : appli « Potes », fil d'actu, parrainage
 const LANDING = require('../landing/render.js');   // la vitrine biffcity.fr, éditée depuis le back office (page « Landing »)
 const ROOT = path.join(__dirname, '..'), PORT = +process.env.PORT || 5300, HOST = process.env.HOST || '127.0.0.1';   // 127.0.0.1 : seul Caddy (même machine) parle au serveur
 const DBFILE = process.env.DB || path.join(__dirname, 'hustle.db');
@@ -297,6 +298,9 @@ function cdmBoard(ed, pid, n = 5) {
   return { totals, count, top, me };
 }
 
+// ------------------------------------------------------------------ jouer entre amis (server/amis.js) : ses routes s'ajoutent à l'API des joueurs
+const AMIS = makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, cleanTag, cleanId, lvlOf, num, game: () => GAME, cdmEd: () => cdmCfg().ed, push: PUSH, log, DAY, ONLINE_MS });
+
 // ------------------------------------------------------------------ API des joueurs
 const api = {
   async 'POST /api/leaderboard'(req, res) {   // classement des fortunes : le top 10, puis le joueur et ses voisins
@@ -315,7 +319,9 @@ const api = {
   },
   async 'POST /api/hello'(req, res) {
     const b = await body(req); if (!b.pid || !b.secret || typeof b.pid !== 'string' || typeof b.secret !== 'string') return send(res, 400, { err: 'pid' });
-    const ip = clientIp(req), name = cleanName(b.name), tag = cleanTag(b.tag), ver = txt(b.ver, 20);
+    const ip = clientIp(req), name = cleanName(b.name), ver = txt(b.ver, 20);
+    // pseudo#tag unique (on s'ajoute en pote avec) : un doublon reçoit un autre tag, renvoyé au jeu
+    const tag = AMIS.uniqTag(String(b.pid), name, cleanTag(b.tag));
     let p = q1('SELECT * FROM players WHERE pid = ?', b.pid);
     if (!p) { if (!PID_RE.test(b.pid) || !SECRET_RE.test(b.secret)) return send(res, 400, { err: 'pid' });
       if (!limit('new:' + ipKey(ip), 10, 3600000)) return send(res, 429, { err: 'Trop de nouvelles parties depuis cette connexion, réessaie plus tard.', retry: 3600 });
@@ -328,7 +334,7 @@ const api = {
       txt(b.tz, 60) || p.tz, txt(b.lang, 20) || p.lang, txt(b.screen, 40) || p.screen, ipHash(ip), b.pid);
     run('INSERT INTO events (pid, t, type, data) VALUES (?, ?, ?, ?)', b.pid, now(), 'session', JSON.stringify({ ver }));
     run('INSERT INTO sessions (pid, start, last, ms) VALUES (?, ?, ?, 0)', b.pid, now(), now());
-    send(res, 200, { ok: true, banned: !!p.banned, banReason: p.ban_reason || '', config: getCfg(), inbox: inboxFor(b.pid) });
+    send(res, 200, { ok: true, banned: !!p.banned, banReason: p.ban_reason || '', config: getCfg(), inbox: inboxFor(b.pid), tag: tag || p.tag });
     locate(b.pid, ip, txt(b.tz, 60) || p.tz, p.geo_src);   // après la réponse : jamais d'attente pour le joueur
   },
   async 'POST /api/sync'(req, res) {
@@ -339,6 +345,7 @@ const api = {
     // même partie sur plusieurs appareils : un appareil qui n'a pas la dernière sauvegarde (faite ailleurs) ne l'écrase pas, il la récupère
     if (stale(p, b)) { run('UPDATE players SET last_seen = ? WHERE pid = ?', now(), p.pid); return send(res, 200, { ok: true, newer: true, inbox: [] }); }
     const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), A = antiCheat(p, s);
+    if (s.name || s.tag) s.tag = AMIS.uniqTag(p.pid, s.name || p.name, s.tag || p.tag);   // pseudo changé : le couple pseudo#tag reste unique
     // temps de jeu : jamais plus que le temps écoulé depuis la synchro d'avant (ou depuis la création du compte), sans marge ; 10 min par synchro au plus.
     // Un joueur hors ligne qui revient garde son temps de jeu réel (le temps écoulé est grand) ; seul ce qui dépasse le temps écoulé est perdu.
     const ms = Math.floor(Math.min(num(b.playMs, 600000), Math.max(0, now() - (p.sync_at || p.created || now()))));
@@ -372,7 +379,9 @@ const api = {
       if (k >= EV_SYNC || qd.n >= EV_DAY || (e.type === 'act' && qd.a >= EV_ACT_DAY)) return;
       const data = (JSON.stringify(e.data && typeof e.data === 'object' ? e.data : {}) || '{}').slice(0, 2000); if (bytes + data.length > EV_BYTES) return;
       const t = +e.t; ins.run(p.pid, t > T - 30 * DAY && t < T + 60000 ? Math.floor(t) : T, String(e.type), data); bytes += data.length; k++; qd.n++; if (e.type === 'act') qd.a++; });
-    send(res, 200, { ok: true, rev: (q1('SELECT save_at FROM players WHERE pid = ?', p.pid) || {}).save_at || 0, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
+    // potes : gros gain, carte légendaire, palier de niveau, « il t'a dépassé » ; parrainage (tuto fini, niveau 5)
+    try { AMIS.onSync(p, s, evs.filter(e => e.type !== 'act'), raw); } catch (e) { console.error('amis :', e.message); }
+    send(res, 200, { ok: true, tag: s.tag || p.tag, rev: (q1('SELECT save_at FROM players WHERE pid = ?', p.pid) || {}).save_at || 0, banned: !!p.banned, banReason: p.ban_reason || '', inbox: inboxFor(p.pid), cfgAt: (q1("SELECT v FROM config WHERE k = 'live_at'") || {}).v || 0 });
   },
   // le joueur a collé un code de sauvegarde : c'est noté au journal, mais l'anti-triche n'est plus remis à zéro (un fichier importé se fabrique à la main).
   // La partie reprise par code de récupération est celle du serveur : aucun bond. Un vrai cas bloqué → « Lever le drapeau » au back office.
@@ -399,6 +408,7 @@ const api = {
     try {
       del('ticket_msgs', 'DELETE FROM ticket_msgs WHERE ticket IN (SELECT id FROM tickets WHERE pid = ?)', p.pid);
       ['events', 'sessions', 'save_history', 'push_tokens', 'cdm_pts', 'six_pts', 'tickets', 'inbox'].forEach(t => del(t, `DELETE FROM ${t} WHERE pid = ?`, p.pid));
+      AMIS.forget(p.pid);   // potes, demandes, fil, parrainages
       if (p.ip) del('geo_cache', 'DELETE FROM geo_cache WHERE ip = ?', p.ip);
       run("UPDATE admin_log SET data = json_set(data, '$.pid', 'supprimé') WHERE json_valid(data) AND json_extract(data, '$.pid') = ?", p.pid);   // le journal garde l'action, plus le joueur (seul le champ pid change)
       del('players', 'DELETE FROM players WHERE pid = ?', p.pid);
@@ -469,6 +479,8 @@ const api = {
 };
 
 // ------------------------------------------------------------------ outils de calcul
+Object.assign(api, AMIS.routes);
+
 const dayStart = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
 const dkey = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const weekStart = t => { const d = new Date(dayStart(t)); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); };
@@ -634,7 +646,7 @@ const admin = {
       sessionsList: q('SELECT start, last, ms FROM sessions WHERE pid = ? ORDER BY start DESC LIMIT 60', pid),
       history: q('SELECT id, t, lvl, worth, LENGTH(save) size FROM save_history WHERE pid = ? ORDER BY t DESC', pid),
       tickets: q('SELECT * FROM tickets WHERE pid = ? ORDER BY t DESC', pid).map(t => ({ ...t, msgs: q('SELECT * FROM ticket_msgs WHERE ticket = ? ORDER BY t', t.id) })),
-      inbox: q('SELECT * FROM inbox WHERE pid = ? ORDER BY t DESC LIMIT 50', pid) });
+      inbox: q('SELECT * FROM inbox WHERE pid = ? ORDER BY t DESC LIMIT 50', pid), amis: AMIS.forAdmin(pid) });
   },
   async 'POST /admin/api/gift'(req, res) {   // cadeau ou message pour un joueur (pid), ou pour tous (pid = '*', avec un filtre facultatif)
     const b = await body(req), gift = b.gift && Object.keys(b.gift).some(k => +b.gift[k]) ? JSON.stringify(Object.fromEntries(Object.entries(b.gift).filter(([, v]) => +v).map(([k, v]) => [k, +v]))) : null;
@@ -845,6 +857,8 @@ http.createServer(async (req, res) => {
     if (host === 'biffcity.fr' && (p === '/actus' || p === '/actus/')) return htmlOut(LANDING.renderIndex(getLanding()));
     if (host === 'biffcity.fr' && LANDING.PAGE_SLUGS.includes(p.slice(1))) return htmlOut(LANDING.renderPage(getLanding(), p.slice(1)));
     if (host === 'biffcity.fr' && /^\/actus\/[a-z0-9-]+$/.test(p)) return htmlOut(LANDING.renderArticle(getLanding(), p.slice(7)));
+    // lien d'invitation d'un pote (biffcity.fr/?ami=Pseudo%231234) : on file au jeu avec le même paramètre
+    if (host === 'biffcity.fr' && p === '/' && u.searchParams.get('ami')) { res.writeHead(302, { Location: 'https://game.biffcity.fr/?ami=' + encodeURIComponent(String(u.searchParams.get('ami')).slice(0, 40)), 'Cache-Control': 'no-store' }); return res.end(); }
     if (host === 'biffcity.fr' && (p === '/' || p === '/index.html')) { const html = landingPage(); res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'no-cache', ...htmlHeaders(false, html) }); return res.end(req.method === 'HEAD' ? undefined : html); }
     // référencement : la vitrine est ouverte aux moteurs ; le jeu et le back office ne doivent pas apparaître dans Google
     if (p === '/robots.txt') { const lp = host === 'biffcity.fr';

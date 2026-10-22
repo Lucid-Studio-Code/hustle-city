@@ -570,8 +570,29 @@
    ['flambeur', 'Le Cobaye Flambeur', 'E'], ['collectionneur', 'Le Cobaye Collectionneur', 'E'], ['professeur', 'Le Professeur Cobaye', 'E'], ['numero1', 'Le Cobaye n°1', 'L']]
     .forEach(([k, n, r], i) => ITEMS.push({ id: 'k-cob-' + k, cat: 'card', series: 'cobayes', event: 'beta', beta: true, noBuy: true, kind: 'event', name: n, r, p0: Math.round(CARD_P0[r] * (1.1 + (i % 4) / 20)), vol: .05,
       img: 'art-cob-' + k, art: 'art-cob-' + k, needArt: 'art-cob-' + k, noBooster: k === 'numero1' }));
+  // ---------------------------------------------------------------- jouer entre amis (appli « Potes » du téléphone, js/amis.js + server/amis.js)
+  // On s'ajoute par « Pseudo#1234 » (demande à accepter), on voit ses potes, un classement entre potes et leur fil d'actu.
+  // Le serveur lit ces réglages au démarrage (avec les valeurs publiées depuis le back-office, bouton « Valeurs »).
+  const AMIS = {
+    max: 100, pendingOut: 20, pendingIn: 50, perMin: 5,   // 100 potes, 20 demandes envoyées en attente, 50 reçues, 5 demandes par minute au plus
+    bigWin: 3000,                // un pari gagné qui rapporte au moins ça apparaît dans le fil des potes
+    lvlStep: 5,                  // niveaux annoncés aux potes : 5, 10, 15…
+    feedMax: 50, feedHourly: 1,  // fil : les 50 dernières entrées, une notif par pote et par heure (le reste est regroupé)
+    pollS: 20,                   // le jeu demande au serveur s'il y a du nouveau (demandes, fil) toutes les 20 s
+    invite: 'https://biffcity.fr/?ami=',   // lien d'invitation (la vitrine renvoie vers le jeu avec le même paramètre)
+    // parrainage : le filleul arrive par le lien d'un pote (il devient son pote tout de suite).
+    // Filleul : lingots + booster à la fin du tuto. Parrain : pour chaque filleul au niveau « lvl », lingots + booster + une carte rare garantie ;
+    // au « pinAt »-ième, le pin's et le cadre exclusifs « Parrain ». 20 filleuls récompensés au plus.
+    parrain: { filleulLingots: 10, filleulBoosters: 1, parrainLingots: 25, parrainBoosters: 1, parrainRare: 1, lvl: 5, pinAt: 3, maxRewarded: 20, pin: 'pn-parrain', frame: 'fr-parrain' },
+    // pop-up « Invite tes potes » : à un bon moment (gros gain, niveau, carte rare, retour en jeu), dès le niveau 3, jamais dans les 10 premières
+    // minutes de jeu ni juste après une pub ; une fois par jour au plus, puis 1 j, 3 j, 7 j d'écart selon le nombre de « Plus tard » d'affilée ;
+    // plus du tout une fois « pinAt » filleuls récompensés
+    pop: { lvl: 3, minPlayMin: 10, gapsDays: [1, 3, 7], bigWin: 1500, delayS: 2.5 },
+    shop: [{ id: 'pn-parrain', kind: 'avatar', cdm: 'parrain', emo: '🤝', name: 'Pin\'s Parrain', noSale: true },
+      { id: 'fr-parrain', kind: 'frame', name: 'Cadre Parrain', emo: '🤝', colors: ['#3ddc84', '#ffd23f'], noSale: true }]
+  };
   // la Coupe passe d'abord, le tournoi garde sa boutique : les deux boutiques ensemble (photo de profil, cadres, décos de la ville)
-  const EV_SHOP = SIX.shop.concat(CDM.shop, BETA.shop);
+  const EV_SHOP = SIX.shop.concat(CDM.shop, BETA.shop, AMIS.shop);
 
   const BUY_MARKUP = .05, SELL_FEE = .10;
   // Rumeurs : de temps en temps, un objet s'envole ou s'effondre
@@ -1043,7 +1064,7 @@
   Object.entries(LY.club || {}).forEach(([id, p]) => { const z = CLUB.spots.find(x => x.id === id); if (z) Object.assign(z, p); });
   // places du parking réglées au back-office (#placer-parking) : [x, y, w, miroir], sinon celles ci-dessus
   if (LY.parking) { ['car', 'moto'].forEach(k => (LY.parking[k] || []).forEach((p, i) => { if (p && PARK_SLOTS[k][i]) PARK_SLOTS[k][i] = p; })); if (LY.parking.big) PARK_SLOTS.big = LY.parking.big; }
-  const TABLES = { CITY_SHOP, IAP, PROMOS, AGENCE, CLUB, RIG, PCS, ROOMS };
+  const TABLES = { CITY_SHOP, IAP, PROMOS, AGENCE, CLUB, RIG, PCS, ROOMS, AMIS };
   Object.entries(LY.values || {}).forEach(([path, v]) => {
     try {
       const [t, ...rest] = path.split('.'); let [tn, id] = t.split('#'), o = TABLES[tn]; if (!o) return;
@@ -1056,6 +1077,6 @@
     UNLOCK, SAFES, NEXT_EVENT, START, SKINS, XP_TABLE, MAX_LVL, BUILDINGS, COINS, CRYPTO_FEE, PCS, TICK_S, HISTORY, MOODS, MOOD_MIN, RIG,
     PC_UPGRADES, PC_DROP, MINE, FINDS, PCX, AGENCE, BOOK_MARGIN, TEAMS, SPORTS, MATCH, BET_MAX, COMBI_LVL, SCRATCH, SLOT, ROULETTE,
     ACHIEVEMENTS, PARK_SLOTS, PARK_MAX, PARK_FLOORS, VEH_SIZE, VEH_ADJ, GARAGES, PROPS, PROP, STOCKS, BOURSE, CITY_LOOKS, BLD_SCALE, LOOK_POS, CRYPTO_REVERT, ITEM_CATS, ITEMS, BUY_MARKUP, SELL_FEE, RUMORS, RUMOR_MIN, ROOMS, ROOM_LAYOUT, SHELF_SLOTS, KIOSK, BAILOUT, DAILY, QUESTS, TIPS, HABITS, QUIT_H, HEALTH_COST,
-    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, BETA, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, HOMES, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
+    CITY_SHOP, IAP, PROMOS, SEASONS, CAMPAIGNS, PROMO_LOOKS, PROMO_DAYS, ADS, LINGOT, SIX, CDM, BETA, AMIS, EV_SHOP, CLUB, EXT_PLACES, SERIES, BOOSTER, LEGAL, VINTAGE, HOMES, CHALLENGES, CHAL_CASH, WEEKLY, WEEK_REWARD, RANKS, EVENTS, DEALS, LEVEL_REWARD
   };
 })();

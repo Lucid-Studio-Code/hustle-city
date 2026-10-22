@@ -18,6 +18,14 @@ function initDb(db) {
     CREATE TABLE IF NOT EXISTS lp (id INTEGER PRIMARY KEY, t INT, k TEXT, src TEXT, ref TEXT, m INT);
     CREATE INDEX IF NOT EXISTS sh_pid ON save_history(pid, t);
     CREATE TABLE IF NOT EXISTS geo_cache (ip TEXT PRIMARY KEY, t INT, data TEXT);
+    -- jouer entre amis (server/amis.js) : amitiés rangées dans les deux sens (a → b et b → a), demandes en attente, fil d'actu des potes, parrainages
+    CREATE TABLE IF NOT EXISTS friends (a TEXT, b TEXT, t INT, PRIMARY KEY (a, b));
+    CREATE TABLE IF NOT EXISTS friend_req (id INTEGER PRIMARY KEY, from_pid TEXT, to_pid TEXT, t INT, seen INT DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS fr_to ON friend_req(to_pid); CREATE INDEX IF NOT EXISTS fr_from ON friend_req(from_pid);
+    CREATE TABLE IF NOT EXISTS feed (id INTEGER PRIMARY KEY, pid TEXT, t INT, kind TEXT, from_pid TEXT, data TEXT, seen INT DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS fd_pid ON feed(pid, t);
+    CREATE TABLE IF NOT EXISTS referrals (filleul TEXT PRIMARY KEY, parrain TEXT, t INT, tuto INT DEFAULT 0, lvl INT DEFAULT 0, paid INT DEFAULT 0);
+    CREATE INDEX IF NOT EXISTS rf_parrain ON referrals(parrain);
   `);
   const cols = (tbl) => new Set(db.prepare(`PRAGMA table_info(${tbl})`).all().map(c => c.name));
   const add = (tbl, defs) => { const have = cols(tbl); Object.entries(defs).forEach(([c, type]) => { if (!have.has(c)) db.exec(`ALTER TABLE ${tbl} ADD COLUMN ${c} ${type}`); }); };
@@ -26,9 +34,11 @@ function initDb(db) {
     // anti-triche : suspect = nombre de synchros refusées (valeurs qui montent trop vite), sync_at = dernière synchro, ac = repères du jour (JSON)
     suspect: 'INT DEFAULT 0', sync_at: 'INT', ac: 'TEXT',
     // même partie sur plusieurs appareils : save_dev = l'appareil qui a envoyé la sauvegarde gardée (save_at = sa date)
-    save_dev: 'TEXT' });
+    save_dev: 'TEXT',
+    // jouer entre amis : fid = identifiant public d'un joueur pour ses potes (jamais le pid, qui sert à se connecter)
+    fid: 'TEXT' });
   add('tickets', { created: 'INT' });
-  db.exec(`CREATE INDEX IF NOT EXISTS pl_seen ON players(last_seen); CREATE INDEX IF NOT EXISTS tk_pid ON tickets(pid);`);
+  db.exec(`CREATE INDEX IF NOT EXISTS pl_seen ON players(last_seen); CREATE INDEX IF NOT EXISTS tk_pid ON tickets(pid); CREATE INDEX IF NOT EXISTS pl_tag ON players(tag); CREATE INDEX IF NOT EXISTS pl_fid ON players(fid);`);
   // anciens statuts : « répondu » devient « en attente » (on attend la réponse du joueur)
   db.exec(`UPDATE tickets SET status = 'en attente' WHERE status = 'répondu'; UPDATE tickets SET created = t WHERE created IS NULL;`);
 }
