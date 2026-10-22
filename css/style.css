@@ -3957,3 +3957,7 @@ html { background-color: #120c24; }
 /* fenêtres de niveau et de trophée : les rayons restent derrière le texte et les boutons (ils débordaient par-dessus) */
 #app .levelup .rays { z-index: 0; }
 #app .levelup > :not(.rays) { position: relative; z-index: 1; }
+
+/* icône d'appli dans la notif : l'image tient dans son carré (l'éclair, plus haut que large, dépassait sous la notif) */
+#ph-banner .ph-ic img, #app .ph-notif .ph-ic img { width: 100% !important; height: 100% !important; max-height: 100%; object-fit: contain; }
+#ph-banner .ph-ic, #app .ph-notif .ph-ic { grid-template: 100% / 100%; }   /* piste de grille de la taille du carré, sinon la hauteur 100 % suivait l'image */
