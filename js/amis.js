@@ -127,13 +127,13 @@
       : '<p class="ph-hint center">Rien pour l\'instant. Les gros gains, les cartes légendaires et les niveaux de tes potes s\'afficheront ici.</p>';
   }
   function ficheView() {
-    const f = fiche, bar = `<div class="am-bar-top"><button class="am-back" data-act="amisBack" aria-label="Retour">‹</button><b>${f ? esc(f.name) : 'Pote'}</b><span></span></div>`;
+    const f = fiche, bar = `<div class="am-bar-top am-bar-back"><button class="btn xs am-back-btn" data-act="amisBack">‹ Retour</button></div>`;   // le pseudo est déjà sous l'avatar
     if (!f) return bar + '<div class="ph-scroll"><p class="ph-hint center">Chargement…</p></div>';
     const it = f.card && G.item(f.card.id), T = f.team && G.cdmTeam(f.team), R = { L: 'Légendaire', E: 'Épique', R: 'Rare', C: 'Commune' };
     const tile = (ic, v, l) => `<div class="am-tile"><span>${ic}</span><b>${v}</b><small>${l}</small></div>`;
     return bar + `<div class="ph-scroll"><div class="am-fiche"><div class="am-big">${U.lbAv(f)}</div><h3>${idTxt(f)}</h3>
       <p class="am-sub">Niveau ${f.lvl} <i class="am-sep"></i> <span class="am-seen ${f.ago === 0 ? 'on' : ''}">${agoTxt(f.ago)}</span></p></div>
-      <div class="am-tiles">${tile(U.ic('cash'), U.short(f.worth || 0), 'patrimoine')}${tile(U.pic('cat-trophy', '🏆'), f.trophies, 'trophées')}${tile(U.pic('item-c-holo', '🃏'), f.cards, 'cartes')}${tile(U.pic('nav-bets', '🎟️'), f.bestWin ? '+' + U.short(f.bestWin) : '0', 'meilleur gain (7 j)')}</div>
+      <div class="am-tiles">${tile(U.ic('cash'), U.short(f.worth || 0, true), 'patrimoine')}${tile(U.pic('cat-trophy', '🏆'), f.trophies, 'trophées')}${tile(U.pic('item-c-holo', '🃏'), f.cards, 'cartes')}${tile(U.pic('nav-bets', '🎟️'), f.bestWin ? '+' + U.short(f.bestWin) : '0', 'meilleur gain (7 j)')}</div>
       ${it ? `<h4 class="am-h">Sa plus belle carte</h4><div class="am-card r${f.card.r}"><span class="am-card-art">${U.itemPic(it)}</span><span><b>${esc(it.name)}</b><small>${R[f.card.r] || ''}<br>Cote ≈ ${U.short(f.card.v)}</small></span></div>` : ''}
       ${T ? `<h4 class="am-h">Coupe des Morts</h4><div class="am-card"><span class="am-card-art">${U.cdmCrest(T.id)}</span><span><b>${esc(T.name)}</b><small>Son camp cette année</small></span></div>` : ''}
       ${f.since ? `<p class="ph-hint center">Potes depuis le ${new Date(f.since).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>` : ''}
