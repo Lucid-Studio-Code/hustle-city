@@ -1375,7 +1375,7 @@
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
   const appIcon = (a, cls = '') => `<i class="ph-ic ${cls}" style="--bg:${a.bg}">${has(a.img) ? `<img src="${src(a.img)}" alt="">` : a.emo}</i>`;
-  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: 'bld-six' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: 'icon-bolt' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: 'bld-kiosque' }, potes: { name: 'Potes', emo: '🤝', bg: '#2fb36d', img: 'app-potes' } };   // potes : plus d'appli, mais leurs notifs gardent leur icône
+  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: 'bld-six' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: 'icon-bolt' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: 'bld-kiosque' }, potes: { name: 'Potes', emo: '🤝', bg: '#2fb36d', img: 'icon-potes' } };   // potes : plus d'appli, mais leurs notifs gardent leur icône
   const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: 'app-infos' });
   const notifs = () => (st().notifs = st().notifs || []);
   function notify(app, title, txt, act, quiet, thread, img) {
@@ -2680,7 +2680,7 @@
   let pfTab = 'me';
   const pfView = () => pfTab === 'potes' && window.AMIS ? AMIS.view() : profileBody();
   const pfTabs = () => { if (!window.AMIS) return null; const n = AMIS.badge(), bust = `skin-${st().skin}-bust`;
-    return [{ id: 'me', label: `<span class="pf-tab-t">${has(bust) ? `<img class="ico pf-tab-ic" src="${src(bust)}" alt="">` : ''}Profil</span>` }, { id: 'potes', label: `<span class="pf-tab-t">${ico('app-potes', '')}Potes</span>${n ? `<em class="badge pf-tab-badge">${n > 9 ? '9+' : n}</em>` : ''}` }]; };
+    return [{ id: 'me', label: `<span class="pf-tab-t">${has(bust) ? `<img class="ico pf-tab-ic" src="${src(bust)}" alt="">` : ''}Profil</span>` }, { id: 'potes', label: `<span class="pf-tab-t">${ico('icon-potes', '')}Potes</span>${n ? `<em class="badge pf-tab-badge">${n > 9 ? '9+' : n}</em>` : ''}` }]; };
   function openProfile(tab, sub) {
     pfTab = tab === 'potes' && window.AMIS ? 'potes' : 'me'; if (pfTab === 'potes') AMIS.opened(sub);
     openModal({ title: 'Profil', icon: 'star', full: true, tabs: pfTabs(), tab: pfTab, body: pfView(), refresh: () => { setBody(pfView()); pfRetab(); },
