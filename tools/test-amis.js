@@ -163,7 +163,7 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   await F.evaluate(() => { GAME.addCash(3000); }); await sync(F); await sleep(500);
   await openPotes(A, 'top'); await sleep(800);
   const med = await A.evaluate(() => [...document.querySelectorAll('.am-top .am-medal')].map(m => (m.querySelector('img') ? m.querySelector('img').src.split('/').pop().split('.')[0] : 'emoji') + (m.querySelector('b') ? '#' + m.querySelector('b').textContent : '')));
-  check(med.length >= 6 && /medal-4/.test(med[3]) && /medal-5/.test(med[4]) && /medal-rank#6/.test(med[5]), 'Classement : médailles 1 à 6 (' + med.join(', ') + ')'); await shot(A, '14-classement-medailles');
+  check(med.length >= 6 && /medal-gold/.test(med[0]) && /medal-silver/.test(med[1]) && /medal-bronze/.test(med[2]) && /medal-rank#4/.test(med[3]) && /medal-rank#5/.test(med[4]) && /medal-rank#6/.test(med[5]), 'Classement : médailles 1 à 6 (' + med.join(', ') + ')'); await shot(A, '14-classement-medailles');
   // la pop-up « Invite tes potes » avec la scène (ouverte depuis l'encart de la vue Potes), puis retour à la vue Potes
   await openPotes(B); await B.click('.am-par'); await sleep(900);
   check(await B.evaluate(() => !!document.querySelector('#modal .am-pop .wp-art.am-scn img.am-scene')), 'Pop-up « Invite tes potes » : la scène plein cadre'); await shot(B, '15-popup-invite-scene');
