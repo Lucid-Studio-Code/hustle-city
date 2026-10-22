@@ -113,7 +113,7 @@
   function topTab() {
     const d = DATA, k = topMode, L = [d.me, ...d.friends].sort((a, b) => (b[k] || 0) - (a[k] || 0));
     const rk = medal;
-    return `<div class="am-seg">${[['worth', 'Patrimoine'], ['week', 'Paris de la semaine']].map(([m, l]) => `<button class="${k === m ? 'on' : ''}" data-act="amisTop" data-id="${m}">${l}</button>`).join('')}</div>
+    return `<div class="am-seg">${[['worth', 'Patrimoine'], ['week', 'Paris de la semaine']].map(([m, l]) => `<button class="btn${k === m ? ' on' : ''}" data-act="amisTop" data-id="${m}">${l}</button>`).join('')}</div>
       ${d.friends.length ? '' : '<p class="ph-hint center">Ajoute des potes pour te mesurer à eux.</p>'}
       ${L.map((p, i) => `<${p.me ? 'div' : `button data-act="amisFiche" data-fid="${esc(p.fid)}"`} class="chat-row am-row am-top ${p.me ? 'me' : ''}"><span class="am-rk">${rk(i + 1)}</span>${U.lbAv(p)}<span><b>${p.me ? `${esc(p.name)} (toi)` : esc(p.name)}</b><small>Niveau ${p.lvl}</small></span><b class="am-val ${k === 'week' ? (p.week > 0 ? 'up' : p.week < 0 ? 'down' : '') : ''}">${k === 'week' ? signed(p.week || 0) : U.short(p.worth || 0)}</b></${p.me ? 'div' : 'button'}>`).join('')}
       <p class="ph-hint center">${k === 'week' ? 'Ce que les paris ont rapporté depuis lundi (gagné moins misé).' : 'Patrimoine arrondi : cash, crypto, objets, immobilier.'}</p>`;
