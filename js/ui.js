@@ -259,6 +259,7 @@
     }
     const m = G.mood(), col = { calm: '#9aa', bull: '#3ddc84', bear: '#ff8a3d', fomo: '#ff3cac', krach: '#ff2d2d' }[m.id];
     const wx = WEATHER[m.id] || WEATHER.calm; if ($('#mood').dataset.k !== m.id) { $('#mood').dataset.k = m.id; $('#mood').innerHTML = `<span class="mood-ic">${wxIc(m.id)}</span>${wx[1]}`; } $('#mood').className = 'm-' + m.id; void col;
+    { const pb = $('#badge-potes'), n = window.AMIS ? AMIS.badge() : 0; if (pb) { const t = n > 9 ? '9+' : String(n); if (pb.textContent !== t) pb.textContent = t; pb.classList.toggle('hidden', !n); } }   // demande de pote ou nouveauté du fil : pastille sur l'avatar
     const open = s.bets.filter(b => b.state === 'open').length; const bb = $('#badge-bets'); bb.textContent = open; bb.classList.toggle('hidden', !open);
     const hot = G.rigInfo().hot; $('#badge-rig').classList.toggle('hidden', !(hot && scene === 'city'));
     const ub = $('#btn-upg'), canUp = !!G.upgradeReady(), reach = canUp || G.upgradeReachable(); ub.classList.toggle('glow', canUp); ub.querySelector('.badge').classList.toggle('hidden', !reach);
@@ -1368,14 +1369,13 @@
     { id: 'crypto', name: 'Crypto', img: 'app-crypto', emo: '📈', bg: '#1b2a5c' },
     { id: 'bets', name: 'Mes paris', img: 'app-bets', emo: '🎟️', bg: '#e63946' },
     { id: 'msg', name: 'Messages', img: 'app-msg', emo: '💬', bg: '#8a4dd4' },
-    { id: 'potes', name: 'Potes', img: 'app-potes', emo: '🤝', bg: '#2fb36d' },   // jouer entre amis (js/amis.js)
     { id: 'missions', name: 'Missions', img: 'app-missions', emo: '🏆', bg: '#f2b01e' },
     { id: 'agence', name: 'PrivéFans', img: 'app-agence', emo: '📸', bg: '#ff4f8b' },
     { id: 'binder', name: 'Classeur', img: 'app-binder', emo: '📒', bg: '#139c8c' },
     { id: 'settings', name: 'Réglages', img: 'app-settings', emo: '⚙️', bg: '#8d99a6' }
   ];
   const appIcon = (a, cls = '') => `<i class="ph-ic ${cls}" style="--bg:${a.bg}">${has(a.img) ? `<img src="${src(a.img)}" alt="">` : a.emo}</i>`;
-  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: 'bld-six' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: 'icon-bolt' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: 'bld-kiosque' } };
+  const EXTRA = { six: { name: 'Tournoi', emo: '🏉', bg: '#e63946', img: 'bld-six' }, cdm: { name: 'Coupe des Morts', emo: '🎃', bg: '#ff7a1a', img: 'ic-ev-cdm' }, rig: { name: 'Ma machine', emo: '⚡', bg: '#ff8a3d', img: 'icon-bolt' }, gift: { name: 'Cadeau', emo: '🎁', bg: '#e63946', img: 'icon-gift' }, news: { name: 'Actus', emo: '📰', bg: '#4fb3f0', img: 'bld-kiosque' }, potes: { name: 'Potes', emo: '🤝', bg: '#2fb36d', img: 'app-potes' } };   // potes : plus d'appli, mais leurs notifs gardent leur icône
   const appOf = id => APPS.find(a => a.id === id) || Object.assign({ id }, EXTRA[id] || { name: 'Infos', emo: '🔔', bg: '#4fb3f0', img: 'app-infos' });
   const notifs = () => (st().notifs = st().notifs || []);
   function notify(app, title, txt, act, quiet, thread, img) {
@@ -1470,7 +1470,6 @@
     if (id === 'boosters') return G.boosterCount();
     if (id === 'agence') return window.AGENCE ? (AGENCE.offer() ? 1 : 0) + (AGENCE.pending() >= 50 ? 1 : 0) : 0;
     if (id === 'bets') return notifs().filter(n => n.app === 'bets' && !n.read).length;
-    if (id === 'potes') return window.AMIS ? AMIS.badge() : 0;
     return 0;
   }
   function phoneBody() {
@@ -1486,7 +1485,6 @@
             ${i === s.room + 1 && s.cash < price ? mixBtn(price, 'roomUpL') : ''}
             <div class="ph-ad-foot"><b>${r.cost ? short(price) : 'Ton premier chez-toi'}</b>${mine || past ? '' : `<button class="btn xs ${i === s.room + 1 && s.cash >= price ? 'green' : ''}" data-act="roomUp" ${i === s.room + 1 && s.cash >= price ? '' : 'disabled'}>${i === s.room + 1 ? 'Emménager' : 'Plus tard'}</button>`}</div></div>`; }).join('') + '</div>';
     }
-    if (phoneApp === 'potes' && window.AMIS) return AMIS.phone(status, head);   // l'appli Potes (js/amis.js) se dessine dans le téléphone
     if (phoneApp === 'notifs') {
       const L = notifs();
       return head('Notifications') + `<div class="ph-scroll">${L.length ? L.map(notifCard).join('') + '<button class="ph-clear" data-act="phoneClear">Tout effacer</button>' : '<p class="ph-hint center">Rien de neuf. Profite.</p>'}</div>`;
@@ -2678,7 +2676,18 @@
     return `<div class="card pf-photo-row"><span class="ev-avpin pf-prev" ${curFr && !frameImg(curFr) ? `style="border-color:${curFr.colors[0]};box-shadow:0 0 0 3px ${curFr.colors[1]}"` : ''}>${skinPic(s.skin, true)}${curFr && frameImg(curFr) ? `<img class="pf-fr" src="${src(frameImg(curFr))}" alt="">` : ''}${s.avatar ? `<span class="av-pin">${pinArt(D.EV_SHOP.find(x => x.id === s.avatar))}</span>` : ''}</span>
       <div class="pf-pick"><b>Ta photo de profil</b>${line("Pin's", 'avatar', pins, x => pinArt(x))}${line('Cadre', 'frame', frames, frArt)}</div></div>`;
   }
-  function openProfile() { openModal({ title: 'Profil', icon: 'star', full: true, body: profileBody(), refresh: () => setBody(profileBody()) }); }
+  // deux onglets : Profil et Potes (js/amis.js : identifiant, ajout, demandes, liste, fiche, classement, fil, invitation)
+  let pfTab = 'me';
+  const pfView = () => pfTab === 'potes' && window.AMIS ? AMIS.view() : profileBody();
+  const pfTabs = () => { if (!window.AMIS) return null; const n = AMIS.badge(), bust = `skin-${st().skin}-bust`;
+    return [{ id: 'me', label: `<span class="pf-tab-t">${has(bust) ? `<img class="ico pf-tab-ic" src="${src(bust)}" alt="">` : ''}Profil</span>` }, { id: 'potes', label: `<span class="pf-tab-t">${ico('app-potes', '')}Potes</span>${n ? `<em class="badge pf-tab-badge">${n > 9 ? '9+' : n}</em>` : ''}` }]; };
+  function openProfile(tab, sub) {
+    pfTab = tab === 'potes' && window.AMIS ? 'potes' : 'me'; if (pfTab === 'potes') AMIS.opened(sub);
+    openModal({ title: 'Profil', icon: 'star', full: true, tabs: pfTabs(), tab: pfTab, body: pfView(), refresh: () => { setBody(pfView()); pfRetab(); },
+      onTab: id => { pfTab = id; if (id === 'potes') AMIS.opened(); const b = $('#modal .sheet-body'); setBody(pfView()); if (b) b.scrollTop = 0; pfRetab(); } });
+  }
+  // la pastille de l'onglet Potes suit les demandes et le fil
+  function pfRetab() { const t = $('#modal .tab[data-tab="potes"] .tab-lbl'), L = pfTabs(); if (t && L && t.innerHTML !== L[1].label) t.innerHTML = L[1].label; }
   // réglages façon jeu mobile : conseils qui défilent, son, affichage, notifications, compte et sauvegarde, aide
   let tipTimer = null, tipI = 0;
   const setRow = (act, label, on, sub) => `<button class="set-row" data-act="${act}"><span><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</span><i class="set-sw ${on ? 'on' : ''}"><i></i></i></button>`;
@@ -2785,7 +2794,7 @@
     if (id === 'boosters') return openBoosters('open');
     if (id === 'agence') return window.AGENCE ? AGENCE.open() : toast('L\'agence ouvre très bientôt.');
     if (id === 'binder') return openBoosters('col');
-    if (id === 'potes') { if (window.AMIS) AMIS.opened('fil'); return openPhone('potes'); }   // notif d'un pote : son fil
+    if (id === 'potes') return openProfile('potes', 'fil');   // notif d'un pote : la vue Potes du Profil, sur le fil
     if (id === 'settings') return openSettings();
     if (id === 'shopNews') { const last = (st().market.news || [])[0]; return st().lvl >= 2 ? openShop('news', shopOfItem(last && last.item)) : null; }
     if (id === 'deal') return openPhone('msg');
@@ -2993,7 +3002,7 @@
     bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); if (r.x && r.x.kind === 'deco') sfx.deco(); else sfx.buy(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
     bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
-    profile: () => openProfile(),
+    profile: el => openProfile(el && el.dataset && el.dataset.tab),
     setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return; if (k.iap && !own.includes(k.id)) { closeModal(); return openBoutique('vip'); }
       const cur = D.SKINS.find(x => x.id === st().skin) || {}, ag = st().agence;
       if (cur.g !== k.g && ag && ag.crew && ag.crew.length) {
@@ -3068,7 +3077,7 @@
     phoneClose: () => closePhone(),
     phoneClear() { st().notifs = []; drawPhone(); renderPhoneBtn(); },
     phoneNotif(el) { const n = notifs().find(x => String(x.id) === el.dataset.id); $('#ph-banner')?.classList.remove('show'); if (!n) return openPhone('notifs'); n.read = n.seen = true; renderPhoneBtn(); const go = { msg: 'msg', bets: 'bets', crypto: 'crypto', missions: 'missions', boosters: 'boosters', news: 'shopNews', bank: 'bank', rig: 'rig', gift: 'gift', six: 'six', cdm: 'cdm' }[n.app]; if (n.app === 'msg') { const name = n.thread || n.title; if (!chats()[name]) { const ct = D.DEALS.contacts.find(c => c.name === name); chatPush(name, (ct && ct.img) || 'guide', { from: 'them', txt: n.txt }); chats()[name].unread = 0; } return openChat(name); } closePhone(); phoneGo(go || n.app); },
-    phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg' || id === 'potes') { phoneApp = id; if (id === 'potes' && window.AMIS) AMIS.opened(); drawPhone(); } else { closePhone(); phoneGo(id); } },
+    phoneApp(el) { const id = el.dataset.id; if (id === 'immo' || id === 'notifs' || id === 'msg') { phoneApp = id; drawPhone(); } else { closePhone(); phoneGo(id); } },
     chatOpen(el) { openChat(el.dataset.n); },
     chatAct(el) {
       const c = chats()[el.dataset.n], m = c && c.msgs[+el.dataset.i], a = m && m.acts[+el.dataset.k]; if (!a || m.done) return;
@@ -3427,7 +3436,7 @@
   window.addEventListener('beforeunload', () => G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) G.save(); });
 
-  window.UI = { itemPic, lbAv, giveChips, skinPic, pinArt, frameImg, cdmCrest, openPhone, drawPhone, phoneOpen, get phoneApp() { return phoneApp; }, set phoneApp(v) { phoneApp = v; }, packOpening, unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
+  window.UI = { openProfile, get pfOpen() { return pfTab === 'potes' && modalOpen() && !!$('#modal .tab[data-tab="potes"].on'); }, itemPic, lbAv, giveChips, skinPic, pinArt, frameImg, cdmCrest, openPhone, drawPhone, phoneOpen, get phoneApp() { return phoneApp; }, set phoneApp(v) { phoneApp = v; }, packOpening, unlocksAt: L => unlocksAt(L), de, chatPush, notify, habitsBody, focusBld, eur, short, pct, mmss, esc, pic, ic, ico, has, src, toast, floatTxt, rain, openModal, setBody, closeModal, register, refresh, sparkSvg, dialog, teamCrest, teamIdx, sfx, flyTo, queue, packArt, openBoosters, openRewards, get scene() { return scene; }, get pending() { return pending.length; } };
   let booted = false; const go = () => { if (!booted) { booted = true; boot(); } };
   if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', () => setTimeout(go, 0)); else setTimeout(go, 0);
 })();

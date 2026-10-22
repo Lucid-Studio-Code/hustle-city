@@ -1,4 +1,4 @@
-/* Biff City : jouer entre amis. L'appli « Potes » du téléphone (potes, demandes, classement entre potes, fil d'actu),
+/* Biff City : jouer entre amis. La vue « Potes » du Profil (onglet Potes : identifiant, ajout, demandes, potes, classement entre potes, fil d'actu),
    la pop-up de demande de pote, le lien d'invitation (parrainage) et la pop-up « Invite tes potes ».
    Tout passe par le serveur (server/amis.js) : hors ligne, l'appli le dit simplement. Réglages : AMIS dans data.js. */
 (function () {
@@ -24,12 +24,15 @@
     if (!on() || busy || (!force && now() - loadedAt < 15000)) return; busy = true;
     try { const r = await O.call('/api/amis', {}); if (r && r.ok) { DATA = r; loadedAt = now(); nIn = r.reqIn.length; st().amisFil = r.filleuls; redraw(); } } finally { busy = false; }
   }
-  // redessine l'appli si elle est ouverte (jamais pendant qu'on tape un identifiant)
+  // redessine la vue Potes du Profil si elle est ouverte (jamais pendant qu'on tape un identifiant) ; la pastille de l'avatar suit
+  const shown = () => !!U.pfOpen;
   function redraw(force) {
-    if (!U.phoneOpen() || U.phoneApp !== 'potes') return;
+    if (!shown()) { U.refresh && U.refresh(); return; }
     if (!force && document.activeElement && document.activeElement.id === 'am-code') return;
-    U.drawPhone();
+    U.refresh && U.refresh();
   }
+  // nouveautés du fil pas encore vues (pastille de l'avatar et de l'onglet Potes) : remises à zéro en ouvrant le fil
+  const unseenFeed = () => st().amisNew || 0;
   // toutes les 20 s : demandes reçues (pop-up), nouvelles du fil (notifs), lien d'invitation en attente
   async function poll() {
     if (!on() || document.hidden || !st().skin) return;
@@ -38,11 +41,12 @@
     if (r.n !== nIn) { nIn = r.n; U.refresh && U.refresh(); }
     (r.req || []).forEach(askPop);
     (r.feed || []).forEach(f => { const t = feedTxt(f, true); if (t) U.notify('potes', f.who.name, t, null, false, null, bust(f.who.skin)); });
-    if ((r.req || []).length || (r.feed || []).length) { loadedAt = 0; if (U.phoneOpen() && U.phoneApp === 'potes') load(true); }
+    if ((r.feed || []).length) { st().amisNew = unseenFeed() + r.feed.length; G.save && G.save(); U.refresh && U.refresh(); }
+    if ((r.req || []).length || (r.feed || []).length) { loadedAt = 0; if (shown()) load(true); }
   }
   setInterval(poll, (A.pollS || 20) * 1000); setTimeout(poll, 4000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(poll, 800); });
-  setInterval(() => { if (U.phoneOpen() && U.phoneApp === 'potes') load(); }, 60000);
+  setInterval(() => { if (shown()) load(); }, 60000);
 
   // arrivé par le lien d'un pote : on l'envoie une fois la partie créée et connectée
   let invBusy = false;
@@ -85,12 +89,13 @@
   const inviteArt = () => U.has('invite-scene') ? `<img class="am-scene" src="${U.src('invite-scene')}" alt="">`
     : `<span class="am-pop-art">${['sportive', 'survet'].map((k, i) => U.has(`skin-${k}-bust`) ? `<img class="am-pa-${i ? 'r' : 'l'}" src="${U.src(`skin-${k}-bust`)}" alt="">` : '').join('')}${U.has('icon-treasure') ? `<img class="am-pa-c" src="${U.src('icon-treasure')}" alt="">` : ''}</span>`;
 
-  // ---------------------------------------------------------------- l'appli dans le téléphone
-  const tabs = () => `<div class="am-tabs">${[['amis', 'Potes'], ['top', 'Classement'], ['fil', 'Fil']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="amisTab" data-id="${k}">${l}${k === 'amis' && nIn ? `<em class="badge ok">${nIn}</em>` : ''}</button>`).join('')}</div>`;
+  // ---------------------------------------------------------------- la vue Potes, dans la fenêtre Profil (onglet Potes)
+  const tabs = () => `<div class="am-tabs">${[['amis', 'Mes potes'], ['top', 'Classement'], ['fil', 'Fil']].map(([k, l]) => { const n = k === 'amis' ? nIn : k === 'fil' && tab !== 'fil' ? unseenFeed() : 0;
+    return `<button class="${tab === k ? 'on' : ''}" data-act="amisTab" data-id="${k}">${l}${n ? `<em class="badge">${n > 9 ? '9+' : n}</em>` : ''}</button>`; }).join('')}</div>`;
   const row = (p, right, act) => `<${act ? `button data-act="${act}" data-fid="${esc(p.fid)}"` : 'div'} class="chat-row am-row">${U.lbAv(p)}<span><b>${idTxt(p)}</b><small>Niveau ${p.lvl} <i class="am-sep"></i> ${U.short(p.worth || 0)}</small></span>${right || ''}</${act ? 'button' : 'div'}>`;
   function parCard() {
     const P = A.parrain, n = Math.min(P.pinAt, st().amisFil || 0);
-    return `<button class="am-par ${U.has('invite-scene') ? 'scene' : ''}" data-act="amisInvite"><span class="am-par-art">${U.has('invite-scene') ? `<img src="${U.src('invite-scene')}" alt="">` : U.has('icon-treasure') ? `<img src="${U.src('icon-treasure')}" alt="">` : '🎁'}</span>
+    return `<button class="am-par ${U.has('invite-scene') ? 'am-scn' : ''}" data-act="amisInvite"><span class="am-par-art">${U.has('invite-scene') ? `<img src="${U.src('invite-scene')}" alt="">` : U.has('icon-treasure') ? `<img src="${U.src('icon-treasure')}" alt="">` : '🎁'}</span>
       <span class="am-par-t"><b>Invite tes potes</b><small>${n} / ${P.pinAt} potes invités au niveau ${P.lvl}</small><i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></span><em>›</em></button>`;
   }
   function listTab() {
@@ -118,8 +123,8 @@
     return L.length ? L.map(f => `<button class="chat-row am-row am-feed" data-act="amisFiche" data-fid="${esc(f.who.fid)}">${U.lbAv(f.who)}<span><small class="am-ft">${feedTxt(f)}</small></span><em>${agoTxt(Math.max(1, Math.round((now() - f.t) / 60000)))}</em></button>`).join('')
       : '<p class="ph-hint center">Rien pour l\'instant. Les gros gains, les cartes légendaires et les niveaux de tes potes s\'afficheront ici.</p>';
   }
-  function ficheView(status) {
-    const f = fiche, bar = `${status}<div class="ph-bar"><button class="ph-back" data-act="amisBack">‹</button><b>${f ? esc(f.name) : 'Pote'}</b><span></span></div>`;
+  function ficheView() {
+    const f = fiche, bar = `<div class="am-bar-top"><button class="am-back" data-act="amisBack" aria-label="Retour">‹</button><b>${f ? esc(f.name) : 'Pote'}</b><span></span></div>`;
     if (!f) return bar + '<div class="ph-scroll"><p class="ph-hint center">Chargement…</p></div>';
     const it = f.card && G.item(f.card.id), T = f.team && G.cdmTeam(f.team), R = { L: 'Légendaire', E: 'Épique', R: 'Rare', C: 'Commune' };
     const tile = (ic, v, l) => `<div class="am-tile"><span>${ic}</span><b>${v}</b><small>${l}</small></div>`;
@@ -131,11 +136,13 @@
       ${f.since ? `<p class="ph-hint center">Potes depuis le ${new Date(f.since).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>` : ''}
       <div class="center am-rm">${rmAsk === f.fid ? `<p class="ph-hint">Sûr ? Vous ne verrez plus vos exploits.</p><div class="grid2"><button class="btn xs" data-act="amisRmNo">Non</button><button class="btn xs red" data-act="amisRm" data-fid="${esc(f.fid)}">Oui, retirer</button></div>` : `<button class="btn xs red" data-act="amisRmAsk" data-fid="${esc(f.fid)}">Retirer ce pote</button>`}</div></div>`;
   }
-  function phone(status, head) {
-    if (!on()) return head('Potes') + '<div class="ph-scroll"><p class="ph-hint center">Les potes, ça marche quand tu es connecté à internet. Reviens quand tu as du réseau.</p></div>';
-    if (ficheFid) return ficheView(status);
-    if (!DATA) { load(); return head('Potes') + '<div class="ph-scroll"><p class="ph-hint center">Chargement de tes potes…</p></div>'; }
-    return head('Potes') + tabs() + `<div class="ph-scroll am-scroll">${tab === 'top' ? topTab() : tab === 'fil' ? filTab() : listTab()}</div>`;
+  function view() {
+    const wrap = h => `<div class="am-pf">${h}</div>`;
+    if (!on()) return wrap('<div class="ph-scroll"><p class="ph-hint center">Les potes, ça marche quand tu es connecté à internet. Reviens quand tu as du réseau.</p></div>');
+    if (ficheFid) return wrap(ficheView());
+    if (!DATA) { load(); return wrap('<div class="ph-scroll"><p class="ph-hint center">Chargement de tes potes…</p></div>'); }
+    if (tab === 'fil' && unseenFeed()) { st().amisNew = 0; G.save && G.save(); setTimeout(() => U.refresh && U.refresh(), 0); }
+    return wrap(tabs() + `<div class="ph-scroll am-scroll">${tab === 'top' ? topTab() : tab === 'fil' ? filTab() : listTab()}</div>`);
   }
   function opened(t) { if (t) tab = t; ficheFid = null; fiche = null; rmAsk = null; msg = null; load(true); }
 
@@ -157,7 +164,7 @@
   // à un bon moment, dès le niveau 3, jamais dans les 10 premières minutes de jeu ni juste après une pub ;
   // écart entre deux pop-up : 1 j, puis 3 j, puis 7 j si on la ferme d'affilée ; plus du tout une fois Parrain
   setInterval(() => { if (!document.hidden && st().skin) st().amisPlay = (st().amisPlay || 0) + 5000; }, 5000);
-  function invitePop(force) {
+  function invitePop(force, back) {
     const s = st(), C = A.pop || {}, P = A.parrain, ip = s.invitePop = s.invitePop || { last: 0, later: 0 };
     if (!force) {
       if (!on() || G.TEST || !s.tutoDone || s.lvl < (C.lvl || 3) || (s.amisPlay || 0) < (C.minPlayMin || 10) * 60000 || (s.amisFil || 0) >= P.pinAt) return;
@@ -171,9 +178,9 @@
     const chip = (art, t) => `<span class="gc">${art}<b>${t}</b></span>`;
     const chips = [P.parrainLingots && chip(U.ic('lingot'), P.parrainLingots), P.parrainBoosters && chip(U.has('booster-pack') ? `<img src="${U.src('booster-pack')}" alt="">` : '🃏', '×' + P.parrainBoosters), P.parrainRare && chip(U.has('card-back') ? `<img src="${U.src('card-back')}" alt="">` : '🃏', 'Carte rare')].filter(Boolean).join('');
     const art = inviteArt();
-    const go = () => U.openModal({ title: 'Invite tes potes', icon: 'gift', center: true, onClose: () => { if (!ip.went) { ip.later = (ip.later || 0) + 1; G.save && G.save(); } ip.went = false; }, body: `<div class="welcome-pop wp-pack am-pop">
-      <div class="wp-art">${art}</div>
-      <h3>Ramène ta team, ramasse le butin</h3><p>Pour chaque pote qui arrive au <b>niveau ${P.lvl}</b> grâce à toi :</p>
+    const go = () => U.openModal({ title: 'Invite tes potes', icon: 'gift', center: true, onClose: () => { if (!ip.went) { ip.later = (ip.later || 0) + 1; G.save && G.save(); } ip.went = false; if (back) setTimeout(back, 0); }, body: `<div class="welcome-pop wp-pack am-pop">
+      <div class="wp-art ${U.has('invite-scene') ? 'am-scn' : ''}">${art}</div>
+      <h3>Ramène ta team, ramasse le butin</h3><p>Pour chaque pote qui arrive au <b>niveau ${P.lvl}</b> grâce à toi&nbsp;:</p>
       <div class="give-chips">${chips}</div>
       <div class="am-pop-pin">${pin ? `<span class="am-pop-pins">${U.lbAv({ skin: s.skin, avatar: pin.id, frame: fr ? fr.id : null })}</span>` : ''}<span><b>Au ${P.pinAt}<sup>e</sup> pote : le pin's${fr ? ' et le cadre' : ''} Parrain</b><small>Introuvables ailleurs, sur ta photo pour toujours.</small></span></div>
       <div class="am-pop-n"><b>${n} / ${P.pinAt}</b> potes invités<i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></div>
@@ -192,9 +199,10 @@
   // ---------------------------------------------------------------- gestes
   document.addEventListener('input', e => { if (e.target && e.target.id === 'am-code') code = e.target.value; });
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'am-code') { e.preventDefault(); ACT.amisAdd(); } });
+  const toTop = () => { const b = document.querySelector('#modal .sheet-body'); if (b) b.scrollTop = 0; };
   const after = r => { loadedAt = 0; return load(true).then(() => r); };
   const ACT = {
-    amisTab(el) { tab = el.dataset.id; msg = null; redraw(true); if (tab !== 'amis') load(); },
+    amisTab(el) { tab = el.dataset.id; msg = null; redraw(true); toTop(); if (tab !== 'amis') load(); },
     amisTop(el) { topMode = el.dataset.id; redraw(true); },
     async amisAdd() {
       const c = code.trim(); if (!c) { msg = { t: 'Tape d\'abord le # de ton pote, ex. #4821.' }; return redraw(true); }
@@ -214,19 +222,19 @@
     },
     async amisCancel(el) { await O.call('/api/amis/cancel', { fid: el.dataset.fid }); await after(); redraw(true); },
     async amisFiche(el) {
-      const fid = el.dataset.fid; if (!fid) return; ficheFid = fid; fiche = null; rmAsk = null; redraw(true);
+      const fid = el.dataset.fid; if (!fid) return; ficheFid = fid; fiche = null; rmAsk = null; redraw(true); toTop();
       const r = await O.call('/api/amis/fiche', { fid }); if (ficheFid !== fid) return;
       if (!r || r.err) { ficheFid = null; U.toast(esc((r && r.err) || 'Pas de réseau.'), true); } else fiche = r.fiche; redraw(true);
     },
-    amisBack() { ficheFid = null; fiche = null; rmAsk = null; redraw(true); },
+    amisBack() { ficheFid = null; fiche = null; rmAsk = null; redraw(true); toTop(); },
     amisRmAsk(el) { rmAsk = el.dataset.fid; redraw(true); },
     amisRmNo() { rmAsk = null; redraw(true); },
     async amisRm(el) { const n = fiche && fiche.name; await O.call('/api/amis/remove', { fid: el.dataset.fid }); ficheFid = null; fiche = null; rmAsk = null; U.toast(n ? `${esc(n)} n'est plus dans tes potes.` : 'Pote retiré.'); await after(); redraw(true); },
     amisCopy() { copy(myCode()); },
     amisShare() { share(); },
-    amisInvite() { invitePop(true); },
+    amisInvite() { invitePop(true, () => U.openProfile('potes')); },   // en refermant, on revient à la vue Potes
     amisInviteGo() { const ip = st().invitePop || (st().invitePop = {}); ip.went = true; ip.later = 0; G.save && G.save(); U.closeModal(); share(); }
   };
   U.register(ACT);
-  window.AMIS = { phone, opened, badge: () => nIn, load, poll, invitePop, inviteUrl, get data() { return DATA; } };
+  window.AMIS = { view, opened, badge: () => nIn + unseenFeed(), load, poll, invitePop, inviteUrl, get data() { return DATA; } };
 })();

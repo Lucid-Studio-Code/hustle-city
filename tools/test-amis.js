@@ -12,7 +12,9 @@ let ok = 0, ko = 0; const check = (c, t) => { console.log((c ? 'OK  ' : 'ÉCHEC 
 const shots = [], AUDIT = require('./audit-espaces.js').toString(), defects = {};
 async function shot(p, name) {
   await p.evaluate(() => { const b = document.getElementById('ph-banner'); if (b && !window.__keepBanner) b.classList.remove('show'); const t = document.getElementById('toast'); if (t) t.classList.remove('on'); });
-  for (const [w, h] of [[390, 844], [375, 667]]) { await p.setViewportSize({ width: w, height: h }); await sleep(500); const f = `${name}-${w}x${h}.png`; await p.screenshot({ path: path.join(OUT, f) }); shots.push(f);
+  for (const [w, h] of [[390, 844], [375, 667]]) { await p.setViewportSize({ width: w, height: h }); await sleep(500);
+    await p.evaluate(() => { const b = document.getElementById('ph-banner'); if (b && !window.__keepBanner) b.classList.remove('show'); });   // une notif arrivée pendant le changement de taille
+    const f = `${name}-${w}x${h}.png`; await p.screenshot({ path: path.join(OUT, f) }); shots.push(f);
     const d = await p.evaluate(`(${AUDIT})()`); if (d.length) defects[f] = d; }
   await p.setViewportSize({ width: 390, height: 844 }); await sleep(300);
 }
@@ -28,7 +30,7 @@ async function player(b, name, skin, n, url) {
   return p;
 }
 const closeAll = p => p.evaluate(() => { document.querySelectorAll('#modal .sheet-close').forEach(b => b.click()); });
-const openPotes = async (p, tab) => { await p.evaluate(t => { UI.openPhone('potes'); AMIS.opened(t); }, tab || 'amis'); await sleep(1500); };
+const openPotes = async (p, tab) => { await p.evaluate(t => { document.querySelector('#phone-layer')?.classList.remove('on'); document.querySelectorAll('#modal .sheet-close').forEach(b => b.click()); UI.openProfile('potes', t); }, tab || 'amis'); await sleep(1500); };   // la vue Potes du Profil
 const sync = p => p.evaluate(() => ONLINE.flush());
 (async () => {
   const b = await webkit.launch();
@@ -36,8 +38,14 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   const tagA = await A.evaluate(() => GAME.st.tag), tagB = await B.evaluate(() => GAME.st.tag);
   check(tagA !== tagB && /^\d{4}$/.test(tagA) && /^\d{4}$/.test(tagB), 'Tags à 4 chiffres, différents');
   console.log('A = Lucky Max#' + tagA, ' B = Ninaa#' + tagB);
-  // l'écran d'accueil du téléphone avec l'appli Potes
-  await closeAll(A); await A.evaluate(() => UI.openPhone()); await sleep(800); await shot(A, '01-telephone-appli-potes');
+  // le téléphone n'a plus d'appli Potes (et la dernière appli n'est pas coupée) ; le Profil a son onglet Potes
+  await closeAll(A); await A.evaluate(() => UI.openPhone()); await sleep(800); await shot(A, '01-telephone-sans-appli-potes');
+  check(await A.evaluate(() => !document.querySelector('.ph-app[data-id=potes]')), 'Téléphone : plus d\'appli Potes');
+  for (const [w, h] of [[390, 844], [375, 667]]) { await A.setViewportSize({ width: w, height: h }); await sleep(300);
+    check(await A.evaluate(() => { const ph = document.querySelector('#phone-layer .ph-home').getBoundingClientRect(), L = [...document.querySelectorAll('.ph-app')]; return L.length && L.every(a => { const r = a.getBoundingClientRect(); return r.bottom <= ph.bottom + 1 && r.right <= ph.right + 1 && r.left >= ph.left - 1; }); }), `Téléphone ${w}x${h} : toutes les applis entières`); }
+  await A.setViewportSize({ width: 390, height: 844 });
+  await A.evaluate(() => document.querySelector('#phone-layer')?.classList.remove('on')); await A.click('#hud .avatar'); await sleep(1000);
+  check(await A.evaluate(() => !!document.querySelector('#modal .tab[data-tab=potes]')), 'Profil : onglet Potes'); await shot(A, '00-profil-onglet-potes');
   // A ajoute B (majuscules et espace en trop : tolérés)
   await openPotes(A); await A.fill('#am-code', `#${tagB}`); await A.click('[data-act=amisAdd]'); await sleep(1500);
   check(await A.evaluate(() => AMIS.data.reqOut.length === 1), 'A : demande envoyée et visible dans « Demandes envoyées »');
@@ -54,9 +62,18 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   // B : la pop-up arrive toute seule (sondage toutes les 20 s)
   await closeAll(B); await B.waitForSelector('#modal .am-ask', { timeout: 30000 }); await sleep(600);
   check(true, 'B : pop-up de demande reçue'); await shot(B, '03-popup-demande-recue');
-  await B.click('#modal .am-ask [data-ok="1"]'); await sleep(1500);
+  // « Plus tard » : la pastille reste sur l'avatar (en haut à droite), puis B accepte depuis la vue Potes du Profil
+  await B.click('#modal .am-ask .wp-later'); await sleep(800);
+  check(await B.evaluate(() => { const b = document.getElementById('badge-potes'); return !b.classList.contains('hidden') && b.textContent === '1'; }), 'B : pastille 1 sur l\'avatar');
+  check(await B.evaluate(() => { const a = document.querySelector('#hud .avatar').getBoundingClientRect(), b = document.getElementById('badge-potes').getBoundingClientRect(), l = document.getElementById('lvl').getBoundingClientRect(), p = document.querySelector('#hud .avatar .av-pin');
+    const hit = (x, y) => x && Math.min(x.right, y.right) - Math.max(x.left, y.left) > 1 && Math.min(x.bottom, y.bottom) - Math.max(x.top, y.top) > 1;
+    return b.left > a.left + a.width / 2 && b.top < a.top + a.height / 2 && !hit(b, l) && !(p && hit(b, p.getBoundingClientRect())); }), 'Pastille en haut à droite, sans toucher le niveau ni le pin\'s');
+  await shot(B, '03b-pastille-avatar'); await B.screenshot({ path: path.join(OUT, '03c-pastille-avatar-zoom.png'), clip: { x: 0, y: 0, width: 200, height: 90 } });
+  await B.click('#hud .avatar'); await sleep(800); await B.click('#modal .tab[data-tab=potes]'); await sleep(1500); await shot(B, '03d-profil-demande-a-accepter');
+  await B.click('.am-acts [data-ok="1"]'); await sleep(1500);
+  check(await B.evaluate(() => document.getElementById('badge-potes').classList.contains('hidden')), 'B : pastille partie une fois la demande acceptée');
   // A est prévenu (notification Potes)
-  await A.evaluate(() => UI.phoneOpen() && document.querySelector('#phone-layer').classList.remove('on'));
+  await closeAll(A); await A.evaluate(() => UI.phoneOpen() && document.querySelector('#phone-layer')?.classList.remove('on'));
   await A.waitForFunction(() => (GAME.st.notifs || []).some(n => n.app === 'potes' && /accepté/.test(n.txt)), null, { timeout: 30000 });
   check(true, 'A : notifié que B a accepté'); await sleep(300); await A.evaluate(() => { window.__keepBanner = 1; }); await shot(A, '04-notif-acceptee'); await A.evaluate(() => { window.__keepBanner = 0; });
   // les deux se voient
@@ -66,10 +83,15 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   // gros gain de A : pari gagné + du cash → le fil de B, et A passe devant B au patrimoine
   await sleep(16000);   // une synchro toutes les 15 s au plus
   await A.evaluate(() => { GAME.addCash(48000); ONLINE.ev('bet', { state: 'won', stake: 2000, gain: 12500 }); }); await sync(A); await sleep(1500);
-  await B.evaluate(() => { document.querySelector('#phone-layer').classList.remove('on'); AMIS.poll(); }); await sleep(2500);
+  await closeAll(B); await B.evaluate(() => { document.querySelector('#phone-layer')?.classList.remove('on'); AMIS.poll(); }); await sleep(2500);
   check(await B.evaluate(() => (GAME.st.notifs || []).some(n => n.app === 'potes' && /gros pari/.test(n.txt))), 'B : notif du gros gain de A');
   await B.evaluate(() => { window.__keepBanner = 1; }); await shot(B, '06-notif-gros-gain'); await B.evaluate(() => { window.__keepBanner = 0; });
-  await openPotes(B, 'fil'); check(await B.evaluate(() => AMIS.data.feed.some(f => f.kind === 'bet')), 'B : le gros gain est dans l\'onglet Fil'); await shot(B, '07-fil');
+  check(await B.evaluate(() => !document.getElementById('badge-potes').classList.contains('hidden')), 'B : pastille sur l\'avatar pour la nouveauté du fil');
+  // toucher la notif dans le téléphone ouvre la vue Potes du Profil, sur le fil
+  await B.evaluate(() => UI.openPhone()); await sleep(600); await B.click('.ph-notif[data-act=phoneNotif]'); await sleep(1800);
+  check(await B.evaluate(() => !!document.querySelector('#modal .tab[data-tab=potes].on') && !!document.querySelector('.am-tabs button.on[data-id=fil]')), 'Notif d\'un pote : ouvre Profil > Potes > Fil');
+  check(await B.evaluate(() => AMIS.data.feed.some(f => f.kind === 'bet')), 'B : le gros gain est dans l\'onglet Fil'); await shot(B, '07-fil');
+  check(await B.evaluate(() => document.getElementById('badge-potes').classList.contains('hidden')), 'B : pastille partie une fois le fil vu');
   await openPotes(B, 'top'); await sleep(500);
   const top = await B.evaluate(() => [...document.querySelectorAll('.am-top b')].filter(x => !x.classList.contains('am-val')).map(x => x.textContent));
   check(/Lucky Max/.test(top[0]) && /toi/.test(top[1]), 'Classement entre potes juste (A devant B) : ' + top.join(' / ')); await shot(B, '08-classement-patrimoine');
@@ -112,7 +134,7 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   const again = await C.evaluate(async l => (await ONLINE.call('/api/amis/parrain', { code: l.split('ami=')[1], dev: 'x' })), link);
   check(again && !again.referral, 'Filleul : ne compte qu\'une fois');
   // pop-up « Invite tes potes » (B, pas encore parrain) : déclenchée par une montée de niveau quand les conditions sont remplies
-  await closeAll(B); await B.evaluate(() => { const s = GAME.st; s.amisPlay = 11 * 60000; s.invitePop = { last: 0, later: 0 }; s.lvl = Math.max(s.lvl, 3); s.adForcedAt = 0; s.noAds = true; document.querySelector('#phone-layer').classList.remove('on'); });
+  await closeAll(B); await B.evaluate(() => { const s = GAME.st; s.amisPlay = 11 * 60000; s.invitePop = { last: 0, later: 0 }; s.lvl = Math.max(s.lvl, 3); s.adForcedAt = 0; s.noAds = true; document.querySelector('#phone-layer')?.classList.remove('on'); });
   await B.evaluate(() => { const s = GAME.st; s.xp = GAME.xpNeed() - 1; GAME.addXp(5); });
   await sleep(1500); await closeAll(B);
   await B.waitForSelector('#modal .am-pop', { timeout: 15000 }).then(() => check(true, 'Pop-up « Invite tes potes » après une montée de niveau')).catch(() => check(false, 'Pop-up « Invite tes potes » après une montée de niveau'));
@@ -125,9 +147,9 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   check(await A.evaluate(() => { const s = GAME.st; s.invitePop = { last: 0, later: 0 }; AMIS.invitePop(); return !document.querySelector('#modal .am-pop'); }), 'Plus de pop-up une fois Parrain (3 filleuls)');
   await closeAll(A);
   // le profil de A avec le pin's et le cadre Parrain
-  await A.evaluate(() => document.querySelector('#phone-layer').classList.remove('on')); await A.evaluate(() => { GAME.st.avatar = 'pn-parrain'; GAME.st.frame = 'fr-parrain'; GAME.save(); }); await A.evaluate(() => document.querySelector('#hud .avatar, #hud [data-act=profile], [data-act=profile]')?.click()); await sleep(1200); await shot(A, '13-profil-pins-parrain'); await closeAll(A);
+  await A.evaluate(() => document.querySelector('#phone-layer')?.classList.remove('on')); await A.evaluate(() => { GAME.st.avatar = 'pn-parrain'; GAME.st.frame = 'fr-parrain'; GAME.save(); }); await A.evaluate(() => document.querySelector('#hud .avatar, #hud [data-act=profile], [data-act=profile]')?.click()); await sleep(1200); await shot(A, '13-profil-pins-parrain'); await closeAll(A);
   // la carte « Invite tes potes » et le compteur dans l'appli, puis le profil avec le pin's et le cadre
-  await openPotes(A); await shot(A, '12-appli-potes-parrain');
+  await openPotes(A); await shot(A, '12-profil-potes-parrain');
   // retrait d'un ami
   await openPotes(B); await B.click('.am-row[data-act=amisFiche]'); await sleep(1200); await B.click('[data-act=amisRmAsk]'); await sleep(300); await B.click('[data-act=amisRm]'); await sleep(1500);
   check(await B.evaluate(() => !AMIS.data.friends.some(f => f.name === 'Lucky Max')), 'Retrait d\'un pote');
@@ -135,8 +157,18 @@ const sync = p => p.evaluate(() => ONLINE.flush());
   await B.evaluate(async t => ONLINE.call('/api/amis/add', { code: t }), tagA);
   const cross = await A.evaluate(async t => ONLINE.call('/api/amis/add', { code: '#' + t }), tagB);
   check(cross && cross.friends, 'Demande croisée = potes directement');
-  // classement à 5 potes : une médaille par place (images medal-4, medal-5, medal-rank à venir : pastille numérotée en attendant)
-  await openPotes(A, 'top'); await sleep(600); check(await A.evaluate(() => document.querySelectorAll('.am-top').length >= 5 && !!document.querySelector('.am-medal.num b')), 'Classement : une médaille par place'); await shot(A, '14-classement-medailles');
+  // classement à 6 : un 6e joueur devient pote de A ; médailles or, argent, bronze, medal-4, medal-5, puis medal-rank avec le numéro écrit par le code
+  const F = await player(b, 'Yasmine', 'sportive', 9); const tagF = await F.evaluate(() => GAME.st.tag);
+  await F.evaluate(async t => ONLINE.call('/api/amis/add', { code: t }), tagA); await A.evaluate(async t => ONLINE.call('/api/amis/add', { code: t }), tagF);
+  await F.evaluate(() => { GAME.addCash(3000); }); await sync(F); await sleep(500);
+  await openPotes(A, 'top'); await sleep(800);
+  const med = await A.evaluate(() => [...document.querySelectorAll('.am-top .am-medal')].map(m => (m.querySelector('img') ? m.querySelector('img').src.split('/').pop().split('.')[0] : 'emoji') + (m.querySelector('b') ? '#' + m.querySelector('b').textContent : '')));
+  check(med.length >= 6 && /medal-4/.test(med[3]) && /medal-5/.test(med[4]) && /medal-rank#6/.test(med[5]), 'Classement : médailles 1 à 6 (' + med.join(', ') + ')'); await shot(A, '14-classement-medailles');
+  // la pop-up « Invite tes potes » avec la scène (ouverte depuis l'encart de la vue Potes), puis retour à la vue Potes
+  await openPotes(B); await B.click('.am-par'); await sleep(900);
+  check(await B.evaluate(() => !!document.querySelector('#modal .am-pop .wp-art.am-scn img.am-scene')), 'Pop-up « Invite tes potes » : la scène plein cadre'); await shot(B, '15-popup-invite-scene');
+  await B.click('#modal .wp-later'); await sleep(900);
+  check(await B.evaluate(() => !!document.querySelector('#modal .tab[data-tab=potes].on')), 'En refermant la pop-up : retour à la vue Potes');
   // anti-spam : 5 demandes par minute
   let spam = 0; for (let i = 0; i < 7; i++) { const r = await A.evaluate(async () => ONLINE.call('/api/amis/add', { code: 'Personne#1' })); if (r === null || (r && /Trop/.test(r.err || ''))) spam++; }
   check(spam > 0, 'Anti-spam : trop de demandes d\'un coup refusées');

@@ -16,7 +16,8 @@ POCKETS = {
     # revue du 03/10 : fonds restés coincés dans des formes fermées
     'slot-bell': 'all', 'slot-cherry': 'all', 'slot-seven': 'all', 'slot-bar': 'all', 'ic-club-dj': 'all', 'ic-club-door': 'all', 'ev-sale': 'all', 'gear-gown': 'all', 'gear-cosplay': 'all', 'deco-dc-bench': 'all', 'deco-dc-lamp': 'all',
     # cadres d'avatar : le centre blanc est un trou (l'avatar passe dessous)
-    'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]},
+    'frame-six': {'n': [0]}, 'frame-gold': {'n': [0]}, 'frame-parrain': {'n': [0]},   # cadre Parrain (22/10) : le centre blanc est le trou de l'avatar
+    'medal-4': {'n': [0, 1]}, 'medal-5': {'n': [2, 3]},   # médailles du classement entre potes : vides entre ruban et anneau (jamais le reflet de l'étoile ni les rayures blanches)
     # créatrices PrivéFans (lot 2) : vides entre bras et corps ; cr-mila garde son tablier blanc
     'cr-leila': 'all', 'cr-jade': 'all', 'cr-kim': 'all', 'cr-lola': 'all', 'cr-sasha': 'all', 'cr-nora': 'all',
     'clubp-danseuse': 'all', 'clubp-dj': 'all', 'clubp-louche': 'all', 'clubp-trader': 'all', 'clubp-boss': 'all', 'clubp-lea': 'all', 'clubp-chloe': 'all', 'clubp-djmax': 'all', 'clubp-valentina': 'all',   # persos du Club : vides entre bras et corps
@@ -38,7 +39,7 @@ MAX = {'art': 900, 'full': 900, 'load': 1080, 'parking': 1080, 'bg': 1080, 'room
 NOCUT = ('bg', 'room', 'club', 'tkbg', 'bonus', 'art', 'full', 'parking', 'load')   # décors : pas de détourage
 
 # fonds avec une ombre portée grise : on élargit la tolérance pour l'emporter avec le fond
-TOL = {'cr-leila': 140, **{n: 110 for n in ('item-w-pocket', 'item-w-unique', 'item-o-bar100', 'item-o-bar10', 'item-g-roman')}}   # liseré clair autour du trait
+TOL = {'frame-parrain': 200, 'cr-leila': 140, **{n: 110 for n in ('item-w-pocket', 'item-w-unique', 'item-o-bar100', 'item-o-bar10', 'item-g-roman')}}   # liseré clair autour du trait
 
 # persos : morceaux de fond blanc restés coincés entre deux mèches de cheveux (revue du 08/10/26).
 # Choisis à l'œil, jamais en automatique (un liseré blanc ou une basket blanche au bord du perso ressemblent à du fond) :
