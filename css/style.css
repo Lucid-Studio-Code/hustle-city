@@ -3953,3 +3953,7 @@ html { background-color: #120c24; }
 #app .am-tabs button.btn, #app .am-pf .am-tabs button.btn { --b-c: #e9dcc0; flex: 1; min-height: 40px; padding: 6px 4px 8px; font-size: 12px; color: #fff; border-radius: 14px; border: 2px solid var(--b-ink);
   background: linear-gradient(rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 55%), var(--b-c); box-shadow: 0 3px 0 var(--b-ink); }
 #app .am-tabs button.btn.on, #app .am-pf .am-tabs button.btn.on { --b-c: var(--b-yellow); color: #fff; }
+
+/* fenêtres de niveau et de trophée : les rayons restent derrière le texte et les boutons (ils débordaient par-dessus) */
+#app .levelup .rays { z-index: 0; }
+#app .levelup > :not(.rays) { position: relative; z-index: 1; }
