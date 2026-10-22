@@ -43,8 +43,6 @@
   const BLD = {
     kiosque: enter('kiosque', 'Le Kiosque', 'Là, c\'est <b>le Kiosque</b>, le journal du quartier. Entre.',
       'Toutes les 30 min, un nouveau journal sort avec des <b>tuyaux</b> : qui va gagner un match, si la crypto va monter… Ça coûte un peu, mais ça aide à mieux miser. L\'onglet <b>Boosters</b> vend des paquets de cartes.', '#modal .tabs'),
-    bus: enter('bus', 'Arrêt de bus', 'Et ça, c\'est <b>l\'arrêt de bus</b>. Jette un œil.',
-      'Le bus mène aux autres quartiers : la Bijouterie, le Garage, la Tour… Chacun ouvre à son niveau, et je te préviendrai.', '#modal [data-act=goPlace]'),
     casino: enter('casino', 'Lucky Palace', 'Nouveau : le <b>Lucky Palace</b> est ouvert ! Machine à sous et roulette. Entre.',
       'Choisis ta mise et lance la machine. Sur la durée, elle garde environ 6<i class="cur"></i> sur chaque 100<i class="cur"></i> misés : <b>le casino gagne toujours à la fin</b>. Joue petit, pour le fun.', '[data-act=slSpin]'),
     shop: enter('shop', 'Le Comptoir', 'Nouveau : <b>le Comptoir</b> ! On y achète des cartes et des baskets de collection. Entre.',
@@ -66,7 +64,7 @@
       { say: () => 'Nouveau au <b>Lucky Palace</b> : la <b>roulette</b> ! Entre.', target: '.bld[data-id=casino]', before: () => U.focusBld('casino'), done: () => modalOpen() && title() === 'Lucky Palace' },
       { say: () => 'Touche l\'onglet <b>Roulette</b>.', target: '#modal .tab[data-tab=roulette], [data-act=csTab][data-t=roulette]', done: () => !!$('[data-act=rlSpin]') },
       { say: () => 'Choisis un jeton, pose-le sur un numéro ou sur Rouge, Pair… puis <b>lance</b>. Un numéro paie ×36, une couleur ×2.', target: '#modal .felt, #modal .rl-board', btn: 'Compris' }],
-    bijou: goPlace('bijou', 'Bijouterie Diamant', 'Le bus t\'emmène maintenant à la <b>Bijouterie Diamant</b> ! Va à l\'arrêt.',
+    bijou: goPlace('bijou', 'Bijouterie Diamant', 'Nouveau : <b>l\'arrêt de bus</b> t\'emmène dans les autres quartiers, et le premier vient d\'ouvrir : la <b>Bijouterie Diamant</b> ! Va à l\'arrêt.',
       'Ici : les <b>montres de luxe</b>, l\'<b>or</b> et les <b>raretés</b>. L\'or bouge peu et monte doucement : c\'est le placement tranquille.', '#modal .tabs'),
     agence: [
       { say: () => (D.SKINS.find(k => k.id === st().skin) || {}).g === 'f' ? 'Nouveau : <b>ta page PrivéFans</b> ! Ouvre ton téléphone.' : 'Nouveau : <b>l\'agence PrivéFans</b> ! Ouvre ton téléphone.', target: '#phone-btn', done: () => !!$('[data-act=phoneApp][data-id=agence]') || (modalOpen() && /PrivéFans/.test(title())) },
@@ -83,7 +81,7 @@
       { say: () => 'Tes véhicules sont garés ici : <b>les voitures sur les places en épi, les motos au milieu</b>. Touche un véhicule pour voir ce qu\'il vaut : sa cote bouge, tu peux le revendre quand elle monte.', target: '.park-full .pk-car', btn: 'Compris' },
       { say: () => 'Il n\'y a que <b>2 places</b> au début. Agrandis ton garage au <b>Garage Prestige</b> (en bus) : jusqu\'à 6 voitures et 5 motos.', target: '.park-full .pk-count, .park-full .pk-foot', btn: 'Trop bien' }]
   });
-  // le mot de la fin du tuto : seulement après la visite des lieux du début (Kiosque, arrêt de bus)
+  // le mot de la fin du tuto : seulement après la visite du Kiosque (l'arrêt de bus est présenté avec la Bijouterie, le premier quartier qu'il dessert)
   BLD.outro = [{ say: () => `Voilà, t'as les bases ! Le but : faire grimper ton <b>patrimoine</b> (en haut à droite). Reviens chaque jour pour ton <b>cadeau</b> et ton booster. ${nextOpen()}Et si un jour tu sais plus quoi faire, touche <b>ma tête</b> à droite de l'écran : je te dirai quoi faire pour avancer. À toi de jouer !`, btn: 'C\'est parti' }];
   // les prochains lieux à ouvrir, d'après le niveau réel (on peut déjà être niveau 2 à la fin du tuto)
   function nextOpen() {
@@ -93,7 +91,7 @@
   }
   const FEAT_LVL = { outro: () => 1, roulette: () => D.ROULETTE.lvl, bijou: () => D.EXT_PLACES.find(b => b.id === 'bijou').lvl, agence: () => D.AGENCE.lvl, garage: () => D.EXT_PLACES.find(b => b.id === 'garage').lvl,
     tour: () => D.EXT_PLACES.find(b => b.id === 'tour').lvl, bourse: () => D.BOURSE.lvl, parking: () => G.parkedCount() > 0 ? 0 : 99 };
-  const BLD_ORDER = ['kiosque', 'bus', 'outro', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
+  const BLD_ORDER = ['kiosque', 'outro', 'six', 'shop', 'casino', 'club', 'roulette', 'bijou', 'agence', 'garage', 'parking', 'tour', 'bourse'];
   const unlockLvl = k => FEAT_LVL[k] ? FEAT_LVL[k]() : D.BUILDINGS.find(b => b.id === k).lvl;
   const seen = () => (st().bldTuto = st().bldTuto || {});
 
