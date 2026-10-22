@@ -46,7 +46,8 @@ function popImg(u) {
   let n = (u.match(/\/([\w-]+)\.\w+$/) || [])[1];
   if (/-bust$/.test(n) && FRAMES[n.replace(/-bust$/, '')]) { n = n.replace(/-bust$/, ''); u = `/assets/img/${n}.png`; }   // un buste s'arrêterait au milieu de la carte : on prend le perso entier
   const f = FRAMES[n] || [.16, .39], h = f[1] - f[0];
-  return `<div class="bn-popw"><img class="bn-pop" src="${esc(opt(u))}" alt="" loading="lazy" style="--hf:${(1 / h).toFixed(4)};--cf:${(f[0] / h).toFixed(4)}"></div>`;
+  const ar = f[2] ? `;--ar:${f[2]}` : '';   // groupe large (largeur/hauteur) : sur mobile il se cale à droite du texte
+  return `<div class="bn-popw"><img class="bn-pop" src="${esc(opt(u))}" alt="" loading="lazy" style="--hf:${(1 / h).toFixed(4)};--cf:${(f[0] / h).toFixed(4)}${ar}"></div>`;
 }
 function render(content) {
   const c = clean(content || defaults());

@@ -32,6 +32,18 @@
   "title": "Actualités",
   "items": [
    {
+    "bg": "/assets/lp/bn-potes2.webp",
+    "bgPos": "30% 60%",
+    "pop": "/assets/img/pop-potes.png",
+    "frame": "buste",
+    "chip": "Nouveau",
+    "color": "new",
+    "title": "Joue avec tes vrais potes",
+    "text": "Ajoute tes amis, grimpe au classement entre potes et gagne des cadeaux en les parrainant !",
+    "link": "jouer-avec-ses-amis",
+    "btn": "En savoir plus"
+   },
+   {
     "bg": "/assets/img/club-piste.webp",
     "bgPos": "50% 35%",
     "pop": "/assets/img/clubp-lea.png",
@@ -65,18 +77,6 @@
     "title": "10 personnages au Club",
     "text": "Kenza, Léa, DJ Nyx, le Baron… Chaque soirée, qui est là change au hasard.",
     "link": "personnages-du-club",
-    "btn": "En savoir plus"
-   },
-   {
-    "bg": "/assets/img/bg-city-or.jpg",
-    "bgPos": "50% 45%",
-    "pop": "/assets/img/skin-survet.png",
-    "frame": "pied",
-    "chip": "Bêta ouverte",
-    "color": "live",
-    "title": "Joue avant tout le monde",
-    "text": "Gratuit, dans ton navigateur. Ton avis compte : bouton « Donner mon avis » dans les Réglages.",
-    "link": "jeu-paris-sportifs-fictifs",
     "btn": "En savoir plus"
    }
   ]
@@ -134,19 +134,6 @@
     "title": "Ton avis rapporte",
     "text": "Chaque retour utile sur une fonctionnalité te rapporte des lingots et des boosters. Il s'envoie depuis les Réglages du jeu.",
     "link": "avis-beta-recompense",
-    "btn": "En savoir plus"
-   },
-   {
-    "img": "/assets/img/load-2.jpg",
-    "alt": "Le Survêt joue sur son téléphone",
-    "imgPos": "50% 38%",
-    "chip": "Bientôt",
-    "color": "soon",
-    "start": "",
-    "end": "",
-    "title": "Sur l'App Store et Google Play",
-    "text": "Biff City arrive en application sur iPhone et Android. Ta partie de la bêta te suivra.",
-    "link": "biff-city-iphone-android",
     "btn": "En savoir plus"
    }
   ]
