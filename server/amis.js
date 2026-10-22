@@ -8,7 +8,7 @@
 //   Un filleul ne compte qu'une fois, jamais depuis l'appareil du parrain, et 20 filleuls récompensés au plus par parrain.
 const crypto = require('crypto');
 
-function makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, cleanTag, cleanId, lvlOf, num, game, cdmEd, push, log, DAY, ONLINE_MS }) {
+function makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, cleanTag, cleanId, lvlOf, num, game, cdmEd, cdmLive, push, log, DAY, ONLINE_MS }) {
   // réglages : ceux de js/data.js (et du back-office), sinon ceux-ci
   const DEF = { max: 100, pendingOut: 20, pendingIn: 50, perMin: 5, bigWin: 3000, lvlStep: 5, feedMax: 50, feedHourly: 1,
     parrain: { filleulLingots: 10, filleulBoosters: 1, parrainLingots: 25, parrainBoosters: 1, parrainRare: 1, lvl: 5, pinAt: 3, maxRewarded: 20, pin: 'pn-parrain', frame: 'fr-parrain' } };
@@ -157,9 +157,13 @@ function makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, c
     const cards = owned.map(id => items.find(i => i.id === id)).filter(i => i && i.cat === 'card');
     const bc = cards.sort((a, b) => (RK[b.r] || 0) - (RK[a.r] || 0) || num(prices[b.id]) - num(prices[a.id]))[0];
     const trophies = owned.filter(id => { const i = items.find(x => x.id === id); return i && i.cat === 'trophy' && !i.ach; }).length + Object.keys(o.ach || {}).filter(k => o.ach[k]).length;
-    const team = q1('SELECT team FROM cdm_pts WHERE ed = ? AND pid = ?', cdmEd(), t.pid);
+    // le camp de la Coupe des Morts ne s'affiche que pendant l'événement (après, la fiche ne le montre plus)
+    const team = cdmLive && cdmLive() ? q1('SELECT team FROM cdm_pts WHERE ed = ? AND pid = ?', cdmEd(), t.pid) : null;
+    // sa plus belle possession : l'objet qui vaut le plus (voiture, montre, sneakers…), hors cartes et trophées
+    const goods = owned.map(id => items.find(i => i.id === id)).filter(i => i && i.cat !== 'card' && i.cat !== 'trophy' && !i.ach);
+    const val = i => num(prices[i.id]) || num(i.p0) || 0, bg = goods.sort((x, y) => val(y) - val(x))[0];
     const win = q1("SELECT MAX(json_extract(data, '$.gain')) g FROM events WHERE pid = ? AND type = 'bet' AND t > ? AND json_extract(data, '$.state') = 'won'", t.pid, now() - 7 * DAY);
-    return { ...pub(t), card: bc ? { id: bc.id, name: bc.name, r: bc.r, v: round2(prices[bc.id] || bc.p0 || 0) } : null, cards: cards.length, trophies, team: team ? cleanId(team.team) : null, bestWin: win && win.g ? round2(win.g) : 0,
+    return { ...pub(t), card: bc ? { id: bc.id, name: bc.name, r: bc.r, v: round2(prices[bc.id] || bc.p0 || 0) } : null, best: bg ? { id: bg.id, cat: bg.cat, v: round2(val(bg)) } : null, cards: cards.length, trophies, team: team ? cleanId(team.team) : null, bestWin: win && win.g ? round2(win.g) : 0,
       since: (q1('SELECT t FROM friends WHERE a = ? AND b = ?', t.pid, t.pid) || {}).t || null };
   }
 

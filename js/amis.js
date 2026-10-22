@@ -134,6 +134,7 @@
     return bar + `<div class="ph-scroll"><div class="am-fiche"><div class="am-big">${U.lbAv(f)}</div><h3>${idTxt(f)}</h3>
       <p class="am-sub">Niveau ${f.lvl} <i class="am-sep"></i> <span class="am-seen ${f.ago === 0 ? 'on' : ''}">${agoTxt(f.ago)}</span></p></div>
       <div class="am-tiles">${tile(U.ic('cash'), U.short(f.worth || 0, true), 'patrimoine')}${tile(U.pic('cat-trophy', '🏆'), f.trophies, 'trophées')}${tile(U.pic('item-c-holo', '🃏'), f.cards, 'cartes')}${tile(U.pic('nav-bets', '🎟️'), f.bestWin ? '+' + U.short(f.bestWin) : '0', 'meilleur gain (7 j)')}</div>
+      ${(b => b ? `<h4 class="am-h">Sa plus belle possession</h4><div class="am-card am-best"><span class="am-card-art">${U.itemPic(b)}</span><span><b>${esc(b.name)}</b><small>${esc((D.ITEM_CATS[b.cat] || {}).name || '')}<br>Cote ≈ ${U.short(f.best.v)}</small></span></div>` : '')(f.best && G.item(f.best.id))}
       ${it ? `<h4 class="am-h">Sa plus belle carte</h4><div class="am-card r${f.card.r}"><span class="am-card-art">${U.itemPic(it)}</span><span><b>${esc(it.name)}</b><small>${R[f.card.r] || ''}<br>Cote ≈ ${U.short(f.card.v)}</small></span></div>` : ''}
       ${T ? `<h4 class="am-h">Coupe des Morts</h4><div class="am-card"><span class="am-card-art">${U.cdmCrest(T.id)}</span><span><b>${esc(T.name)}</b><small>Son camp cette année</small></span></div>` : ''}
       ${f.since ? `<p class="ph-hint center">Potes depuis le ${new Date(f.since).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>` : ''}

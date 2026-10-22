@@ -299,7 +299,7 @@ function cdmBoard(ed, pid, n = 5) {
 }
 
 // ------------------------------------------------------------------ jouer entre amis (server/amis.js) : ses routes s'ajoutent à l'API des joueurs
-const AMIS = makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, cleanTag, cleanId, lvlOf, num, game: () => GAME, cdmEd: () => cdmCfg().ed, push: PUSH, log, DAY, ONLINE_MS });
+const AMIS = makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, cleanTag, cleanId, lvlOf, num, game: () => GAME, cdmEd: () => cdmCfg().ed, cdmLive: () => { const c = cdmCfg(), t = Date.now(); return c.on && c.start <= t && t < c.end; }, push: PUSH, log, DAY, ONLINE_MS });
 
 // ------------------------------------------------------------------ API des joueurs
 const api = {
