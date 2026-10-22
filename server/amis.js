@@ -1,6 +1,6 @@
 // Biff City : jouer entre amis (appli « Potes » du téléphone, js/amis.js). Réglages : AMIS dans js/data.js.
-// - On s'ajoute par « Pseudo#1234 » (majuscules, accents et espaces ignorés) : demande à accepter. Deux demandes croisées = potes tout de suite.
-//   Le couple pseudo + tag est rendu unique ici (uniqTag) : un doublon reçoit un autre tag, renvoyé au jeu.
+// - On s'ajoute par « #1234 » (ou « Pseudo#1234 » : majuscules, accents et espaces ignorés) : demande à accepter. Deux demandes croisées = potes tout de suite.
+//   Le tag seul est unique sur tout le serveur (uniqTag) : on peut ajouter un pote en tapant juste #1234 ; un doublon reçoit un autre tag, renvoyé au jeu.
 // - Un pote ne voit de l'autre qu'un résumé ARRONDI (niveau, patrimoine à 2 chiffres, dernière connexion, plus belle carte…),
 //   jamais sa sauvegarde, son pid ni son secret : chaque joueur a un identifiant public (fid) pour les gestes entre potes.
 // - Fil d'actu : gros pari gagné, carte légendaire, palier de niveau, « il t'a dépassé » ; une notif par pote et par heure (le reste est regroupé), 50 entrées gardées.
@@ -19,23 +19,41 @@ function makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, c
   // clé de comparaison d'un pseudo : minuscules, sans accent ni espace (« Lucky Max » = « luckymax »)
   const nameKey = n => String(n || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '');
   const randTag = n => String(10 ** (n - 1) + crypto.randomInt(9 * 10 ** (n - 1)));
-  function uniqTag(pid, name, tag) {
-    const k = nameKey(name); if (!k) return tag;
-    const taken = t => q('SELECT name FROM players WHERE tag = ? AND pid != ?', t, pid).some(r => nameKey(r.name) === k);
-    if (tag && !taken(tag)) return tag;
-    for (let i = 0; i < 60; i++) { const t = randTag(i < 40 ? 4 : 5); if (!taken(t)) return t; }
+  // le tag (#1234) est unique sur tout le serveur : 4 chiffres tant qu'il en reste assez de libres, puis 5, puis 6
+  const used = t => !!q1('SELECT 1 x FROM players WHERE tag = ?', t);
+  function freeTag() {
+    for (let n = 4; n <= 6; n++) {
+      const room = 9 * 10 ** (n - 1), have = q1('SELECT COUNT(*) n FROM players WHERE LENGTH(tag) = ?', n).n;
+      if (have > room * .9 && n < 6) continue;   // plus de 9 sur 10 pris : on passe à un chiffre de plus
+      for (let i = 0; i < 60; i++) { const t = randTag(n); if (!used(t)) return t; }
+    }
+    for (let t = 100000; t <= 999999; t++) if (!used(String(t))) return String(t);
     return randTag(6);
   }
+  function uniqTag(pid, tag) {   // garde le tag s'il est à lui seul, sinon en donne un libre
+    tag = cleanTag(tag);
+    if (tag && tag.length >= 4 && !q1('SELECT 1 x FROM players WHERE tag = ? AND pid != ?', tag, pid)) return tag;
+    return freeTag();
+  }
+  // anciennes bases : le même tag porté par plusieurs joueurs (seul le couple pseudo#tag était unique) → le plus ancien le garde,
+  // les autres en reçoivent un libre (le jeu le reprend tout seul à sa prochaine connexion)
+  (function migrate() {
+    let n = 0;
+    q("SELECT tag FROM players WHERE tag IS NOT NULL AND tag != '' GROUP BY tag HAVING COUNT(*) > 1").forEach(({ tag }) =>
+      q('SELECT pid FROM players WHERE tag = ? ORDER BY created ASC, pid ASC', tag).slice(1).forEach(r => { run('UPDATE players SET tag = ? WHERE pid = ?', freeTag(), r.pid); n++; }));
+    q("SELECT pid FROM players WHERE tag IS NOT NULL AND tag != '' AND LENGTH(tag) < 4").forEach(r => { run('UPDATE players SET tag = ? WHERE pid = ?', freeTag(), r.pid); n++; });
+    if (n) console.log(`potes : ${n} tag(s) en double remplacé(s)`);
+  })();
   function fidOf(pid) {
     const r = q1('SELECT fid FROM players WHERE pid = ?', pid); if (!r) return null; if (r.fid) return r.fid;
     const f = crypto.randomBytes(8).toString('base64url'); run('UPDATE players SET fid = ? WHERE pid = ?', f, pid); return f;
   }
   const byFid = f => typeof f === 'string' && /^[\w-]{6,16}$/.test(f) ? q1('SELECT * FROM players WHERE fid = ?', f) : null;
-  // « Pseudo#1234 », « pseudo # 1234 », « Pseudo1234 » (4 chiffres collés)
+  // « 1234 », « #1234 », « Pseudo#1234 », « pseudo # 1234 » : le tag suffit (il est unique) ; un pseudo tapé doit correspondre
   function findCode(code) {
-    const s = String(code || '').normalize('NFC').trim().slice(0, 40), m = s.match(/^(.+?)\s*#\s*(\d{1,6})$/) || s.match(/^(.+?)\s*(\d{4})$/);
-    if (!m) return null; const k = nameKey(m[1]);
-    return q('SELECT * FROM players WHERE tag = ?', m[2]).find(r => nameKey(r.name) === k) || null;
+    const s = String(code || '').normalize('NFC').trim().slice(0, 40), i = s.lastIndexOf('#'), nm = i >= 0 ? s.slice(0, i).trim() : '', dg = (i >= 0 ? s.slice(i + 1) : s).trim();
+    if (!/^\d{1,6}$/.test(dg)) return null; const t = q1('SELECT * FROM players WHERE tag = ?', dg); if (!t) return null;
+    return !nm || nameKey(nm) === nameKey(t.name) ? t : null;
   }
 
   // ---------------------------------------------------------------- ce qu'un pote voit de l'autre (tout arrondi)
@@ -167,7 +185,7 @@ function makeAmis({ db, q, q1, run, send, body, player, limit, now, cleanName, c
     async 'POST /api/amis/add'(req, res) {   // { code: « Pseudo#1234 » }
       const [b, p] = await auth(req, res); if (!p) return;
       if (!limit('amiadd:' + p.pid, A().perMin, 60000) || !limit('amiaddd:' + p.pid, 60, DAY)) return send(res, 429, { err: 'Trop de demandes d\'un coup : attends une minute.' });
-      const t = findCode(b.code); if (!t) return send(res, 200, { err: 'Personne avec cet identifiant. Vérifie le pseudo et les chiffres après le #.' });
+      const t = findCode(b.code); if (!t) return send(res, 200, { err: 'Personne avec ce #. Vérifie les chiffres (et le pseudo, si tu l\'as tapé).' });
       const r = request(p, t); send(res, 200, r.ok ? { ok: true, friends: !!r.friends, who: pub(t) } : { err: r.err });
     },
     async 'POST /api/amis/answer'(req, res) {   // { fid, ok } : accepter ou refuser une demande reçue

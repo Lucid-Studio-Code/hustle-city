@@ -320,8 +320,8 @@ const api = {
   async 'POST /api/hello'(req, res) {
     const b = await body(req); if (!b.pid || !b.secret || typeof b.pid !== 'string' || typeof b.secret !== 'string') return send(res, 400, { err: 'pid' });
     const ip = clientIp(req), name = cleanName(b.name), ver = txt(b.ver, 20);
-    // pseudo#tag unique (on s'ajoute en pote avec) : un doublon reçoit un autre tag, renvoyé au jeu
-    const tag = AMIS.uniqTag(String(b.pid), name, cleanTag(b.tag));
+    // tag unique sur tout le serveur (on s'ajoute en pote en tapant juste #1234) : celui déjà gardé, sinon celui du jeu s'il est libre, sinon un tag libre, renvoyé au jeu
+    const tag = AMIS.uniqTag(String(b.pid), ((q1('SELECT tag FROM players WHERE pid = ?', String(b.pid)) || {}).tag) || cleanTag(b.tag));
     let p = q1('SELECT * FROM players WHERE pid = ?', b.pid);
     if (!p) { if (!PID_RE.test(b.pid) || !SECRET_RE.test(b.secret)) return send(res, 400, { err: 'pid' });
       if (!limit('new:' + ipKey(ip), 10, 3600000)) return send(res, 429, { err: 'Trop de nouvelles parties depuis cette connexion, réessaie plus tard.', retry: 3600 });
@@ -345,7 +345,7 @@ const api = {
     // même partie sur plusieurs appareils : un appareil qui n'a pas la dernière sauvegarde (faite ailleurs) ne l'écrase pas, il la récupère
     if (stale(p, b)) { run('UPDATE players SET last_seen = ? WHERE pid = ?', now(), p.pid); return send(res, 200, { ok: true, newer: true, inbox: [] }); }
     const raw = b.summary && typeof b.summary === 'object' ? b.summary : {}, s = cleanSummary(raw), A = antiCheat(p, s);
-    if (s.name || s.tag) s.tag = AMIS.uniqTag(p.pid, s.name || p.name, s.tag || p.tag);   // pseudo changé : le couple pseudo#tag reste unique
+    s.tag = AMIS.uniqTag(p.pid, p.tag || s.tag);   // le tag gardé par le serveur fait foi (unique sur tout le serveur)
     // temps de jeu : jamais plus que le temps écoulé depuis la synchro d'avant (ou depuis la création du compte), sans marge ; 10 min par synchro au plus.
     // Un joueur hors ligne qui revient garde son temps de jeu réel (le temps écoulé est grand) ; seul ce qui dépasse le temps écoulé est perdu.
     const ms = Math.floor(Math.min(num(b.playMs, 600000), Math.max(0, now() - (p.sync_at || p.created || now()))));

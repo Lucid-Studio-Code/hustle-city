@@ -10,9 +10,9 @@
   const on = () => !!(O.on && O.call);
   const fem = sk => ((D.SKINS.find(k => k.id === sk) || {}).g === 'f');
   const e_ = sk => fem(sk) ? 'e' : '';
-  const myCode = () => `${st().name || 'Joueur'}#${st().tag || ''}`;
+  const myCode = () => `#${st().tag || ''}`;   // le tag seul suffit pour ajouter un pote (il est unique sur le serveur)
   // lien d'invitation : sur un serveur de test (port 5300, 5330-5339), le jeu de ce serveur ; sinon la vitrine (qui renvoie au jeu)
-  const inviteUrl = () => (/^5(300|33\d)$/.test(location.port) ? location.origin + '/game.html?ami=' : A.invite) + encodeURIComponent(myCode());
+  const inviteUrl = () => (/^5(300|33\d)$/.test(location.port) ? location.origin + '/game.html?ami=' : A.invite) + encodeURIComponent(st().tag || '');
   const agoTxt = m => m === 0 ? '<i class="am-dot"></i>en ligne' : m < 60 ? `il y a ${m} min` : m < 2880 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`;
   const signed = v => (v > 0 ? '+' : '') + U.short(v);
   const who = p => `<b>${esc(p.name)}</b>`;
@@ -75,20 +75,30 @@
     return T ? T + more : '';
   }
 
+  // médaille d'une place : or, argent, bronze, puis medal-4, medal-5, et medal-rank avec le numéro écrit par-dessus (repli : une pastille numérotée)
+  function medal(r) {
+    const n = ['', 'medal-gold', 'medal-silver', 'medal-bronze', 'medal-4', 'medal-5'][r] || 'medal-rank', img = U.has(n) ? `<img src="${U.src(n)}" alt="">` : '';
+    if (r <= 3) return `<span class="am-medal">${img || ['🥇', '🥈', '🥉'][r - 1]}</span>`;
+    return `<span class="am-medal ${img ? 'img' : 'num'}">${img}${n === 'medal-rank' || !img ? `<b>${r}</b>` : ''}</span>`;
+  }
+  // l'image de l'invitation (scène « invite-scene » quand elle existe, sinon deux persos et le coffre)
+  const inviteArt = () => U.has('invite-scene') ? `<img class="am-scene" src="${U.src('invite-scene')}" alt="">`
+    : `<span class="am-pop-art">${['sportive', 'survet'].map((k, i) => U.has(`skin-${k}-bust`) ? `<img class="am-pa-${i ? 'r' : 'l'}" src="${U.src(`skin-${k}-bust`)}" alt="">` : '').join('')}${U.has('icon-treasure') ? `<img class="am-pa-c" src="${U.src('icon-treasure')}" alt="">` : ''}</span>`;
+
   // ---------------------------------------------------------------- l'appli dans le téléphone
   const tabs = () => `<div class="am-tabs">${[['amis', 'Potes'], ['top', 'Classement'], ['fil', 'Fil']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-act="amisTab" data-id="${k}">${l}${k === 'amis' && nIn ? `<em class="badge ok">${nIn}</em>` : ''}</button>`).join('')}</div>`;
   const row = (p, right, act) => `<${act ? `button data-act="${act}" data-fid="${esc(p.fid)}"` : 'div'} class="chat-row am-row">${U.lbAv(p)}<span><b>${idTxt(p)}</b><small>Niveau ${p.lvl} <i class="am-sep"></i> ${U.short(p.worth || 0)}</small></span>${right || ''}</${act ? 'button' : 'div'}>`;
   function parCard() {
     const P = A.parrain, n = Math.min(P.pinAt, st().amisFil || 0);
-    return `<button class="am-par" data-act="amisInvite"><span class="am-par-art">${U.has('icon-treasure') ? `<img src="${U.src('icon-treasure')}" alt="">` : '🎁'}</span>
+    return `<button class="am-par ${U.has('invite-scene') ? 'scene' : ''}" data-act="amisInvite"><span class="am-par-art">${U.has('invite-scene') ? `<img src="${U.src('invite-scene')}" alt="">` : U.has('icon-treasure') ? `<img src="${U.src('icon-treasure')}" alt="">` : '🎁'}</span>
       <span class="am-par-t"><b>Invite tes potes</b><small>${n} / ${P.pinAt} potes invités au niveau ${P.lvl}</small><i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></span><em>›</em></button>`;
   }
   function listTab() {
     const d = DATA, P = A.parrain;
-    const me = `<div class="am-me"><small>Ton identifiant de pote</small><b>${idTxt({ name: st().name || 'Joueur', tag: st().tag })}</b>
+    const me = `<div class="am-me"><small>Ton # de pote</small><div class="am-me-id"><b class="am-me-tag">#${esc(st().tag || '')}</b><span class="am-me-nm">${esc(st().name || 'Joueur')}</span></div>
       <div class="am-me-b"><button class="btn xs blue" data-act="amisCopy">Copier</button><button class="btn xs green" data-act="amisShare">Partager</button></div></div>`;
-    const add = `<div class="am-add"><input id="am-code" placeholder="Pseudo#1234" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" value="${esc(code)}"><button class="btn xs green" data-act="amisAdd">Ajouter</button></div>
-      ${msg ? `<p class="am-msg ${msg.ok ? 'ok' : 'ko'}">${msg.t}</p>` : '<p class="ph-hint">Tape le pseudo et les chiffres d\'un pote (ex. Momo#4821).</p>'}`;
+    const add = `<div class="am-add"><input id="am-code" placeholder="#4821" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" value="${esc(code)}"><button class="btn xs green" data-act="amisAdd">Ajouter</button></div>
+      ${msg ? `<p class="am-msg ${msg.ok ? 'ok' : 'ko'}">${msg.t}</p>` : '<p class="ph-hint">Tape le # de ton pote, ex. #4821.</p>'}`;
     const reqIn = d.reqIn.length ? `<h4 class="am-h">Demandes reçues <small>${d.reqIn.length}</small></h4>${d.reqIn.map(p => row(p, `<span class="am-acts"><button class="btn xs red" data-act="amisAnswer" data-fid="${esc(p.fid)}" data-ok="0" aria-label="Refuser">✕</button><button class="btn xs green" data-act="amisAnswer" data-fid="${esc(p.fid)}" data-ok="1" aria-label="Accepter">✓</button></span>`)).join('')}` : '';
     const reqOut = d.reqOut.length ? `<h4 class="am-h">Demandes envoyées <small>${d.reqOut.length}</small></h4>${d.reqOut.map(p => row(p, `<span class="am-acts"><small class="am-wait">En attente</small><button class="btn xs" data-act="amisCancel" data-fid="${esc(p.fid)}">Annuler</button></span>`)).join('')}` : '';
     const L = d.friends.length ? d.friends.map(p => row(p, `<em class="am-seen ${p.ago === 0 ? 'on' : ''}">${agoTxt(p.ago)}</em>`, 'amisFiche')).join('')
@@ -97,7 +107,7 @@
   }
   function topTab() {
     const d = DATA, k = topMode, L = [d.me, ...d.friends].sort((a, b) => (b[k] || 0) - (a[k] || 0));
-    const rk = r => r === 1 ? U.ico('medal-gold', '🥇') : r === 2 ? U.ico('medal-silver', '🥈') : r === 3 ? U.ico('medal-bronze', '🥉') : r;
+    const rk = medal;
     return `<div class="am-seg">${[['worth', 'Patrimoine'], ['week', 'Paris de la semaine']].map(([m, l]) => `<button class="${k === m ? 'on' : ''}" data-act="amisTop" data-id="${m}">${l}</button>`).join('')}</div>
       ${d.friends.length ? '' : '<p class="ph-hint center">Ajoute des potes pour te mesurer à eux.</p>'}
       ${L.map((p, i) => `<${p.me ? 'div' : `button data-act="amisFiche" data-fid="${esc(p.fid)}"`} class="chat-row am-row am-top ${p.me ? 'me' : ''}"><span class="am-rk">${rk(i + 1)}</span>${U.lbAv(p)}<span><b>${p.me ? `${esc(p.name)} (toi)` : esc(p.name)}</b><small>Niveau ${p.lvl}</small></span><b class="am-val ${k === 'week' ? (p.week > 0 ? 'up' : p.week < 0 ? 'down' : '') : ''}">${k === 'week' ? signed(p.week || 0) : U.short(p.worth || 0)}</b></${p.me ? 'div' : 'button'}>`).join('')}
@@ -137,7 +147,7 @@
   }
   function fallback(t, done) { const x = document.createElement('textarea'); x.value = t; x.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(x); x.select(); try { document.execCommand('copy'); done(); } catch (e) { U.toast(t); } x.remove(); }
   function share() {
-    const P = A.parrain, url = inviteUrl(), text = `Viens jouer à Biff City avec moi ! Mon pseudo : ${myCode()}. Avec ce lien, tu reçois ${P.filleulLingots} lingots${P.filleulBoosters ? ' et un booster' : ''} à la fin du tuto.`;
+    const P = A.parrain, url = inviteUrl(), text = `Viens jouer à Biff City avec moi ! Mon # de pote : ${myCode()} (${st().name || 'Joueur'}). Avec ce lien, tu reçois ${P.filleulLingots} lingots${P.filleulBoosters ? ' et un booster' : ''} à la fin du tuto.`;
     O.ev && O.ev('amis_share', {});
     if (navigator.share) return navigator.share({ title: 'Biff City', text, url }).catch(() => {});
     copy(`${text} ${url}`);
@@ -160,7 +170,7 @@
     const n = Math.min(P.pinAt, s.amisFil || 0), pin = D.EV_SHOP.find(x => x.id === P.pin), fr = D.EV_SHOP.find(x => x.id === P.frame);
     const chip = (art, t) => `<span class="gc">${art}<b>${t}</b></span>`;
     const chips = [P.parrainLingots && chip(U.ic('lingot'), P.parrainLingots), P.parrainBoosters && chip(U.has('booster-pack') ? `<img src="${U.src('booster-pack')}" alt="">` : '🃏', '×' + P.parrainBoosters), P.parrainRare && chip(U.has('card-back') ? `<img src="${U.src('card-back')}" alt="">` : '🃏', 'Carte rare')].filter(Boolean).join('');
-    const art = `<span class="am-pop-art">${['sportive', 'survet'].map((k, i) => U.has(`skin-${k}-bust`) ? `<img class="am-pa-${i ? 'r' : 'l'}" src="${U.src(`skin-${k}-bust`)}" alt="">` : '').join('')}${U.has('icon-treasure') ? `<img class="am-pa-c" src="${U.src('icon-treasure')}" alt="">` : ''}</span>`;
+    const art = inviteArt();
     const go = () => U.openModal({ title: 'Invite tes potes', icon: 'gift', center: true, onClose: () => { if (!ip.went) { ip.later = (ip.later || 0) + 1; G.save && G.save(); } ip.went = false; }, body: `<div class="welcome-pop wp-pack am-pop">
       <div class="wp-art">${art}</div>
       <h3>Ramène ta team, ramasse le butin</h3><p>Pour chaque pote qui arrive au <b>niveau ${P.lvl}</b> grâce à toi :</p>
@@ -187,7 +197,7 @@
     amisTab(el) { tab = el.dataset.id; msg = null; redraw(true); if (tab !== 'amis') load(); },
     amisTop(el) { topMode = el.dataset.id; redraw(true); },
     async amisAdd() {
-      const c = code.trim(); if (!c) { msg = { t: 'Tape d\'abord un identifiant, comme Momo#4821.' }; return redraw(true); }
+      const c = code.trim(); if (!c) { msg = { t: 'Tape d\'abord le # de ton pote, ex. #4821.' }; return redraw(true); }
       document.activeElement && document.activeElement.blur && document.activeElement.blur();
       const r = await O.call('/api/amis/add', { code: c });
       if (!r) msg = { t: 'Pas de réseau, réessaie.' };
