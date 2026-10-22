@@ -128,7 +128,9 @@
     else if (!imgs.length) {
       // une boîte plate (véhicule du parking : l'image déborde de son bouton) : le cadre suit l'image réellement affichée
       const tr = t.getBoundingClientRect(); if (tr.height > 4) parts.push(tr);
-      t.querySelectorAll('img').forEach(i => { const r = i.getBoundingClientRect(); if (r.width > 4 && r.height > 4) parts.push(r); });
+      // les images invisibles ne comptent pas (cartes du booster déjà jetées : transparentes mais toujours à gauche, le cadre s'élargissait)
+      const shown = i => { for (let e = i; e && e !== t.parentElement; e = e.parentElement) if (parseFloat(getComputedStyle(e).opacity) < .1) return false; return true; };
+      t.querySelectorAll('img').forEach(i => { const r = i.getBoundingClientRect(); if (r.width > 4 && r.height > 4 && shown(i)) parts.push(r); });
       if (!parts.length) parts.push(tr);
     }
     imgs.forEach(img => {
