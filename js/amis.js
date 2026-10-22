@@ -118,9 +118,12 @@
       ${L.map((p, i) => `<${p.me ? 'div' : `button data-act="amisFiche" data-fid="${esc(p.fid)}"`} class="chat-row am-row am-top ${p.me ? 'me' : ''}"><span class="am-rk">${rk(i + 1)}</span>${U.lbAv(p)}<span><b>${p.me ? `${esc(p.name)} (toi)` : esc(p.name)}</b><small>Niveau ${p.lvl}</small></span><b class="am-val ${k === 'week' ? (p.week > 0 ? 'up' : p.week < 0 ? 'down' : '') : ''}">${k === 'week' ? signed(p.week || 0) : U.short(p.worth || 0)}</b></${p.me ? 'div' : 'button'}>`).join('')}
       <p class="ph-hint center">${k === 'week' ? 'Ce que les paris ont rapporté depuis lundi (gagné moins misé).' : 'Patrimoine arrondi : cash, crypto, objets, immobilier.'}</p>`;
   }
+  // l'icône de chaque info du fil, sous l'heure : gros gain, carte légendaire, dépassement, niveau, filleul, nouveau pote
+  const FEED_IC = { bet: 'icon-cash', legend: 'card-back', pass: 'ic-up', lvl: 'icon-star', join: 'icon-gift', ok: 'icon-potes' };
+  const feedIc = f => FEED_IC[f.kind] && U.has(FEED_IC[f.kind]) ? `<img class="am-fic k-${f.kind}" src="${U.src(FEED_IC[f.kind])}" alt="">` : '';
   function filTab() {
     const L = DATA.feed;
-    return L.length ? L.map(f => `<button class="chat-row am-row am-feed" data-act="amisFiche" data-fid="${esc(f.who.fid)}">${U.lbAv(f.who)}<span><small class="am-ft">${feedTxt(f)}</small></span><em>${agoTxt(Math.max(1, Math.round((now() - f.t) / 60000)))}</em></button>`).join('')
+    return L.length ? L.map(f => `<button class="chat-row am-row am-feed" data-act="amisFiche" data-fid="${esc(f.who.fid)}">${U.lbAv(f.who)}<span><small class="am-ft">${feedTxt(f)}</small></span><span class="am-fr"><em>${agoTxt(Math.max(1, Math.round((now() - f.t) / 60000)))}</em>${feedIc(f)}</span></button>`).join('')
       : '<p class="ph-hint center">Rien pour l\'instant. Les gros gains, les cartes légendaires et les niveaux de tes potes s\'afficheront ici.</p>';
   }
   function ficheView() {
