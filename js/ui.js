@@ -379,7 +379,7 @@
     hydrateIcons(b);
     // un nouveau rang de fortune : on le fête
     const rk = G.rankOf(); if (s.rankMax == null) s.rankMax = rk.i;
-    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rkImg(rk), rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
+    if (rk.i > s.rankMax) { s.rankMax = rk.i; queue(() => { sfx.level(); rain('bill', 50); openModal({ title: 'Street cred !', icon: 'trophy', center: true, body: `<div class="levelup${un.length > 4 ? ' many' : ''}"><div class="rays">${skinPic(s.skin)}</div><div class="rk-big">${pic(rkImg(rk), rk.emo)}</div><div class="lv-big stroke">${rk.name.toUpperCase()}</div><p class="hint-line center">Ta street cred monte : ton patrimoine passe <b>${short(rk.n)}</b>, tout le quartier en parle.${rk.next ? ` Prochain palier : <b>${rk.next.name}</b> à ${short(rk.next.n)}.` : ''}</p><button class="btn green wide" data-act="closeModal">La classe</button></div>` }); }); }
   }
   let nextClicked = false, nextKey = '', tipT = 0, tipLast = 0, tipWait = null;
   function renderNextBtn() {
@@ -3151,7 +3151,7 @@
   function showLevelUp(e) {
     sfx.level(); rain('confetti', 60);
     const un = unlocksAt(e.lvl), s = st();
-    openModal({ title: 'Niveau supérieur !', icon: 'hdr-levelup', center: true, body: `<div class="levelup"><div class="rays">${skinPic(s.skin)}</div>
+    openModal({ title: 'Niveau supérieur !', icon: 'hdr-levelup', center: true, body: `<div class="levelup${un.length > 4 ? ' many' : ''}"><div class="rays">${skinPic(s.skin)}</div>
       <div class="lv-big stroke">NIVEAU ${e.lvl} !</div>
       <div class="gains"><span>${ic('cash')}+${short(e.cash, true)}</span><span>${ic('lingot')}+${e.lingots}</span><span>${packArt(true)}+1 booster</span></div>
       <p class="hint-line center">Mise max au Royal : <b>${G.betMax()}<i class="cur"></i></b></p>

@@ -3932,3 +3932,18 @@ html { background-color: #120c24; }
 #app #modal .tab .pf-tab-t { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; }
 #app #modal .tabs .tab .pf-tab-t img.ico { width: 26px; height: 26px; margin: 0; vertical-align: middle; object-fit: contain; }
 #app #modal .tabs .tab .pf-tab-t img.pf-tab-ic { border-radius: 50%; background: #ffe27a; border: 2px solid #2a1a10; object-fit: cover; object-position: top; }
+
+/* montée de niveau avec beaucoup de nouveautés : tout tient sans défiler (perso, titre et tuiles plus petits) */
+#app .levelup.many .rays { width: 96px; height: 96px; }
+#app .levelup.many .rays .pic { width: 84px; height: 96px; }
+#app .levelup.many .rays::before { inset: -40px; } #app .levelup.many .rays::after { inset: -30px; }
+#app .levelup.many .lv-big { font-size: 30px; margin: 2px 0; }
+#app .levelup.many .gains { margin: 4px 0; }
+#app .levelup.many .hint-line { margin: 4px 0; }
+#app .levelup.many .ul-title { margin: 6px 0 4px; }
+#app .levelup.many .unlocks { gap: 6px; margin: 0 0 8px; }
+#app .levelup.many .unlocks .ul { width: 66px; height: 78px; padding: 5px 3px 4px; gap: 3px; border-radius: 12px; }
+#app .levelup.many .unlocks .ul-ic { flex-basis: 36px; width: 36px; height: 36px; }
+#app .levelup.many .unlocks .ul-ic .pic, #app .levelup.many .unlocks .ul-ic img, #app .levelup.many .unlocks .ul-ic .crest, #app .levelup.many .unlocks .ul-ic .cico { width: 36px; height: 36px; }
+#app .levelup.many .unlocks .ul-nm { font-size: 9px; line-height: 11px; }
+#app .levelup.many .ul-hows { margin: 0 0 6px; }
