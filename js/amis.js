@@ -75,15 +75,15 @@
     const p = f.who, d = f.data || {}, n = plain ? '' : who(p) + ' ', x = e_(p.skin), it = d.id && G.item(d.id);
     const more = d.more ? ` (et ${d.more} autre${d.more > 1 ? 's' : ''} exploit${d.more > 1 ? 's' : ''} dans l'heure)` : '';
     const T = { bet: `${n}a gagné un gros pari : <b class="up">+${U.short(d.gain || 0)}</b>`, legend: `${n}a sorti une carte légendaire${it ? ` : « ${esc(it.name)} »` : ' !'}`, lvl: `${n}est passé${x} niveau ${d.lvl}`,
-      pass: `${n}t'a dépassé${x} au patrimoine !`, ok: `${n}a accepté ta demande : vous êtes potes !`, join: `${n}a rejoint Biff City grâce à toi. Quand ${fem(p.skin) ? 'elle' : 'il'} atteint le niveau ${A.parrain.lvl}, ta récompense tombe.` }[f.kind];
+      pass: `${n}t'a dépassé${e_(st().skin)} au patrimoine !`, ok: `${n}a accepté ta demande : vous êtes potes !`, join: `${n}a rejoint Biff City grâce à toi. Quand ${fem(p.skin) ? 'elle' : 'il'} atteint le niveau ${A.parrain.lvl}, ta récompense tombe.` }[f.kind];
     return T ? T + more : '';
   }
 
-  // médaille d'une place : or, argent, bronze, puis medal-4, medal-5, et medal-rank avec le numéro écrit par-dessus (repli : une pastille numérotée)
+  // médaille d'une place : or, argent, bronze, puis à partir de la 4e la même médaille à centre crème avec le numéro (une seule forme, un seul ruban)
   function medal(r) {
-    const n = ['', 'medal-gold', 'medal-silver', 'medal-bronze', 'medal-4', 'medal-5'][r] || 'medal-rank', img = U.has(n) ? `<img src="${U.src(n)}" alt="">` : '';
-    if (r <= 3) return `<span class="am-medal">${img || ['🥇', '🥈', '🥉'][r - 1]}</span>`;
-    return `<span class="am-medal ${img ? 'img' : 'num'}">${img}${n === 'medal-rank' || !img ? `<b>${r}</b>` : ''}</span>`;
+    const n = ['', 'medal-gold', 'medal-silver', 'medal-bronze'][r] || 'medal-rank';
+    if (!U.has(n)) return `<span class="am-medal num"><b>${r}</b></span>`;
+    return `<span class="am-medal ${r > 3 ? 'rank' : ''}"><img src="${U.src(n)}" alt="">${r > 3 ? `<b>${r}</b>` : ''}</span>`;
   }
   // l'image de l'invitation (scène « invite-scene » quand elle existe, sinon deux persos et le coffre)
   const inviteArt = () => U.has('invite-scene') ? `<img class="am-scene" src="${U.src('invite-scene')}" alt="">`

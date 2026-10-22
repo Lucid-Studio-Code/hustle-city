@@ -3961,3 +3961,9 @@ html { background-color: #120c24; }
 /* icône d'appli dans la notif : l'image tient dans son carré (l'éclair, plus haut que large, dépassait sous la notif) */
 #ph-banner .ph-ic img, #app .ph-notif .ph-ic img { width: 100% !important; height: 100% !important; max-height: 100%; object-fit: contain; }
 #ph-banner .ph-ic, #app .ph-notif .ph-ic { grid-template: 100% / 100%; }   /* piste de grille de la taille du carré, sinon la hauteur 100 % suivait l'image */
+
+/* médailles du classement : toutes la même taille (même dessin, même ruban), le numéro écrit dans le disque crème à partir de la 4e */
+#app .am-top .am-rk, #app .am-pf .am-top .am-rk { flex: 0 0 30px; width: 30px; }
+#app .am-medal, #app .am-pf .am-medal { width: 28px; height: 43px; flex: 0 0 28px; font-size: 0; }
+#app .am-medal img { width: 100%; height: 100%; object-fit: contain; }
+#app .am-medal.rank b, #app .am-pf .am-medal.rank b { inset: auto; left: 0; right: 0; top: 63.5%; transform: translateY(-50%); text-align: center; font: 900 12px/1 var(--text); color: #2a1a10; text-shadow: none; }
