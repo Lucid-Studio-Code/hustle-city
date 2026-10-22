@@ -374,10 +374,10 @@
   "sub": "Une vraie ville à faire tourner, pas un simple site de pronos.",
   "items": [
    {
-    "img": "/assets/lp/v-potes.webp",
-    "alt": "Classement entre potes et fil d'activité : Nina.B a gagné un gros pari",
-    "title": "Joue avec tes potes",
-    "text": "Ajoute tes potes, grimpe au classement, suis leurs gros coups.",
+    "img": "/assets/lp/v-potes-2.webp",
+    "alt": "Classement entre amis et fil d'activité : Nina.B a gagné un gros pari",
+    "title": "Joue avec tes vrais potes",
+    "text": "Invite tes amis dans le jeu, compare vos fortunes et suis leurs gros coups.",
     "link": "fonctionnalites-biff-city"
    },
    {
