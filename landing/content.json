@@ -85,6 +85,19 @@
   "title": "Prochainement",
   "items": [
    {
+    "img": "/assets/lp/bn-potes.webp",
+    "alt": "Trois amis comparent leurs parties de Biff City sur une terrasse",
+    "imgPos": "50% 40%",
+    "chip": "Nouveau",
+    "color": "live",
+    "start": "",
+    "end": "",
+    "title": "Joue avec tes vrais potes",
+    "text": "Ajoute tes amis, grimpe au classement entre potes, suis leurs gros coups et gagne des cadeaux en les parrainant.",
+    "link": "jouer-avec-ses-amis",
+    "btn": "En savoir plus"
+   },
+   {
     "img": "/assets/img/ev-cdm-bg.webp",
     "alt": "La ville pendant la Coupe des Morts",
     "imgPos": "50% 30%",
@@ -140,6 +153,18 @@
  },
  "age": "Jeu réservé aux adultes. Argent fictif : aucune mise ni aucun gain réels.",
  "articles": [
+  {
+   "slug": "jouer-avec-ses-amis",
+   "date": "2026-10-22",
+   "img": "/assets/lp/bn-potes.webp",
+   "imgPos": "50% 40%",
+   "alt": "Trois amis sur une terrasse de Paris comparent leurs parties de Biff City sur leur téléphone",
+   "title": "Jouer avec ses amis sur Biff City : classement, fil et parrainage",
+   "desc": "Ajoute tes vrais amis dans Biff City, compare vos fortunes au classement entre potes, suis leurs gros gains et gagne des récompenses en les parrainant.",
+   "h1": "Joue avec tes vrais potes sur Biff City",
+   "lead": "Faire fortune tout seul, c'est bien. Le faire devant tes potes, c'est mieux. Avec l'onglet Potes, tes vrais amis entrent dans ta partie : vous vous comparez, vous vous chambrez, et chaque gros coup se voit.",
+   "body": "## Ajouter un pote en deux secondes\nTout se passe dans ton **Profil**, onglet **Potes**. Chaque joueur a un numéro unique, affiché à côté de son pseudo. Envoie le tien à tes amis, ou tape le leur pour leur envoyer une demande.\n\nUne demande doit toujours être **acceptée** : personne ne peut t'ajouter sans ton accord. Quand quelqu'un t'en envoie une, une pastille rouge apparaît sur ton avatar. Tu peux avoir jusqu'à **100 potes**.\n\n## Le classement entre potes\nFini de te comparer à des inconnus : ici, tu te mesures à ceux que tu connais vraiment. Deux classements :\n- au **patrimoine**, pour savoir qui est le plus riche de la bande ;\n- à la **semaine**, pour voir qui a le plus progressé ces derniers jours.\n\nLes trois premiers décrochent leur médaille d'or, d'argent ou de bronze. Le classement général de la ville reste là aussi, détaillé dans [niveaux et classement](/actus/niveaux-et-classement).\n\n## Le fil : rien ne t'échappe\nLe **Fil** raconte ce que font tes potes : un gros pari gagné au Royal, une carte légendaire sortie d'un booster, un passage de niveau, ou le moment où l'un d'eux te dépasse au patrimoine. De quoi relancer la compétition à chaque notif. Pour les paris, tout est expliqué dans [les paris sportifs fictifs](/actus/jeu-paris-sportifs-fictifs).\n\n## La fiche de chaque pote\nTouche un pote pour ouvrir sa fiche : son niveau, sa fortune, son nombre de cartes et de trophées, son plus gros gain de la semaine, **sa plus belle carte** et **sa plus belle possession**. Pendant les événements, tu vois aussi son camp, comme pendant la [Coupe des Morts](/actus/coupe-des-morts).\n\n## Parraine tes amis et gagne des cadeaux\nTon lien d'invitation fait de chaque nouvel arrivant ton pote automatiquement. Et tout le monde y gagne :\n- ton ami reçoit **10 lingots et un booster** dès qu'il finit le tuto ;\n- quand il atteint le **niveau 5**, tu reçois **25 lingots, un booster et une carte rare garantie** ;\n- au **3e ami parrainé** qui atteint le niveau 5, tu débloques le **pin's et le cadre Parrain**, introuvables autrement, affichés sur ta photo pour toujours.\n\nTes [lingots et boosters](/actus/boosters-et-cartes) partent ensuite où tu veux dans le jeu.\n\n## Tout reste fictif\nComme partout dans Biff City, l'argent est **100 % fictif** : on se compare pour le plaisir, sans jamais rien miser de réel. Pour découvrir le reste du jeu, lis [le guide de toutes les fonctionnalités](/actus/fonctionnalites-biff-city).\n\n[Invite tes potes dans Biff City](jeu)"
+  },
   {
    "slug": "fonctionnalites-biff-city",
    "date": "2026-10-09",
@@ -378,7 +403,7 @@
     "alt": "Classement entre amis et fil d'activité : Nina.B a gagné un gros pari",
     "title": "Joue avec tes vrais potes",
     "text": "Invite tes amis dans le jeu, compare vos fortunes et suis leurs gros coups.",
-    "link": "fonctionnalites-biff-city"
+    "link": "jouer-avec-ses-amis"
    },
    {
     "img": "/assets/lp/v-tel-3.webp",
