@@ -374,6 +374,13 @@
   "sub": "Une vraie ville à faire tourner, pas un simple site de pronos.",
   "items": [
    {
+    "img": "/assets/lp/v-potes.webp",
+    "alt": "Classement entre potes et fil d'activité : Nina.B a gagné un gros pari",
+    "title": "Joue avec tes potes",
+    "text": "Ajoute tes potes, grimpe au classement, suis leurs gros coups.",
+    "link": "fonctionnalites-biff-city"
+   },
+   {
     "img": "/assets/lp/v-tel-3.webp",
     "alt": "Le téléphone du jeu : messages des potes et notifications de gains",
     "title": "Ton téléphone",
