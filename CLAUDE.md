@@ -32,7 +32,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - `js/scratch.js` : les 6 tickets à gratter (grille construite à partir du gain tiré à l'achat).
 - `js/casino.js`, `js/tuto.js` : le tutoriel avec Momo, qui avance au geste du joueur.
 - `assets/img` : après tout ajout d'image, lancer `python3 tools/manifest.py` (régénère `js/assets.js`).
-- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 532).
+- Changer de version : incrémenter `V = '?v=N'` dans game.html (le petit chargeur en bas de la page) (la vraie page ; index.html charge la dernière version depuis GitHub) (actuellement 533).
 
 ## Événements (le Panneau, sur la place)
 - `SIX` dans data.js : « Tournoi des 6 Quartiers » (rugby). `SIX.sim` = date de la journée 1 pour simuler (une journée par jour) ; null = vrai calendrier 2027 (5 févr. → 13 mars). Pronos gratuits (3 pts + 1 lingot par bon prono), classement contre 24 faux joueurs (`rivals`, à remplacer plus tard par un vrai classement en ligne), cartes en édition limitée dans les boosters pendant le tournoi.
@@ -56,7 +56,7 @@ Lancer : `node tools/serve.js` puis http://localhost:5190. Elle joue elle-même 
 - Pop-up « Invite tes potes » (fenêtre de l'offre du jour) : après une montée de niveau, un pari gagné ≥ 1 500, une carte épique / légendaire, ou 25 s après l'ouverture du jeu ; dès le niveau 3, après 10 min de jeu cumulées, jamais dans les 2 min après une pub, au plus 1 fois par jour puis 1 j / 3 j / 7 j selon les « Plus tard » d'affilée ; plus du tout une fois 3 filleuls récompensés. Réglages : `AMIS` dans data.js (aussi dans « Valeurs » du back-office).
 - Back office : fiche joueur → « Ses potes » et « Ses filleuls ».
 - Tester : `DB=server/amis-test.db PORT=5330 node server/server.js` puis `node tools/test-amis.js` (5 joueurs, captures dans exports-amis-captures/). Les ports 5330-5339 parlent au serveur qui les sert. Lanceur : « Jouer avec des amis.command ». Le test mesure aussi les espacements de chaque écran (tools/audit-espaces.js : 8 px entre un texte et le bord de sa carte / de son bouton, rien qui déborde ni ne se chevauche) → exports-amis-captures/audit-espaces.json.
-- Images en place (22/10) : `medal-4`, `medal-5`, `medal-rank` (numéro écrit par le code dès la 6e place), `invite-scene` (scène rooftop, .jpg, plein cadre 16/9 dans la pop-up, vignette dans l'encart), `frame-parrain` (centre vidé, halo retiré : POCKETS / TOL de process.py). Encore attendu : `pin-parrain` (repli emoji 🤝). Ne pas nommer une classe `scene` (classe globale des scènes du jeu, en absolu plein écran).
+- Images en place (22/10) : `medal-4`, `medal-5`, `medal-rank` (numéro écrit par le code dès la 6e place), `invite-scene` (scène rooftop, .jpg, plein cadre 16/9 dans la pop-up, vignette dans l'encart), `frame-parrain` (centre vidé, halo retiré : POCKETS / TOL de process.py). `pin-parrain` (lunettes dorées + chaîne, même gabarit 400x420 que pin-zombies, affiché par pinArt via `cdm: 'parrain'`). Ne pas nommer une classe `scene` (classe globale des scènes du jeu, en absolu plein écran).
 
 ## Pièges connus
 - `.cur` = l'icône billet, et `.money` est déjà pris : ne jamais les utiliser comme classes d'état.
