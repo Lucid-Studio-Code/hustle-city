@@ -982,8 +982,12 @@
     { id: 'dc-arcade',   kind: 'deco', name: 'Borne d\'arcade',      emo: '🕹️', desc: 'Le high score est à toi.',          x: 6,  y: 84, w: 6,  cash: 1200,  lvl: 3 },
     { id: 'dc-fountain', kind: 'deco', name: 'Fontaine',             emo: '⛲', desc: 'On y jette une pièce pour la chance.', x: 50, y: 88, w: 10, cash: 5000, lvl: 6 },
     { id: 'dc-car',      kind: 'deco', name: 'Voiture de sport',     emo: '🏎️', desc: 'Garée devant chez toi. Tout le monde regarde.', x: 30, y: 62, w: 14, lingots: 60, lvl: 8 },
-    { id: 'dc-statue',   kind: 'deco', name: 'Ta statue en or',      emo: '🗿', desc: 'Toi, en or massif, au milieu de la place.', x: 66, y: 50, w: 8, lingots: 150, lvl: 10 }
+    { id: 'dc-statue',   kind: 'deco', name: 'Ta statue en or',      emo: '🗿', desc: 'Toi, en or massif, au milieu de la place.', x: 66, y: 50, w: 8, lingots: 150, lvl: 10 },
+    // pin's de supporter (vote Paris ou Marseille de novembre 2026 : sans votant, les deux sont en vente), sur ta photo de profil
+    { id: 'pn-psg',      kind: 'avatar', cdm: 'psg', name: 'Pin\'s Paris',     emo: '⚽', desc: 'Pour les supporters de la capitale.', lingots: 25, lvl: 1 },
+    { id: 'pn-om',       kind: 'avatar', cdm: 'om',  name: 'Pin\'s Marseille', emo: '⚽', desc: 'Pour les supporters du Vieux-Port.', lingots: 25, lvl: 1 }
   ];
+  CITY_SHOP.filter(x => x.kind === 'avatar').forEach(x => EV_SHOP.push(x));   // sur la photo de profil, comme les pin's d'événement
   // Achats intégrés (vrai argent) : affichés, pas encore achetables (il faudra la version App Store / Google Play)
   // Achats intégrés (révision du 05/10) : base ≈ 50 lingots par euro, bonus croissant avec le palier.
   // Repère : un joueur gratuit gagne ~13-15 lingots par jour en jouant (+ jusqu'à 15 avec les pubs) ; un booster vaut 12 lingots.

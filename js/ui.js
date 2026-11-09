@@ -1807,9 +1807,9 @@
     }
     const item = x => { const own = G.evOwned(x.id), used = G.evUsed(x.id), lock = s.lvl < (x.lvl || 1), n = G.decoCost(x), k = G.promoPct('deco', x.id), can = x.lingots ? s.lingots >= n.lingots : s.cash >= n.cash;
       const price = strike(x.lingots ? lgt(x.lingots) : short(x.cash), x.lingots ? lgt(n.lingots) : short(n.cash));
-      const btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${used ? 'Ranger' : 'Poser en ville'}</button>`
+      const pin = x.kind === 'avatar', btn = own ? `<button class="btn xs ${used ? '' : 'blue'}" data-act="bqUse" data-id="${x.id}">${pin ? (used ? 'Enlever' : 'Mettre') : used ? 'Ranger' : 'Poser en ville'}</button>`
         : lock ? `<button class="btn xs" disabled>${ic('lock')} Niveau ${x.lvl}</button>` : `<button class="btn xs ${x.lingots ? 'gold' : 'green'}" data-act="bqBuy" data-id="${x.id}" ${can ? '' : 'disabled'}>${price}</button>`;
-      return `<div class="card ev-item ${used ? 'used' : ''}">${own ? '' : promoTag(k)}<div class="ev-art">${has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? '✓ Dans ta ville' : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
+      return `<div class="card ev-item ${used ? 'used' : ''}">${own ? '' : promoTag(k)}<div class="ev-art">${pin ? pinArt(x) : has('deco-' + x.id) ? pic('deco-' + x.id) : `<span class="ev-emo">${x.emo}</span>`}</div><b>${x.name}</b>${own ? `<small class="up">${used ? (pin ? '✓ Sur ta photo' : '✓ Dans ta ville') : 'À toi'}</small>` : `<small class="muted">${x.desc}</small>`}${btn}</div>`; };
     // looks du quartier : en haut de l'onglet, avec un aperçu de la ville
     const own = G.looksOwned(), cur = s.cityLook || 'base';
     const look = L => { const ready = L.id === 'base' || (has('bg-city-' + L.id) && ['casino', 'appart', 'shop', 'balto', 'kiosque', 'six'].every(b => has(`bld-${b}-${L.id}`))), has_ = own.includes(L.id), on = cur === L.id, lock = s.lvl < L.lvl;
@@ -1822,7 +1822,8 @@
       const tag = L.until && !has_ ? `<span class="lk-tag">${ico('ic-timer', '⏱')}<small>Encore</small><b>${left > 864e5 ? `${Math.ceil(left / 864e5)} j` : `${Math.max(1, Math.ceil(left / 36e5))} h`}</b></span>` : '';
       return `<div class="card lk-card ${on ? 'on' : ''} ${L.special ? 'special' : ''}">${promoTag(k)}<div class="lk-prev" style="background-image:url(${src(L.id === 'base' || !has('bg-city-' + L.id) ? 'bg-city' : 'bg-city-' + L.id)})">${tag}</div><b>${L.name}</b><small>${L.desc}</small>${btn}</div>`; };
     return `${(p => p && p.c && p.target !== 'iap' ? gameHero(p.c, p.season) : '')(promoNow())}${gamePromoStrip((promoNow() || {}).c)}<h3 class="sec">Le look du quartier <small>· toute la ville change, bâtiments compris</small></h3><div class="grid2 lk-grid">${D.CITY_LOOKS.map(look).join('')}</div>
-      <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.map(item).join('')}</div>`;
+      <h3 class="sec">Les pin's</h3><p class="hint-line">Affiche ton camp sur ta <b>photo de profil</b> : tes potes le voient aussi.</p><div class="grid2 ev-grid">${D.CITY_SHOP.filter(x => x.kind === 'avatar').map(item).join('')}</div>
+      <h3 class="sec">Les décos</h3><p class="hint-line">Embellis ton quartier : chaque déco a <b>sa place</b> dans la ville, et elle est à toi pour toujours.</p><div class="grid2 ev-grid">${D.CITY_SHOP.filter(x => x.kind === 'deco').map(item).join('')}</div>`;
   }
   // écran de pub (emplacement réservé : la vraie régie se branchera ici dans la version mobile)
   let adTimer = null;
@@ -2159,10 +2160,10 @@
       <div class="rc-top"><span class="ch-cup">${f.place === 1 && has('ev-cdm-chest') ? `<img src="${src('ev-cdm-chest')}" alt="">` : cdmCup()}</span><div><small>${D.CDM.name}</small><b>${f.place ? `Les ${T.name} finissent ${f.place}<sup>${sup(f.place)}</sup> !` : `Merci d'avoir défendu les ${T.name} !`}</b></div></div>
       <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${fmtN(f.pts)}</b></span><span><small>Dans ton équipe</small><b>${f.rank ? `${f.rank}<sup>${f.rank === 1 ? 'er' : 'e'}</sup>` : '–'}</b></span><span><small>Bonbons gagnés</small><b>${S.candyAll}</b></span></div>
       ${order}
-      <h3 class="sec">Tes récompenses</h3><div class="rc-rew cdm-final-rew">${r ? cdmRew(r) : ''}<span class="rw-chips"><span class="need cdm-rit" title="La Coupe des Morts (trophée)">${cdmCup()}</span></span>
+      <h3 class="sec">Tes récompenses</h3><div class="rc-rew cdm-final-rew">${r ? cdmRew(r) : ''}<span class="rw-chips"><span class="need cdm-rit" title="La Coupe des Morts (trophée)">${cdmCup()}Coupe</span></span>
         <small>${r ? `${f.place ? `Récompense de la ${f.place}<sup>${sup(f.place)}</sup> équipe` : 'Récompense de participation'}, plus la Coupe des Morts pour tes étagères.` : `La Coupe des Morts pour tes étagères (récompense d'équipe dès ${D.CDM.minReward} points).`}</small></div>
       <button class="btn green wide big" data-act="cdmRecapOk">${f.claimed ? 'Super !' : 'Récupérer mes récompenses'}</button>
-      <p class="hint-line center">Rendez-vous l'an prochain pour une nouvelle Coupe !</p></div>` });
+</div>` });
   }
 
   // ------------------------------------------------------------ Le Comptoir (objets de collection)
@@ -3013,8 +3014,8 @@
       if (t === 'item') { const it = G.item(ref); if (!it) return; if (!G.catUnlocked(it.cat)) return toast(`${D.ITEM_CATS[it.cat].name} : au niveau ${D.ITEM_CATS[it.cat].lvl}.`, true); setScene('city'); return openShop(it.cat, (D.ITEM_CATS[it.cat] || {}).shop); }
       if (t === 'deco' || t === 'look') return openBoutique('deco');
       if (t === 'booster') return ref === 'kiosk' ? (setScene('city'), openKiosk('booster')) : openBoosters('open'); },
-    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); if (r.x && r.x.kind === 'deco') sfx.deco(); else sfx.buy(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
-    bqUse(el) { G.evUse(el.dataset.id); renderCity(); refresh(); },
+    bqBuy(el) { const r = G.shopBuy(el.dataset.id); if (r.err) return toast(r.err, true); if (r.x.kind === 'avatar') { sfx.win(); rain('confetti', 20); toast('Ton pin\'s est sur ta photo !'); renderHud(); return refresh(); } if (r.x && r.x.kind === 'deco') sfx.deco(); else sfx.buy(); if (r.x && r.x.kind === 'deco') decoFocus = r.x.id; toast(`${r.x.name} posé${/e$/.test(r.x.name.split(' ')[0]) ? 'e' : ''} dans ta ville !`); renderCity(); refresh(); },
+    bqUse(el) { G.evUse(el.dataset.id); renderCity(); renderHud(); refresh(); },
     iapSoon() { toast('Les achats en vrai argent arriveront avec la version App Store et Google Play.'); },
     profile: el => openProfile(el && el.dataset && el.dataset.tab),
     setSkin(el) { const k = D.SKINS.find(x => x.id === el.dataset.id), own = skinsOwned(); if (!k || st().lvl < (k.lvl || 1)) return; if (k.iap && !own.includes(k.id)) { closeModal(); return openBoutique('vip'); }

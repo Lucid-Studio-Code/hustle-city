@@ -1136,7 +1136,9 @@
     const k = decoCost(x);
     if (x.lingots) { if (st.lingots < k.lingots) return { err: 'Pas assez de lingots.' }; addLingots(-k.lingots); }
     else if (!pay(k.cash)) return { err: 'Pas assez de cash.' };
-    (st.evItems = st.evItems || {})[id] = now(); (st.decoOff = st.decoOff || {})[id] = false;
+    (st.evItems = st.evItems || {})[id] = now();
+    if (x.kind === 'avatar') { st.avatar = id; addXp(10); emit('change'); return { x }; }   // un pin's : directement sur ta photo
+    (st.decoOff = st.decoOff || {})[id] = false;
     stat('decos'); addXp(10 + Math.min(xpCap(80), (x.cash || x.lingots * 20) / 50)); emit('change'); return { x };
   }
   function evBuy(id) {
