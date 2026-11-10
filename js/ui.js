@@ -417,7 +417,7 @@
   function upgradesBody() {
     const s = st(), nx = G.rigNext(), nr = D.ROOMS[s.room + 1], sk = D.SKINS.find(k => k.id === s.skin) || D.SKINS[0];
     const rimg = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l, room = i => has(`room-${sk.g}-${i}`) ? `room-${sk.g}-${i}` : 'room-' + i;
-    const rig = nx ? `<div class="card up-card ${s.cash >= nx.price ? 'ready' : ''}"><div class="up-img">${pic(rimg(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><small class="muted">Machine à crypto · niveau ${s.rig.lvl + 2} / ${D.RIG.length}</small><b>${nx.nx.name}</b>
+    const rig = nx ? `<div class="card up-card ${s.cash >= nx.price ? 'ready' : ''}"><div class="up-img">${pic(rimg(s.rig.lvl + 1), EMO.rig)}</div><div class="up-info"><small class="muted">Machine à crypto · niveau ${s.rig.lvl + 2} / ${D.RIG.length}</small><b>${nx.nx.name}</b>
         <p><span class="up">×${nx.mult.toFixed(1).replace('.', ',')}</span> plus rapide : ≈ ${short(nx.perHour)} par heure, et elle tient ${nx.nx.heatMin} min avant de chauffer.</p>
         <button class="btn ${s.cash >= nx.price ? 'green' : ''} wide" data-act="rigUp" ${s.cash >= nx.price ? '' : 'disabled'}>Améliorer · ${short(nx.price)}</button>${mixBtn(nx.price, 'rigUpL')}</div></div>`
       : `<div class="card center"><b>Machine à crypto</b><p>Au maximum. Respect.</p></div>`;
@@ -427,7 +427,7 @@
         <button class="btn ${s.cash >= rp ? 'green' : ''} wide" data-act="roomUp" ${s.cash >= rp ? '' : 'disabled'}>Emménager · ${short(rp)}</button>${mixBtn(rp, 'roomUpL')}</div></div>`
       : `<div class="card center"><b>Ton appart</b><p>Le plus bel appart du quartier. Respect.</p></div>`;
     const pn = G.pcNext(), fpc = f => (f * 100).toFixed(1).replace('.', ',').replace(',0', '') + ' %';
-    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(pcFor(0, G.pcLvl() + 1), EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
+    const pcCard = pn ? `<div class="card up-card"><div class="up-img">${pic(pcFor(0, G.pcLvl() + 1), EMO.pc)}</div><div class="up-info"><small class="muted">Ton PC · niveau ${G.pcLvl() + 2} / ${D.PCS.length}</small><b>${pn.nx.name}</b>
         <p>${pn.nx.desc} Frais sur tes cryptos : <span class="up">${fpc(G.fee())} → ${fpc(pn.nx.fee)}</span> à chaque achat et vente.</p>
         <button class="btn ${s.cash >= pn.price ? 'green' : ''} wide" data-act="pcUp" ${s.cash >= pn.price ? '' : 'disabled'}>Améliorer · ${short(pn.price)}</button>${mixBtn(pn.price, 'pcUpL')}</div></div>`
       : D.PC_UPGRADES ? `<div class="card center"><b>Ton PC</b><p>Au maximum : ${fpc(G.fee())} de frais seulement.</p></div>` : '';
@@ -654,7 +654,7 @@
     const up = nx && maxed ? (s.lvl < nx.lvl ? `<button class="btn" disabled>${ic('lock')} Étage -${F + 1} · niv. ${nx.lvl}</button>` : `<button class="btn ${s.cash >= nx.cost ? 'yellow' : ''}" data-act="floorUp" ${s.cash >= nx.cost ? '' : 'disabled'}>Ouvrir l'étage -${F + 1} · ${short(nx.cost)}</button>`) : '';
     // pleine page comme l'appart : le parking remplit tout l'écran, la place reste calée sur le dessin quel que soit le téléphone
     return `<div class="park-full ${f && !has('parking-bg-' + (f + 1)) ? 'pk-lux' + Math.min(f, 4) : ''}"><div class="pk-stage">${has(bgN) ? `<img class="pk-bg" src="${src(bgN)}" alt="">` : ''}${slots}</div>
-      <div class="pk-foot">${tabs}<span class="pk-count">${F > 1 ? `Niveau -${f + 1} · ` : ''}${cars.length} / ${n} places</span>${up || '<button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button>'}</div></div>`;
+      <div class="pk-foot">${tabs}<span class="pk-count">${F > 1 ? `Niveau -${f + 1} · ` : ''}${cars.length} / ${n} places</span>${up || '<button class="btn green" data-act="goPlace" data-id="garage">Garage Prestige</button>'}</div></div>`;
   }
   function openParking(keep) { if (!keep) pkFloor = G.parkFloors(); openModal({ title: 'Mon parking', icon: has('bld-parking') ? 'bld-parking' : 'bld-garage', full: true, theme: 'park', body: parkingBody(), refresh: () => setBody(parkingBody()) }); }
   // ------------------------------------------------------------ placement des places du parking (back-office, #placer-parking)
@@ -1252,7 +1252,7 @@
     const tr = G.traderState(), goal = G.traderGoal(), done = tr.profit >= goal, n = D.PCX.trader.lingots + Math.floor(st().lvl / 3);
     return `<div class="card trader ${tr.claimed ? 'got' : done ? 'ready' : ''}"><span class="tr-ic">${ico('ic-target', '🎯')}</span><div class="grow"><b>Défi du trader</b><small>${tr.claimed ? 'Réussi aujourd\'hui. Reviens demain !' : `Fais <b>+${short(goal)}</b> de bénéfice en revendant des cryptos aujourd'hui`}</small>
       ${tr.claimed ? '' : `<div class="kh-bar"><i style="width:${Math.min(100, tr.profit / goal * 100)}%"></i></div>`}
-      <div class="tr-foot">${tr.claimed ? '' : `<small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}<p class="rw-get">Tu gagnes ${chips(0, n)}</p></div></div>
+      <div class="tr-foot">${tr.claimed ? '' : `<small>${short(Math.max(0, tr.profit))} / ${short(goal)}</small>`}<p class="rw-get">Tu gagnes ${chips(0, n)}</p></div></div>
       ${tr.claimed ? '<span class="rw-done">✓ Déjà récupéré</span>' : done ? '<button class="btn green sm" data-act="traderClaim">Réclamer</button>' : ''}</div>`;
   }
   function flashBanner() {
@@ -1326,7 +1326,7 @@
   }
   function rigBody() {
     const s = st(), i = G.rigInfo(), nx = G.rigNext(), img = l => has('minerv-' + l) ? 'minerv-' + l : 'rig-' + l;
-    const top = `<div class="rig-top">${pic(img(s.rig.lvl), EMO.rig)}<div><b>${i.r.name}</b><small>Machine niveau ${s.rig.lvl + 1} / ${D.RIG.length} · puissance ≈ ${short(i.perHour)} par heure</small></div></div>`;
+    const top = `<div class="rig-top">${pic(img(s.rig.lvl), EMO.rig)}<div><b>${i.r.name}</b><small>Machine niveau ${s.rig.lvl + 1} / ${D.RIG.length} · puissance ≈ ${short(i.perHour)} par heure</small></div></div>`;
     const main = i.idle ? minePicker()
       : i.ready ? `<div class="mine-ready"><span class="mr-coin pop">${coinPic(i.run.id)}</span><b>Ton minage ${deC(G.coin(i.run.id).name)} est fini !</b><small>Qu'est-ce qu'il y a dedans ?</small>
           <button class="btn green wide big-act pulse" data-act="mineHarvest">${ico('ic-pickaxe', '⛏️')} Récolter</button></div>`
@@ -1528,7 +1528,7 @@
           <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>${on ? '<span class="rtag rE">Ton habitude</span>' : ''}</div>
           <p style="margin-top:6px"><b class="up">＋</b> ${h.bonus}</p><p><b class="down">－</b> ${h.malus}</p>
           <p class="hab-auto">${lock ? `Au niveau ${h.lvl}.` : on ? `Pour t'en défaire, ne remets pas les pieds au Club pendant ${D.QUIT_H} h. Il reste <b>${Math.ceil(left / 3600000)} h</b> : chaque soirée relance le compteur.`
-            : `<span class="hab-count"><span>Tes sorties ces ${h.auto.days} derniers jours</span><span class="hc-pips">${Array.from({ length: h.auto.nights }, (_, i) => `<i class="${i < h.auto.nights - n ? 'on' : ''}"></i>`).join('')}<b>${h.auto.nights - n} / ${h.auto.nights}</b></span></span>À ${h.auto.nights} sorties en ${h.auto.days} jours, ça devient ton habitude.`}</p></div>`;
+            : `<span class="hab-count"><span>Tes sorties ces ${h.auto.days} derniers jours</span><span class="hc-pips">${Array.from({ length: h.auto.nights }, (_, i) => `<i class="${i < h.auto.nights - n ? 'on' : ''}"></i>`).join('')}<b>${h.auto.nights - n} / ${h.auto.nights}</b></span></span>À ${h.auto.nights} sorties en ${h.auto.days} jours, ça devient ton habitude.`}</p></div>`;
         }
         return `<div class="card habit-card ${lock ? 'locked' : ''}">
           <div class="hstack" style="justify-content:space-between"><h4 style="font-size:18px">${ico('hab-' + h.id, h.icon)} ${h.name}</h4>
@@ -1914,7 +1914,7 @@
     const s = st(), S = D.SIX, ph = G.sixPhase(), ms = G.sixMatches(), pts = G.sixPoints(), rank = G.sixRank(), info = G.sixBoardInfo(), n = info.total;
     const next = ms.find(m => m.state === 'soon');
     const head = `<div class="six-hero"><div class="sh-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><b>${S.name}</b><small>${ph === 'before' ? `Coup d'envoi le ${fDay(G.sixKick(0))} · dans <strong>${untilTxt(G.sixKick(0) - Date.now())}</strong>` : ph === 'on' ? `En cours · journée ${(next || ms[ms.length - 1]).day} / 5` : 'Tournoi terminé'}${G.sixTest() ? ' · <em>mode test</em>' : ''}</small></div></div>
-      <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank ? `${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}` : '–'}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
+      <div class="sh-chips"><span><small>Tes points</small><b>${pts}</b></span><span><small>Ta place</small><b>${rank ? `${rank}<sup>${rank === 1 ? 'er' : 'e'}</sup> / ${n}` : '–'}</b></span><span><small>Bons pronos</small><b>${ms.filter(m => m.ok).length} / ${ms.filter(m => m.state === 'done' && m.pick != null).length}</b></span></div></div>`;
     if (sixTab === 'board') {
       const rows = info.rows, me = rows.find(r => r.me), top = rows.filter(r => r.rank && r.rank <= 10 && rows.indexOf(r) < 10);
       const row = r => `<div class="sb-row ${r.me ? 'me' : ''}"><span class="sb-rk">${+r.rank || '–'}</span><span class="sb-nm">${r.me ? `${esc(r.name)} (toi)` : esc(r.name)}</span><b>${+r.pts || 0} pts</b></div>`;
@@ -1971,7 +1971,7 @@
       if (!open) return locked.push(d);
       if (L.every(m => m.state === 'done')) {
         const good = L.filter(m => m.ok).length, isOpen = sixPastOpen.has(d);
-        return past.unshift(`<div class="sx-pday ${isOpen ? 'open' : ''}"><button class="sx-pline" data-act="sixPast" data-d="${d}"><b>Journée ${d}</b><span>${good} / ${L.length} bons pronos</span><em>+${good * S.pts} pts</em><i>${isOpen ? '▾' : '▸'}</i></button>${isOpen ? `<div class="sx-past">${L.map(pastRow).join('')}</div>` : ''}</div>`);
+        return past.unshift(`<div class="sx-pday ${isOpen ? 'open' : ''}"><button class="sx-pline" data-act="sixPast" data-d="${d}"><b>Journée ${d}</b><span>${good} / ${L.length} bons pronos</span><em>+${good * S.pts} pts</em><i>${isOpen ? '▾' : '▸'}</i></button>${isOpen ? `<div class="sx-past">${L.map(pastRow).join('')}</div>` : ''}</div>`);
       }
       if (d === cur) return today.push(`<div class="sx-today"><div class="sx-today-h"><b>${ico('bld-six', '🏉')} Journée ${d}</b><small>${fDay(L[0].kickoff)}</small></div>${L.filter(m => m.state !== 'done').map(card).join('')}${L.some(m => m.state === 'done') ? `<div class="sx-past">${L.filter(m => m.state === 'done').map(pastRow).join('')}</div>` : ''}</div>`);
       upcoming.push(`<h3 class="sec">Journée ${d} <small>· ${fDay(L[0].kickoff)}</small></h3>${L.map(card).join('')}`);
@@ -2001,7 +2001,7 @@
     const podium = rows.filter(r => r.rank && r.rank <= 3).slice(0, 3).map((r, k) => `<div class="rc-pod p${k + 1} ${r.me ? 'me' : ''}"><i>${ico(['medal-gold', 'medal-silver', 'medal-bronze'][k], ['🥇', '🥈', '🥉'][k])}</i><b>${esc(r.me ? 'Toi' : r.name)}</b><small>${+r.pts || 0} pts</small></div>`).join('');
     openModal({ title: 'Tournoi terminé', icon: 'star', center: true, body: `<div class="six-recap">
       <div class="rc-top">${has('bld-six') ? `<span class="six-board">${pic('bld-six')}</span>` : sixBoardArt()}<div><small>${S.name}</small><b>${fin.rank ? `Tu finis ${fin.rank}<sup>${sup(fin.rank)}</sup> sur ${info.total.toLocaleString('fr-FR')}` : `${G.sixPoints()} points`}</b></div></div>
-      <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
+      <div class="sh-chips rc-chips"><span><small>Tes points</small><b>${G.sixPoints()}</b></span><span><small>Bons pronos</small><b>${good} / ${played}</b></span><span><small>Cartes limitées</small><b>${got} / ${cards.length}</b></span></div>
       ${info.online ? `<h3 class="sec">Le podium des joueurs</h3><div class="rc-podium">${podium}</div>` : '<p class="hint-line center offline-line">Classement en direct indisponible hors ligne.</p>'}${me.rank > 3 ? `<p class="hint-line center">Toi : ${me.rank}<sup>${sup(me.rank)}</sup> avec ${me.pts} points.</p>` : ''}
       <h3 class="sec">Le classement des équipes</h3><div class="six-board-list">${tab.map((t, k) => `<div class="sb-row ${k === 0 ? 'me' : ''}"><span class="sb-rk">${k + 1}</span>${teamCrest('rugby', t.k, 'mini')}<span class="sb-nm">${t.name}${k === 0 ? ` ${ico('icon-trophy', '🏆')}` : ''}</span><b>${t.pts} pts</b></div>`).join('')}</div>
       <h3 class="sec">Tes récompenses</h3><div class="rc-rew">${chips(0, rw.lingots + good * S.lingotPerGood, rw.boosters ? `<span class="need">${packArt(true)}${rw.boosters}</span>` : '')}<small>dont ${good * S.lingotPerGood} lingot${good > 1 ? 's' : ''} déjà gagnés avec tes bons pronos</small></div>
@@ -2080,7 +2080,7 @@
     if (cdmTab === 'nights') {
       const N = G.cdmNight(), Bn = C.nightBonus, by = (S.day && S.day.d === N.d && S.day.by) || {};
       const rows = N.list.map((c, i) => { const v = Math.min(c.goal, G.chalValue(c)), done = v >= c.goal;
-        return `<div class="card cdm-night ${c.got ? 'got' : done ? 'ready' : ''}"><div class="cn-l"><b>${c.t}</b><span class="cn-bar"><i style="width:${v / c.goal * 100}%"></i></span><small>${v} / ${c.goal}</small></div>
+        return `<div class="card cdm-night ${c.got ? 'got' : done ? 'ready' : ''}"><div class="cn-l"><b>${c.t}</b><span class="cn-bar"><i style="width:${v / c.goal * 100}%"></i></span><small>${v} / ${c.goal}</small></div>
           ${c.got ? '<span class="cn-ok">✓</span>' : done && on ? `<button class="btn xs green" data-act="cdmNight" data-i="${i}">+${C.nightPts} pts</button>` : `<span class="cn-pts">+${C.nightPts} pts</span>`}</div>`; }).join('');
       return head + `<h3 class="sec">Les défis de la nuit <small>· nouveaux à minuit</small></h3>${rows}
         <p class="hint-line center">Les 3 réussis : <b>+${Bn.pts} pts</b> et <b>${Bn.candy}</b> ${candyIc()} en bonus${N.bonus ? ' <b class="up">✓</b>' : ''}.</p>
@@ -2106,7 +2106,7 @@
     const meRow = B.online && !B.top.some(r => r.me) ? `<div class="sb-gap">…</div><div class="sb-row me"><span class="sb-rk">${B.rank}</span><span class="sb-nm">${esc(st().name)} (toi)</span><b>${fmtN(S.pts)} pts</b></div>` : '';
     return head + `<h3 class="sec">La course des équipes${B.online ? ` <small>· ${fmtN(B.players)} joueur${B.players > 1 ? 's' : ''}</small>` : ''}</h3>${cdmRace(B, S.team)}
       <div class="card cdm-mine" style="--tc:${T.color};--td:${T.dark}">${cdmCrest(T.id)}<div><b>${T.name}</b><small>« ${T.motto} »</small><p>Ta part : <b>${fmtN(S.pts)} pts</b>${B.online ? ` · ${B.rank}<sup>${B.rank === 1 ? 'er' : 'e'}</sup> sur ${fmtN(B.of)}` : ''}</p>${S.boost ? `<span class="cdm-under-tag">Outsider · tes points comptent +${Math.round((S.boost - 1) * 100)} %</span>` : ''}</div></div>
-      ${(() => { const by = (S.day && S.day.d === G.cdmNight().d && S.day.by) || (S.day && S.day.by) || {}, how = Object.entries(C.pts).map(([k, p]) => `<div class="sb-row"><span class="sb-nm">${CDM_LBL[k] || k}</span><small class="muted">${by[k] || 0} / ${p[1]} aujourd'hui</small><b>+${p[0]}</b></div>`).join('');
+      ${(() => { const by = (S.day && S.day.d === G.cdmNight().d && S.day.by) || (S.day && S.day.by) || {}, how = Object.entries(C.pts).map(([k, p]) => `<div class="sb-row"><span class="sb-nm">${CDM_LBL[k] || k}</span><small class="muted">${by[k] || 0} / ${p[1]} aujourd'hui</small><b>+${p[0]}</b></div>`).join('');
         return `<details class="howto-crypto cdm-howto" ${cdmHowOpen ? 'open' : ''}><summary data-act="cdmHow">Comment gagner des points ?</summary><p>Tout ce que tu fais dans le jeu rapporte des points à ton équipe, avec un maximum par jour pour chaque action. <b>${C.perCandy} points = 1 bonbon</b>.${S.boost ? ` Toi, en outsider : <b>+${Math.round((S.boost - 1) * 100)} %</b> sur tout.` : ''}</p><div class="six-board-list cdm-how">${how}</div></details>`; })()}
       <h3 class="sec">Le top 5 des ${T.name}</h3><div class="six-board-list">${top}${meRow}</div>
       <h3 class="sec">À la fin de la Coupe</h3><div class="six-rew cdm-rew">${C.rewards.map(r => `<div><small>${r.place === 1 ? '1<sup>re</sup> équipe' : `${r.place}<sup>e</sup> équipe`}</small><span class="cr-art">${(m => has(m) ? `<img src="${src(m)}" alt="">` : '')(r.chest ? 'ev-cdm-chest' : ['', '', 'medal-silver', 'medal-bronze', 'ev-cdm-candy'][r.place])}</span><span class="cr-chips">${cdmRew(r)}</span></div>`).join('')}</div>
@@ -2232,10 +2232,10 @@
         <div class="pe-win">Gagné : <b>+${117 - buyEx}<i class="cur"></i></b></div>
         <small class="pe-foot">${sale ? '<b>Déstockage : −15 % à l\'achat en ce moment !</b> ' : ''}La <b>cote</b>, c'est le prix du marché : ${SHOP_PLACES[shopPlace].who} te vend un peu au-dessus (+5 %) et te rachète un peu en dessous (−10 %). Il faut donc que la cote monte pour être gagnant.</small></div>
       <div class="stock-chip">${ico('ic-truck', '🚚')}<span class="grow">Nouvel arrivage dans <b>${mmss(G.stockLeft())}</b> : les rayons changent toutes les 30 min.</span><button class="btn gold xs" data-act="stockSkip" ${s.lingots >= G.stockSkipCost() ? '' : 'disabled'}>${ico('icon-bolt', '⚡')} Maintenant · ${ic('lingot')}${G.stockSkipCost()}</button></div>
-      ${(pl => pl === 'safe' ? (nx => `<div class="shelf-chip ${G.safeCount() >= G.safeSlots() ? 'full' : ''}">${ico('ic-shelf', '🔐')} Ton coffre : <b>${G.safeCount()} / ${G.safeSlots()}</b> places${nx ? ` <button class="btn xs ${s.cash >= nx.cost ? 'green' : ''}" data-act="safeUp" ${s.cash >= nx.cost ? '' : 'disabled'}>${nx.name} · ${nx.slots} places · ${short(nx.cost)}</button>` : ''}</div>`)(D.SAFES[(s.safeLvl || 0) + 1])
-        : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
+      ${(pl => pl === 'safe' ? (nx => `<div class="shelf-chip ${G.safeCount() >= G.safeSlots() ? 'full' : ''}">${ico('ic-shelf', '🔐')} Ton coffre : <b>${G.safeCount()} / ${G.safeSlots()}</b> places${nx ? ` <button class="btn xs ${s.cash >= nx.cost ? 'green' : ''}" data-act="safeUp" ${s.cash >= nx.cost ? '' : 'disabled'}>${nx.name} · ${nx.slots} places · ${short(nx.cost)}</button>` : ''}</div>`)(D.SAFES[(s.safeLvl || 0) + 1])
+        : pl === 'park' ? `<div class="shelf-chip ${G.parkedCount() >= G.garageSlots() ? 'full' : ''}">${ico('bld-garage', '🅿️')} Ton parking : <b>${G.parkedCount()} / ${G.garageSlots()}</b> places${D.GARAGES[(s.garageLvl || 0) + 1] ? ` <button class="btn xs ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? 'green' : ''}" data-act="garageUp" ${s.cash >= D.GARAGES[(s.garageLvl || 0) + 1].cost ? '' : 'disabled'}>${D.GARAGES[(s.garageLvl || 0) + 1].slots} places · ${short(D.GARAGES[(s.garageLvl || 0) + 1].cost)}</button>` : ''}</div>`
         : pl === 'binder' ? `<div class="shelf-chip">${ico('ic-shelf', '🏠')} Les cartes vont dans ton classeur : aucune limite.</div>`
-        : `<div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}</div>`)((D.ITEM_CATS[shopTab] || {}).place)}
+        : `<div class="shelf-chip ${G.ownedCount() >= G.roomSlots() ? 'full' : ''}">${ico('ic-shelf', '🏠')} Place chez toi : <b>${G.ownedCount()} / ${G.roomSlots()}</b>${G.ownedCount() >= G.roomSlots() ? ' · plein, déménage via ton téléphone' : ''}</div>`)((D.ITEM_CATS[shopTab] || {}).place)}
       ${shopTab === 'card' ? `<button class="row col-link" data-act="collection" style="width:100%;text-align:left"><span class="cl-ic">${packArt(true)}</span><div class="grow"><h4>Mon classeur</h4><p>Toutes tes cartes, série par série.</p></div><span class="btn sm blue">Ouvrir</span></button>` : ''}
       ${grid}`;
   }
@@ -2279,7 +2279,7 @@
         <div class="own-val"><b>${short(sp)}</b><button class="btn red xs" data-act="itSell" data-id="${id}">Vendre</button></div></div>`;
     }).join('');
     const tw = G.trophyWait();
-    return `${tw.length ? `<div class="card trophy-full"><b>${tw.length > 1 ? `${tw.length} trophées attendent` : 'Un trophée attend'} une place</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}) : revends un objet ci-dessous, ${esc(G.item(tw[0]).name)} s'installera tout seul.</p></div>` : ''}<div class="card center"><div class="muted">Patrimoine total</div><div class="big" style="font-size:34px">${eur(w)}</div></div>
+    return `${tw.length ? `<div class="card trophy-full"><b>${tw.length > 1 ? `${tw.length} trophées attendent` : 'Un trophée attend'} une place</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}) : revends un objet ci-dessous, ${esc(G.item(tw[0]).name)} s'installera tout seul.</p></div>` : ''}<div class="card center"><div class="muted">Patrimoine total</div><div class="big" style="font-size:34px">${eur(w)}</div></div>
       <div class="card" style="margin-top:8px">
         <div class="hstack" style="justify-content:space-between"><b class="wl-k">${ic('cash')} Cash</b><b>${eur(s.cash)}</b></div>${bar(s.cash, '#3ddc84')}
         <div class="hstack" style="justify-content:space-between;margin-top:8px"><b class="wl-k">${ico('coin-btk', '🪙')} Crypto</b><b>${eur(cv)}</b></div>${bar(cv, '#f7931a')}
@@ -2303,14 +2303,14 @@
         const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
         body += `<div class="row rw-row ${c.got ? 'owned' : ready ? 'focus ready' : 'open'}"><div class="art">${ic(c.got ? 'check' : 'star')}</div><div class="info">
           <h4>Défi ${i + 1}</h4><p class="rw-do">${c.t.replace('{n}', c.goal)}</p>
-          ${c.got ? '' : `<div class="bar"><div style="width:${(v / c.goal * 100).toFixed(0)}%"></div><span>${v} / ${c.goal}</span></div>`}
+          ${c.got ? '' : `<div class="bar"><div style="width:${(v / c.goal * 100).toFixed(0)}%"></div><span>${v} / ${c.goal}</span></div>`}
           <p class="rw-get">Tu gagnes ${chips(G.chalCash(), 0)}</p></div>
           <div class="btns">${c.got ? '<span class="rw-done">✓ Déjà récupéré</span>' : ready ? `<button class="btn green" data-act="claimChal" data-id="${i}">Réclamer</button>` : ''}</div></div>`;
       });
       body += `<div class="chal-bonus ${ch.bonus ? 'got' : ''}">${packArt(true)}<div><b>Bonus des 3 défis</b><small>${ch.bonus ? '2 lingots et 1 booster déjà récupérés aujourd\'hui. Reviens demain !' : `${nGot} / 3 défis réussis`}</small></div>${ch.bonus ? (G.boosterCount() ? '<button class="btn sm purple" data-act="boosters">Ouvrir</button>' : '<span class="got-tag">✓ Récupéré</span>') : `<span class="stroke">${ic('lingot')}2 + booster</span>`}</div>`;
     } else if (rewardsTab === 'missions') {
       const got = G.questsClaimed();
-      body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
+      body += `<p class="hint-line">Missions réussies : <b>${got} / ${D.QUESTS.length}</b>. De nouvelles missions s'ouvrent en montant de niveau : fais-les dans l'ordre que tu veux !</p>`;
       const focus = G.questFocus();
       // ordre : à réclamer, en cours, à venir, puis les missions déjà obtenues tout en bas
       const rows = [];
@@ -2321,7 +2321,7 @@
         const btn = lock ? `<span class="rw-tag">${ic('lock')}Niveau ${q.lvl}</span>` : qs.claimed ? `<span class="rw-done">✓ Déjà récupérée</span>` : qs.done ? `<button class="btn green" data-act="claimQuest" data-id="${q.id}">Réclamer</button>` : `<button class="btn blue rw-go" data-act="questGo" data-id="${q.id}">Y aller</button>`;
         rows.push([qs.claimed ? 3 : lock ? 2 : qs.done ? 0 : 1, `<div class="row rw-row ${state}"><div class="art">${ic(qs.claimed ? 'check' : lock ? 'lock' : 'trophy')}</div><div class="info">
           <h4>Mission ${n + 1}</h4><p class="rw-do">${q.txt}</p>
-          ${!qs.claimed && !lock ? `<div class="bar"><div style="width:${Math.min(100, qs.v / q.n * 100).toFixed(0)}%"></div><span>${q.n >= 1000 ? `${short(qs.v, true)} / ${short(q.n, true)}` : `${qs.v} / ${q.n}`}</span></div>` : ''}
+          ${!qs.claimed && !lock ? `<div class="bar"><div style="width:${Math.min(100, qs.v / q.n * 100).toFixed(0)}%"></div><span>${q.n >= 1000 ? `${short(qs.v, true)} / ${short(q.n, true)}` : `${qs.v} / ${q.n}`}</span></div>` : ''}
           <p class="rw-get">${qs.claimed ? 'Tu as gagné' : 'Tu gagnes'} ${chips(q.cash, q.lingots, it ? `<span class="need">${pic('item-' + it.id, '🏆', 'tiny')}${it.name.replace(/^Trophée /, '')}</span>` : '')}</p></div>
           <div class="btns">${btn}</div></div>`]);
       });
@@ -2343,10 +2343,10 @@
       body += `<div class="wk-card"><div class="wk-head"><b>Objectifs de la semaine</b><small>Nouveaux dans ${left} j</small></div>
         <p class="wk-rew">Chaque objectif : ${chips(R.cash(s.lvl), R.lingots)}</p>${w.list.map((c, i) => {
         const v = Math.min(c.goal, G.chalValue(c)), ready = !c.got && v >= c.goal;
-        return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓ Récupéré</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">Réclamer</button>` : `<span class="wk-v">${v} / ${c.goal}</span>`}</div>`; }).join('')}
+        return `<div class="wk-row ${c.got ? 'got' : ''}"><span class="wk-t">${c.t.replace('{n}', c.goal)}</span>${c.got ? '<em>✓ Récupéré</em>' : ready ? `<button class="btn green xs" data-act="claimWeek" data-id="${i}">Réclamer</button>` : `<span class="wk-v">${v} / ${c.goal}</span>`}</div>`; }).join('')}
         <div class="wk-bonus ${w.bonus ? 'got' : ''}">${packArt(true)}<span><b>Les 4 réussis</b> : ${R.bonus.boosters} boosters + ${R.bonus.lingots} ${ic('lingot')}</span><em>${w.bonus ? '✓' : `${wGot} / 4`}</em></div></div>`;
       body += `<h3 class="sec">Niveaux <small>· chaque niveau : billets, lingots, booster et nouveautés</small></h3>`;
-      body += `<div class="lv-now"><span class="rw-lv stroke">${s.lvl}</span><div class="grow"><small>Ton niveau</small><b>Niveau ${s.lvl}</b>${isFinite(need) ? `<div class="bar"><div style="width:${Math.min(100, s.xp / need * 100).toFixed(0)}%"></div><span>${s.xp} / ${need} XP</span></div>` : '<small>Niveau max atteint, respect.</small>'}</div></div>`;
+      body += `<div class="lv-now"><span class="rw-lv stroke">${s.lvl}</span><div class="grow"><small>Ton niveau</small><b>Niveau ${s.lvl}</b>${isFinite(need) ? `<div class="bar"><div style="width:${Math.min(100, s.xp / need * 100).toFixed(0)}%"></div><span>${s.xp} / ${need} XP</span></div>` : '<small>Niveau max atteint, respect.</small>'}</div></div>`;
       for (let L = s.lvl + 1; L <= Math.min(D.MAX_LVL, s.lvl + 4); L++) {
         const r = D.LEVEL_REWARD(L), done = L <= s.lvl, next = L === s.lvl + 1, un = unlocksAt(L);
         const tag = done ? `<span class="rw-tag ok">${ic('check')}Obtenu</span>` : next ? '<span class="rw-tag next">Prochain</span>' : `<span class="rw-tag">${ic('lock')}À venir</span>`;
@@ -2491,7 +2491,7 @@
     const val = CARD_ALL.reduce((a, c) => a + (s.owned[c.id] || []).length * G.sellPrice(c.id), 0);
     const nCrea = CARD_ALL.filter(c => colOf(c) === 'crea').length;
     let body = `<div class="col-tabs"><button class="${colTab === 'sport' ? 'on' : ''}" data-act="colTab" data-id="sport">${ico('ic-sport-foot', '⚽')} Cartes de sport</button><button class="${colTab === 'crea' ? 'on' : ''}" data-act="colTab" data-id="crea">${ico('cat-crea', '🐲')} Créatures</button></div>
-      <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
+      <div class="col-top"><div class="col-bar"><i style="width:${(got / Math.max(1, ALL.length) * 100).toFixed(1)}%"></i></div><b>${got} / ${ALL.length} cartes</b></div>
       <p class="hint-line">Ton classeur vaut <b>${short(val)}</b> à la revente. Touche une carte pour la voir en grand et la revendre. Complète une série pour une grosse récompense.</p>
       ${colTab === 'crea' && nCrea < 10 ? '<p class="hint-line"><b>Nouvelles créatures en route :</b> elles arrivent dans les boosters au fil des mises à jour.</p>' : ''}`;
     for (const se of D.SERIES.filter(x => seriesOn(x) && (x.col || 'sport') === colTab)) {
@@ -2633,7 +2633,7 @@
     const own = skinsOwned();
     return `<div class="card pf-hero"><div class="pf-skin">${skinPic(s.skin)}</div>
         <div class="pf-id"><div class="big">${esc(s.name)}<small class="pf-tag">#${s.tag || (s.tag = String(1000 + Math.floor(Math.random() * 9000)))}</small></div><span class="pf-lvl">Niveau ${s.lvl}</span><span class="pf-rank" title="Street cred">${pic(rkImg(G.rankOf()), G.rankOf().emo)}${G.rankOf().name}</span>
-          <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
+          <div class="pf-xp"><i style="width:${xpPct}%"></i></div><small>${isFinite(G.xpNeed()) ? `${s.xp} / ${G.xpNeed()} XP` : 'Niveau max atteint'}</small>
           <div class="pf-worth"><small>Patrimoine</small><b>${short(G.worth())}</b>${S.worth ? `<small>Record : ${short(S.worth)}</small>` : ''}</div></div></div>
       ${photoLooks()}
       <div class="card pf-home"><b>Ta ville</b><small>Elle s'affiche à côté de ton nom dans le classement.</small><select data-act-change="home" id="pf-home"><option value="">Ne pas afficher</option>${D.HOMES.map(h => `<option ${st().home === h ? 'selected' : ''}>${h}</option>`).join('')}</select></div>
@@ -2646,7 +2646,7 @@
         if (k.iap && !has) { const x = D.IAP.find(i => i.id === k.iap); return `<div class="card sk-iap"><div class="sp">${skinPic(k.id)}</div><b>${k.name}</b><small class="muted">Exclusif</small><button class="btn gold xs" data-act="iapSoon" data-id="${k.iap}">${x ? x.price : 'Boutique'}</button></div>`; }
         return `<button class="card ${lock ? 'locked' : ''} ${on ? 'on' : ''}" data-act="${lock || on ? 'noop' : 'setSkin'}" data-id="${k.id}" ${!lock && !has && s.cash < k.cost ? 'disabled' : ''}>
         <div class="sp">${skinPic(k.id)}</div><b>${k.name}</b>${lock ? `<small class="muted">${ic('lock')} Niveau ${k.lvl}</small>` : on ? '<small class="muted">Porté</small>' : has ? '<span class="btn xs blue sk-btn">Mettre</span>' : `<span class="btn xs green sk-btn">${short(k.cost)}</span>`}</button>`; }).join('')}</div>
-      <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
+      <h3 class="sec">Tes trophées <small>· ${trophies.filter(x => x.has).length + achs.filter(x => x.done).length} / ${trophies.length + achs.length}</small></h3>
       ${(() => { const L = [...trophies.map(x => ({ done: !!x.has, html: `<div class="pf-tr ${x.has ? 'has' : 'no'}"><div class="pf-art">${itemPic(x.t)}</div><b>${x.t.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</b><small>${x.has ? (x.q ? `✓ Gagné : ${x.q.txt.toLowerCase()}` : '✓ Gagné') : x.q ? `À gagner : ${x.q.txt.toLowerCase()}` : 'À gagner'}</small></div>` })),
         ...achs.map(x => ({ done: x.done, html: `<div class="pf-tr ${x.done ? 'has' : 'no'}"><div class="pf-art">${pic(has('ach-' + x.a.id) ? 'ach-' + x.a.id : 'icon-trophy')}</div><b>${x.a.name}</b><small>${x.done ? `✓ ${x.a.txt}` : x.a.txt}</small>${x.done ? '' : `<i class="pf-a-bar"><i style="width:${Math.round(x.v / x.a.n * 100)}%"></i></i>`}</div>` }))]
         .sort((p, q) => q.done - p.done).map(x => x.html); trophyAll = L;   // les 6 premiers ici (gagnés d'abord), la liste complète dans une fenêtre
@@ -3258,7 +3258,7 @@
     openModal({ title: 'Trophée gagné !', icon: 'trophy', center: true, body: `<div class="levelup trophy-pop"><div class="rays">${itemPic(it)}</div>
       <div class="lv-big stroke">${it.name.replace(/^Trophée\s*/, '').replace(/[«»]/g, '').trim()}</div>
       ${trophyHow(it) ? `<p class="trophy-how">${ico('icon-trophy', '🏆')} ${esc(trophyHow(it))}</p>` : ''}
-      ${wait ? `<div class="card trophy-full"><b>Plus de place chez toi !</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}). Ton trophée attend au chaud : revends un objet ou déménage pour l'exposer.</p></div>
+      ${wait ? `<div class="card trophy-full"><b>Plus de place chez toi !</b><p>Tes étagères sont pleines (${G.ownedCount()} / ${G.roomSlots()}). Ton trophée attend au chaud : revends un objet ou déménage pour l'exposer.</p></div>
       <div class="grid2"><button class="btn green" data-act="trophyMakeRoom">Libérer une place</button><button class="btn" data-act="closeModal">Plus tard</button></div>`
         : `<p class="hint-line center">Il rejoint tes étagères, dans ton appart.</p><button class="btn green wide" data-act="closeModal">Trop fort !</button>`}</div>` });
   }

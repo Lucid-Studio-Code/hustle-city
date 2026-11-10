@@ -96,7 +96,7 @@
   function parCard() {
     const P = A.parrain, n = Math.min(P.pinAt, st().amisFil || 0);
     return `<button class="am-par ${U.has('invite-scene') ? 'am-scn' : ''}" data-act="amisInvite"><span class="am-par-art">${U.has('invite-scene') ? `<img src="${U.src('invite-scene')}" alt="">` : U.has('icon-treasure') ? `<img src="${U.src('icon-treasure')}" alt="">` : '🎁'}</span>
-      <span class="am-par-t"><b>Invite tes potes</b><small>${n} / ${P.pinAt} potes invités au niveau ${P.lvl}</small><i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></span><em>›</em></button>`;
+      <span class="am-par-t"><b>Invite tes potes</b><small>${n} / ${P.pinAt} potes invités au niveau ${P.lvl}</small><i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></span><em>›</em></button>`;
   }
   function listTab() {
     const d = DATA, P = A.parrain;
@@ -108,7 +108,7 @@
     const reqOut = d.reqOut.length ? `<h4 class="am-h">Demandes envoyées <small>${d.reqOut.length}</small></h4>${d.reqOut.map(p => row(p, `<span class="am-acts"><small class="am-wait">En attente</small><button class="btn xs" data-act="amisCancel" data-fid="${esc(p.fid)}">Annuler</button></span>`)).join('')}` : '';
     const L = d.friends.length ? d.friends.map(p => row(p, `<em class="am-seen ${p.ago === 0 ? 'on' : ''}">${agoTxt(p.ago)}</em>`, 'amisFiche')).join('')
       : `<p class="ph-hint center">Pas encore de pote ici. Envoie ton identifiant ou ton lien à tes amis : ${P.filleulLingots} lingots${P.filleulBoosters ? ' et un booster' : ''} pour eux, et une belle récompense pour toi.</p>`;
-    return `${me}${add}${parCard()}${reqIn}${reqOut}<h4 class="am-h">Mes potes <small>${d.friends.length} / ${d.max || A.max}</small></h4>${L}`;
+    return `${me}${add}${parCard()}${reqIn}${reqOut}<h4 class="am-h">Mes potes <small>${d.friends.length} / ${d.max || A.max}</small></h4>${L}`;
   }
   function topTab() {
     const d = DATA, k = topMode, L = [d.me, ...d.friends].sort((a, b) => (b[k] || 0) - (a[k] || 0));
@@ -189,7 +189,7 @@
       <h3>Ramène ta team, ramasse le butin</h3><p>Pour chaque pote qui arrive au <b>niveau ${P.lvl}</b> grâce à toi&nbsp;:</p>
       <div class="give-chips">${chips}</div>
       <div class="am-pop-pin">${pin ? `<span class="am-pop-pins">${U.lbAv({ skin: s.skin, avatar: pin.id, frame: fr ? fr.id : null })}</span>` : ''}<span><b>Au ${P.pinAt}<sup>e</sup> pote : le pin's${fr ? ' et le cadre' : ''} Parrain</b><small>Introuvables ailleurs, sur ta photo pour toujours.</small></span></div>
-      <div class="am-pop-n"><b>${n} / ${P.pinAt}</b> potes invités<i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></div>
+      <div class="am-pop-n"><b>${n} / ${P.pinAt}</b> potes invités<i class="am-bar"><i style="width:${Math.round(n / P.pinAt * 100)}%"></i></i></div>
       <p class="am-pop-f">Ton pote reçoit ${P.filleulLingots} lingots${P.filleulBoosters ? ' et un booster' : ''} à la fin du tuto.</p>
       <button class="btn green big" data-act="amisInviteGo">Inviter mes potes</button><button class="wp-later" data-act="closeModal">Plus tard</button></div>` });
     if (force) go(); else U.queue(go);

@@ -2506,7 +2506,7 @@ h3.sec { margin: 18px 6px 10px; }
 #app .habit-card .hc-pips { display: flex; align-items: center; gap: 4px; }
 #app .habit-card .hc-pips i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #7b2cbf; background: #fff; }
 #app .habit-card .hc-pips i.on { background: #9b5de5; box-shadow: 0 0 6px #9b5de5; }
-#app .habit-card .hc-pips b { margin-left: 4px; font: 400 15px var(--title); color: #7b2cbf; }
+#app .habit-card .hc-pips { flex-shrink: 0; } #app .habit-card .hc-pips b { margin-left: 4px; font: 400 15px var(--title); color: #7b2cbf; white-space: nowrap; }   /* « 0 / 3 » jamais coupé */
 #app .cd-say b img.ico { width: 34px; height: 34px; vertical-align: -10px; margin-right: 4px; }
 /* le contenu qui défile ne doit jamais passer sur le cadre en bois du bas */
 #app #modal .sheet:not(.th-casino) { padding-bottom: 16px; }   /* la fenêtre (#modal) laisse déjà la place de la barre de geste */
@@ -3479,6 +3479,8 @@ html.lowfx #app .room-stage .room-obj.hot::after, html.lowfx #app .room-stage .r
 #app .park-full.pk-lux4 .pk-bg { filter: sepia(.7) saturate(2) brightness(1.15); }
 #app #btn-upg.upg-room .upg-ic img { object-fit: cover; border-radius: 6px; border: 2px solid #2a1a10; }
 #app #btn-upg:not(.upg-room) .upg-ic img { padding: 3px 4px; box-sizing: border-box; }
+/* l'aperçu de la pièce reste dans le bouton (sinon l'image garde sa hauteur et déborde en bas) */
+#app #btn-upg .upg-ic { grid-template: 100% / 100%; overflow: hidden; border-radius: 6px; } #app #btn-upg .upg-ic img { min-height: 0; box-sizing: border-box; }
 #app .vint-h { color: #b8860b; }
 #app .grid2.vint > * { box-shadow: 0 0 0 3px #ffd34d, 0 0 18px rgba(255, 200, 40, .6); border-radius: 18px; }
 /* récompenses de fin de Coupe : 4 cases identiques (titre, image, gains centrés) */
